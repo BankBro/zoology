@@ -322,6 +322,45 @@ def add_gla(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=
     return models
 
 
+def add_flash_vqg(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=2):
+    vocab_size = model_factory_kwargs.get("vocab_size", 8_192)
+    for d_model in [64, 128, 256]:
+        num_heads = 4
+        flash_vqg_mixer = dict(
+            name="zoology.mixers.flash_vqg.FlashVQGMixer",
+            kwargs={
+                "vocab_size": vocab_size,
+                "num_heads": num_heads,
+                "key_dim": d_model // num_heads,
+                "value_dim": d_model // num_heads,
+                "num_codebook_vectors": 32,
+                "block_len": 8,
+                "local_num_blocks": 1,
+                "if_remote_enabled": False,
+                "attn_backend": "flash",
+                "attn_cfg": {},
+                "codebook_beta": 0.25,
+                "enable_layer_metrics": False,
+            },
+        )
+        mixers = [conv_mixer, flash_vqg_mixer] if conv_mixer is not None else [flash_vqg_mixer]
+        mixer = ModuleConfig(
+            name="zoology.mixers.hybrid.Hybrid",
+            kwargs={"configs": mixers}
+        )
+        model = ModelConfig(
+            block_type="TransformerBlock",
+            d_model=d_model,
+            n_layers=num_layers,
+            sequence_mixer=mixer,
+            max_position_embeddings=0,
+            name="flash_vqg",
+            **model_factory_kwargs
+        )
+        models.append(model)
+    return models
+
+
 # Deepseek NSA
 def add_deepseek_nsa(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=2):
     block_type = "TransformerBlock"
@@ -389,6 +428,5 @@ def add_ttt(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=
                 )
                 models.append(model)
     return models
-
 
 
