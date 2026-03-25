@@ -1,6 +1,8 @@
 import argparse
 import random
+import json
 from datetime import datetime
+from pathlib import Path
 from typing import List, Union
 import pandas as pd
 
@@ -13,11 +15,95 @@ import numpy as np
 from einops import rearrange
 
 from zoology.data.utils import prepare_data, prepare_continuous_data
-from zoology.config import TrainConfig
+from zoology.config import CheckpointConfig, TrainConfig
+from zoology.checkpoints import serialize_train_config
 from zoology.model import LanguageModel, ContinuousInputModel
 from zoology.logger import WandbLogger
 from zoology.utils import set_determinism
 from zoology.metrics import compute_mse, compute_ce_with_embeddings
+
+
+class CheckpointManager:
+    def __init__(self, config: TrainConfig):
+        self.config = config
+        self.checkpoint_config: CheckpointConfig = config.checkpoint
+        self.enabled = self.checkpoint_config.enabled
+        self.best_value = None
+
+        launch_dir = config.launch_id if config.launch_id is not None else "manual"
+        self.run_dir = Path(self.checkpoint_config.root_dir) / launch_dir / config.run_id
+        self.best_path = self.run_dir / "best.pt"
+        self.last_path = self.run_dir / "last.pt"
+        self.config_path = self.run_dir / "train_config.json"
+        self.best_metric = self._resolve_best_metric()
+        self.best_mode = self.checkpoint_config.best_mode
+
+    def _resolve_best_metric(self):
+        if self.checkpoint_config.best_metric is not None:
+            return self.checkpoint_config.best_metric
+        if self.config.early_stopping_metric is not None:
+            return self.config.early_stopping_metric
+        return "valid/accuracy"
+
+    def setup(self):
+        if not self.enabled:
+            return
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        if self.checkpoint_config.save_config_json:
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(serialize_train_config(self.config), f, ensure_ascii=False, indent=2)
+
+    def _serialize_model(self, model: nn.Module):
+        return {
+            key: value.detach().cpu()
+            for key, value in model.state_dict().items()
+        }
+
+    def _build_payload(self, model: nn.Module, epoch_idx: int, metrics: dict):
+        return {
+            "model_state_dict": self._serialize_model(model),
+            "epoch": epoch_idx,
+            "metrics": metrics,
+            "run_id": self.config.run_id,
+            "launch_id": self.config.launch_id,
+            "sweep_id": self.config.sweep_id,
+            "model_name": self.config.model.name,
+        }
+
+    def _atomic_save(self, payload: dict, path: Path):
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        torch.save(payload, tmp_path)
+        tmp_path.replace(path)
+
+    def _is_better(self, current_value):
+        if self.best_value is None:
+            return True
+        if self.best_mode == "min":
+            return current_value < self.best_value
+        return current_value > self.best_value
+
+    def save_epoch(self, model: nn.Module, epoch_idx: int, metrics: dict):
+        if not self.enabled:
+            return
+
+        payload = self._build_payload(model=model, epoch_idx=epoch_idx, metrics=metrics)
+
+        if self.checkpoint_config.save_last:
+            self._atomic_save(payload, self.last_path)
+
+        if not self.checkpoint_config.save_best:
+            return
+
+        if self.best_metric not in metrics:
+            raise KeyError(
+                f"Best checkpoint metric `{self.best_metric}` was not found in validation metrics: "
+                f"{sorted(metrics.keys())}"
+            )
+
+        current_value = metrics[self.best_metric]
+        if self._is_better(current_value):
+            self.best_value = current_value
+            self._atomic_save(payload, self.best_path)
 
 
 class Trainer:
@@ -36,12 +122,14 @@ class Trainer:
         slice_keys: List[str] = [],
         device: Union[str, int] = "cuda",
         logger: WandbLogger = None,
+        checkpoint_manager: CheckpointManager = None,
     ):
         self.model = model
         self.train_dataloader = train_dataloader
         self.test_dataloader = test_dataloader
         self.input_type = input_type
         self.logger = logger
+        self.checkpoint_manager = checkpoint_manager
 
         self.device = device
         self.max_epochs = max_epochs
@@ -181,6 +269,8 @@ class Trainer:
 
     def fit(self):
         self.model.to(self.device)
+        if self.checkpoint_manager is not None:
+            self.checkpoint_manager.setup()
         self.loss_fn = nn.CrossEntropyLoss()
         self.optimizer = optim.AdamW(
             self.model.parameters(),
@@ -193,6 +283,12 @@ class Trainer:
         for epoch_idx in range(self.max_epochs):
             self.train_epoch(epoch_idx)
             metrics = self.test(epoch_idx)
+            if self.checkpoint_manager is not None:
+                self.checkpoint_manager.save_epoch(
+                    model=self.model,
+                    epoch_idx=epoch_idx,
+                    metrics=metrics,
+                )
 
             # early stopping
             if (self.early_stopping_metric is not None) and metrics[
@@ -230,6 +326,7 @@ def train(config: TrainConfig):
     logger = WandbLogger(config)
     logger.log_config(config)
     config.print()
+    checkpoint_manager = CheckpointManager(config)
 
     if config.input_type == "continuous":
         model = ContinuousInputModel(config.model)
@@ -257,6 +354,7 @@ def train(config: TrainConfig):
         loss_type=config.loss_type,
         device="cuda" if torch.cuda.is_available() else "cpu",
         logger=logger,
+        checkpoint_manager=checkpoint_manager,
     )
     task.fit()
     logger.finish()
@@ -264,4 +362,4 @@ def train(config: TrainConfig):
 
 if __name__ == "__main__":
     config = TrainConfig.from_cli()
-    train()
+    train(config)
