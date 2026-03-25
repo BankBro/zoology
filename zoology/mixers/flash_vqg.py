@@ -18,6 +18,7 @@ class FlashVQGMixer(nn.Module):
         if_remote_enabled: bool = False,
         attn_backend: str = "flash",
         attn_cfg: dict | None = None,
+        use_time_mixing: str | None = "kv_shift",
         codebook_beta: float = 0.25,
         enable_layer_metrics: bool = False,
         vocab_size: int = 32_000,
@@ -45,6 +46,10 @@ class FlashVQGMixer(nn.Module):
         self.num_heads = int(num_heads)
         self.key_dim = key_dim
         self.value_dim = value_dim
+        self.num_codebook_vectors = int(num_codebook_vectors)
+        self.block_len = int(block_len)
+        self.local_num_blocks = int(local_num_blocks)
+        self.if_remote_enabled = bool(if_remote_enabled)
         self.codebook_beta = float(codebook_beta)
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
@@ -56,12 +61,13 @@ class FlashVQGMixer(nn.Module):
             num_attention_heads=self.num_heads,
             key_dim=self.key_dim,
             value_dim=self.value_dim,
-            num_codebook_vectors=int(num_codebook_vectors),
-            block_len=int(block_len),
-            local_num_blocks=int(local_num_blocks),
-            if_remote_enabled=bool(if_remote_enabled),
+            num_codebook_vectors=self.num_codebook_vectors,
+            block_len=self.block_len,
+            local_num_blocks=self.local_num_blocks,
+            if_remote_enabled=self.if_remote_enabled,
             attn_backend=attn_backend,
             attn_cfg={} if attn_cfg is None else attn_cfg,
+            use_time_mixing=use_time_mixing,
             codebook_beta=self.codebook_beta,
             enable_layer_metrics=self.enable_layer_metrics,
             **kwargs,
@@ -99,4 +105,9 @@ class FlashVQGMixer(nn.Module):
         return self.codebook_beta * l_commit
 
     def state_size(self, sequence_length: int = 2048):
-        return self.num_heads * self.key_dim * self.value_dim
+        local_window_len = self.local_num_blocks * self.block_len
+        local_state_size = self.num_heads * local_window_len * (self.key_dim + self.value_dim)
+        if not self.if_remote_enabled:
+            return local_state_size
+        remote_state_size = self.num_heads * self.num_codebook_vectors * (self.value_dim + 1)
+        return remote_state_size + local_state_size

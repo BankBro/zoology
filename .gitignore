@@ -16,6 +16,7 @@ logs
 checkpoints
 wandb
 bert/data
+tmp/
 
 # Distribution / packaging
 .Python

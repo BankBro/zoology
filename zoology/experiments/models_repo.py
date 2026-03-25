@@ -322,23 +322,94 @@ def add_gla(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=
     return models
 
 
-def add_flash_vqg(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=2):
+def add_flash_vqg(
+    models,
+    conv_mixer,
+    input_seq_len,
+    model_factory_kwargs,
+    num_layers=2,
+    num_heads=4,
+    if_remote_enabled=False,
+    num_codebook_vectors=32,
+    block_len=8,
+    vq_use_triton_shortcodes=False,
+    fox_state_build_backend="torch",
+    fox_remote_path_backend="torch",
+    local_num_blocks=1,
+    use_time_mixing="kv_shift",
+    vq_score_mode="l2",
+    vq_weight_mode="one-hot",
+    vq_update_mode="ema",
+    if_value_silu=True,
+    if_output_gate_use_rmsnorm=True,
+    output_gate_activation="swish",
+    fox_if_local_use_vq_k=False,
+):
+    """
+    Add Flash-VQG models with a shared sweep over d_model in [64, 128, 256].
+
+    Args:
+        num_heads: Number of attention heads used by Flash-VQG. This also sets
+            key_dim and value_dim as d_model // num_heads.
+        if_remote_enabled: Whether to enable the remote VQ/FoX branch. False
+            keeps the original local-only behavior used by existing debug
+            scripts; True enables the hybrid local + remote Flash-VQG path.
+        num_codebook_vectors: Either a fixed integer codebook size for every
+            d_model, or a mapping from d_model to codebook size, e.g.
+            {64: 64, 128: 128, 256: 256}.
+        block_len: Flash-VQG local block length.
+        vq_use_triton_shortcodes: Whether to use the Triton shortcode path for
+            VQ lookup during training.
+        fox_state_build_backend: Backend for FoX state build. One of
+            {"torch", "triton"}.
+        fox_remote_path_backend: Backend for FoX remote reduce. One of
+            {"torch", "triton"}.
+        local_num_blocks: Number of local FoX blocks to retain.
+        use_time_mixing: Flash-VQG time-mixing mode. Typical values are
+            "kv_shift", "shortconv", or None.
+        vq_score_mode: VQ score mode, e.g. "l2".
+        vq_weight_mode: VQ weight mode, e.g. "one-hot".
+        vq_update_mode: VQ update mode, e.g. "ema".
+        if_value_silu: Whether to enable value SiLU in Flash-VQG.
+        if_output_gate_use_rmsnorm: Whether output gate uses RMSNorm.
+        output_gate_activation: Output gate activation, e.g. "swish".
+        fox_if_local_use_vq_k: Whether local path uses VQ key states.
+    """
     vocab_size = model_factory_kwargs.get("vocab_size", 8_192)
     for d_model in [64, 128, 256]:
-        num_heads = 4
+        if isinstance(num_codebook_vectors, dict):
+            if d_model not in num_codebook_vectors:
+                raise ValueError(
+                    f"Missing num_codebook_vectors for d_model={d_model}. "
+                    f"Got keys={sorted(num_codebook_vectors.keys())}."
+                )
+            num_codes = int(num_codebook_vectors[d_model])
+        else:
+            num_codes = int(num_codebook_vectors)
         flash_vqg_mixer = dict(
             name="zoology.mixers.flash_vqg.FlashVQGMixer",
             kwargs={
                 "vocab_size": vocab_size,
-                "num_heads": num_heads,
-                "key_dim": d_model // num_heads,
-                "value_dim": d_model // num_heads,
-                "num_codebook_vectors": 32,
-                "block_len": 8,
-                "local_num_blocks": 1,
-                "if_remote_enabled": False,
+                "num_heads": int(num_heads),
+                "key_dim": d_model // int(num_heads),
+                "value_dim": d_model // int(num_heads),
+                "num_codebook_vectors": num_codes,
+                "block_len": int(block_len),
+                "local_num_blocks": int(local_num_blocks),
+                "if_remote_enabled": bool(if_remote_enabled),
                 "attn_backend": "flash",
                 "attn_cfg": {},
+                "vq_use_triton_shortcodes": bool(vq_use_triton_shortcodes),
+                "fox_state_build_backend": str(fox_state_build_backend),
+                "fox_remote_path_backend": str(fox_remote_path_backend),
+                "use_time_mixing": use_time_mixing,
+                "vq_score_mode": str(vq_score_mode),
+                "vq_weight_mode": str(vq_weight_mode),
+                "vq_update_mode": str(vq_update_mode),
+                "if_value_silu": bool(if_value_silu),
+                "if_output_gate_use_rmsnorm": bool(if_output_gate_use_rmsnorm),
+                "output_gate_activation": str(output_gate_activation),
+                "fox_if_local_use_vq_k": bool(fox_if_local_use_vq_k),
                 "codebook_beta": 0.25,
                 "enable_layer_metrics": False,
             },
@@ -428,5 +499,3 @@ def add_ttt(models, conv_mixer, input_seq_len, model_factory_kwargs, num_layers=
                 )
                 models.append(model)
     return models
-
-
