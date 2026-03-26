@@ -17,8 +17,9 @@ from einops import rearrange
 from zoology.data.utils import prepare_data, prepare_continuous_data
 from zoology.config import CheckpointConfig, TrainConfig
 from zoology.checkpoints import serialize_train_config
+from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
 from zoology.model import LanguageModel, ContinuousInputModel
-from zoology.logger import WandbLogger
+from zoology.logger import LoggerProtocol, build_logger
 from zoology.utils import set_determinism
 from zoology.metrics import compute_mse, compute_ce_with_embeddings
 
@@ -121,7 +122,7 @@ class Trainer:
         loss_type: str = "ce",
         slice_keys: List[str] = [],
         device: Union[str, int] = "cuda",
-        logger: WandbLogger = None,
+        logger: LoggerProtocol = None,
         checkpoint_manager: CheckpointManager = None,
     ):
         self.model = model
@@ -204,6 +205,10 @@ class Trainer:
 
     def train_epoch(self, epoch_idx: int):
         self.model.train()
+        sampler = getattr(self.train_dataloader, "sampler", None)
+        if sampler is not None and hasattr(sampler, "set_epoch"):
+            sampler.set_epoch(epoch_idx)
+
         iterator = tqdm(
             self.train_dataloader,
             total=len(self.train_dataloader),
@@ -229,7 +234,12 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
             iterator.set_postfix({"loss": loss.item()})
-            self.logger.log({"train/loss": loss.item(), "epoch": epoch_idx})
+            metrics = {"train/loss": loss.item(), "epoch": epoch_idx}
+            if slices:
+                mqar_case = slices[0].get("mqar_case")
+                if mqar_case is not None:
+                    metrics[f"train/mqar_case/loss-{mqar_case}"] = loss.item()
+            self.logger.log(metrics)
 
     def test(self, epoch_idx: int):
         self.model.eval()
@@ -280,9 +290,13 @@ class Trainer:
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=self.max_epochs, eta_min=0.0
         )
+        last_metrics = None
+        last_epoch = None
         for epoch_idx in range(self.max_epochs):
             self.train_epoch(epoch_idx)
             metrics = self.test(epoch_idx)
+            last_metrics = metrics
+            last_epoch = epoch_idx
             if self.checkpoint_manager is not None:
                 self.checkpoint_manager.save_epoch(
                     model=self.model,
@@ -301,6 +315,11 @@ class Trainer:
                 break
 
             self.scheduler.step()
+
+        return {
+            "final_epoch": last_epoch,
+            "final_metrics": last_metrics,
+        }
 
 
 def compute_metrics(
@@ -322,42 +341,64 @@ def compute_metrics(
 
 def train(config: TrainConfig):
     set_determinism(config.seed)
-    
-    logger = WandbLogger(config)
-    logger.log_config(config)
-    config.print()
     checkpoint_manager = CheckpointManager(config)
+    logger: LoggerProtocol | None = None
+    try:
+        logger = build_logger(config)
+        logger.log_config(config)
+        config.print()
 
-    if config.input_type == "continuous":
-        model = ContinuousInputModel(config.model)
-        train_dataloader, test_dataloader = prepare_continuous_data(
-            config.data,
-            embeddings=model.backbone.embeddings.word_embeddings.weight.detach(),
+        if config.input_type == "continuous":
+            model = ContinuousInputModel(config.model)
+            train_dataloader, test_dataloader = prepare_continuous_data(
+                config.data,
+                embeddings=model.backbone.embeddings.word_embeddings.weight.detach(),
+            )
+        else:
+            model = LanguageModel(config.model)
+            train_dataloader, test_dataloader = prepare_data(config.data)
+
+        logger.log_model(model, config=config)
+        update_manifest_for_run(
+            config=config,
+            logger_summary=logger.get_summary(),
+            status="running",
         )
-    else:
-        model = LanguageModel(config.model)
-        train_dataloader, test_dataloader = prepare_data(config.data)
 
-    logger.log_model(model, config=config)
-
-    task = Trainer(
-        model=model,
-        train_dataloader=train_dataloader,
-        test_dataloader=test_dataloader,
-        input_type=config.input_type,
-        max_epochs=config.max_epochs,
-        learning_rate=config.learning_rate,
-        weight_decay=config.weight_decay,
-        early_stopping_metric=config.early_stopping_metric,
-        early_stopping_threshold=config.early_stopping_threshold,
-        slice_keys=config.slice_keys,
-        loss_type=config.loss_type,
-        device="cuda" if torch.cuda.is_available() else "cpu",
-        logger=logger,
-        checkpoint_manager=checkpoint_manager,
-    )
-    task.fit()
-    logger.finish()
+        task = Trainer(
+            model=model,
+            train_dataloader=train_dataloader,
+            test_dataloader=test_dataloader,
+            input_type=config.input_type,
+            max_epochs=config.max_epochs,
+            learning_rate=config.learning_rate,
+            weight_decay=config.weight_decay,
+            early_stopping_metric=config.early_stopping_metric,
+            early_stopping_threshold=config.early_stopping_threshold,
+            slice_keys=config.slice_keys,
+            loss_type=config.loss_type,
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            logger=logger,
+            checkpoint_manager=checkpoint_manager,
+        )
+        task.fit()
+        update_manifest_for_run(
+            config=config,
+            logger_summary=logger.get_summary(),
+            status="completed",
+        )
+    except Exception as exc:
+        if logger is not None:
+            update_manifest_for_run(
+                config=config,
+                logger_summary=logger.get_summary(),
+                status="failed",
+                error=str(exc),
+            )
+        raise
+    finally:
+        if logger is not None:
+            logger.finish()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-import uuid
 from typing import Iterable
 
 from zoology.config import DataConfig, LoggerConfig, TrainConfig
@@ -12,6 +11,8 @@ DEFAULT_LEARNING_RATES = [1e-4, 3e-4, 1e-3, 3e-3]
 DEFAULT_WANDB_PROJECT = "flash_vqg_vs_gdn"
 DEFAULT_WANDB_ENTITY = "scu-mclab"
 DEFAULT_MAX_EPOCHS = 32
+DEFAULT_TRAIN_BATCH_ORDER = "sequential"
+DEFAULT_CACHE_DIR = "./data/flash_vqg"
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -28,7 +29,54 @@ def _normalize_learning_rates(learning_rates: Iterable[float] | None) -> list[fl
     return [float(v) for v in values]
 
 
-def _build_data_config(vocab_size: int) -> tuple[DataConfig, int]:
+def _normalize_train_batch_order(train_batch_order: str) -> str:
+    normalized = str(train_batch_order).lower()
+    valid_orders = {"sequential", "global_shuffle", "balanced_interleave"}
+    if normalized not in valid_orders:
+        raise ValueError(
+            f"train_batch_order 只能是 {sorted(valid_orders)}, 当前收到: {train_batch_order}"
+        )
+    return normalized
+
+
+def _normalize_train_batch_orders(
+    train_batch_orders: Iterable[str] | None = None,
+    train_batch_order: str | None = None,
+) -> list[str]:
+    if train_batch_orders is not None and train_batch_order is not None:
+        raise ValueError("train_batch_orders 和 train_batch_order 不能同时传入.")
+
+    raw_values: Iterable[str]
+    if train_batch_orders is not None:
+        raw_values = train_batch_orders
+    elif train_batch_order is not None:
+        raw_values = [train_batch_order]
+    else:
+        raw_values = [DEFAULT_TRAIN_BATCH_ORDER]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in raw_values:
+        order = _normalize_train_batch_order(value)
+        if order not in seen:
+            normalized.append(order)
+            seen.add(order)
+    return normalized
+
+
+def _sampler_run_tag(train_batch_order: str) -> str:
+    return {
+        "sequential": "seq",
+        "global_shuffle": "gshuffle",
+        "balanced_interleave": "binterleave",
+    }[train_batch_order]
+
+
+def _build_data_config(
+    vocab_size: int,
+    train_batch_order: str,
+    cache_dir: str = DEFAULT_CACHE_DIR,
+) -> tuple[DataConfig, int]:
     train_configs = [
         MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=100_000, num_kv_pairs=4),
         MQARConfig(vocab_size=vocab_size, input_seq_len=128, num_examples=20_000, num_kv_pairs=8),
@@ -52,7 +100,8 @@ def _build_data_config(vocab_size: int) -> tuple[DataConfig, int]:
         train_configs=train_configs,
         test_configs=test_configs,
         batch_size=(batch_size, batch_size // 8),
-        cache_dir="/data/sim/zoology",
+        train_batch_order=train_batch_order,
+        cache_dir=cache_dir,
     )
     return data, input_seq_len
 
@@ -68,20 +117,6 @@ def _build_conv_mixer(input_seq_len: int) -> dict:
     )
 
 
-def _build_sweep_name(
-    *,
-    flash_backend: str,
-    include_gdn: bool,
-    block_len: int,
-    dmodels: list[int],
-) -> str:
-    scope = "flash-vs-gdn" if include_gdn else "flash-only"
-    dmodel_tag = "d" + "-".join(str(v) for v in dmodels)
-    block_tag = f"block{int(block_len)}"
-    suffix = uuid.uuid4().hex[:6]
-    return f"flash-vqg-suite-{scope}-{flash_backend}-{block_tag}-{dmodel_tag}-{suffix}"
-
-
 def _flash_run_tag(*, flash_backend: str, block_len: int) -> str:
     backend_tag = "accel" if flash_backend == "accel" else "torch"
     block_tag = "-block32" if int(block_len) == 32 else ""
@@ -90,7 +125,9 @@ def _flash_run_tag(*, flash_backend: str, block_len: int) -> str:
 
 def build_configs(
     *,
+    sweep_id: str = "flash-vqg-suite",
     flash_backend: str = "accel",
+    logger_backend: str = "wandb",
     include_gdn: bool = True,
     block_len: int = 8,
     dmodels: Iterable[int] | None = None,
@@ -99,15 +136,32 @@ def build_configs(
     wandb_entity: str = DEFAULT_WANDB_ENTITY,
     vocab_size: int = DEFAULT_VOCAB_SIZE,
     max_epochs: int = DEFAULT_MAX_EPOCHS,
+    train_batch_orders: Iterable[str] | None = None,
+    train_batch_order: str | None = None,
+    cache_dir: str = DEFAULT_CACHE_DIR,
 ) -> list[TrainConfig]:
     flash_backend = str(flash_backend).lower()
     if flash_backend not in {"accel", "torch"}:
         raise ValueError(f"flash_backend 只能是 'accel' 或 'torch', 当前收到: {flash_backend}")
+    logger_backend = str(logger_backend).lower()
+    if logger_backend not in {"wandb", "swanlab", "none"}:
+        raise ValueError(
+            f"logger_backend 只能是 ['none', 'swanlab', 'wandb'], 当前收到: {logger_backend}"
+        )
 
     dmodels_list = _normalize_dmodels(dmodels)
     learning_rates_list = _normalize_learning_rates(learning_rates)
+    train_batch_orders_list = _normalize_train_batch_orders(train_batch_orders, train_batch_order)
 
-    data, input_seq_len = _build_data_config(vocab_size)
+    data_configs: dict[str, DataConfig] = {}
+    input_seq_len = None
+    for order in train_batch_orders_list:
+        data, current_input_seq_len = _build_data_config(vocab_size, order, cache_dir)
+        data_configs[order] = data
+        if input_seq_len is None:
+            input_seq_len = current_input_seq_len
+    assert input_seq_len is not None
+
     conv_mixer = _build_conv_mixer(input_seq_len)
     model_factory_kwargs = {
         "state_mixer": dict(name="torch.nn.Identity", kwargs={}),
@@ -145,41 +199,41 @@ def build_configs(
         gdn_models = [m for m in gdn_models if m.d_model in dmodels_list]
         gdn_models = sorted(gdn_models, key=lambda m: m.d_model)
 
-    sweep_name = _build_sweep_name(
-        flash_backend=flash_backend,
-        include_gdn=bool(include_gdn),
-        block_len=int(block_len),
-        dmodels=dmodels_list,
-    )
     flash_tag = _flash_run_tag(flash_backend=flash_backend, block_len=int(block_len))
-
     configs: list[TrainConfig] = []
-    logger = LoggerConfig(project_name=wandb_project, entity=wandb_entity)
-    for lr in learning_rates_list:
-        for model in flash_models:
-            configs.append(
-                TrainConfig(
-                    model=model,
-                    data=data,
-                    learning_rate=lr,
-                    max_epochs=max_epochs,
-                    logger=logger,
-                    slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
-                    sweep_id=sweep_name,
-                    run_id=f"{flash_tag}-dmodel{model.d_model}-lr{lr:.1e}",
+    logger = LoggerConfig(
+        backend=logger_backend,
+        project_name=wandb_project,
+        entity=wandb_entity,
+    )
+    for order in train_batch_orders_list:
+        sampler_tag = _sampler_run_tag(order)
+        data = data_configs[order]
+        for lr in learning_rates_list:
+            for model in flash_models:
+                configs.append(
+                    TrainConfig(
+                        model=model,
+                        data=data,
+                        learning_rate=lr,
+                        max_epochs=max_epochs,
+                        logger=logger,
+                        slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
+                        sweep_id=sweep_id,
+                        run_id=f"{flash_tag}-dmodel{model.d_model}-lr{lr:.1e}-sampler-{sampler_tag}",
+                    )
                 )
-            )
-        for model in gdn_models:
-            configs.append(
-                TrainConfig(
-                    model=model,
-                    data=data,
-                    learning_rate=lr,
-                    max_epochs=max_epochs,
-                    logger=logger,
-                    slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
-                    sweep_id=sweep_name,
-                    run_id=f"gated_delta_net-dmodel{model.d_model}-lr{lr:.1e}",
+            for model in gdn_models:
+                configs.append(
+                    TrainConfig(
+                        model=model,
+                        data=data,
+                        learning_rate=lr,
+                        max_epochs=max_epochs,
+                        logger=logger,
+                        slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
+                        sweep_id=sweep_id,
+                        run_id=f"gated_delta_net-dmodel{model.d_model}-lr{lr:.1e}-sampler-{sampler_tag}",
+                    )
                 )
-            )
     return configs

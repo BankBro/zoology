@@ -1,397 +1,467 @@
 from __future__ import annotations
 
-from datetime import datetime
+import json
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-
-from zoology.analysis.utils import fetch_wandb_runs
+import yaml
 
 
-DEFAULT_PROJECT = "flash_vqg_vs_gdn"
-DEFAULT_ENTITY = "scu-mclab"
-DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_ROOT = Path(__file__).resolve().parent / "results"
+GENERATED_ROOT = Path(__file__).resolve().parents[2] / "experiments" / "flash_vqg" / "generated"
+DEFAULT_SOURCE = "remote"
 
-MODEL_LABELS = {
-    "flash_vqg": "Flash-VQG",
-    "gated_delta_net": "Gated DeltaNet",
-}
-MODEL_ORDER = ["Flash-VQG", "Gated DeltaNet"]
-KV_COLUMNS = [
-    "valid/num_kv_pairs/accuracy-4",
-    "valid/num_kv_pairs/accuracy-8",
-    "valid/num_kv_pairs/accuracy-16",
-    "valid/num_kv_pairs/accuracy-32",
-    "valid/num_kv_pairs/accuracy-64",
-    "valid/num_kv_pairs/accuracy-128",
-    "valid/num_kv_pairs/accuracy-256",
+DEFAULT_TRAIN_CASES = [(64, 4), (128, 8), (256, 16), (256, 32), (256, 64)]
+DEFAULT_TEST_CASES = [(64, 4), (64, 8), (64, 16), (128, 32), (256, 64), (512, 64), (512, 128), (1024, 256)]
+DEFAULT_SYSTEM_METRICS = [
+    "__swanlab__.cpu.pct",
+    "__swanlab__.cpu.thds",
+    "__swanlab__.disk.read",
+    "__swanlab__.disk.usage",
+    "__swanlab__.disk.write",
+    "__swanlab__.mem.pct",
+    "__swanlab__.mem.proc",
+    "__swanlab__.mem.proc.avail",
+    "__swanlab__.mem.proc.pct",
+    "__swanlab__.network.recv",
+    "__swanlab__.network.sent",
 ]
-COMBO_PREFIX = "valid/mqar_case/accuracy-"
+DEFAULT_GPU_METRIC_SUFFIXES = [
+    "mem.pct",
+    "mem.time",
+    "mem.value",
+    "pct",
+    "power",
+    "temp",
+]
 
 
-def resolve_project_path(project: str = DEFAULT_PROJECT, entity: str = DEFAULT_ENTITY) -> str:
-    if "/" in project:
-        return project
-    return f"{entity}/{project}"
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
-def default_output_dir(mode: str) -> Path:
-    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    output_dir = DEFAULT_RESULTS_DIR / f"{timestamp}-{mode}"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
+def _sanitize_filename(value: str) -> str:
+    return (
+        str(value)
+        .replace("/", "__")
+        .replace("\\", "__")
+        .replace(":", "_")
+        .replace("*", "_")
+        .replace("?", "_")
+        .replace('"', "_")
+        .replace("<", "_")
+        .replace(">", "_")
+        .replace("|", "_")
+        .replace(".", "_")
+    )
 
 
-def fetch_runs(
-    *,
-    project: str = DEFAULT_PROJECT,
-    entity: str = DEFAULT_ENTITY,
-    launch_ids: list[str] | None = None,
-    sweep_ids: list[str] | None = None,
-) -> pd.DataFrame:
-    kwargs = {}
-    if launch_ids:
-        kwargs["launch_id"] = launch_ids
-    if sweep_ids:
-        kwargs["sweep_id"] = sweep_ids
-    df = fetch_wandb_runs(project_name=resolve_project_path(project, entity), **kwargs)
-    if df.empty:
-        raise ValueError("没有查到任何 run. 请检查 launch_id / sweep_id / project / entity.")
-    return df
+def _to_jsonable(value: Any):
+    if isinstance(value, Path):
+        return str(value.resolve())
+    if isinstance(value, dict):
+        return {str(k): _to_jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_to_jsonable(v) for v in value]
+    if isinstance(value, pd.DataFrame):
+        return value.to_dict(orient="records")
+    return value
 
 
-def _ensure_output_dir(output_dir: str | Path | None, mode: str) -> Path:
-    if output_dir is None:
-        return default_output_dir(mode)
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-    return output_path
+def _write_json(path: Path, payload: dict[str, Any]):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(_to_jsonable(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def _format_learning_rate(summary: pd.DataFrame) -> pd.DataFrame:
-    if "learning_rate" in summary.columns:
-        summary["learning_rate"] = summary["learning_rate"].map(lambda x: f"{x:.2e}")
-    return summary
+def _unwrap_swanlab_config(value: Any):
+    if isinstance(value, dict):
+        if "value" in value and set(value.keys()).issubset({"value", "desc", "sort"}):
+            return _unwrap_swanlab_config(value["value"])
+        return {k: _unwrap_swanlab_config(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_unwrap_swanlab_config(v) for v in value]
+    return value
 
 
-def filter_d128_runs(df: pd.DataFrame) -> pd.DataFrame:
-    filtered = df.copy()
-    filtered = filtered[filtered["model.d_model"] == 128]
-    filtered = filtered[filtered["model.name"].isin(MODEL_LABELS.keys())]
-    if filtered.empty:
-        raise ValueError("过滤 d_model=128 和目标模型后没有剩余 run.")
-    filtered["Model"] = filtered["model.name"].map(MODEL_LABELS)
-    filtered["Model"] = pd.Categorical(filtered["Model"], categories=MODEL_ORDER, ordered=True)
-    return filtered
+def generated_launch_dir(launch_id: str) -> Path:
+    return GENERATED_ROOT / launch_id
 
 
-def pick_best_runs_by_model(df: pd.DataFrame, metric: str) -> pd.DataFrame:
-    valid_df = df.dropna(subset=[metric]).copy()
-    if valid_df.empty:
-        raise ValueError(f"所有 run 的 {metric} 都为空.")
-    idx = valid_df.groupby("model.name")[metric].idxmax(skipna=True).dropna()
-    best_df = valid_df.loc[idx].copy()
-    best_df["Model"] = best_df["model.name"].map(MODEL_LABELS)
-    best_df["Model"] = pd.Categorical(best_df["Model"], categories=MODEL_ORDER, ordered=True)
-    return best_df.sort_values("Model").reset_index(drop=True)
+def manifest_path_for_launch(launch_id: str) -> Path:
+    return generated_launch_dir(launch_id) / "manifest.json"
 
 
-def make_d128_summary(best_df: pd.DataFrame, metric: str) -> pd.DataFrame:
-    columns = [
-        "Model",
-        "learning_rate",
-        metric,
+def load_manifest(launch_id: str) -> dict[str, Any]:
+    path = manifest_path_for_launch(launch_id)
+    if not path.exists():
+        raise FileNotFoundError(f"未找到 manifest: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def completed_runs(manifest: dict[str, Any]) -> list[dict[str, Any]]:
+    completed = [run for run in manifest.get("runs", []) if run.get("status") == "completed"]
+    if not completed:
+        raise ValueError(f"launch_id={manifest.get('launch_id')} 没有任何 completed run.")
+    skipped = [run["run_id"] for run in manifest.get("runs", []) if run.get("status") != "completed"]
+    if skipped:
+        print(f"[warn] 以下 run 不是 completed, 已跳过: {', '.join(skipped)}")
+    return completed
+
+
+def _candidate_metrics_from_config(config_dict: dict[str, Any]) -> list[str]:
+    metrics = {
+        "epoch",
+        "train/loss",
         "valid/loss",
-        "state_size",
+        "valid/accuracy",
         "num_parameters",
-        "run_id",
-        "launch_id",
-        "sweep_id",
-    ]
-    summary = best_df[[c for c in columns if c in best_df.columns]].copy()
-    return _format_learning_rate(summary)
-
-
-def plot_best_metric(best_df: pd.DataFrame, metric: str, output_path: Path):
-    plt.figure(figsize=(6, 4))
-    sns.barplot(
-        data=best_df,
-        x="Model",
-        y=metric,
-        hue="Model",
-        order=MODEL_ORDER,
-        hue_order=MODEL_ORDER,
-        palette=["#4E79A7", "#9C755F"],
-        legend=False,
-    )
-    plt.ylim(0, 1.0)
-    plt.xlabel("")
-    plt.ylabel(metric)
-    plt.title("Best LR at d_model=128")
-    for i, row in best_df.reset_index(drop=True).iterrows():
-        lr_text = f"lr={row['learning_rate']:.1e}" if "learning_rate" in row else ""
-        plt.text(i, row[metric] + 0.01, lr_text, ha="center", va="bottom", fontsize=10)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches="tight")
-    plt.close()
-
-
-def plot_kv_slices(best_df: pd.DataFrame, output_path: Path) -> pd.DataFrame | None:
-    available = [c for c in KV_COLUMNS if c in best_df.columns]
-    if not available:
-        return None
-    rows = []
-    for _, row in best_df.iterrows():
-        for col in available:
-            rows.append(
-                {
-                    "Model": row["Model"],
-                    "num_kv_pairs": int(col.split("-")[-1]),
-                    "accuracy": row[col],
-                }
-            )
-    plot_df = pd.DataFrame(rows).dropna()
-    if plot_df.empty:
-        return None
-    plt.figure(figsize=(7, 4))
-    sns.lineplot(
-        data=plot_df,
-        x="num_kv_pairs",
-        y="accuracy",
-        hue="Model",
-        hue_order=MODEL_ORDER,
-        marker="o",
-        palette=["#4E79A7", "#9C755F"],
-    )
-    plt.xscale("log", base=2)
-    plt.ylim(0, 1.0)
-    plt.xlabel("num_kv_pairs")
-    plt.ylabel("accuracy")
-    plt.title("Best LR slice accuracy by num_kv_pairs")
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches="tight")
-    plt.close()
-    return plot_df
-
-
-def run_d128_analysis(
-    *,
-    project: str = DEFAULT_PROJECT,
-    entity: str = DEFAULT_ENTITY,
-    launch_ids: list[str] | None = None,
-    sweep_ids: list[str] | None = None,
-    metric: str = "valid/accuracy",
-    output_dir: str | Path | None = None,
-    expected_runs: int = 8,
-) -> dict:
-    output_path = _ensure_output_dir(output_dir, mode="d128")
-    df = fetch_runs(project=project, entity=entity, launch_ids=launch_ids, sweep_ids=sweep_ids)
-    df = filter_d128_runs(df)
-    if expected_runs and len(df) != expected_runs:
-        print(f"[warn] 期望 {expected_runs} 个 run, 实际拿到 {len(df)} 个.")
-
-    best_df = pick_best_runs_by_model(df, metric=metric)
-    summary = make_d128_summary(best_df, metric=metric)
-
-    full_csv = output_path / "full_runs.csv"
-    best_csv = output_path / "best_runs.csv"
-    plot_best_path = output_path / "best_valid_accuracy.png"
-    plot_kv_path = output_path / "best_num_kv_slices.png"
-
-    df.sort_values(["model.name", "learning_rate"]).to_csv(full_csv, index=False)
-    best_df.to_csv(best_csv, index=False)
-    plot_best_metric(best_df, metric=metric, output_path=plot_best_path)
-    kv_plot_df = plot_kv_slices(best_df, output_path=plot_kv_path)
-
-    print("\n=== 最佳 lr 摘要 ===")
-    print(summary.to_string(index=False))
-    print(f"\n已保存: {full_csv}")
-    print(f"已保存: {best_csv}")
-    print(f"已保存: {plot_best_path}")
-    if kv_plot_df is not None:
-        print(f"已保存: {plot_kv_path}")
-
-    return {
-        "full_runs": df,
-        "best_runs": best_df,
-        "summary": summary,
-        "output_dir": output_path,
+        "state_size",
+        *DEFAULT_SYSTEM_METRICS,
     }
 
+    data = config_dict.get("data") or {}
+    train_configs = data.get("train_configs") or []
+    test_configs = data.get("test_configs") or []
+    cases_train = DEFAULT_TRAIN_CASES[:]
+    cases_test = DEFAULT_TEST_CASES[:]
 
-def filter_dmodel_runs(df: pd.DataFrame) -> pd.DataFrame:
-    filtered = df.copy()
-    filtered = filtered[filtered["model.name"].isin(MODEL_LABELS.keys())]
-    filtered = filtered[filtered["model.d_model"].isin([64, 128, 256])]
-    if filtered.empty:
-        raise ValueError("过滤目标模型和 d_model 后没有剩余 run.")
-    filtered["Model"] = filtered["model.name"].map(MODEL_LABELS)
-    filtered["Model"] = pd.Categorical(filtered["Model"], categories=MODEL_ORDER, ordered=True)
-    return filtered
+    parsed_train_cases = []
+    for item in train_configs:
+        seq_len = item.get("input_seq_len")
+        num_kv_pairs = item.get("num_kv_pairs")
+        if seq_len is not None and num_kv_pairs is not None:
+            parsed_train_cases.append((int(seq_len), int(num_kv_pairs)))
+    if parsed_train_cases:
+        cases_train = parsed_train_cases
+
+    parsed_test_cases = []
+    for item in test_configs:
+        seq_len = item.get("input_seq_len")
+        num_kv_pairs = item.get("num_kv_pairs")
+        if seq_len is not None and num_kv_pairs is not None:
+            parsed_test_cases.append((int(seq_len), int(num_kv_pairs)))
+    if parsed_test_cases:
+        cases_test = parsed_test_cases
+
+    for seq_len, num_kv_pairs in cases_train:
+        metrics.add(f"train/mqar_case/loss-{seq_len}x{num_kv_pairs}")
+    for seq_len, num_kv_pairs in cases_test:
+        metrics.add(f"valid/mqar_case/accuracy-{seq_len}x{num_kv_pairs}")
+        metrics.add(f"valid/input_seq_len/accuracy-{seq_len}")
+        metrics.add(f"valid/num_kv_pairs/accuracy-{num_kv_pairs}")
+
+    for gpu_idx in range(8):
+        for suffix in DEFAULT_GPU_METRIC_SUFFIXES:
+            metrics.add(f"__swanlab__.gpu.{gpu_idx}.{suffix}")
+
+    return sorted(metrics)
 
 
-def pick_best_runs_by_model_and_dmodel(df: pd.DataFrame, metric: str) -> pd.DataFrame:
-    valid_df = df.dropna(subset=[metric]).copy()
-    if valid_df.empty:
-        raise ValueError(f"所有 run 的 {metric} 都为空.")
-    idx = valid_df.groupby(["model.name", "model.d_model"])[metric].idxmax(skipna=True).dropna()
-    best_df = valid_df.loc[idx].copy()
-    best_df["Model"] = best_df["model.name"].map(MODEL_LABELS)
-    best_df["Model"] = pd.Categorical(best_df["Model"], categories=MODEL_ORDER, ordered=True)
-    return best_df.sort_values(["Model", "model.d_model"]).reset_index(drop=True)
+def _parse_remote_timestamp(value: Any) -> str | None:
+    if value is None or pd.isna(value):
+        return None
+    return pd.to_datetime(value, unit="ms", utc=True).isoformat()
 
 
-def parse_case(case_name: str) -> tuple[int, int]:
-    seq_len, num_kv_pairs = case_name.split("x")
-    return int(seq_len), int(num_kv_pairs)
+def _normalize_remote_metric_name(metric: str, run_id: str) -> str:
+    prefix = f"{run_id}-"
+    if metric.startswith(prefix):
+        return metric[len(prefix) :]
+    return metric
 
 
-def combo_columns(df: pd.DataFrame) -> list[str]:
-    cols = [c for c in df.columns if c.startswith(COMBO_PREFIX)]
-    return sorted(cols, key=lambda c: parse_case(c.removeprefix(COMBO_PREFIX)))
+def _history_from_remote_wide(df: pd.DataFrame, run_id: str) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
 
-
-def combos_to_long(best_df: pd.DataFrame) -> pd.DataFrame:
-    cols = combo_columns(best_df)
+    epoch_series = df["epoch"] if "epoch" in df.columns else None
     rows = []
-    for _, row in best_df.iterrows():
-        for col in cols:
-            case_name = col.removeprefix(COMBO_PREFIX)
-            seq_len, num_kv_pairs = parse_case(case_name)
+    for metric in sorted(c for c in df.columns if c != "epoch" and not c.endswith("_timestamp")):
+        timestamp_col = f"{metric}_timestamp"
+        metric_series = df[metric].dropna()
+        normalized_metric = _normalize_remote_metric_name(metric, run_id)
+        for step, value in metric_series.items():
+            epoch_value = None if epoch_series is None else epoch_series.get(step)
+            timestamp_value = None if timestamp_col not in df.columns else _parse_remote_timestamp(df.loc[step, timestamp_col])
             rows.append(
                 {
-                    "Model": row["Model"],
-                    "model.d_model": row["model.d_model"],
-                    "mqar_case": case_name,
-                    "input_seq_len": seq_len,
-                    "num_kv_pairs": num_kv_pairs,
-                    "accuracy": row[col],
+                    "metric": normalized_metric,
+                    "step": int(step),
+                    "epoch": None if pd.isna(epoch_value) else int(epoch_value),
+                    "timestamp": timestamp_value,
+                    "value": float(value),
                 }
             )
-    combo_df = pd.DataFrame(rows).dropna(subset=["accuracy"])
-    if combo_df.empty:
-        raise ValueError("没有任何可用的 `valid/mqar_case/accuracy-*` 指标.")
-    combo_df["Model"] = pd.Categorical(combo_df["Model"], categories=MODEL_ORDER, ordered=True)
-    return combo_df.sort_values(["input_seq_len", "num_kv_pairs", "Model", "model.d_model"]).reset_index(drop=True)
+    history = pd.DataFrame(rows)
+    if history.empty:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    return history.sort_values(["metric", "step"]).reset_index(drop=True)
 
 
-def make_dmodel_summary(best_df: pd.DataFrame, selection_metric: str, target_case: str) -> pd.DataFrame:
-    target_col = f"{COMBO_PREFIX}{target_case}"
-    columns = [
-        "Model",
-        "model.d_model",
-        "learning_rate",
-        selection_metric,
-        target_col,
-        "valid/loss",
-        "state_size",
-        "num_parameters",
-        "run_id",
-        "launch_id",
-        "sweep_id",
-    ]
-    summary = best_df[[c for c in columns if c in best_df.columns]].copy()
-    summary = _format_learning_rate(summary)
-    if target_col in summary.columns:
-        summary = summary.rename(columns={target_col: f"accuracy@{target_case}"})
-    return summary
+def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str, Any], dict[str, Any], pd.DataFrame]:
+    try:
+        import swanlab
+    except ImportError as e:
+        raise ImportError("source=remote 需要安装 swanlab.") from e
+
+    swanlab_info = run_entry.get("swanlab") or {}
+    experiment_id = swanlab_info.get("experiment_id")
+    project = swanlab_info.get("project")
+    entity = swanlab_info.get("entity")
+    if not experiment_id or not project or not entity:
+        raise ValueError(f"run_id={run_entry.get('run_id')} 缺少 remote 所需的 experiment_id/project/entity.")
+
+    api = swanlab.OpenApi()
+    experiment_resp = api.get_experiment(project, experiment_id, username=entity)
+    experiment = experiment_resp.data.model_dump()
+    config_dict = _unwrap_swanlab_config((experiment.get("profile") or {}).get("config") or {})
+    candidate_metrics = _candidate_metrics_from_config(config_dict)
+    history_resp = api.get_metrics(experiment_id, candidate_metrics)
+    history = _history_from_remote_wide(history_resp.data, run_entry["run_id"])
+
+    summary = {
+        "launch_id": launch_id,
+        "sweep_id": config_dict.get("sweep_id"),
+        "run_id": run_entry["run_id"],
+        "source": "remote",
+        "status": run_entry.get("status"),
+        "project": project,
+        "entity": entity,
+        "experiment_id": experiment_id,
+        "run_url": swanlab_info.get("run_url"),
+        "run_dir": None,
+        "backup_file": None,
+        "available_metrics": sorted(history["metric"].unique().tolist()),
+        "created_at_utc": experiment.get("createdAt"),
+        "finished_at_utc": experiment.get("finishedAt"),
+    }
+    metadata = {
+        "fetched_at_utc": _utc_now(),
+        "manifest_entry": run_entry,
+        "experiment": experiment,
+        "candidate_metrics": candidate_metrics,
+    }
+    return summary, metadata, history
 
 
-def plot_target_case(combo_df: pd.DataFrame, target_case: str, output_path: Path):
-    target_df = combo_df[combo_df["mqar_case"] == target_case].copy()
-    if target_df.empty:
-        raise ValueError(f"没有找到目标组合 `{target_case}` 的指标.")
-    plt.figure(figsize=(6.5, 4))
-    sns.lineplot(
-        data=target_df,
-        x="model.d_model",
-        y="accuracy",
-        hue="Model",
-        hue_order=MODEL_ORDER,
-        marker="o",
-        palette=["#4E79A7", "#9C755F"],
-    )
-    plt.ylim(0, 1.0)
-    plt.xlabel("d_model")
-    plt.ylabel("accuracy")
-    plt.title(f"Accuracy @ {target_case}")
+def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str, Any], dict[str, Any], pd.DataFrame]:
+    from swanlab.data.porter.datastore import DataStore
+    from swanlab.proto.v0 import BaseModel, Scalar
+
+    local_info = run_entry.get("local") or {}
+    run_dir_raw = local_info.get("run_dir")
+    backup_file_raw = local_info.get("backup_file")
+    if run_dir_raw:
+        run_dir = Path(run_dir_raw)
+    elif backup_file_raw:
+        run_dir = Path(backup_file_raw).resolve().parent
+    else:
+        raise ValueError(f"run_id={run_entry.get('run_id')} 缺少 local 所需的 run_dir/backup_file.")
+
+    backup_file = Path(backup_file_raw) if backup_file_raw else run_dir / "backup.swanlab"
+    if not backup_file.exists():
+        raise FileNotFoundError(f"run_id={run_entry.get('run_id')} 缺少 backup 文件: {backup_file}")
+
+    config_file = Path(local_info["config_file"]) if local_info.get("config_file") else run_dir / "files" / "config.yaml"
+    metadata_file = Path(local_info["metadata_file"]) if local_info.get("metadata_file") else run_dir / "files" / "swanlab-metadata.json"
+    parsed_config = {}
+    if config_file.exists():
+        parsed_config = _unwrap_swanlab_config(yaml.safe_load(config_file.read_text(encoding="utf-8")) or {})
+    swanlab_metadata = {}
+    if metadata_file.exists():
+        swanlab_metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+
+    ds = DataStore()
+    ds.open_for_scan(str(backup_file))
+    rows = []
+    for raw in ds:
+        record = BaseModel.from_record(raw)
+        if isinstance(record, Scalar):
+            rows.append(
+                {
+                    "metric": record.key,
+                    "step": int(record.step),
+                    "epoch": int(record.epoch),
+                    "timestamp": record.metric.get("create_time"),
+                    "value": float(record.metric.get("data")),
+                }
+            )
+    history = pd.DataFrame(rows)
+    if history.empty:
+        history = pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    else:
+        history = history.sort_values(["metric", "step"]).reset_index(drop=True)
+
+    summary = {
+        "launch_id": launch_id,
+        "sweep_id": parsed_config.get("sweep_id"),
+        "run_id": run_entry["run_id"],
+        "source": "local",
+        "status": run_entry.get("status"),
+        "project": (run_entry.get("swanlab") or {}).get("project"),
+        "entity": (run_entry.get("swanlab") or {}).get("entity"),
+        "experiment_id": (run_entry.get("swanlab") or {}).get("experiment_id"),
+        "run_url": (run_entry.get("swanlab") or {}).get("run_url"),
+        "run_dir": str(run_dir.resolve()),
+        "backup_file": str(backup_file.resolve()),
+        "available_metrics": sorted(history["metric"].unique().tolist()),
+        "created_at_utc": None,
+        "finished_at_utc": None,
+    }
+    metadata = {
+        "fetched_at_utc": _utc_now(),
+        "manifest_entry": run_entry,
+        "swanlab_metadata": swanlab_metadata,
+        "config": parsed_config,
+    }
+    return summary, metadata, history
+
+
+def _run_metrics_index(history: pd.DataFrame) -> list[dict[str, Any]]:
+    rows = []
+    for metric, group in history.groupby("metric"):
+        rows.append(
+            {
+                "metric": metric,
+                "num_points": int(len(group)),
+                "first_step": int(group["step"].min()),
+                "last_step": int(group["step"].max()),
+                "picture_file": f"{_sanitize_filename(metric)}.png",
+            }
+        )
+    return sorted(rows, key=lambda item: item["metric"])
+
+
+def _plot_metric(group: pd.DataFrame, *, title: str, output_path: Path):
+    plt.figure(figsize=(8, 4))
+    plt.plot(group["step"], group["value"], linewidth=1.5)
+    plt.xlabel("step")
+    plt.ylabel("value")
+    plt.title(title)
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close()
 
 
-def plot_all_cases(combo_df: pd.DataFrame, output_path: Path):
-    g = sns.relplot(
-        data=combo_df,
-        x="model.d_model",
-        y="accuracy",
-        hue="Model",
-        hue_order=MODEL_ORDER,
-        col="mqar_case",
-        col_wrap=3,
-        kind="line",
-        marker="o",
-        palette=["#4E79A7", "#9C755F"],
-        facet_kws={"sharey": True, "sharex": True},
-        height=3.2,
-        aspect=1.1,
-    )
-    g.set_axis_labels("d_model", "accuracy")
-    g.set_titles("{col_name}")
-    for ax in g.axes.flatten():
-        ax.set_ylim(0, 1.0)
-    g.figure.suptitle("Best-LR MQAR accuracy by test case", y=1.02)
-    g.savefig(output_path, dpi=300, bbox_inches="tight")
-    plt.close(g.figure)
+def _plot_run_metrics(history: pd.DataFrame, run_id: str, pics_dir: Path):
+    pics_dir.mkdir(parents=True, exist_ok=True)
+    for metric, group in history.groupby("metric"):
+        output_path = pics_dir / f"{_sanitize_filename(metric)}.png"
+        _plot_metric(group.sort_values("step"), title=f"{run_id} | {metric}", output_path=output_path)
 
 
-def run_dmodel_analysis(
+def _write_run_outputs(
     *,
-    project: str = DEFAULT_PROJECT,
-    entity: str = DEFAULT_ENTITY,
-    launch_ids: list[str] | None = None,
-    sweep_ids: list[str] | None = None,
-    selection_metric: str = "valid/accuracy",
-    target_case: str = "512x64",
-    output_dir: str | Path | None = None,
-    expected_runs: int = 24,
-) -> dict:
-    output_path = _ensure_output_dir(output_dir, mode="dmodel")
-    df = fetch_runs(project=project, entity=entity, launch_ids=launch_ids, sweep_ids=sweep_ids)
-    df = filter_dmodel_runs(df)
-    if expected_runs and len(df) != expected_runs:
-        print(f"[warn] 期望 {expected_runs} 个 run, 实际拿到 {len(df)} 个.")
+    launch_root: Path,
+    summary: dict[str, Any],
+    metadata: dict[str, Any],
+    history: pd.DataFrame,
+):
+    run_root = launch_root / summary["run_id"]
+    if run_root.exists():
+        shutil.rmtree(run_root)
+    data_dir = run_root / "data"
+    pics_dir = run_root / "pics"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    pics_dir.mkdir(parents=True, exist_ok=True)
 
-    best_df = pick_best_runs_by_model_and_dmodel(df, metric=selection_metric)
-    combo_df = combos_to_long(best_df)
-    summary = make_dmodel_summary(best_df, selection_metric=selection_metric, target_case=target_case)
+    history.to_csv(data_dir / "history.csv", index=False)
+    _write_json(data_dir / "summary.json", summary)
+    _write_json(data_dir / "metadata.json", metadata)
+    _write_json(data_dir / "metrics_index.json", {"metrics": _run_metrics_index(history)})
+    _plot_run_metrics(history, summary["run_id"], pics_dir)
 
-    full_csv = output_path / "full_runs.csv"
-    best_csv = output_path / "best_runs.csv"
-    combo_csv = output_path / "best_runs_combo_accuracy.csv"
-    target_plot = output_path / f"accuracy_{target_case}_vs_dmodel.png"
-    combo_plot = output_path / "combo_accuracy_vs_dmodel.png"
 
-    df.sort_values(["model.name", "model.d_model", "learning_rate"]).to_csv(full_csv, index=False)
-    best_df.to_csv(best_csv, index=False)
-    combo_df.to_csv(combo_csv, index=False)
-    plot_target_case(combo_df, target_case=target_case, output_path=target_plot)
-    plot_all_cases(combo_df, output_path=combo_plot)
+def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame]) -> list[dict[str, Any]]:
+    rows = []
+    metrics = sorted({metric for df in history_by_run.values() for metric in df["metric"].unique().tolist()})
+    for metric in metrics:
+        runs_with_metric = []
+        total_points = 0
+        for run_id, history in history_by_run.items():
+            metric_history = history[history["metric"] == metric]
+            if metric_history.empty:
+                continue
+            runs_with_metric.append(run_id)
+            total_points += len(metric_history)
+        if not runs_with_metric:
+            continue
+        rows.append(
+            {
+                "metric": metric,
+                "runs_with_data": runs_with_metric,
+                "num_runs": len(runs_with_metric),
+                "num_points": int(total_points),
+                "picture_file": f"{_sanitize_filename(metric)}.png",
+            }
+        )
+    return rows
 
-    print("\n=== 最佳 lr 摘要 ===")
-    print(summary.to_string(index=False))
-    print(f"\n已保存: {full_csv}")
-    print(f"已保存: {best_csv}")
-    print(f"已保存: {combo_csv}")
-    print(f"已保存: {target_plot}")
-    print(f"已保存: {combo_plot}")
 
+def _plot_launch_metrics(launch_id: str, history_by_run: dict[str, pd.DataFrame], output_dir: Path):
+    output_dir.mkdir(parents=True, exist_ok=True)
+    metrics = sorted({metric for df in history_by_run.values() for metric in df["metric"].unique().tolist()})
+    for metric in metrics:
+        plt.figure(figsize=(9, 5))
+        plotted = False
+        for run_id, history in sorted(history_by_run.items()):
+            metric_history = history[history["metric"] == metric].sort_values("step")
+            if metric_history.empty:
+                continue
+            plt.plot(metric_history["step"], metric_history["value"], linewidth=1.3, label=run_id)
+            plotted = True
+        if not plotted:
+            plt.close()
+            continue
+        plt.xlabel("step")
+        plt.ylabel("value")
+        plt.title(f"{launch_id} | {metric}")
+        plt.legend(fontsize=7)
+        plt.tight_layout()
+        plt.savefig(output_dir / f"{_sanitize_filename(metric)}.png", dpi=200, bbox_inches="tight")
+        plt.close()
+
+
+def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict[str, Any]:
+    if source not in {"remote", "local"}:
+        raise ValueError(f"source 只能是 ['local', 'remote'], 当前收到: {source}")
+
+    manifest = load_manifest(launch_id)
+    runs = completed_runs(manifest)
+    launch_root = RESULTS_ROOT / launch_id
+    launch_root.mkdir(parents=True, exist_ok=True)
+
+    summaries = []
+    history_by_run: dict[str, pd.DataFrame] = {}
+    for run_entry in runs:
+        if source == "remote":
+            summary, metadata, history = fetch_remote_run(run_entry, launch_id)
+        else:
+            summary, metadata, history = fetch_local_run(run_entry, launch_id)
+        _write_run_outputs(launch_root=launch_root, summary=summary, metadata=metadata, history=history)
+        summaries.append(summary)
+        history_by_run[summary["run_id"]] = history
+
+    launch_analysis_dir = launch_root / "launch_analysis"
+    if launch_analysis_dir.exists():
+        shutil.rmtree(launch_analysis_dir)
+    _plot_launch_metrics(launch_id, history_by_run, launch_analysis_dir)
+    pd.DataFrame(summaries).sort_values("run_id").to_csv(launch_analysis_dir / "run_summary.csv", index=False)
+    _write_json(
+        launch_analysis_dir / "metrics_index.json",
+        {
+            "launch_id": launch_id,
+            "source": source,
+            "metrics": _launch_metrics_index(history_by_run),
+        },
+    )
     return {
-        "full_runs": df,
-        "best_runs": best_df,
-        "combo_runs": combo_df,
-        "summary": summary,
-        "output_dir": output_path,
+        "launch_id": launch_id,
+        "source": source,
+        "output_dir": launch_root,
+        "run_summaries": summaries,
     }

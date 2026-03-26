@@ -1,118 +1,83 @@
 # Flash-VQG Analysis
 
-这个目录提供 Flash-VQG 在 Zoology MQAR 实验上的正式分析入口.
+这个目录现在只负责 Flash-VQG 的 SwanLab analysis.
 
-## 文件说明
+## 语义
 
-- `run_flash_vqg_analysis.py`
-  主入口脚本. 负责解析命令行参数, 然后调用分析函数执行汇总和画图.
-- `flash_vqg_analysis_suite.py`
-  分析实现. 负责从 WandB 拉取 run, 过滤目标模型, 选择最佳 learning rate, 并导出表格和图.
-- `results/`
-  默认输出目录. 如果不显式传 `--output-dir`, 分析结果会写到这个目录下的时间戳子目录.
+- analysis 是唯一入口
+- 执行 analysis 时会先抓取数据, 再落盘, 再画图
+- 不再单独区分 export
+- 只支持 `swanlab`
+- 支持两种 source:
+  - `remote`
+  - `local`
 
-## 支持的分析模式
+## 输入
 
-### `d128`
-
-聚焦 `d_model=128` 的 Flash-VQG vs Gated DeltaNet 对比.
-
-默认会导出:
-
-- `full_runs.csv`
-- `best_runs.csv`
-- `best_valid_accuracy.png`
-- `best_num_kv_slices.png`
-
-### `dmodel`
-
-对 `d_model in {64, 128, 256}` 做跨模型规模对比.
-
-这个模式会优先按 `selection_metric` 为每个模型和 `d_model` 选择最佳 run, 然后围绕指定的 `target_case` 画图和汇总.
-
-## 推荐用法
-
-在仓库根目录下运行.
-
-按 `launch_id` 做 `d128` 分析:
-
-```bash
-python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
-  --mode d128 \
-  --launch-id <launch_id>
-```
-
-按 `sweep_id` 做 `d128` 分析:
-
-```bash
-python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
-  --mode d128 \
-  --sweep-id <sweep_id>
-```
-
-做跨 `d_model` 分析:
-
-```bash
-python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
-  --mode dmodel \
-  --sweep-id <sweep_id>
-```
-
-指定目标 case:
-
-```bash
-python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
-  --mode dmodel \
-  --sweep-id <sweep_id> \
-  --target-case 512x64
-```
-
-指定自定义输出目录:
-
-```bash
-python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
-  --mode d128 \
-  --launch-id <launch_id> \
-  --output-dir /path/to/output
-```
-
-## 常用参数
-
-- `--mode {d128,dmodel}`
-- `--project`
-- `--entity`
 - `--launch-id`
-- `--sweep-id`
-- `--output-dir`
-- `--selection-metric`
-- `--metric`
-- `--target-case`
-- `--expected-runs`
+- `--source {remote,local}`
 
-注意:
+默认:
 
-- `--launch-id` 和 `--sweep-id` 至少要传一个.
-- `--metric` 是 `d128` 模式的兼容别名, 如果传了, 会覆盖 `--selection-metric`.
-- 默认项目是 `scu-mclab/flash_vqg_vs_gdn`.
+- `source=remote`
 
-## 输出行为
+## run 发现来源
 
-如果不传 `--output-dir`, 脚本会自动在 `results/` 下创建一个带时间戳的目录, 目录名类似:
+- analysis 只依赖 `generated/<launch_id>/manifest.json`
+- `remote` 通过 manifest 里的 `experiment_id` 拉远端数据
+- `local` 通过 manifest 里的 `run_dir` / `backup_file` 读本地数据
+- 不依赖 `results/autocollect`
+
+## 输出目录
+
+默认输出根目录:
+
+- `zoology/analysis/flash_vqg/results/`
+
+目录结构:
 
 ```text
-results/20260325-123456-d128
-results/20260325-123456-dmodel
+results/
+  <launch_id>/
+    <run_id>/
+      data/
+        summary.json
+        history.csv
+        metadata.json
+        metrics_index.json
+      pics/
+        <metric>.png
+        ...
+    <run_id>/
+      ...
+    launch_analysis/
+      <metric>.png
+      ...
+      run_summary.csv
+      metrics_index.json
 ```
 
-输出内容通常包括:
+## 用法
 
-- 原始 run 汇总 CSV
-- 最优 run 汇总 CSV
-- accuracy 对比图
-- 按 `num_kv_pairs` 或目标 case 生成的切片图
+远端分析:
 
-## 说明
+```bash
+python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
+  --launch-id <launch_id> \
+  --source remote
+```
 
-- 这个目录只负责分析已有 WandB run, 不负责启动训练.
-- 训练入口在 `zoology/experiments/flash_vqg/`.
-- 如果要改分析逻辑本身, 直接改 `flash_vqg_analysis_suite.py`.
+本地分析:
+
+```bash
+python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
+  --launch-id <launch_id> \
+  --source local
+```
+
+## 行为边界
+
+- 数据源不可用时直接报错
+- 不做 `remote -> local` 或 `local -> remote` 自动回退
+- 单个 metric 缺失不报错, 仅跳过
+- 当前只处理 scalar metric

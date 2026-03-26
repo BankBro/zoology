@@ -17,6 +17,7 @@ checkpoints
 wandb
 bert/data
 tmp/
+/data/
 
 # Distribution / packaging
 .Python
@@ -176,3 +177,13 @@ cython_debug/
 # ./tests/
 # tests
 # /tests
+
+# Flash-VQG generated configs and analysis outputs
+/zoology/experiments/flash_vqg/generated/*
+!/zoology/experiments/flash_vqg/generated/.gitignore
+/zoology/analysis/flash_vqg/results/*
+!/zoology/analysis/flash_vqg/results/.gitignore
+
+# Local experiment artifacts
+/swanlog/*
+!/swanlog/.gitignore

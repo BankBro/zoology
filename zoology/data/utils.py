@@ -7,7 +7,7 @@ from typing import Dict, Tuple, List
 import numpy as np
 
 import torch 
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Sampler
 
 from zoology.config import DataConfig, DataSegmentConfig
 
@@ -113,10 +113,23 @@ def prepare_data(config: DataConfig) -> Tuple[DataLoader, DataLoader]:
         for segment_config, seed in zip(config.test_configs, test_seeds)
     ], batch_size=test_batch_size)
 
-    return (
-        DataLoader(ds, batch_size=None, num_workers=0,  shuffle=False)
-        for ds in [train_segments, test_segments]
+    train_dataloader = DataLoader(
+        train_segments,
+        batch_size=None,
+        num_workers=0,
+        sampler=_BatchOrderSampler(
+            train_segments,
+            mode=config.train_batch_order,
+            seed=config.seed,
+        ),
     )
+    test_dataloader = DataLoader(
+        test_segments,
+        batch_size=None,
+        num_workers=0,
+        shuffle=False,
+    )
+    return train_dataloader, test_dataloader
 
 
 def prepare_continuous_data(config: DataConfig, embeddings: torch.Tensor) -> Tuple[DataLoader, DataLoader]:
@@ -163,15 +176,76 @@ class _SyntheticDataset(Dataset):
             for segment_idx, segment in enumerate(self.segments)
             for batch_start in range(0, len(segment), self.batch_size)
         ]
+        self.segment_to_batch_indices = [[] for _ in self.segments]
+        for batch_idx, (segment_idx, _) in enumerate(self.batches):
+            self.segment_to_batch_indices[segment_idx].append(batch_idx)
 
     def __getitem__(self, batch_idx: int):
         segment_idx, batch_start = self.batches[batch_idx]
         segment = self.segments[segment_idx]
         slc = slice(batch_start, batch_start + self.batch_size)
-        
-        slices = [segment.slices if segment.slices is not None else {}] * self.batch_size
+
+        batch_len = len(segment.inputs[slc])
+        slices = [segment.slices if segment.slices is not None else {}] * batch_len
         return segment.inputs[slc], segment.labels[slc], slices      
 
     def __len__(self):
         return len(self.batches)
 
+
+class _BatchOrderSampler(Sampler[int]):
+    def __init__(self, dataset: _SyntheticDataset, mode: str, seed: int):
+        self.dataset = dataset
+        self.mode = mode
+        self.seed = int(seed)
+        self.epoch = 0
+        valid_modes = {"sequential", "global_shuffle", "balanced_interleave"}
+        if self.mode not in valid_modes:
+            raise ValueError(
+                f"Unsupported train_batch_order: {self.mode}. "
+                f"Expected one of {sorted(valid_modes)}."
+            )
+
+    def set_epoch(self, epoch: int):
+        self.epoch = int(epoch)
+
+    def __iter__(self):
+        if self.mode == "sequential":
+            return iter(range(len(self.dataset)))
+
+        generator = torch.Generator()
+        generator.manual_seed(self.seed + self.epoch)
+
+        if self.mode == "global_shuffle":
+            return iter(torch.randperm(len(self.dataset), generator=generator).tolist())
+
+        return iter(self._balanced_interleave(generator))
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def _balanced_interleave(self, generator: torch.Generator) -> list[int]:
+        segment_batches = self.dataset.segment_to_batch_indices
+        emitted = [0] * len(segment_batches)
+        totals = [len(indices) for indices in segment_batches]
+        batch_order = []
+
+        while len(batch_order) < len(self.dataset):
+            available = [
+                segment_idx
+                for segment_idx, total in enumerate(totals)
+                if emitted[segment_idx] < total
+            ]
+            tie_break = torch.randperm(len(available), generator=generator).tolist()
+            ranked = sorted(
+                (
+                    (emitted[segment_idx] / totals[segment_idx], rank, segment_idx)
+                    for rank, segment_idx in zip(tie_break, available)
+                ),
+                key=lambda item: (item[0], item[1]),
+            )
+            chosen_segment = ranked[0][2]
+            batch_order.append(segment_batches[chosen_segment][emitted[chosen_segment]])
+            emitted[chosen_segment] += 1
+
+        return batch_order

@@ -81,6 +81,7 @@ class DataConfig(BaseConfig):
 
     # can pass a tuple if you want a different batch size for train and test
     batch_size: Union[int, Tuple[int, int]] = 32
+    train_batch_order: Literal["sequential", "global_shuffle", "balanced_interleave"] = "sequential"
     seed: int = 123
     cache_dir: Optional[str] = None
     force_cache: bool = False 
@@ -113,7 +114,7 @@ class ModelConfig(BaseConfig):
     name: str = "default"
 
 class LoggerConfig(BaseConfig):
-
+    backend: Literal["wandb", "swanlab", "none"] = "wandb"
     project_name: Optional[str] = None
     entity: Optional[str] = None
     
