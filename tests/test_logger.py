@@ -39,11 +39,13 @@ class _FakeWandbRun:
 class _FakeWandbModule:
     def __init__(self):
         self.run = _FakeWandbRun()
+        self.logged = []
 
     def init(self, **_kwargs):
         return self.run
 
-    def log(self, *_args, **_kwargs):
+    def log(self, *args, **kwargs):
+        self.logged.append((args, kwargs))
         return None
 
     def watch(self, *_args, **_kwargs):
@@ -72,11 +74,13 @@ class _FakeSwanRun:
 class _FakeSwanLabModule:
     def __init__(self):
         self.config = _FakeSwanConfig()
+        self.logged = []
 
     def init(self, **_kwargs):
         return _FakeSwanRun()
 
-    def log(self, *_args, **_kwargs):
+    def log(self, *args, **kwargs):
+        self.logged.append((args, kwargs))
         return None
 
     def finish(self, *_args, **_kwargs):
@@ -84,21 +88,27 @@ class _FakeSwanLabModule:
 
 
 def test_build_logger_returns_wandb_logger(monkeypatch):
-    monkeypatch.setitem(sys.modules, "wandb", _FakeWandbModule())
+    fake_wandb = _FakeWandbModule()
+    monkeypatch.setitem(sys.modules, "wandb", fake_wandb)
 
     logger = build_logger(_build_config(backend="wandb"))
 
     assert isinstance(logger, WandbLogger)
     assert logger.get_summary()["backend"] == "wandb"
+    logger.log({"train/loss": 1.0}, step=7)
+    assert fake_wandb.logged[-1][1]["step"] == 7
 
 
 def test_build_logger_returns_swanlab_logger(monkeypatch):
-    monkeypatch.setitem(sys.modules, "swanlab", _FakeSwanLabModule())
+    fake_swanlab = _FakeSwanLabModule()
+    monkeypatch.setitem(sys.modules, "swanlab", fake_swanlab)
 
     logger = build_logger(_build_config(backend="swanlab"))
 
     assert isinstance(logger, SwanLabLogger)
     assert logger.get_summary()["backend"] == "swanlab"
+    logger.log({"valid/accuracy": 0.5}, step=11)
+    assert fake_swanlab.logged[-1][1]["step"] == 11
 
 
 def test_build_logger_returns_noop_logger():

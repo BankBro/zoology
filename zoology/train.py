@@ -141,6 +141,7 @@ class Trainer:
         self.weight_decay = weight_decay
         self.slice_keys = slice_keys
         self.loss_type = loss_type
+        self.global_step = 0
 
     def compute_loss(self, inputs, targets):
         if self.input_type == "continuous":
@@ -229,6 +230,10 @@ class Trainer:
             prefixed[prefixed_key] = float(value)
         return prefixed
 
+    def _log_metrics(self, metrics: dict[str, float | int]):
+        self.logger.log(metrics, step=self.global_step)
+        self.global_step += 1
+
     def train_epoch(self, epoch_idx: int):
         self.model.train()
         sampler = getattr(self.train_dataloader, "sampler", None)
@@ -266,7 +271,7 @@ class Trainer:
                 if mqar_case is not None:
                     metrics[f"train/mqar_case/loss-{mqar_case}"] = loss.item()
             metrics.update(self._collect_model_scalar_metrics())
-            self.logger.log(metrics)
+            self._log_metrics(metrics)
 
     def test(self, epoch_idx: int):
         self.model.eval()
@@ -311,7 +316,7 @@ class Trainer:
             metrics.update(self._prefix_phase_metrics(aggregated_scalar_metrics, "valid/"))
 
             iterator.set_postfix(metrics)
-            self.logger.log({"epoch": epoch_idx, **metrics})
+            self._log_metrics({"epoch": epoch_idx, **metrics})
         return metrics
 
     def fit(self):

@@ -17,7 +17,7 @@ class LoggerProtocol(Protocol):
     def log_model(self, model: Module, config: TrainConfig):
         ...
 
-    def log(self, metrics: dict):
+    def log(self, metrics: dict, *, step: int | None = None):
         ...
 
     def finish(self):
@@ -103,10 +103,10 @@ class WandbLogger:
         self._wandb.log(_model_summary_metrics(model, config))
         self._wandb.watch(model)
 
-    def log(self, metrics: dict):
+    def log(self, metrics: dict, *, step: int | None = None):
         if self.no_logger:
             return
-        self._wandb.log(metrics)
+        self._wandb.log(metrics, step=step)
 
     def finish(self):
         if self.no_logger or self.run is None:
@@ -174,8 +174,8 @@ class SwanLabLogger:
     def log_model(self, model: Module, config: TrainConfig):
         self._swanlab.log(_model_summary_metrics(model, config))
 
-    def log(self, metrics: dict):
-        self._swanlab.log(metrics)
+    def log(self, metrics: dict, *, step: int | None = None):
+        self._swanlab.log(metrics, step=step)
 
     def finish(self):
         if self.run is None:
@@ -225,7 +225,7 @@ class NoOpLogger:
     def log_model(self, model: Module, config: TrainConfig):
         return
 
-    def log(self, metrics: dict):
+    def log(self, metrics: dict, *, step: int | None = None):
         return
 
     def finish(self):
