@@ -76,9 +76,28 @@ def test_build_configs_expands_multiple_train_batch_orders_under_one_sweep():
         "balanced_interleave",
     }
     assert {config.run_id for config in configs} == {
-        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-sampler-seq",
-        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-sampler-gshuffle",
-        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-sampler-binterleave",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local2-remote1-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local2-remote1-sampler-gshuffle",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local2-remote1-sampler-binterleave",
+    }
+
+
+def test_build_configs_expands_local_and_remote_scan_dimensions():
+    configs = build_configs(
+        include_gdn=False,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        max_epochs=1,
+        local_num_blocks_values=[1, 2],
+        if_remote_enabled_values=[True, False],
+    )
+
+    assert len(configs) == 4
+    assert {config.run_id for config in configs} == {
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local1-remote0-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local1-remote1-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local2-remote0-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-lr1.0e-03-local2-remote1-sampler-seq",
     }
 
 

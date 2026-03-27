@@ -1,6 +1,7 @@
 import argparse
 import random
 import json
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import List, Union
@@ -203,6 +204,31 @@ class Trainer:
                 preds = logits.argmax(dim=-1)
                 return loss, preds
 
+    def _collect_model_scalar_metrics(self) -> dict[str, float]:
+        scalar_metrics: dict[str, float] = {}
+
+        def collect(module):
+            getter = getattr(module, "get_scalar_metrics", None)
+            if getter is None:
+                return
+            module_metrics = getter()
+            if not module_metrics:
+                return
+            for key, value in module_metrics.items():
+                scalar_metrics[str(key)] = float(value)
+
+        self.model.apply(collect)
+        return scalar_metrics
+
+    @staticmethod
+    def _prefix_phase_metrics(metrics: dict[str, float], prefix: str) -> dict[str, float]:
+        prefixed: dict[str, float] = {}
+        for key, value in metrics.items():
+            key = str(key)
+            prefixed_key = key if key.startswith(prefix) else f"{prefix}{key}"
+            prefixed[prefixed_key] = float(value)
+        return prefixed
+
     def train_epoch(self, epoch_idx: int):
         self.model.train()
         sampler = getattr(self.train_dataloader, "sampler", None)
@@ -239,12 +265,14 @@ class Trainer:
                 mqar_case = slices[0].get("mqar_case")
                 if mqar_case is not None:
                     metrics[f"train/mqar_case/loss-{mqar_case}"] = loss.item()
+            metrics.update(self._collect_model_scalar_metrics())
             self.logger.log(metrics)
 
     def test(self, epoch_idx: int):
         self.model.eval()
         test_loss = 0
         results = []
+        scalar_metric_buckets: dict[str, list[float]] = defaultdict(list)
 
         with torch.no_grad(), tqdm(
             total=len(self.test_dataloader),
@@ -256,6 +284,8 @@ class Trainer:
                 loss, preds = self.compute_loss(inputs, targets)
                 test_loss += loss / len(self.test_dataloader)
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
+                for key, value in self._collect_model_scalar_metrics().items():
+                    scalar_metric_buckets[key].append(float(value))
                 iterator.update(1)
 
             results = pd.DataFrame(results)
@@ -272,6 +302,13 @@ class Trainer:
                 acc_by_slice = results.groupby(key)["accuracy"].mean()
                 for value, accuracy in acc_by_slice.items():
                     metrics[f"valid/{key}/accuracy-{value}"] = accuracy
+
+            aggregated_scalar_metrics = {
+                key: float(np.mean(values))
+                for key, values in scalar_metric_buckets.items()
+                if values
+            }
+            metrics.update(self._prefix_phase_metrics(aggregated_scalar_metrics, "valid/"))
 
             iterator.set_postfix(metrics)
             self.logger.log({"epoch": epoch_idx, **metrics})

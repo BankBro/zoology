@@ -27,6 +27,8 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite
 - `block_len=8`
 - `dmodels=128`
 - `learning_rates=1e-4,3e-4,1e-3,3e-3`
+- `if_remote_enabled=true`
+- `local_num_blocks=2`
 - `train_batch_order=sequential`
 - `cache_dir=./data/flash_vqg`
 - `max_epochs=32`
@@ -58,6 +60,22 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --backend torch
 python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --logger-backend swanlab
 ```
 
+训练成功结束后自动执行 analysis:
+
+```bash
+python -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
+  --logger-backend swanlab \
+  --analysis remote
+```
+
+如果希望自动 analysis 直接走本地 SwanLab 日志:
+
+```bash
+python -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
+  --logger-backend swanlab \
+  --analysis local
+```
+
 禁用训练日志写出:
 
 ```bash
@@ -74,6 +92,18 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --dmodels 64,128,256
 
 ```bash
 python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --learning-rates 1e-4,3e-4,1e-3
+```
+
+同时扫描 `if_remote_enabled`:
+
+```bash
+python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --if-remote-enabled true,false
+```
+
+同时扫描 `local_num_blocks`:
+
+```bash
+python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --local-num-blocks 1,2
 ```
 
 指定数据缓存目录:
@@ -104,7 +134,7 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
 - `sweep_id = flash-vqg-e0-all`
 - 同一个 timestamped `launch_id`
 
-但 `run_id` 会继续按 sampler 区分.
+但 `run_id` 会继续按 sampler 和结构标签区分, 例如 `...-local2-remote1-sampler-gshuffle`.
 
 并行启动:
 
@@ -135,6 +165,8 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --launch-id-prefix f
 - `--block-len`
 - `--dmodels`
 - `--learning-rates`
+- `--if-remote-enabled`
+- `--local-num-blocks`
 - `--train-batch-order`
 - `--cache-dir`
 - `--project`
@@ -144,6 +176,7 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite --launch-id-prefix f
 - `--outdir`
 - `--gpus`
 - `-p`
+- `--analysis`
 
 如果你要改实验矩阵本身, 比如训练 / 测试 segment, `num_heads`, `local_num_blocks`, `if_remote_enabled`, 或 Flash-VQG 的 recipe, 请改 `flash_vqg_suite.py` 里的 `build_configs()`.
 
@@ -176,6 +209,7 @@ E0 的 sampler 对照优先通过 `--train-batch-order` 切换, 不需要手改 
 - `if_remote_enabled=True`
 - `num_codebook_vectors={64: 64, 128: 128, 256: 256}`
 - `local_num_blocks=2`
+- `enable_layer_metrics=True`
 - `use_time_mixing="kv_shift"`
 - `vq_score_mode="l2"`
 - `vq_weight_mode="one-hot"`
@@ -189,3 +223,4 @@ E0 的 sampler 对照优先通过 `--train-batch-order` 切换, 不需要手改 
 - 当前仅训练日志支持 `wandb`, `swanlab`, `none` 切换.
 - `zoology.analysis.flash_vqg` 现在只支持 SwanLab 数据源.
 - `manifest.json` 是后续 analysis 的唯一 run 发现入口.
+- 默认不会自动 analysis. 只有显式传入 `--analysis remote` 或 `--analysis local` 时, wrapper 才会在训练成功完成后继续执行 analysis.

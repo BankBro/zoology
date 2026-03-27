@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import shutil
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -17,27 +18,52 @@ DEFAULT_SOURCE = "remote"
 
 DEFAULT_TRAIN_CASES = [(64, 4), (128, 8), (256, 16), (256, 32), (256, 64)]
 DEFAULT_TEST_CASES = [(64, 4), (64, 8), (64, 16), (128, 32), (256, 64), (512, 64), (512, 128), (1024, 256)]
-DEFAULT_SYSTEM_METRICS = [
-    "__swanlab__.cpu.pct",
-    "__swanlab__.cpu.thds",
-    "__swanlab__.disk.read",
-    "__swanlab__.disk.usage",
-    "__swanlab__.disk.write",
-    "__swanlab__.mem.pct",
-    "__swanlab__.mem.proc",
-    "__swanlab__.mem.proc.avail",
-    "__swanlab__.mem.proc.pct",
-    "__swanlab__.network.recv",
-    "__swanlab__.network.sent",
+DEFAULT_ATTN_METRICS = [
+    "attn/den_min",
+    "attn/remote_win_rate",
+    "attn/nan_inf_count",
+    "attn/den_cache_ratio",
+    "attn/o_remote_energy_ratio",
+    "attn/o_remote_local_cos",
+    "attn/remote_dominance_rate",
+    "attn/q_rms_mean",
+    "attn/k_rms_mean",
+    "attn/k_hat_rms_mean",
 ]
-DEFAULT_GPU_METRIC_SUFFIXES = [
-    "mem.pct",
-    "mem.time",
-    "mem.value",
-    "pct",
-    "power",
-    "temp",
+DEFAULT_VQ_METRICS = [
+    "vq/c_sim_min",
+    "vq/c_sim_mean",
+    "vq/c_sim_max",
+    "vq/c_dist_min",
+    "vq/c_dist_mean",
+    "vq/c_dist_max",
+    "vq/c_norm_min",
+    "vq/c_norm_mean",
+    "vq/c_norm_max",
+    "vq/c_usage_min",
+    "vq/c_usage_mean",
+    "vq/c_usage_max",
+    "vq/c_entropy",
+    "vq/k_norm_mean",
+    "vq/k_hat_norm_mean",
+    "vq/relative_err_min",
+    "vq/relative_err_mean",
+    "vq/relative_err_max",
+    "vq/c_rms_mean",
+    "vq/c_usage_min_batch",
+    "vq/c_usage_mean_batch",
+    "vq/c_usage_max_batch",
+    "vq/c_entropy_batch",
+    "vq/c_usage_small_ratio",
+    "vq/c_usage_large_ratio",
 ]
+BAR_CHART_METRICS = {"num_parameters", "state_size"}
+
+
+@dataclass(frozen=True)
+class MetricSpec:
+    metric: str
+    chart_type: Literal["line", "bar"] = "line"
 
 
 def _utc_now() -> str:
@@ -112,16 +138,17 @@ def completed_runs(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return completed
 
 
-def _candidate_metrics_from_config(config_dict: dict[str, Any]) -> list[str]:
-    metrics = {
-        "epoch",
-        "train/loss",
-        "valid/loss",
-        "valid/accuracy",
-        "num_parameters",
-        "state_size",
-        *DEFAULT_SYSTEM_METRICS,
-    }
+def _metric_specs_from_config(config_dict: dict[str, Any]) -> dict[str, MetricSpec]:
+    specs: dict[str, MetricSpec] = {}
+
+    def add_metric(metric: str, chart_type: Literal["line", "bar"] = "line"):
+        specs[metric] = MetricSpec(metric=metric, chart_type=chart_type)
+
+    add_metric("train/loss")
+    add_metric("valid/loss")
+    add_metric("valid/accuracy")
+    add_metric("num_parameters", chart_type="bar")
+    add_metric("state_size", chart_type="bar")
 
     data = config_dict.get("data") or {}
     train_configs = data.get("train_configs") or []
@@ -148,17 +175,46 @@ def _candidate_metrics_from_config(config_dict: dict[str, Any]) -> list[str]:
         cases_test = parsed_test_cases
 
     for seq_len, num_kv_pairs in cases_train:
-        metrics.add(f"train/mqar_case/loss-{seq_len}x{num_kv_pairs}")
+        add_metric(f"train/mqar_case/loss-{seq_len}x{num_kv_pairs}")
     for seq_len, num_kv_pairs in cases_test:
-        metrics.add(f"valid/mqar_case/accuracy-{seq_len}x{num_kv_pairs}")
-        metrics.add(f"valid/input_seq_len/accuracy-{seq_len}")
-        metrics.add(f"valid/num_kv_pairs/accuracy-{num_kv_pairs}")
+        add_metric(f"valid/mqar_case/accuracy-{seq_len}x{num_kv_pairs}")
+        add_metric(f"valid/input_seq_len/accuracy-{seq_len}")
+        add_metric(f"valid/num_kv_pairs/accuracy-{num_kv_pairs}")
 
-    for gpu_idx in range(8):
-        for suffix in DEFAULT_GPU_METRIC_SUFFIXES:
-            metrics.add(f"__swanlab__.gpu.{gpu_idx}.{suffix}")
+    model = config_dict.get("model") or {}
+    n_layers = int(model.get("n_layers") or 0)
+    for metric in DEFAULT_ATTN_METRICS:
+        add_metric(metric)
+        add_metric(f"valid/{metric}")
+        for layer_idx in range(n_layers):
+            add_metric(f"layer_{layer_idx}/{metric}")
+            add_metric(f"valid/layer_{layer_idx}/{metric}")
 
-    return sorted(metrics)
+    for metric in DEFAULT_VQ_METRICS:
+        add_metric(metric)
+        add_metric(f"valid/{metric}")
+        for layer_idx in range(n_layers):
+            add_metric(f"layer_{layer_idx}/{metric}")
+            add_metric(f"valid/layer_{layer_idx}/{metric}")
+
+    return specs
+
+
+def _candidate_metrics_from_config(config_dict: dict[str, Any]) -> list[str]:
+    return ["epoch", *sorted(_metric_specs_from_config(config_dict).keys())]
+
+
+def _filter_model_metrics(history: pd.DataFrame, metric_specs: dict[str, MetricSpec] | None = None) -> pd.DataFrame:
+    if history.empty:
+        return history
+    if metric_specs is None:
+        allowed_metrics = {metric for metric in history["metric"].unique().tolist() if not str(metric).startswith("__swanlab__.")}
+    else:
+        allowed_metrics = set(metric_specs)
+    filtered = history[history["metric"].isin(allowed_metrics)].copy()
+    if filtered.empty:
+        return pd.DataFrame(columns=history.columns)
+    return filtered.sort_values(["metric", "step"]).reset_index(drop=True)
 
 
 def _parse_remote_timestamp(value: Any) -> str | None:
@@ -202,6 +258,46 @@ def _history_from_remote_wide(df: pd.DataFrame, run_id: str) -> pd.DataFrame:
     return history.sort_values(["metric", "step"]).reset_index(drop=True)
 
 
+def _history_from_remote_single_metric(
+    df: pd.DataFrame,
+    *,
+    metric: str,
+    run_id: str,
+    epoch_by_step: dict[int, int] | None = None,
+) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+
+    normalized_metric = _normalize_remote_metric_name(metric, run_id)
+    value_columns = [column for column in df.columns if not column.endswith("_timestamp")]
+    if not value_columns:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+
+    value_column = value_columns[0]
+    timestamp_column = f"{value_column}_timestamp"
+    value_series = df[value_column].dropna()
+    rows = []
+    for step, value in value_series.items():
+        step_int = int(step)
+        timestamp_value = None
+        if timestamp_column in df.columns:
+            timestamp_value = _parse_remote_timestamp(df.loc[step, timestamp_column])
+        epoch_value = None if epoch_by_step is None else epoch_by_step.get(step_int)
+        rows.append(
+            {
+                "metric": normalized_metric,
+                "step": step_int,
+                "epoch": epoch_value,
+                "timestamp": timestamp_value,
+                "value": float(value),
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    return pd.DataFrame(rows).sort_values(["metric", "step"]).reset_index(drop=True)
+
+
 def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str, Any], dict[str, Any], pd.DataFrame]:
     try:
         import swanlab
@@ -219,9 +315,32 @@ def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[st
     experiment_resp = api.get_experiment(project, experiment_id, username=entity)
     experiment = experiment_resp.data.model_dump()
     config_dict = _unwrap_swanlab_config((experiment.get("profile") or {}).get("config") or {})
-    candidate_metrics = _candidate_metrics_from_config(config_dict)
-    history_resp = api.get_metrics(experiment_id, candidate_metrics)
-    history = _history_from_remote_wide(history_resp.data, run_entry["run_id"])
+    metric_specs = _metric_specs_from_config(config_dict)
+    candidate_metrics = ["epoch", *sorted(metric_specs)]
+    epoch_by_step: dict[int, int] = {}
+    epoch_resp = api.get_metrics(experiment_id, "epoch")
+    if not epoch_resp.data.empty and "epoch" in epoch_resp.data.columns:
+        epoch_by_step = {int(step): int(value) for step, value in epoch_resp.data["epoch"].dropna().items()}
+
+    history_frames = []
+    for metric in candidate_metrics:
+        if metric == "epoch":
+            continue
+        metric_resp = api.get_metrics(experiment_id, metric)
+        metric_history = _history_from_remote_single_metric(
+            metric_resp.data,
+            metric=metric,
+            run_id=run_entry["run_id"],
+            epoch_by_step=epoch_by_step,
+        )
+        if not metric_history.empty:
+            history_frames.append(metric_history)
+
+    if history_frames:
+        history = pd.concat(history_frames, ignore_index=True).sort_values(["metric", "step"]).reset_index(drop=True)
+    else:
+        history = pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    history = _filter_model_metrics(history, metric_specs)
 
     summary = {
         "launch_id": launch_id,
@@ -243,7 +362,10 @@ def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[st
         "fetched_at_utc": _utc_now(),
         "manifest_entry": run_entry,
         "experiment": experiment,
+        "config": config_dict,
         "candidate_metrics": candidate_metrics,
+        "metric_specs": {metric: {"chart_type": spec.chart_type} for metric, spec in metric_specs.items()},
+        "fetched_metric_count": len(history_frames),
     }
     return summary, metadata, history
 
@@ -274,6 +396,7 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
     swanlab_metadata = {}
     if metadata_file.exists():
         swanlab_metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+    metric_specs = _metric_specs_from_config(parsed_config)
 
     ds = DataStore()
     ds.open_for_scan(str(backup_file))
@@ -295,6 +418,7 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
         history = pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
     else:
         history = history.sort_values(["metric", "step"]).reset_index(drop=True)
+    history = _filter_model_metrics(history, metric_specs)
 
     summary = {
         "launch_id": launch_id,
@@ -317,16 +441,18 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
         "manifest_entry": run_entry,
         "swanlab_metadata": swanlab_metadata,
         "config": parsed_config,
+        "metric_specs": {metric: {"chart_type": spec.chart_type} for metric, spec in metric_specs.items()},
     }
     return summary, metadata, history
 
 
-def _run_metrics_index(history: pd.DataFrame) -> list[dict[str, Any]]:
+def _run_metrics_index(history: pd.DataFrame, metric_specs: dict[str, MetricSpec]) -> list[dict[str, Any]]:
     rows = []
     for metric, group in history.groupby("metric"):
         rows.append(
             {
                 "metric": metric,
+                "chart_type": metric_specs.get(metric, MetricSpec(metric=metric)).chart_type,
                 "num_points": int(len(group)),
                 "first_step": int(group["step"].min()),
                 "last_step": int(group["step"].max()),
@@ -336,7 +462,7 @@ def _run_metrics_index(history: pd.DataFrame) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda item: item["metric"])
 
 
-def _plot_metric(group: pd.DataFrame, *, title: str, output_path: Path):
+def _plot_line_metric(group: pd.DataFrame, *, title: str, output_path: Path):
     plt.figure(figsize=(8, 4))
     plt.plot(group["step"], group["value"], linewidth=1.5)
     plt.xlabel("step")
@@ -347,11 +473,26 @@ def _plot_metric(group: pd.DataFrame, *, title: str, output_path: Path):
     plt.close()
 
 
-def _plot_run_metrics(history: pd.DataFrame, run_id: str, pics_dir: Path):
+def _plot_run_bar_metric(group: pd.DataFrame, *, title: str, run_id: str, output_path: Path):
+    latest = group.sort_values(["step", "epoch"]).iloc[-1]
+    plt.figure(figsize=(6, 4))
+    plt.bar([run_id], [latest["value"]], width=0.6)
+    plt.ylabel("value")
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
+def _plot_run_metrics(history: pd.DataFrame, run_id: str, pics_dir: Path, metric_specs: dict[str, MetricSpec]):
     pics_dir.mkdir(parents=True, exist_ok=True)
     for metric, group in history.groupby("metric"):
         output_path = pics_dir / f"{_sanitize_filename(metric)}.png"
-        _plot_metric(group.sort_values("step"), title=f"{run_id} | {metric}", output_path=output_path)
+        chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
+        if chart_type == "bar":
+            _plot_run_bar_metric(group, title=f"{run_id} | {metric}", run_id=run_id, output_path=output_path)
+        else:
+            _plot_line_metric(group.sort_values("step"), title=f"{run_id} | {metric}", output_path=output_path)
 
 
 def _write_run_outputs(
@@ -360,6 +501,7 @@ def _write_run_outputs(
     summary: dict[str, Any],
     metadata: dict[str, Any],
     history: pd.DataFrame,
+    metric_specs: dict[str, MetricSpec],
 ):
     run_root = launch_root / summary["run_id"]
     if run_root.exists():
@@ -372,11 +514,51 @@ def _write_run_outputs(
     history.to_csv(data_dir / "history.csv", index=False)
     _write_json(data_dir / "summary.json", summary)
     _write_json(data_dir / "metadata.json", metadata)
-    _write_json(data_dir / "metrics_index.json", {"metrics": _run_metrics_index(history)})
-    _plot_run_metrics(history, summary["run_id"], pics_dir)
+    _write_json(data_dir / "metrics_index.json", {"metrics": _run_metrics_index(history, metric_specs)})
+    _plot_run_metrics(history, summary["run_id"], pics_dir, metric_specs)
 
 
-def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame]) -> list[dict[str, Any]]:
+def _find_flash_vqg_kwargs(node: Any) -> dict[str, Any] | None:
+    if isinstance(node, dict):
+        if node.get("name") == "zoology.mixers.flash_vqg.FlashVQGMixer":
+            kwargs = node.get("kwargs")
+            return kwargs if isinstance(kwargs, dict) else {}
+        for value in node.values():
+            found = _find_flash_vqg_kwargs(value)
+            if found is not None:
+                return found
+    elif isinstance(node, list):
+        for item in node:
+            found = _find_flash_vqg_kwargs(item)
+            if found is not None:
+                return found
+    return None
+
+
+def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) -> dict[str, Any]:
+    row = dict(summary)
+    config = metadata.get("config") or {}
+    model = config.get("model") or {}
+    data = config.get("data") or {}
+    flash_kwargs = _find_flash_vqg_kwargs(model) or {}
+    row.update(
+        {
+            "learning_rate": config.get("learning_rate"),
+            "d_model": model.get("d_model"),
+            "n_layers": model.get("n_layers"),
+            "train_batch_order": data.get("train_batch_order"),
+            "block_len": flash_kwargs.get("block_len"),
+            "local_num_blocks": flash_kwargs.get("local_num_blocks"),
+            "if_remote_enabled": flash_kwargs.get("if_remote_enabled"),
+            "num_codebook_vectors": flash_kwargs.get("num_codebook_vectors"),
+            "num_heads": flash_kwargs.get("num_heads"),
+            "use_time_mixing": flash_kwargs.get("use_time_mixing"),
+        }
+    )
+    return row
+
+
+def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame], metric_specs: dict[str, MetricSpec]) -> list[dict[str, Any]]:
     rows = []
     metrics = sorted({metric for df in history_by_run.values() for metric in df["metric"].unique().tolist()})
     for metric in metrics:
@@ -393,6 +575,7 @@ def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame]) -> list[dict[
         rows.append(
             {
                 "metric": metric,
+                "chart_type": metric_specs.get(metric, MetricSpec(metric=metric)).chart_type,
                 "runs_with_data": runs_with_metric,
                 "num_runs": len(runs_with_metric),
                 "num_points": int(total_points),
@@ -402,10 +585,37 @@ def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame]) -> list[dict[
     return rows
 
 
-def _plot_launch_metrics(launch_id: str, history_by_run: dict[str, pd.DataFrame], output_dir: Path):
+def _plot_launch_metrics(
+    launch_id: str,
+    history_by_run: dict[str, pd.DataFrame],
+    output_dir: Path,
+    metric_specs: dict[str, MetricSpec],
+):
     output_dir.mkdir(parents=True, exist_ok=True)
     metrics = sorted({metric for df in history_by_run.values() for metric in df["metric"].unique().tolist()})
     for metric in metrics:
+        chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
+        if chart_type == "bar":
+            run_ids = []
+            values = []
+            for run_id, history in sorted(history_by_run.items()):
+                metric_history = history[history["metric"] == metric].sort_values(["step", "epoch"])
+                if metric_history.empty:
+                    continue
+                run_ids.append(run_id)
+                values.append(metric_history.iloc[-1]["value"])
+            if not run_ids:
+                continue
+            plt.figure(figsize=(9, 5))
+            plt.bar(run_ids, values, width=0.65)
+            plt.xticks(rotation=15, ha="right")
+            plt.ylabel("value")
+            plt.title(f"{launch_id} | {metric}")
+            plt.tight_layout()
+            plt.savefig(output_dir / f"{_sanitize_filename(metric)}.png", dpi=200, bbox_inches="tight")
+            plt.close()
+            continue
+
         plt.figure(figsize=(9, 5))
         plotted = False
         for run_id, history in sorted(history_by_run.items()):
@@ -436,27 +646,38 @@ def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict
     launch_root.mkdir(parents=True, exist_ok=True)
 
     summaries = []
+    run_summary_rows = []
     history_by_run: dict[str, pd.DataFrame] = {}
+    launch_metric_specs: dict[str, MetricSpec] = {}
     for run_entry in runs:
         if source == "remote":
             summary, metadata, history = fetch_remote_run(run_entry, launch_id)
         else:
             summary, metadata, history = fetch_local_run(run_entry, launch_id)
-        _write_run_outputs(launch_root=launch_root, summary=summary, metadata=metadata, history=history)
+        metric_specs = _metric_specs_from_config(metadata.get("config") or {})
+        launch_metric_specs.update(metric_specs)
+        _write_run_outputs(
+            launch_root=launch_root,
+            summary=summary,
+            metadata=metadata,
+            history=history,
+            metric_specs=metric_specs,
+        )
         summaries.append(summary)
+        run_summary_rows.append(_build_run_summary_row(summary, metadata))
         history_by_run[summary["run_id"]] = history
 
     launch_analysis_dir = launch_root / "launch_analysis"
     if launch_analysis_dir.exists():
         shutil.rmtree(launch_analysis_dir)
-    _plot_launch_metrics(launch_id, history_by_run, launch_analysis_dir)
-    pd.DataFrame(summaries).sort_values("run_id").to_csv(launch_analysis_dir / "run_summary.csv", index=False)
+    _plot_launch_metrics(launch_id, history_by_run, launch_analysis_dir, launch_metric_specs)
+    pd.DataFrame(run_summary_rows).sort_values("run_id").to_csv(launch_analysis_dir / "run_summary.csv", index=False)
     _write_json(
         launch_analysis_dir / "metrics_index.json",
         {
             "launch_id": launch_id,
             "source": source,
-            "metrics": _launch_metrics_index(history_by_run),
+            "metrics": _launch_metrics_index(history_by_run, launch_metric_specs),
         },
     )
     return {

@@ -5,7 +5,11 @@ import pandas as pd
 from swanlab.data.porter.datastore import DataStore
 from swanlab.proto.v0 import Experiment, Footer, Header, Project, Scalar
 
-from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import _history_from_remote_wide, run_launch_analysis
+from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import (
+    _history_from_remote_single_metric,
+    _history_from_remote_wide,
+    run_launch_analysis,
+)
 from zoology.config import DataConfig, DataSegmentConfig, LoggerConfig, ModelConfig, TrainConfig
 from zoology.experiments.flash_vqg.manifest import initialize_manifest, update_manifest_for_run
 
@@ -112,17 +116,35 @@ def test_local_analysis_writes_run_and_launch_outputs(tmp_path, monkeypatch):
     files_dir = run_dir / "files"
     files_dir.mkdir(parents=True, exist_ok=True)
     (files_dir / "config.yaml").write_text(
-        "\n".join(
-            [
-                "launch_id:",
-                "  value: demo-launch",
-                "run_id:",
-                "  value: demo-run",
-                "sweep_id:",
-                "  value: demo-sweep",
-            ]
-        )
-        + "\n",
+        """launch_id:
+  value: demo-launch
+run_id:
+  value: demo-run
+sweep_id:
+  value: demo-sweep
+learning_rate:
+  value: 0.001
+data:
+  value:
+    train_batch_order: global_shuffle
+model:
+  value:
+    d_model: 128
+    n_layers: 2
+    sequence_mixer:
+      kwargs:
+        configs:
+          - name: zoology.mixers.base_conv.BaseConv
+            kwargs: {}
+          - name: zoology.mixers.flash_vqg.FlashVQGMixer
+            kwargs:
+              block_len: 32
+              local_num_blocks: 2
+              if_remote_enabled: true
+              num_codebook_vectors: 128
+              num_heads: 2
+              use_time_mixing: kv_shift
+""",
         encoding="utf-8",
     )
     (files_dir / "swanlab-metadata.json").write_text(
@@ -163,6 +185,14 @@ def test_local_analysis_writes_run_and_launch_outputs(tmp_path, monkeypatch):
     assert (run_root / "pics" / "train__loss.png").exists()
     assert (results_root / launch_id / "launch_analysis" / "train__loss.png").exists()
 
+    run_summary = pd.read_csv(results_root / launch_id / "launch_analysis" / "run_summary.csv")
+    row = run_summary.iloc[0].to_dict()
+    assert row["block_len"] == 32
+    assert row["local_num_blocks"] == 2
+    assert row["if_remote_enabled"] in {True, 1, 1.0}
+    assert row["num_codebook_vectors"] == 128
+    assert row["train_batch_order"] == "global_shuffle"
+
 
 def test_remote_history_normalizes_run_prefix():
     df = pd.DataFrame(
@@ -178,3 +208,43 @@ def test_remote_history_normalizes_run_prefix():
     history = _history_from_remote_wide(df, "demo-run")
 
     assert sorted(history["metric"].unique().tolist()) == ["train/loss", "valid/accuracy"]
+
+
+def test_remote_single_metric_keeps_full_series_without_inner_join():
+    train_df = pd.DataFrame(
+        {
+            "demo-run-train/loss": {0: 1.0, 1: 0.8, 2: 0.6},
+            "demo-run-train/loss_timestamp": {0: 0, 1: 1000, 2: 2000},
+        }
+    )
+    valid_df = pd.DataFrame(
+        {
+            "demo-run-valid/loss": {0: 1.5, 1: 1.2},
+            "demo-run-valid/loss_timestamp": {0: 0, 1: 1000},
+        }
+    )
+    summary_df = pd.DataFrame(
+        {
+            "demo-run-num_parameters": {0: 123.0},
+            "demo-run-num_parameters_timestamp": {0: 0},
+        }
+    )
+
+    epoch_by_step = {0: 1, 1: 1, 2: 1}
+    history = pd.concat(
+        [
+            _history_from_remote_single_metric(train_df, metric="train/loss", run_id="demo-run", epoch_by_step=epoch_by_step),
+            _history_from_remote_single_metric(valid_df, metric="valid/loss", run_id="demo-run", epoch_by_step=epoch_by_step),
+            _history_from_remote_single_metric(
+                summary_df,
+                metric="num_parameters",
+                run_id="demo-run",
+                epoch_by_step=epoch_by_step,
+            ),
+        ],
+        ignore_index=True,
+    ).sort_values(["metric", "step"])
+
+    assert len(history[history["metric"] == "train/loss"]) == 3
+    assert len(history[history["metric"] == "valid/loss"]) == 2
+    assert len(history[history["metric"] == "num_parameters"]) == 1

@@ -13,6 +13,8 @@ DEFAULT_WANDB_ENTITY = "scu-mclab"
 DEFAULT_MAX_EPOCHS = 32
 DEFAULT_TRAIN_BATCH_ORDER = "sequential"
 DEFAULT_CACHE_DIR = "./data/flash_vqg"
+DEFAULT_IF_REMOTE_ENABLED = [True]
+DEFAULT_LOCAL_NUM_BLOCKS = [2]
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -64,12 +66,68 @@ def _normalize_train_batch_orders(
     return normalized
 
 
+def _normalize_if_remote_enabled_values(
+    if_remote_enabled_values: Iterable[bool] | None = None,
+    if_remote_enabled: bool | None = None,
+) -> list[bool]:
+    if if_remote_enabled_values is not None and if_remote_enabled is not None:
+        raise ValueError("if_remote_enabled_values 和 if_remote_enabled 不能同时传入.")
+
+    raw_values: Iterable[bool]
+    if if_remote_enabled_values is not None:
+        raw_values = if_remote_enabled_values
+    elif if_remote_enabled is not None:
+        raw_values = [if_remote_enabled]
+    else:
+        raw_values = DEFAULT_IF_REMOTE_ENABLED
+
+    normalized: list[bool] = []
+    seen: set[bool] = set()
+    for value in raw_values:
+        parsed = bool(value)
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
+def _normalize_local_num_blocks_values(
+    local_num_blocks_values: Iterable[int] | None = None,
+    local_num_blocks: int | None = None,
+) -> list[int]:
+    if local_num_blocks_values is not None and local_num_blocks is not None:
+        raise ValueError("local_num_blocks_values 和 local_num_blocks 不能同时传入.")
+
+    raw_values: Iterable[int]
+    if local_num_blocks_values is not None:
+        raw_values = local_num_blocks_values
+    elif local_num_blocks is not None:
+        raw_values = [local_num_blocks]
+    else:
+        raw_values = DEFAULT_LOCAL_NUM_BLOCKS
+
+    normalized: list[int] = []
+    seen: set[int] = set()
+    for value in raw_values:
+        parsed = int(value)
+        if parsed <= 0:
+            raise ValueError(f"local_num_blocks 必须是正整数, 当前收到: {value}")
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
         "global_shuffle": "gshuffle",
         "balanced_interleave": "binterleave",
     }[train_batch_order]
+
+
+def _structure_run_tag(*, local_num_blocks: int, if_remote_enabled: bool) -> str:
+    return f"local{int(local_num_blocks)}-remote{int(bool(if_remote_enabled))}"
 
 
 def _build_data_config(
@@ -132,6 +190,10 @@ def build_configs(
     block_len: int = 8,
     dmodels: Iterable[int] | None = None,
     learning_rates: Iterable[float] | None = None,
+    if_remote_enabled_values: Iterable[bool] | None = None,
+    if_remote_enabled: bool | None = None,
+    local_num_blocks_values: Iterable[int] | None = None,
+    local_num_blocks: int | None = None,
     wandb_project: str = DEFAULT_WANDB_PROJECT,
     wandb_entity: str = DEFAULT_WANDB_ENTITY,
     vocab_size: int = DEFAULT_VOCAB_SIZE,
@@ -152,6 +214,14 @@ def build_configs(
     dmodels_list = _normalize_dmodels(dmodels)
     learning_rates_list = _normalize_learning_rates(learning_rates)
     train_batch_orders_list = _normalize_train_batch_orders(train_batch_orders, train_batch_order)
+    if_remote_enabled_list = _normalize_if_remote_enabled_values(
+        if_remote_enabled_values=if_remote_enabled_values,
+        if_remote_enabled=if_remote_enabled,
+    )
+    local_num_blocks_list = _normalize_local_num_blocks_values(
+        local_num_blocks_values=local_num_blocks_values,
+        local_num_blocks=local_num_blocks,
+    )
 
     data_configs: dict[str, DataConfig] = {}
     input_seq_len = None
@@ -168,30 +238,37 @@ def build_configs(
         "vocab_size": vocab_size,
     }
 
-    flash_models = add_flash_vqg(
-        [],
-        conv_mixer,
-        input_seq_len,
-        model_factory_kwargs,
-        num_heads=2,
-        if_remote_enabled=True,
-        num_codebook_vectors={64: 64, 128: 128, 256: 256},
-        block_len=int(block_len),
-        vq_use_triton_shortcodes=(flash_backend == "accel"),
-        fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
-        fox_remote_path_backend="triton" if flash_backend == "accel" else "torch",
-        local_num_blocks=2,
-        use_time_mixing="kv_shift",
-        vq_score_mode="l2",
-        vq_weight_mode="one-hot",
-        vq_update_mode="ema",
-        if_value_silu=True,
-        if_output_gate_use_rmsnorm=True,
-        output_gate_activation="swish",
-        fox_if_local_use_vq_k=False,
-    )
-    flash_models = [m for m in flash_models if m.d_model in dmodels_list]
-    flash_models = sorted(flash_models, key=lambda m: m.d_model)
+    flash_models_by_structure: dict[tuple[int, bool], list] = {}
+    for current_local_num_blocks in local_num_blocks_list:
+        for current_if_remote_enabled in if_remote_enabled_list:
+            flash_models = add_flash_vqg(
+                [],
+                conv_mixer,
+                input_seq_len,
+                model_factory_kwargs,
+                num_heads=2,
+                if_remote_enabled=current_if_remote_enabled,
+                num_codebook_vectors={64: 64, 128: 128, 256: 256},
+                block_len=int(block_len),
+                vq_use_triton_shortcodes=(flash_backend == "accel"),
+                fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
+                fox_remote_path_backend="triton" if flash_backend == "accel" else "torch",
+                local_num_blocks=current_local_num_blocks,
+                use_time_mixing="kv_shift",
+                vq_score_mode="l2",
+                vq_weight_mode="one-hot",
+                vq_update_mode="ema",
+                if_value_silu=True,
+                if_output_gate_use_rmsnorm=True,
+                output_gate_activation="swish",
+                fox_if_local_use_vq_k=False,
+                enable_layer_metrics=True,
+            )
+            flash_models = [m for m in flash_models if m.d_model in dmodels_list]
+            flash_models_by_structure[(current_local_num_blocks, current_if_remote_enabled)] = sorted(
+                flash_models,
+                key=lambda m: m.d_model,
+            )
 
     gdn_models = []
     if include_gdn:
@@ -210,19 +287,28 @@ def build_configs(
         sampler_tag = _sampler_run_tag(order)
         data = data_configs[order]
         for lr in learning_rates_list:
-            for model in flash_models:
-                configs.append(
-                    TrainConfig(
-                        model=model,
-                        data=data,
-                        learning_rate=lr,
-                        max_epochs=max_epochs,
-                        logger=logger,
-                        slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
-                        sweep_id=sweep_id,
-                        run_id=f"{flash_tag}-dmodel{model.d_model}-lr{lr:.1e}-sampler-{sampler_tag}",
+            for current_local_num_blocks in local_num_blocks_list:
+                for current_if_remote_enabled in if_remote_enabled_list:
+                    structure_tag = _structure_run_tag(
+                        local_num_blocks=current_local_num_blocks,
+                        if_remote_enabled=current_if_remote_enabled,
                     )
-                )
+                    for model in flash_models_by_structure[(current_local_num_blocks, current_if_remote_enabled)]:
+                        configs.append(
+                            TrainConfig(
+                                model=model,
+                                data=data,
+                                learning_rate=lr,
+                                max_epochs=max_epochs,
+                                logger=logger,
+                                slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
+                                sweep_id=sweep_id,
+                                run_id=(
+                                    f"{flash_tag}-dmodel{model.d_model}-lr{lr:.1e}-"
+                                    f"{structure_tag}-sampler-{sampler_tag}"
+                                ),
+                            )
+                        )
             for model in gdn_models:
                 configs.append(
                     TrainConfig(

@@ -28,6 +28,31 @@ def _parse_csv_floats(raw: str) -> list[float]:
     return [float(v) for v in values]
 
 
+def _parse_csv_bools(raw: str) -> list[bool]:
+    values = [part.strip().lower() for part in raw.split(",") if part.strip()]
+    if not values:
+        raise ValueError("if_remote_enabled 不能为空.")
+
+    mapping = {
+        "1": True,
+        "0": False,
+        "true": True,
+        "false": False,
+        "yes": True,
+        "no": False,
+    }
+    normalized: list[bool] = []
+    seen: set[bool] = set()
+    for value in values:
+        if value not in mapping:
+            raise ValueError(f"if_remote_enabled 只能是 true/false 或 1/0, 当前收到: {value}")
+        parsed = mapping[value]
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
 def _parse_train_batch_orders(raw: str) -> list[str]:
     values = [part.strip().lower() for part in raw.split(",") if part.strip()]
     if not values:
@@ -68,6 +93,8 @@ def _render_generated_config(
     block_len: int,
     dmodels: list[int],
     learning_rates: list[float],
+    if_remote_enabled_values: list[bool],
+    local_num_blocks_values: list[int],
     train_batch_orders: list[str],
     cache_dir: str,
     wandb_project: str,
@@ -89,6 +116,8 @@ def _render_generated_config(
         f"    block_len={block_len!r},",
         f"    dmodels={dmodels!r},",
         f"    learning_rates={learning_rates!r},",
+        f"    if_remote_enabled_values={if_remote_enabled_values!r},",
+        f"    local_num_blocks_values={local_num_blocks_values!r},",
         f"    train_batch_orders={train_batch_orders!r},",
         f"    cache_dir={cache_dir!r},",
         f"    wandb_project={wandb_project!r},",
@@ -109,6 +138,8 @@ def _build_manifest_run_ids(
     block_len: int,
     dmodels: list[int],
     learning_rates: list[float],
+    if_remote_enabled_values: list[bool],
+    local_num_blocks_values: list[int],
     train_batch_orders: list[str],
     cache_dir: str,
     project: str,
@@ -123,6 +154,8 @@ def _build_manifest_run_ids(
         block_len=block_len,
         dmodels=dmodels,
         learning_rates=learning_rates,
+        if_remote_enabled_values=if_remote_enabled_values,
+        local_num_blocks_values=local_num_blocks_values,
         train_batch_orders=train_batch_orders,
         cache_dir=cache_dir,
         wandb_project=project,
@@ -157,6 +190,18 @@ def _build_launch_command(
     return cmd
 
 
+def _build_analysis_command(*, launch_id: str, source: str) -> list[str]:
+    return [
+        sys.executable,
+        "-m",
+        "zoology.analysis.flash_vqg.run_flash_vqg_analysis",
+        "--launch-id",
+        launch_id,
+        "--source",
+        source,
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser(description="生成并启动 Flash-VQG MQAR 实验配置.")
     parser.add_argument("--backend", choices=["accel", "torch"], default="accel")
@@ -166,6 +211,8 @@ def main():
     parser.add_argument("--block-len", type=int, default=8)
     parser.add_argument("--dmodels", type=str, default="128")
     parser.add_argument("--learning-rates", type=str, default="1e-4,3e-4,1e-3,3e-3")
+    parser.add_argument("--if-remote-enabled", type=str, default="true")
+    parser.add_argument("--local-num-blocks", type=str, default="2")
     parser.add_argument("--train-batch-order", type=str, default="sequential")
     parser.add_argument("--cache-dir", type=str, default="./data/flash_vqg")
     parser.add_argument("--project", type=str, default="flash_vqg_vs_gdn")
@@ -175,10 +222,18 @@ def main():
     parser.add_argument("--outdir", type=str, default=None)
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("-p", "--parallelize", action="store_true")
+    parser.add_argument(
+        "--analysis",
+        choices=["off", "remote", "local"],
+        default="off",
+        help="训练完成后是否自动执行 analysis, 以及使用的数据源.",
+    )
     args = parser.parse_args()
 
     dmodels = _parse_csv_ints(args.dmodels)
     learning_rates = _parse_csv_floats(args.learning_rates)
+    if_remote_enabled_values = _parse_csv_bools(args.if_remote_enabled)
+    local_num_blocks_values = _parse_csv_ints(args.local_num_blocks)
     train_batch_orders = _parse_train_batch_orders(args.train_batch_order)
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
@@ -196,6 +251,8 @@ def main():
         block_len=args.block_len,
         dmodels=dmodels,
         learning_rates=learning_rates,
+        if_remote_enabled_values=if_remote_enabled_values,
+        local_num_blocks_values=local_num_blocks_values,
         train_batch_orders=train_batch_orders,
         cache_dir=args.cache_dir,
         project=args.project,
@@ -211,6 +268,8 @@ def main():
             block_len=args.block_len,
             dmodels=dmodels,
             learning_rates=learning_rates,
+            if_remote_enabled_values=if_remote_enabled_values,
+            local_num_blocks_values=local_num_blocks_values,
             train_batch_orders=train_batch_orders,
             cache_dir=args.cache_dir,
             wandb_project=args.project,
@@ -244,6 +303,12 @@ def main():
     env = os.environ.copy()
     env[MANIFEST_ENV_VAR] = str(manifest_path.resolve())
     subprocess.run(launch_cmd, check=True, cwd=REPO_ROOT, env=env)
+
+    if args.analysis != "off":
+        analysis_cmd = _build_analysis_command(launch_id=launch_id, source=args.analysis)
+        print("训练已完成, 即将自动执行 analysis:")
+        print(" ".join(shlex.quote(part) for part in analysis_cmd))
+        subprocess.run(analysis_cmd, check=True, cwd=REPO_ROOT, env=env)
 
 
 if __name__ == "__main__":

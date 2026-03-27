@@ -80,4 +80,5 @@ python -m zoology.analysis.flash_vqg.run_flash_vqg_analysis \
 - 数据源不可用时直接报错
 - 不做 `remote -> local` 或 `local -> remote` 自动回退
 - 单个 metric 缺失不报错, 仅跳过
+- `launch_analysis/run_summary.csv` 会额外展开关键结构字段, 如 `block_len`, `local_num_blocks`, `if_remote_enabled`, `num_codebook_vectors`
 - 当前只处理 scalar metric

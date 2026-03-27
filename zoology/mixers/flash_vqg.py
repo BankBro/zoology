@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import torch
 import torch.nn as nn
 
@@ -103,6 +105,27 @@ class FlashVQGMixer(nn.Module):
         if not isinstance(l_commit, torch.Tensor):
             return zero
         return self.codebook_beta * l_commit
+
+    def get_scalar_metrics(self) -> dict[str, float]:
+        if not self._last_aux:
+            return {}
+        raw_metrics = self._last_aux.get("metrics")
+        if not isinstance(raw_metrics, dict):
+            return {}
+
+        metrics: dict[str, float] = {}
+        for key, value in raw_metrics.items():
+            scalar_value = None
+            if isinstance(value, torch.Tensor):
+                if value.numel() != 1:
+                    continue
+                scalar_value = float(value.detach().float().cpu().item())
+            elif isinstance(value, (bool, int, float)):
+                scalar_value = float(value)
+            if scalar_value is None or not math.isfinite(scalar_value):
+                continue
+            metrics[str(key)] = scalar_value
+        return metrics
 
     def state_size(self, sequence_length: int = 2048):
         local_window_len = self.local_num_blocks * self.block_len
