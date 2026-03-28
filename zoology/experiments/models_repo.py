@@ -345,6 +345,7 @@ def add_flash_vqg(
     output_gate_activation="swish",
     fox_if_local_use_vq_k=False,
     enable_layer_metrics=False,
+    fox_phase2_metrics_mode="full",
 ):
     """
     Add Flash-VQG models with a shared sweep over d_model in [64, 128, 256].
@@ -413,6 +414,7 @@ def add_flash_vqg(
                 "fox_if_local_use_vq_k": bool(fox_if_local_use_vq_k),
                 "codebook_beta": 0.25,
                 "enable_layer_metrics": bool(enable_layer_metrics),
+                "fox_phase2_metrics_mode": str(fox_phase2_metrics_mode),
             },
         )
         mixers = [conv_mixer, flash_vqg_mixer] if conv_mixer is not None else [flash_vqg_mixer]

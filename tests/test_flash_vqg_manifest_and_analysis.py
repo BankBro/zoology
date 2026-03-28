@@ -11,7 +11,12 @@ from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import (
     run_launch_analysis,
 )
 from zoology.config import DataConfig, DataSegmentConfig, LoggerConfig, ModelConfig, TrainConfig
-from zoology.experiments.flash_vqg.manifest import initialize_manifest, update_manifest_for_run
+from zoology.experiments.flash_vqg.manifest import (
+    MANIFEST_SCHEMA_VERSION,
+    checkpoint_local_paths_from_config,
+    initialize_manifest,
+    update_manifest_for_run,
+)
 
 
 def _build_config() -> TrainConfig:
@@ -30,7 +35,13 @@ def _build_config() -> TrainConfig:
     )
 
 
-def _write_scalar_backup(run_dir: Path):
+def _write_scalar_backup(
+    run_dir: Path,
+    *,
+    train_loss: float = 1.0,
+    valid_accuracy: float = 0.5,
+    extra_scalars: list[dict] | None = None,
+):
     ds = DataStore()
     backup_file = run_dir / "backup.swanlab"
     ds.open_for_write(str(backup_file))
@@ -50,7 +61,7 @@ def _write_scalar_backup(run_dir: Path):
     ds.write(
         Scalar.model_validate(
             {
-                "metric": {"index": 0, "data": 1.0, "create_time": "2026-03-26T00:00:01+00:00"},
+                "metric": {"index": 0, "data": train_loss, "create_time": "2026-03-26T00:00:01+00:00"},
                 "key": "train/loss",
                 "step": 0,
                 "epoch": 1,
@@ -60,13 +71,15 @@ def _write_scalar_backup(run_dir: Path):
     ds.write(
         Scalar.model_validate(
             {
-                "metric": {"index": 1, "data": 0.5, "create_time": "2026-03-26T00:00:02+00:00"},
+                "metric": {"index": 1, "data": valid_accuracy, "create_time": "2026-03-26T00:00:02+00:00"},
                 "key": "valid/accuracy",
                 "step": 1,
                 "epoch": 1,
             }
         ).to_record()
     )
+    for item in extra_scalars or []:
+        ds.write(Scalar.model_validate(item).to_record())
     ds.write(Footer.model_validate({"create_time": "2026-03-26T00:00:03+00:00", "success": True}).to_record())
     ds.close()
 
@@ -101,10 +114,34 @@ def test_initialize_and_update_manifest(tmp_path):
     )
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["schema_version"] == MANIFEST_SCHEMA_VERSION
     run = manifest["runs"][0]
     assert run["status"] == "completed"
     assert run["swanlab"]["experiment_id"] == "exp-123"
     assert run["local"]["backup_file"] == "/tmp/demo-run/backup.swanlab"
+    assert run["local"]["checkpoint_run_dir"].endswith("/checkpoints/demo-launch/demo-run")
+    assert run["local"]["best_checkpoint"].endswith("/checkpoints/demo-launch/demo-run/best.pt")
+    assert run["local"]["last_checkpoint"].endswith("/checkpoints/demo-launch/demo-run/last.pt")
+    assert run["local"]["train_config_json"].endswith("/checkpoints/demo-launch/demo-run/train_config.json")
+    assert run["eval_source"] == {
+        "checkpoint_launch_id": None,
+        "checkpoint_run_id": None,
+        "best_checkpoint": None,
+    }
+
+
+def test_checkpoint_local_paths_are_empty_when_checkpoint_disabled():
+    config = _build_config()
+    config.checkpoint.enabled = False
+
+    paths = checkpoint_local_paths_from_config(config)
+
+    assert paths == {
+        "checkpoint_run_dir": None,
+        "best_checkpoint": None,
+        "last_checkpoint": None,
+        "train_config_json": None,
+    }
 
 
 def test_local_analysis_writes_run_and_launch_outputs(tmp_path, monkeypatch):
@@ -173,6 +210,13 @@ model:
     manifest["runs"][0]["local"]["metadata_file"] = str(files_dir / "swanlab-metadata.json")
     (launch_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+    preserved_data_file = results_root / launch_id / "demo-run" / "data" / "e7_metrics.csv"
+    preserved_pic_file = results_root / launch_id / "demo-run" / "pics" / "e7_accuracy_compare.png"
+    preserved_data_file.parent.mkdir(parents=True, exist_ok=True)
+    preserved_pic_file.parent.mkdir(parents=True, exist_ok=True)
+    preserved_data_file.write_text("mode,valid/accuracy\ndense,0.8\n", encoding="utf-8")
+    preserved_pic_file.write_bytes(b"demo")
+
     monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.GENERATED_ROOT", generated_root)
     monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.RESULTS_ROOT", results_root)
 
@@ -183,6 +227,8 @@ model:
     assert (run_root / "data" / "history.csv").exists()
     assert (run_root / "data" / "summary.json").exists()
     assert (run_root / "pics" / "train__loss.png").exists()
+    assert preserved_data_file.exists()
+    assert preserved_pic_file.exists()
     assert (results_root / launch_id / "launch_analysis" / "train__loss.png").exists()
 
     run_summary = pd.read_csv(results_root / launch_id / "launch_analysis" / "run_summary.csv")
@@ -192,6 +238,111 @@ model:
     assert row["if_remote_enabled"] in {True, 1, 1.0}
     assert row["num_codebook_vectors"] == 128
     assert row["train_batch_order"] == "global_shuffle"
+
+
+def test_e7_local_analysis_keeps_default_metric_names_and_launch_outputs(tmp_path, monkeypatch):
+    generated_root = tmp_path / "generated"
+    results_root = tmp_path / "analysis-results"
+    launch_id = "flash-vqg-e7-demo"
+    launch_dir = generated_root / launch_id
+    run_ids = [
+        "eval_e7_dense_demo-run",
+        "eval_e7_top2_demo-run",
+        "eval_e7_top4_demo-run",
+    ]
+    run_payloads = {
+        run_ids[0]: (1.0, 0.50),
+        run_ids[1]: (0.9, 0.55),
+        run_ids[2]: (0.95, 0.53),
+    }
+
+    initialize_manifest(
+        manifest_path=launch_dir / "manifest.json",
+        launch_id=launch_id,
+        sweep_id="flash-vqg-e7",
+        logger_backend="swanlab",
+        project="demo-project",
+        entity="demo-entity",
+        run_ids=run_ids,
+        launch_config_file=launch_dir / "launch_configs.py",
+        eval_task="e7",
+    )
+    manifest = json.loads((launch_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    for run in manifest["runs"]:
+        run_id = run["run_id"]
+        run_dir = tmp_path / "swanlog" / run_id
+        files_dir = run_dir / "files"
+        files_dir.mkdir(parents=True, exist_ok=True)
+        (files_dir / "config.yaml").write_text(
+            f"""launch_id:
+  value: {launch_id}
+run_id:
+  value: {run_id}
+sweep_id:
+  value: flash-vqg-e7
+metrics_white_list:
+  value:
+    - valid/accuracy
+    - valid/loss
+model:
+  value:
+    d_model: 128
+    n_layers: 1
+""",
+            encoding="utf-8",
+        )
+        (files_dir / "swanlab-metadata.json").write_text(
+            json.dumps({"swanlab": {"logdir": str(run_dir)}}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        train_loss, valid_accuracy = run_payloads[run_id]
+        _write_scalar_backup(
+            run_dir,
+            train_loss=train_loss,
+            valid_accuracy=valid_accuracy,
+            extra_scalars=[
+                {
+                    "metric": {"index": 2, "data": 1.5 - valid_accuracy, "create_time": "2026-03-26T00:00:02+00:00"},
+                    "key": "valid/loss",
+                    "step": 1,
+                    "epoch": 1,
+                }
+            ],
+        )
+        run["status"] = "completed"
+        run["swanlab"]["experiment_id"] = f"exp-{run_id}"
+        run["local"]["run_dir"] = str(run_dir)
+        run["local"]["backup_file"] = str(run_dir / "backup.swanlab")
+        run["local"]["config_file"] = str(files_dir / "config.yaml")
+        run["local"]["metadata_file"] = str(files_dir / "swanlab-metadata.json")
+
+    (launch_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    launch_analysis_dir = results_root / launch_id / "launch_analysis"
+    launch_analysis_dir.mkdir(parents=True, exist_ok=True)
+    (launch_analysis_dir / "metrics.csv").write_text("mode,valid/accuracy\ndense,0.5\n", encoding="utf-8")
+    (launch_analysis_dir / "summary.json").write_text(json.dumps({"eval_task": "e7"}, ensure_ascii=False), encoding="utf-8")
+
+    monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.GENERATED_ROOT", generated_root)
+    monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.RESULTS_ROOT", results_root)
+
+    result = run_launch_analysis(launch_id=launch_id, source="local")
+
+    assert result["launch_id"] == launch_id
+    for run_id in run_ids:
+        run_root = results_root / launch_id / run_id
+        history = pd.read_csv(run_root / "data" / "history.csv")
+        assert sorted(history["metric"].unique().tolist()) == ["valid/accuracy", "valid/loss"]
+        assert (run_root / "pics" / "valid__accuracy.png").exists()
+        assert (run_root / "pics" / "valid__loss.png").exists()
+
+    assert (launch_analysis_dir / "valid__accuracy.png").exists()
+    assert (launch_analysis_dir / "valid__loss.png").exists()
+    assert (launch_analysis_dir / "metrics.csv").exists()
+    assert (launch_analysis_dir / "summary.json").exists()
+    summary = json.loads((launch_analysis_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["generated_plots"] == ["valid__accuracy.png", "valid__loss.png"]
 
 
 def test_remote_history_normalizes_run_prefix():
@@ -248,3 +399,61 @@ def test_remote_single_metric_keeps_full_series_without_inner_join():
     assert len(history[history["metric"] == "train/loss"]) == 3
     assert len(history[history["metric"] == "valid/loss"]) == 2
     assert len(history[history["metric"] == "num_parameters"]) == 1
+
+
+def test_local_analysis_respects_metrics_white_list(tmp_path, monkeypatch):
+    generated_root = tmp_path / "generated"
+    results_root = tmp_path / "analysis-results"
+    launch_id = "demo-launch"
+    launch_dir = generated_root / launch_id
+    run_dir = tmp_path / "swanlog" / "run-demo"
+    files_dir = run_dir / "files"
+    files_dir.mkdir(parents=True, exist_ok=True)
+    (files_dir / "config.yaml").write_text(
+        """launch_id:
+  value: demo-launch
+run_id:
+  value: demo-run
+metrics_white_list:
+  value:
+    - valid/accuracy
+model:
+  value:
+    d_model: 128
+    n_layers: 2
+""",
+        encoding="utf-8",
+    )
+    (files_dir / "swanlab-metadata.json").write_text(
+        json.dumps({"swanlab": {"logdir": str(run_dir)}}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    _write_scalar_backup(run_dir)
+
+    initialize_manifest(
+        manifest_path=launch_dir / "manifest.json",
+        launch_id=launch_id,
+        sweep_id="demo-sweep",
+        logger_backend="swanlab",
+        project="demo-project",
+        entity="demo-entity",
+        run_ids=["demo-run"],
+        launch_config_file=launch_dir / "launch_configs.py",
+    )
+    manifest = json.loads((launch_dir / "manifest.json").read_text(encoding="utf-8"))
+    manifest["runs"][0]["status"] = "completed"
+    manifest["runs"][0]["local"]["run_dir"] = str(run_dir)
+    manifest["runs"][0]["local"]["backup_file"] = str(run_dir / "backup.swanlab")
+    manifest["runs"][0]["local"]["config_file"] = str(files_dir / "config.yaml")
+    manifest["runs"][0]["local"]["metadata_file"] = str(files_dir / "swanlab-metadata.json")
+    (launch_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.GENERATED_ROOT", generated_root)
+    monkeypatch.setattr("zoology.analysis.flash_vqg.flash_vqg_analysis_suite.RESULTS_ROOT", results_root)
+
+    run_launch_analysis(launch_id=launch_id, source="local")
+
+    metrics_index = json.loads(
+        (results_root / launch_id / "launch_analysis" / "metrics_index.json").read_text(encoding="utf-8")
+    )
+    assert [item["metric"] for item in metrics_index["metrics"]] == ["valid/accuracy"]

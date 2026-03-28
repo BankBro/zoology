@@ -9,6 +9,18 @@ from zoology.config import TrainConfig
 
 
 MANIFEST_ENV_VAR = "FLASH_VQG_MANIFEST_PATH"
+MANIFEST_SCHEMA_VERSION = 3
+CHECKPOINT_LOCAL_FIELDS = (
+    "checkpoint_run_dir",
+    "best_checkpoint",
+    "last_checkpoint",
+    "train_config_json",
+)
+EVAL_SOURCE_FIELDS = (
+    "checkpoint_launch_id",
+    "checkpoint_run_id",
+    "best_checkpoint",
+)
 
 
 def _utc_now() -> str:
@@ -52,6 +64,19 @@ def manifest_path_from_env() -> Path | None:
     return Path(raw).resolve()
 
 
+def checkpoint_local_paths_from_config(config: TrainConfig) -> dict[str, str | None]:
+    if config.launch_id is None or not config.checkpoint.enabled:
+        return {field: None for field in CHECKPOINT_LOCAL_FIELDS}
+
+    run_dir = (Path(config.checkpoint.root_dir) / config.launch_id / config.run_id).resolve()
+    return {
+        "checkpoint_run_dir": str(run_dir),
+        "best_checkpoint": str((run_dir / "best.pt").resolve()),
+        "last_checkpoint": str((run_dir / "last.pt").resolve()),
+        "train_config_json": str((run_dir / "train_config.json").resolve()),
+    }
+
+
 def initialize_manifest(
     *,
     manifest_path: Path,
@@ -62,11 +87,15 @@ def initialize_manifest(
     entity: str | None,
     run_ids: list[str],
     launch_config_file: Path,
+    eval_sources: dict[str, dict[str, Any]] | None = None,
+    eval_task: str | None = None,
 ):
+    eval_sources = eval_sources or {}
     manifest = {
-        "schema_version": 1,
+        "schema_version": MANIFEST_SCHEMA_VERSION,
         "launch_id": launch_id,
         "sweep_id": sweep_id,
+        "eval_task": eval_task,
         "logger_backend": logger_backend,
         "project": project,
         "entity": entity,
@@ -76,6 +105,7 @@ def initialize_manifest(
         "runs": [
             {
                 "run_id": run_id,
+                "eval_task": eval_task,
                 "status": "planned",
                 "error": None,
                 "updated_at_utc": _utc_now(),
@@ -90,6 +120,14 @@ def initialize_manifest(
                     "backup_file": None,
                     "config_file": None,
                     "metadata_file": None,
+                    "checkpoint_run_dir": None,
+                    "best_checkpoint": None,
+                    "last_checkpoint": None,
+                    "train_config_json": None,
+                },
+                "eval_source": {
+                    field: eval_sources.get(run_id, {}).get(field)
+                    for field in EVAL_SOURCE_FIELDS
                 },
             }
             for run_id in run_ids
@@ -106,6 +144,7 @@ def update_manifest_for_run(
     status: str,
     error: str | None = None,
     manifest_path: Path | None = None,
+    eval_source: dict[str, Any] | None = None,
 ):
     resolved_path = manifest_path or manifest_path_from_env()
     if resolved_path is None or config.launch_id is None:
@@ -123,6 +162,7 @@ def update_manifest_for_run(
                 "run_id": config.run_id,
                 "swanlab": {},
                 "local": {},
+                "eval_source": {},
             }
             runs.append(target)
 
@@ -132,6 +172,12 @@ def update_manifest_for_run(
 
         swanlab_payload = target.setdefault("swanlab", {})
         local_payload = target.setdefault("local", {})
+        eval_source_payload = target.setdefault("eval_source", {})
+        local_payload.update(checkpoint_local_paths_from_config(config))
+        if eval_source:
+            eval_source_payload.update(
+                {field: eval_source.get(field) for field in EVAL_SOURCE_FIELDS}
+            )
         if logger_summary:
             swanlab_payload.update(
                 {

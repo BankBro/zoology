@@ -48,6 +48,26 @@ def test_candidate_metrics_include_attn_and_valid_variants():
     assert metric_specs["valid/attn/remote_win_rate"].chart_type == "line"
 
 
+def test_e7_candidate_metrics_keep_default_metric_names():
+    config_dict = {
+        "model": {
+            "n_layers": 1,
+        },
+        "metrics_white_list": [
+            "valid/accuracy",
+            "valid/input_seq_len/*",
+        ],
+    }
+
+    metrics = _candidate_metrics_from_config(config_dict, eval_task="e7")
+    metric_specs = _metric_specs_from_config(config_dict, eval_task="e7")
+
+    assert "valid/accuracy" in metrics
+    assert "valid/input_seq_len/accuracy-64" in metrics
+    assert all(not metric.startswith("e7/") for metric in metrics)
+    assert metric_specs["valid/accuracy"].chart_type == "line"
+
+
 def test_filter_model_metrics_respects_metric_specs():
     history = pd.DataFrame(
         [

@@ -61,12 +61,18 @@
 
 **记录指标**
 
-- `train/loss`
-- 分 segment 的 `train/loss`
-- `valid/accuracy`
-- `valid/input_seq_len/*`
-- `valid/num_kv_pairs/*`
-- step-to-`0.2 / 0.3 / 0.4`
+- 必看:
+  - `train/loss`
+  - `train/mqar_case/loss-*`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/num_kv_pairs/*`
+  - `valid/mqar_case/*`
+- 离线派生:
+  - step-to-`0.2 / 0.3 / 0.4`
+  - fixed step budget 下的 best accuracy
+  - train loss AUC
 
 **预期现象**
 
@@ -94,15 +100,26 @@
 
 **记录指标**
 
-- `valid/accuracy`
-- `valid/input_seq_len/*`
-- `valid/mqar_case/*`
-- `valid/num_kv_pairs/*`
-- `attn/remote_win_rate`
-- `attn/den_cache_ratio`
-- `attn/o_remote_energy_ratio`
-- `attn/o_remote_local_cos`
-- `attn/remote_dominance_rate`
+- 必看主指标:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/mqar_case/*`
+  - `valid/num_kv_pairs/*`
+- 必看 remote 贡献指标:
+  - `attn/remote_win_rate`
+  - `attn/den_cache_ratio`
+  - `attn/o_remote_energy_ratio`
+  - `attn/o_remote_local_cos`
+  - `attn/remote_dominance_rate`
+- 建议同时看:
+  - `attn/q_rms_mean`
+  - `attn/k_rms_mean`
+  - `attn/k_hat_rms_mean`
+  - `vq/k_norm_mean`
+  - `vq/k_hat_norm_mean`
+  - `vq/c_rms_mean`
 
 **预期现象**
 
@@ -128,15 +145,26 @@
 
 **记录指标**
 
-- `valid/accuracy`
-- `valid/input_seq_len/*`
-- `valid/mqar_case/*`
-- `valid/num_kv_pairs/*`
-- `attn/remote_win_rate`
-- `attn/den_cache_ratio`
-- `attn/o_remote_energy_ratio`
-- `attn/o_remote_local_cos`
-- `attn/remote_dominance_rate`
+- 必看主指标:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/mqar_case/*`
+  - `valid/num_kv_pairs/*`
+- 必看 remote 贡献指标:
+  - `attn/remote_win_rate`
+  - `attn/den_cache_ratio`
+  - `attn/o_remote_energy_ratio`
+  - `attn/o_remote_local_cos`
+  - `attn/remote_dominance_rate`
+- 建议同时看:
+  - `attn/q_rms_mean`
+  - `attn/k_rms_mean`
+  - `attn/k_hat_rms_mean`
+  - `vq/k_norm_mean`
+  - `vq/k_hat_norm_mean`
+  - `vq/c_rms_mean`
 
 **预期现象**
 
@@ -170,10 +198,19 @@
 
 **记录指标**
 
-- `valid/input_seq_len/*`
-- `valid/mqar_case/*`
-- `valid/num_kv_pairs/*`
-- 各长度下的收敛速度
+- 必看:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/mqar_case/*`
+  - `valid/num_kv_pairs/*`
+- 离线派生:
+  - 各长度下的收敛速度
+  - step-to-`0.2 / 0.3 / 0.4`
+- 建议观察:
+  - `attn/remote_win_rate`
+  - `attn/o_remote_energy_ratio`
 
 **预期现象**
 
@@ -198,10 +235,20 @@
 
 **记录指标**
 
-- `valid/input_seq_len/*`
-- `valid/num_kv_pairs/*`
-- `accuracy vs seq_len`
-- `accuracy vs num_kv_pairs`
+- 必看:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/num_kv_pairs/*`
+  - `valid/mqar_case/*`
+- 离线派生:
+  - `accuracy vs seq_len`
+  - `accuracy vs num_kv_pairs`
+- 建议观察:
+  - `attn/remote_win_rate`
+  - `attn/o_remote_energy_ratio`
+  - `vq/relative_err_mean`
 
 **预期现象**
 
@@ -229,15 +276,26 @@
 
 **记录指标**
 
-- `valid/accuracy`
-- `valid/input_seq_len/*`
-- `valid/num_kv_pairs/*`
-- code usage entropy
-- dead code ratio
-- mean / max code load
-- routing entropy
-- top1-top2 margin
-- quantization residual norm
+- 必看主指标:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/num_kv_pairs/*`
+  - `valid/mqar_case/*`
+- 必看 VQ 指标:
+  - `vq/c_entropy`
+  - `vq/c_usage_mean`
+  - `vq/c_usage_max`
+  - `vq/k_norm_mean`
+  - `vq/k_hat_norm_mean`
+  - `vq/c_rms_mean`
+  - `vq/relative_err_mean`
+- 建议补充 telemetry:
+  - dead code ratio
+  - routing entropy
+  - top1-top2 margin
+  - residual norm
 
 **预期现象**
 
@@ -262,22 +320,36 @@
 
 **记录指标**
 
-- `attn/remote_win_rate`
-- `attn/den_cache_ratio`
-- `attn/o_remote_energy_ratio`
-- `attn/o_remote_local_cos`
-- `attn/remote_dominance_rate`
-- `attn/q_rms_mean`
-- `attn/k_rms_mean`
-- `vq/k_norm_mean`
-- `vq/k_hat_norm_mean`
-- `vq/c_rms_mean`
-- code usage entropy
-- dead code ratio
-- mean / max code load
-- routing entropy
-- top1-top2 margin
-- quantization residual norm
+- 必看主指标:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/num_kv_pairs/*`
+  - `valid/mqar_case/*`
+- 必看 remote 贡献指标:
+  - `attn/remote_win_rate`
+  - `attn/den_cache_ratio`
+  - `attn/o_remote_energy_ratio`
+  - `attn/o_remote_local_cos`
+  - `attn/remote_dominance_rate`
+- 必看 VQ/routing 指标:
+  - `attn/q_rms_mean`
+  - `attn/k_rms_mean`
+  - `attn/k_hat_rms_mean`
+  - `vq/k_norm_mean`
+  - `vq/k_hat_norm_mean`
+  - `vq/c_rms_mean`
+  - `vq/c_entropy`
+  - `vq/c_usage_mean`
+  - `vq/c_usage_max`
+  - `vq/relative_err_mean`
+- 建议补充 telemetry:
+  - dead code ratio
+  - routing entropy
+  - top1-top2 margin
+  - residual norm
+  - local / remote output norm ratio
 
 **预期现象**
 
@@ -303,9 +375,22 @@
 
 **记录指标**
 
-- 全部 validation 指标
-- `128+` 与大 `num_kv_pairs` case 的提升幅度
-- routing entropy 与 top-k gain 的相关性
+- 必看:
+  - `train/loss`
+  - `valid/loss`
+  - `valid/accuracy`
+  - `valid/input_seq_len/*`
+  - `valid/num_kv_pairs/*`
+  - `valid/mqar_case/*`
+- 额外必看:
+  - `128+` 与大 `num_kv_pairs` case 的提升幅度
+  - `vq/relative_err_mean`
+  - `vq/c_entropy`
+  - `vq/c_usage_max`
+- 若已实现对应 telemetry, 必看:
+  - routing entropy
+  - top1-top2 margin
+  - routing entropy 与 top-k gain 的相关性
 
 **预期现象**
 
@@ -336,11 +421,18 @@
 
 **记录指标**
 
-- 长度分桶提升
-- 大 `num_kv_pairs` 提升
-- 触发比例
-- 每触发 `1%` token 带来的 gain
-- 额外 FLOPs / latency
+- 必看:
+  - `train/loss`
+  - `valid/loss`
+  - 长度分桶提升
+  - 大 `num_kv_pairs` 提升
+  - 触发比例
+  - 每触发 `1%` token 带来的 gain
+  - 额外 FLOPs / latency
+- 若已实现对应 telemetry, 必看:
+  - routing entropy
+  - top1-top2 margin
+  - residual norm
 
 **预期现象**
 
@@ -378,6 +470,7 @@
 - step-to-`0.2 / 0.3 / 0.4`
 - fixed step budget 下的 best accuracy
 - train loss AUC
+- 以上均建议在 analysis 阶段由 `train/loss` 和 `valid/accuracy` 离线派生, 不要求训练时额外单独打点
 
 ### 6. 远程贡献指标
 
@@ -395,12 +488,15 @@
 
 - `attn/q_rms_mean`
 - `attn/k_rms_mean`
+- `attn/k_hat_rms_mean`
 - `vq/k_norm_mean`
 - `vq/k_hat_norm_mean`
 - `vq/c_rms_mean`
-- code usage entropy
+- `vq/c_entropy`
+- `vq/c_usage_mean`
+- `vq/c_usage_max`
+- `vq/relative_err_mean`
 - dead code ratio
-- max / mean code load
 - routing entropy
 - top1-top2 margin
 - residual norm

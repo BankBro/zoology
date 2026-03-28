@@ -13,12 +13,13 @@ MAX_EPOCHS="${MAX_EPOCHS:-32}"
 PROJECT="${PROJECT:-flash_vqg_mqar}"
 ENTITY="${ENTITY:-scu-mclab}"
 CACHE_DIR="${CACHE_DIR:-./data/flash_vqg}"
-LAUNCH_ID_PREFIX="${LAUNCH_ID_PREFIX:-flash-vqg-e2}"
+LAUNCH_ID_PREFIX="${LAUNCH_ID_PREFIX:-flash-vqg-e5}"
 TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
-METRICS_WHITE_LIST_FILE="${METRICS_WHITE_LIST_FILE:-${ROOT_DIR}/zoology/experiments/flash_vqg/metrics_white_lists/e2.yaml}"
+NUM_CODEBOOK_VECTORS="${NUM_CODEBOOK_VECTORS:-64,128,256,512}"
+METRICS_WHITE_LIST_FILE="${METRICS_WHITE_LIST_FILE:-${ROOT_DIR}/zoology/experiments/flash_vqg/metrics_white_lists/e5.yaml}"
 METRICS_WHITE_LIST="${METRICS_WHITE_LIST:-}"
 
-echo "==> Running E2 remote_hist_1 vs local_only_1 on GPU ${GPU_ID}"
+echo "==> Running E5 codebook sweep [${NUM_CODEBOOK_VECTORS}] on GPU ${GPU_ID}"
 CMD=(
   "${PYTHON_BIN}" -m zoology.experiments.flash_vqg.run_flash_vqg_suite
   --flash-only \
@@ -28,9 +29,10 @@ CMD=(
   --block-len 32 \
   --dmodels "${DMODEL}" \
   --learning-rates "${LR}" \
-  --local-num-blocks 1 \
-  --if-remote-enabled true,false \
+  --local-num-blocks 2 \
+  --if-remote-enabled true \
   --train-batch-order "${TRAIN_BATCH_ORDER}" \
+  --num-codebook-vectors "${NUM_CODEBOOK_VECTORS}" \
   --cache-dir "${CACHE_DIR}" \
   --metrics-white-list-file "${METRICS_WHITE_LIST_FILE}" \
   --project "${PROJECT}" \

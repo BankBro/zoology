@@ -20,6 +20,8 @@
 默认:
 
 - `source=remote`
+- 对于新实验, analysis 会读取 run config 里的 `metrics_white_list`, 只抓取和画出白名单命中的指标
+- 没有 `metrics_white_list` 的旧实验保持 legacy full 行为
 
 ## run 发现来源
 

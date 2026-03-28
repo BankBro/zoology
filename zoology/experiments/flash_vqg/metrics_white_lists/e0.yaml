@@ -1,0 +1,7 @@
+- train/loss
+- train/mqar_case/loss-*
+- valid/loss
+- valid/accuracy
+- valid/input_seq_len/*
+- valid/num_kv_pairs/*
+- valid/mqar_case/*

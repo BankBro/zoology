@@ -15,8 +15,11 @@ ENTITY="${ENTITY:-scu-mclab}"
 CACHE_DIR="${CACHE_DIR:-./data/flash_vqg}"
 LAUNCH_ID_PREFIX="${LAUNCH_ID_PREFIX:-flash-vqg-e1}"
 TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
+METRICS_WHITE_LIST_FILE="${METRICS_WHITE_LIST_FILE:-${ROOT_DIR}/zoology/experiments/flash_vqg/metrics_white_lists/e1.yaml}"
+METRICS_WHITE_LIST="${METRICS_WHITE_LIST:-}"
 
-"${PYTHON_BIN}" -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
+CMD=(
+  "${PYTHON_BIN}" -m zoology.experiments.flash_vqg.run_flash_vqg_suite
   --flash-only \
   --logger-backend swanlab \
   --analysis remote \
@@ -28,8 +31,16 @@ TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
   --if-remote-enabled true,false \
   --train-batch-order "${TRAIN_BATCH_ORDER}" \
   --cache-dir "${CACHE_DIR}" \
+  --metrics-white-list-file "${METRICS_WHITE_LIST_FILE}" \
   --project "${PROJECT}" \
   --entity "${ENTITY}" \
   --max-epochs "${MAX_EPOCHS}" \
   --launch-id-prefix "${LAUNCH_ID_PREFIX}" \
   --gpus "${GPU_ID}"
+)
+
+if [[ -n "${METRICS_WHITE_LIST}" ]]; then
+  CMD+=(--metrics-white-list "${METRICS_WHITE_LIST}")
+fi
+
+"${CMD[@]}"

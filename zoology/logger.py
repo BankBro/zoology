@@ -5,6 +5,10 @@ from typing import Any, Protocol
 from torch.nn import Module
 
 from zoology.config import TrainConfig
+from zoology.experiments.flash_vqg.metrics_white_list import (
+    filter_metrics_dict,
+    metrics_white_list_from_config,
+)
 
 
 LoggerSummary = dict[str, Any]
@@ -58,10 +62,15 @@ def _build_summary(
 
 def _model_summary_metrics(model: Module, config: TrainConfig) -> dict[str, Any]:
     max_seq_len = max(c.input_seq_len for c in config.data.test_configs)
-    return {
+    metrics = {
         "num_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
         "state_size": model.state_size(sequence_length=max_seq_len),
     }
+    return filter_metrics_dict(metrics, metrics_white_list_from_config(config))
+
+
+def _filter_logged_metrics(metrics: dict[str, Any], config: TrainConfig) -> dict[str, Any]:
+    return filter_metrics_dict(metrics, metrics_white_list_from_config(config))
 
 
 class WandbLogger:
@@ -100,13 +109,18 @@ class WandbLogger:
     def log_model(self, model: Module, config: TrainConfig):
         if self.no_logger:
             return
-        self._wandb.log(_model_summary_metrics(model, config))
+        metrics = _model_summary_metrics(model, config)
+        if metrics:
+            self._wandb.log(metrics)
         self._wandb.watch(model)
 
     def log(self, metrics: dict, *, step: int | None = None):
         if self.no_logger:
             return
-        self._wandb.log(metrics, step=step)
+        filtered_metrics = _filter_logged_metrics(metrics, self.config)
+        if not filtered_metrics:
+            return
+        self._wandb.log(filtered_metrics, step=step)
 
     def finish(self):
         if self.no_logger or self.run is None:
@@ -172,10 +186,15 @@ class SwanLabLogger:
         self._swanlab.config.update(config.model_dump())
 
     def log_model(self, model: Module, config: TrainConfig):
-        self._swanlab.log(_model_summary_metrics(model, config))
+        metrics = _model_summary_metrics(model, config)
+        if metrics:
+            self._swanlab.log(metrics)
 
     def log(self, metrics: dict, *, step: int | None = None):
-        self._swanlab.log(metrics, step=step)
+        filtered_metrics = _filter_logged_metrics(metrics, self.config)
+        if not filtered_metrics:
+            return
+        self._swanlab.log(filtered_metrics, step=step)
 
     def finish(self):
         if self.run is None:

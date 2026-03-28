@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,53 +10,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
 
+from zoology.experiments.flash_vqg.metrics_white_list import (
+    default_flash_vqg_metric_universe,
+    filter_metric_names,
+    has_metrics_white_list,
+    metric_chart_type,
+    metrics_white_list_from_config,
+)
+
 
 RESULTS_ROOT = Path(__file__).resolve().parent / "results"
 GENERATED_ROOT = Path(__file__).resolve().parents[2] / "experiments" / "flash_vqg" / "generated"
 DEFAULT_SOURCE = "remote"
-
 DEFAULT_TRAIN_CASES = [(64, 4), (128, 8), (256, 16), (256, 32), (256, 64)]
 DEFAULT_TEST_CASES = [(64, 4), (64, 8), (64, 16), (128, 32), (256, 64), (512, 64), (512, 128), (1024, 256)]
-DEFAULT_ATTN_METRICS = [
-    "attn/den_min",
-    "attn/remote_win_rate",
-    "attn/nan_inf_count",
-    "attn/den_cache_ratio",
-    "attn/o_remote_energy_ratio",
-    "attn/o_remote_local_cos",
-    "attn/remote_dominance_rate",
-    "attn/q_rms_mean",
-    "attn/k_rms_mean",
-    "attn/k_hat_rms_mean",
-]
-DEFAULT_VQ_METRICS = [
-    "vq/c_sim_min",
-    "vq/c_sim_mean",
-    "vq/c_sim_max",
-    "vq/c_dist_min",
-    "vq/c_dist_mean",
-    "vq/c_dist_max",
-    "vq/c_norm_min",
-    "vq/c_norm_mean",
-    "vq/c_norm_max",
-    "vq/c_usage_min",
-    "vq/c_usage_mean",
-    "vq/c_usage_max",
-    "vq/c_entropy",
-    "vq/k_norm_mean",
-    "vq/k_hat_norm_mean",
-    "vq/relative_err_min",
-    "vq/relative_err_mean",
-    "vq/relative_err_max",
-    "vq/c_rms_mean",
-    "vq/c_usage_min_batch",
-    "vq/c_usage_mean_batch",
-    "vq/c_usage_max_batch",
-    "vq/c_entropy_batch",
-    "vq/c_usage_small_ratio",
-    "vq/c_usage_large_ratio",
-]
-BAR_CHART_METRICS = {"num_parameters", "state_size"}
 
 
 @dataclass(frozen=True)
@@ -138,70 +104,65 @@ def completed_runs(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return completed
 
 
-def _metric_specs_from_config(config_dict: dict[str, Any]) -> dict[str, MetricSpec]:
-    specs: dict[str, MetricSpec] = {}
+def _cases_from_data_config(data: dict[str, Any], key: str, defaults: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    configs = data.get(key) or []
+    parsed_cases: list[tuple[int, int]] = []
+    for item in configs:
+        seq_len = item.get("input_seq_len")
+        num_kv_pairs = item.get("num_kv_pairs")
+        if seq_len is not None and num_kv_pairs is not None:
+            parsed_cases.append((int(seq_len), int(num_kv_pairs)))
+    return parsed_cases or defaults[:]
 
-    def add_metric(metric: str, chart_type: Literal["line", "bar"] = "line"):
-        specs[metric] = MetricSpec(metric=metric, chart_type=chart_type)
 
-    add_metric("train/loss")
-    add_metric("valid/loss")
-    add_metric("valid/accuracy")
-    add_metric("num_parameters", chart_type="bar")
-    add_metric("state_size", chart_type="bar")
-
+def _metric_universe_from_config(config_dict: dict[str, Any]) -> set[str]:
     data = config_dict.get("data") or {}
-    train_configs = data.get("train_configs") or []
-    test_configs = data.get("test_configs") or []
-    cases_train = DEFAULT_TRAIN_CASES[:]
-    cases_test = DEFAULT_TEST_CASES[:]
-
-    parsed_train_cases = []
-    for item in train_configs:
-        seq_len = item.get("input_seq_len")
-        num_kv_pairs = item.get("num_kv_pairs")
-        if seq_len is not None and num_kv_pairs is not None:
-            parsed_train_cases.append((int(seq_len), int(num_kv_pairs)))
-    if parsed_train_cases:
-        cases_train = parsed_train_cases
-
-    parsed_test_cases = []
-    for item in test_configs:
-        seq_len = item.get("input_seq_len")
-        num_kv_pairs = item.get("num_kv_pairs")
-        if seq_len is not None and num_kv_pairs is not None:
-            parsed_test_cases.append((int(seq_len), int(num_kv_pairs)))
-    if parsed_test_cases:
-        cases_test = parsed_test_cases
-
-    for seq_len, num_kv_pairs in cases_train:
-        add_metric(f"train/mqar_case/loss-{seq_len}x{num_kv_pairs}")
-    for seq_len, num_kv_pairs in cases_test:
-        add_metric(f"valid/mqar_case/accuracy-{seq_len}x{num_kv_pairs}")
-        add_metric(f"valid/input_seq_len/accuracy-{seq_len}")
-        add_metric(f"valid/num_kv_pairs/accuracy-{num_kv_pairs}")
-
     model = config_dict.get("model") or {}
     n_layers = int(model.get("n_layers") or 0)
-    for metric in DEFAULT_ATTN_METRICS:
-        add_metric(metric)
-        add_metric(f"valid/{metric}")
-        for layer_idx in range(n_layers):
-            add_metric(f"layer_{layer_idx}/{metric}")
-            add_metric(f"valid/layer_{layer_idx}/{metric}")
+    train_cases = _cases_from_data_config(data, "train_configs", DEFAULT_TRAIN_CASES)
+    test_cases = _cases_from_data_config(data, "test_configs", DEFAULT_TEST_CASES)
 
-    for metric in DEFAULT_VQ_METRICS:
-        add_metric(metric)
-        add_metric(f"valid/{metric}")
-        for layer_idx in range(n_layers):
-            add_metric(f"layer_{layer_idx}/{metric}")
-            add_metric(f"valid/layer_{layer_idx}/{metric}")
+    metrics = {
+        "train/loss",
+        "valid/loss",
+        "valid/accuracy",
+        "num_parameters",
+        "state_size",
+    }
+    for seq_len, num_kv_pairs in train_cases:
+        metrics.add(f"train/mqar_case/loss-{seq_len}x{num_kv_pairs}")
+    for seq_len, num_kv_pairs in test_cases:
+        metrics.add(f"valid/mqar_case/accuracy-{seq_len}x{num_kv_pairs}")
+        metrics.add(f"valid/input_seq_len/accuracy-{seq_len}")
+        metrics.add(f"valid/num_kv_pairs/accuracy-{num_kv_pairs}")
+    metrics.update(default_flash_vqg_metric_universe(layer_count=n_layers))
+    return metrics
 
-    return specs
+
+def _metric_specs_from_config(config_dict: dict[str, Any], *, eval_task: str | None = None) -> dict[str, MetricSpec]:
+    metrics_white_list = metrics_white_list_from_config(config_dict)
+    universe = sorted(_metric_universe_from_config(config_dict))
+    if has_metrics_white_list(metrics_white_list):
+        selected_metrics = filter_metric_names(universe, metrics_white_list)
+        selected_metrics.extend(
+            metric
+            for metric in metrics_white_list
+            if "*" not in metric and metric not in selected_metrics
+        )
+    else:
+        selected_metrics = universe
+
+    return {
+        metric: MetricSpec(
+            metric=metric,
+            chart_type=metric_chart_type(metric),
+        )
+        for metric in selected_metrics
+    }
 
 
-def _candidate_metrics_from_config(config_dict: dict[str, Any]) -> list[str]:
-    return ["epoch", *sorted(_metric_specs_from_config(config_dict).keys())]
+def _candidate_metrics_from_config(config_dict: dict[str, Any], *, eval_task: str | None = None) -> list[str]:
+    return ["epoch", *sorted(_metric_specs_from_config(config_dict, eval_task=eval_task).keys())]
 
 
 def _filter_model_metrics(history: pd.DataFrame, metric_specs: dict[str, MetricSpec] | None = None) -> pd.DataFrame:
@@ -315,7 +276,8 @@ def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[st
     experiment_resp = api.get_experiment(project, experiment_id, username=entity)
     experiment = experiment_resp.data.model_dump()
     config_dict = _unwrap_swanlab_config((experiment.get("profile") or {}).get("config") or {})
-    metric_specs = _metric_specs_from_config(config_dict)
+    eval_task = run_entry.get("eval_task")
+    metric_specs = _metric_specs_from_config(config_dict, eval_task=eval_task)
     candidate_metrics = ["epoch", *sorted(metric_specs)]
     epoch_by_step: dict[int, int] = {}
     epoch_resp = api.get_metrics(experiment_id, "epoch")
@@ -366,6 +328,7 @@ def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[st
         "candidate_metrics": candidate_metrics,
         "metric_specs": {metric: {"chart_type": spec.chart_type} for metric, spec in metric_specs.items()},
         "fetched_metric_count": len(history_frames),
+        "eval_task": eval_task,
     }
     return summary, metadata, history
 
@@ -396,7 +359,8 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
     swanlab_metadata = {}
     if metadata_file.exists():
         swanlab_metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
-    metric_specs = _metric_specs_from_config(parsed_config)
+    eval_task = run_entry.get("eval_task")
+    metric_specs = _metric_specs_from_config(parsed_config, eval_task=eval_task)
 
     ds = DataStore()
     ds.open_for_scan(str(backup_file))
@@ -442,6 +406,7 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
         "swanlab_metadata": swanlab_metadata,
         "config": parsed_config,
         "metric_specs": {metric: {"chart_type": spec.chart_type} for metric, spec in metric_specs.items()},
+        "eval_task": eval_task,
     }
     return summary, metadata, history
 
@@ -449,10 +414,13 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
 def _run_metrics_index(history: pd.DataFrame, metric_specs: dict[str, MetricSpec]) -> list[dict[str, Any]]:
     rows = []
     for metric, group in history.groupby("metric"):
+        chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
+        if len(group) <= 1:
+            chart_type = "bar"
         rows.append(
             {
                 "metric": metric,
-                "chart_type": metric_specs.get(metric, MetricSpec(metric=metric)).chart_type,
+                "chart_type": chart_type,
                 "num_points": int(len(group)),
                 "first_step": int(group["step"].min()),
                 "last_step": int(group["step"].max()),
@@ -489,10 +457,11 @@ def _plot_run_metrics(history: pd.DataFrame, run_id: str, pics_dir: Path, metric
     for metric, group in history.groupby("metric"):
         output_path = pics_dir / f"{_sanitize_filename(metric)}.png"
         chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
-        if chart_type == "bar":
+        sorted_group = group.sort_values("step")
+        if chart_type == "bar" or len(sorted_group) <= 1:
             _plot_run_bar_metric(group, title=f"{run_id} | {metric}", run_id=run_id, output_path=output_path)
         else:
-            _plot_line_metric(group.sort_values("step"), title=f"{run_id} | {metric}", output_path=output_path)
+            _plot_line_metric(sorted_group, title=f"{run_id} | {metric}", output_path=output_path)
 
 
 def _write_run_outputs(
@@ -504,12 +473,19 @@ def _write_run_outputs(
     metric_specs: dict[str, MetricSpec],
 ):
     run_root = launch_root / summary["run_id"]
-    if run_root.exists():
-        shutil.rmtree(run_root)
     data_dir = run_root / "data"
     pics_dir = run_root / "pics"
     data_dir.mkdir(parents=True, exist_ok=True)
     pics_dir.mkdir(parents=True, exist_ok=True)
+
+    for filename in ("history.csv", "summary.json", "metadata.json", "metrics_index.json"):
+        target = data_dir / filename
+        if target.exists():
+            target.unlink()
+    for metric in metric_specs:
+        plot_path = pics_dir / f"{_sanitize_filename(metric)}.png"
+        if plot_path.exists():
+            plot_path.unlink()
 
     history.to_csv(data_dir / "history.csv", index=False)
     _write_json(data_dir / "summary.json", summary)
@@ -564,18 +540,24 @@ def _launch_metrics_index(history_by_run: dict[str, pd.DataFrame], metric_specs:
     for metric in metrics:
         runs_with_metric = []
         total_points = 0
+        max_points_per_run = 0
         for run_id, history in history_by_run.items():
             metric_history = history[history["metric"] == metric]
             if metric_history.empty:
                 continue
             runs_with_metric.append(run_id)
-            total_points += len(metric_history)
+            num_points = len(metric_history)
+            total_points += num_points
+            max_points_per_run = max(max_points_per_run, num_points)
         if not runs_with_metric:
             continue
+        chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
+        if max_points_per_run <= 1:
+            chart_type = "bar"
         rows.append(
             {
                 "metric": metric,
-                "chart_type": metric_specs.get(metric, MetricSpec(metric=metric)).chart_type,
+                "chart_type": chart_type,
                 "runs_with_data": runs_with_metric,
                 "num_runs": len(runs_with_metric),
                 "num_points": int(total_points),
@@ -595,6 +577,15 @@ def _plot_launch_metrics(
     metrics = sorted({metric for df in history_by_run.values() for metric in df["metric"].unique().tolist()})
     for metric in metrics:
         chart_type = metric_specs.get(metric, MetricSpec(metric=metric)).chart_type
+        max_points_per_run = max(
+            (
+                len(history[history["metric"] == metric])
+                for history in history_by_run.values()
+            ),
+            default=0,
+        )
+        if max_points_per_run <= 1:
+            chart_type = "bar"
         if chart_type == "bar":
             run_ids = []
             values = []
@@ -636,6 +627,19 @@ def _plot_launch_metrics(
         plt.close()
 
 
+def _sync_launch_summary_generated_plots(launch_analysis_dir: Path):
+    summary_path = launch_analysis_dir / "summary.json"
+    if not summary_path.exists():
+        return
+
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if not isinstance(summary, dict):
+        return
+
+    summary["generated_plots"] = sorted(path.name for path in launch_analysis_dir.glob("*.png") if path.is_file())
+    _write_json(summary_path, summary)
+
+
 def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict[str, Any]:
     if source not in {"remote", "local"}:
         raise ValueError(f"source 只能是 ['local', 'remote'], 当前收到: {source}")
@@ -668,8 +672,16 @@ def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict
         history_by_run[summary["run_id"]] = history
 
     launch_analysis_dir = launch_root / "launch_analysis"
-    if launch_analysis_dir.exists():
-        shutil.rmtree(launch_analysis_dir)
+    launch_analysis_dir.mkdir(parents=True, exist_ok=True)
+    for target in (
+        launch_analysis_dir / "run_summary.csv",
+        launch_analysis_dir / "metrics_index.json",
+    ):
+        if target.exists():
+            target.unlink()
+    for plot_path in launch_analysis_dir.glob("*.png"):
+        if plot_path.is_file():
+            plot_path.unlink()
     _plot_launch_metrics(launch_id, history_by_run, launch_analysis_dir, launch_metric_specs)
     pd.DataFrame(run_summary_rows).sort_values("run_id").to_csv(launch_analysis_dir / "run_summary.csv", index=False)
     _write_json(
@@ -680,6 +692,7 @@ def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict
             "metrics": _launch_metrics_index(history_by_run, launch_metric_specs),
         },
     )
+    _sync_launch_summary_generated_plots(launch_analysis_dir)
     return {
         "launch_id": launch_id,
         "source": source,

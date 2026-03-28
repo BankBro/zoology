@@ -134,6 +134,7 @@ class TrainConfig(BaseConfig):
     model: ModelConfig
     logger: LoggerConfig = LoggerConfig()
     checkpoint: CheckpointConfig = CheckpointConfig()
+    metrics_white_list: List[str] = []
 
     max_epochs: int = 100
     loss_type: Literal["ce", "mse", "ce_embed"] = "ce"
