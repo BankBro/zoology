@@ -159,10 +159,13 @@ run_id:
   value: demo-run
 sweep_id:
   value: demo-sweep
+seed:
+  value: 456
 learning_rate:
   value: 0.001
 data:
   value:
+    seed: 123
     train_batch_order: global_shuffle
 model:
   value:
@@ -181,6 +184,8 @@ model:
               num_codebook_vectors: 128
               num_heads: 2
               use_time_mixing: kv_shift
+              fox_remote_path_backend: torch
+              fox_remote_read_topk: 2
 """,
         encoding="utf-8",
     )
@@ -238,6 +243,11 @@ model:
     assert row["if_remote_enabled"] in {True, 1, 1.0}
     assert row["num_codebook_vectors"] == 128
     assert row["train_batch_order"] == "global_shuffle"
+    assert row["seed"] == 456
+    assert row["data_seed"] == 123
+    assert row["fox_remote_path_backend"] == "torch"
+    assert row["fox_remote_read_topk"] == 2
+    assert row["read_mode"] == "top2"
 
 
 def test_e7_local_analysis_keeps_default_metric_names_and_launch_outputs(tmp_path, monkeypatch):

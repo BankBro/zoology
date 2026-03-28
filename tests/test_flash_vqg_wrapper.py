@@ -13,6 +13,8 @@ from zoology.experiments.flash_vqg.run_flash_vqg_suite import (
     _parse_codebook_vectors_map,
     _parse_csv_ints,
     _parse_paired_block_local,
+    _parse_remote_read_topk_values,
+    _parse_seed_values,
     _resolve_metrics_white_list,
     _render_generated_config,
 )
@@ -29,6 +31,10 @@ def test_parse_codebook_vectors_map_supports_dmodel_mapping():
     }
 
 
+def test_parse_seed_values_supports_multi_seed_scan():
+    assert _parse_seed_values("123,456,789") == [123, 456, 789]
+
+
 def test_parse_paired_block_local_supports_zip_scan_values():
     assert _parse_paired_block_local("8:8,16:4,32:2,64:1") == [
         (8, 8),
@@ -36,6 +42,10 @@ def test_parse_paired_block_local_supports_zip_scan_values():
         (32, 2),
         (64, 1),
     ]
+
+
+def test_parse_remote_read_topk_values_supports_dense_and_sparse_modes():
+    assert _parse_remote_read_topk_values("dense,2,4") == [None, 2, 4]
 
 
 def test_build_eval_run_id_prefixes_checkpoint_run_id():
@@ -75,8 +85,12 @@ def test_render_generated_config_writes_block_len_values_scan():
         if_remote_enabled_values=[False],
         local_num_blocks_values=[1, 2],
         train_batch_orders=["global_shuffle"],
+        seed_values=None,
+        data_seed=123,
         num_codebook_vectors_values=None,
         num_codebook_vectors_map=None,
+        fox_remote_path_backend=None,
+        fox_remote_read_topk_values=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -102,8 +116,12 @@ def test_render_generated_config_writes_paired_block_local_scan():
         if_remote_enabled_values=[False],
         local_num_blocks_values=None,
         train_batch_orders=["global_shuffle"],
+        seed_values=None,
+        data_seed=123,
         num_codebook_vectors_values=None,
         num_codebook_vectors_map=None,
+        fox_remote_path_backend=None,
+        fox_remote_read_topk_values=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -129,8 +147,12 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         if_remote_enabled_values=[True],
         local_num_blocks_values=[2],
         train_batch_orders=["global_shuffle"],
+        seed_values=None,
+        data_seed=123,
         num_codebook_vectors_values=[64, 128, 256, 512],
         num_codebook_vectors_map=None,
+        fox_remote_path_backend=None,
+        fox_remote_read_topk_values=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -153,8 +175,12 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         if_remote_enabled_values=[True],
         local_num_blocks_values=[2],
         train_batch_orders=["global_shuffle"],
+        seed_values=None,
+        data_seed=123,
         num_codebook_vectors_values=None,
         num_codebook_vectors_map={128: 128, 256: 256},
+        fox_remote_path_backend=None,
+        fox_remote_read_topk_values=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -168,6 +194,14 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
 
 def _flash_num_codebook_vectors(config) -> int:
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["num_codebook_vectors"]
+
+
+def _flash_remote_read_topk(config):
+    return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_remote_read_topk"]
+
+
+def _flash_remote_path_backend(config) -> str:
+    return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_remote_path_backend"]
 
 
 def test_build_configs_sweeps_num_codebook_vectors_values():
@@ -230,6 +264,41 @@ def test_build_configs_requires_selected_dmodels_in_num_codebook_vectors_map():
             num_codebook_vectors_map={128: 128},
             metrics_white_list=["valid/accuracy"],
         )
+
+
+def test_build_configs_sweeps_seed_and_remote_read_topk_values():
+    configs = build_configs(
+        include_gdn=False,
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        seed_values=[123, 456, 789],
+        data_seed=123,
+        num_codebook_vectors_values=[128],
+        fox_remote_path_backend="torch",
+        fox_remote_read_topk_values=[None, 2, 4],
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 9
+    assert [config.seed for config in configs] == [123, 456, 789, 123, 456, 789, 123, 456, 789]
+    assert [config.data.seed for config in configs] == [123] * 9
+    assert [_flash_remote_path_backend(config) for config in configs] == ["torch"] * 9
+    assert [_flash_remote_read_topk(config) for config in configs] == [None, None, None, 2, 2, 2, 4, 4, 4]
+    assert [config.run_id for config in configs] == [
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed789",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed789",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed789",
+    ]
 
 
 def test_main_eval_only_requires_checkpoint_ids(monkeypatch):
@@ -500,3 +569,73 @@ def test_run_eval_only_dispatches_e7(monkeypatch):
         "eval_e7_top2_demo-run",
         "eval_e7_top4_demo-run",
     ]
+
+
+def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
+    generated_root = tmp_path / "generated"
+    subprocess_calls = []
+
+    monkeypatch.setattr(suite, "GENERATED_DIR", generated_root)
+    monkeypatch.setattr(suite, "_build_launch_id", lambda prefix: f"{prefix}-2026-03-28-00-00-00")
+    monkeypatch.setattr(
+        suite.subprocess,
+        "run",
+        lambda cmd, check, cwd, env: subprocess_calls.append(
+            {
+                "cmd": cmd,
+                "check": check,
+                "cwd": cwd,
+                "manifest_env": env.get(suite.MANIFEST_ENV_VAR),
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_flash_vqg_suite.py",
+            "--flash-only",
+            "--backend",
+            "accel",
+            "--block-len",
+            "32",
+            "--dmodels",
+            "128",
+            "--learning-rates",
+            "1e-3",
+            "--local-num-blocks",
+            "2",
+            "--if-remote-enabled",
+            "true",
+            "--train-batch-order",
+            "global_shuffle",
+            "--seed-values",
+            "123,456,789",
+            "--data-seed",
+            "123",
+            "--fox-remote-path-backend",
+            "torch",
+            "--fox-remote-read-topk-values",
+            "dense,2,4",
+            "--num-codebook-vectors",
+            "128",
+            "--launch-id-prefix",
+            "flash-vqg-e7-train",
+        ],
+    )
+
+    suite.main()
+
+    generated_dir = generated_root / "flash-vqg-e7-train-2026-03-28-00-00-00"
+    manifest = json.loads((generated_dir / "manifest.json").read_text(encoding="utf-8"))
+    generated_config = (generated_dir / "launch_configs.py").read_text(encoding="utf-8")
+
+    assert len(manifest["runs"]) == 9
+    assert manifest["runs"][0]["run_id"].endswith("-rread-dense-seed123")
+    assert manifest["runs"][-1]["run_id"].endswith("-rread-top4-seed789")
+    assert "seed_values=[123, 456, 789]" in generated_config
+    assert "data_seed=123" in generated_config
+    assert "fox_remote_path_backend='torch'" in generated_config
+    assert "fox_remote_read_topk_values=[None, 2, 4]" in generated_config
+    assert len(subprocess_calls) == 1
+    assert subprocess_calls[0]["manifest_env"] == str((generated_dir / "manifest.json").resolve())

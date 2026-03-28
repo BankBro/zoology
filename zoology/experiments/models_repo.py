@@ -335,6 +335,7 @@ def add_flash_vqg(
     vq_use_triton_shortcodes=False,
     fox_state_build_backend="torch",
     fox_remote_path_backend="torch",
+    fox_remote_read_topk=None,
     local_num_blocks=1,
     use_time_mixing="kv_shift",
     vq_score_mode="l2",
@@ -366,6 +367,8 @@ def add_flash_vqg(
             {"torch", "triton"}.
         fox_remote_path_backend: Backend for FoX remote reduce. One of
             {"torch", "triton"}.
+        fox_remote_read_topk: Optional read-side top-k for remote reduction.
+            None keeps dense readout.
         local_num_blocks: Number of local FoX blocks to retain.
         use_time_mixing: Flash-VQG time-mixing mode. Typical values are
             "kv_shift", "shortconv", or None.
@@ -404,6 +407,9 @@ def add_flash_vqg(
                 "vq_use_triton_shortcodes": bool(vq_use_triton_shortcodes),
                 "fox_state_build_backend": str(fox_state_build_backend),
                 "fox_remote_path_backend": str(fox_remote_path_backend),
+                "fox_remote_read_topk": (
+                    None if fox_remote_read_topk is None else int(fox_remote_read_topk)
+                ),
                 "use_time_mixing": use_time_mixing,
                 "vq_score_mode": str(vq_score_mode),
                 "vq_weight_mode": str(vq_weight_mode),
