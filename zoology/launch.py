@@ -28,9 +28,10 @@ def execute_config(config: TrainConfig):
     default=None,
 )
 @click.option("--name", type=str, default="default")
+@click.option("--launch-id", "explicit_launch_id", type=str, default=None)
 @click.option("-p", "--parallelize", is_flag=True)
 @click.option("--gpus", default=None, type=str)
-def main(python_file, outdir, name: str, parallelize: bool, gpus: str):
+def main(python_file, outdir, name: str, explicit_launch_id: str | None, parallelize: bool, gpus: str):
 
     if gpus is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = gpus
@@ -42,8 +43,10 @@ def main(python_file, outdir, name: str, parallelize: bool, gpus: str):
     spec.loader.exec_module(config_module)
 
     configs = config_module.configs
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    resolved_launch_id = explicit_launch_id or f"{name}-{timestamp}"
     for config in configs:
-        config.launch_id = f"{name}-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}"
+        config.launch_id = resolved_launch_id
 
     use_ray = parallelize and len(configs) > 0
     if use_ray:
@@ -52,8 +55,7 @@ def main(python_file, outdir, name: str, parallelize: bool, gpus: str):
         os.environ["RAY_memory_monitor_refresh_ms"] = "0"
         ray.init(ignore_reinit_error=True, log_to_driver=False)
 
-    name = name + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    print(f"Running sweep {name} with {len(configs)} configs")
+    print(f"Running sweep {resolved_launch_id} with {len(configs)} configs")
 
     # Run each script in parallel using Ray
     if not use_ray:

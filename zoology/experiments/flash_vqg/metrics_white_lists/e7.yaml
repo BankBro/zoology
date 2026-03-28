@@ -1,0 +1,12 @@
+- train/loss
+- valid/loss
+- valid/accuracy
+- valid/input_seq_len/*
+- valid/num_kv_pairs/*
+- valid/mqar_case/*
+- vq/relative_err_mean
+- vq/c_entropy
+- vq/c_usage_max
+- valid/vq/relative_err_mean
+- valid/vq/c_entropy
+- valid/vq/c_usage_max

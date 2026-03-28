@@ -138,6 +138,10 @@ def multiquery_ar(
     return DataSegment(
         inputs, 
         labels, 
-        slices={"num_kv_pairs": num_kv_pairs, "input_seq_len": input_seq_len, "num_passes": num_passes}
+        slices={
+            "num_kv_pairs": num_kv_pairs,
+            "input_seq_len": input_seq_len,
+            "num_passes": num_passes,
+            "mqar_case": f"{input_seq_len}x{num_kv_pairs}",
+        }
     )
-

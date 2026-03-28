@@ -1,0 +1,11 @@
+- valid/loss
+- valid/accuracy
+- valid/input_seq_len/*
+- valid/num_kv_pairs/*
+- valid/mqar_case/*
+- attn/remote_win_rate
+- attn/o_remote_energy_ratio
+- valid/attn/remote_win_rate
+- valid/attn/o_remote_energy_ratio
+- vq/relative_err_mean
+- valid/vq/relative_err_mean

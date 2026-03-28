@@ -1,7 +1,7 @@
 import argparse
 from datetime import datetime
 from functools import partial
-from typing import List, Tuple, Union, Literal
+from typing import List, Tuple, Union, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -81,8 +81,9 @@ class DataConfig(BaseConfig):
 
     # can pass a tuple if you want a different batch size for train and test
     batch_size: Union[int, Tuple[int, int]] = 32
+    train_batch_order: Literal["sequential", "global_shuffle", "balanced_interleave"] = "sequential"
     seed: int = 123
-    cache_dir: str = None
+    cache_dir: Optional[str] = None
     force_cache: bool = False 
 
     # JRT style sequences (https://arxiv.org/abs/2407.05483)
@@ -90,7 +91,7 @@ class DataConfig(BaseConfig):
 
 
 class ModelConfig(BaseConfig):
-    sequence_mixer: ModuleConfig = None
+    sequence_mixer: Optional[ModuleConfig] = None
     state_mixer: ModuleConfig = ModuleConfig(
         name="zoology.mixers.mlp.MLP", 
         kwargs={"hidden_mult": 4}
@@ -113,15 +114,27 @@ class ModelConfig(BaseConfig):
     name: str = "default"
 
 class LoggerConfig(BaseConfig):
+    backend: Literal["wandb", "swanlab", "none"] = "wandb"
+    project_name: Optional[str] = None
+    entity: Optional[str] = None
+    
 
-    project_name: str = None
-    entity: str = None
+class CheckpointConfig(BaseConfig):
+    enabled: bool = True
+    root_dir: str = "checkpoints"
+    save_best: bool = True
+    save_last: bool = True
+    best_metric: Optional[str] = None
+    best_mode: Literal["max", "min"] = "max"
+    save_config_json: bool = True
     
 
 class TrainConfig(BaseConfig):
     data: DataConfig
     model: ModelConfig
     logger: LoggerConfig = LoggerConfig()
+    checkpoint: CheckpointConfig = CheckpointConfig()
+    metrics_white_list: List[str] = []
 
     max_epochs: int = 100
     loss_type: Literal["ce", "mse", "ce_embed"] = "ce"
@@ -137,6 +150,6 @@ class TrainConfig(BaseConfig):
     weight_decay: float = 0.1
     seed: int = 123
 
-    launch_id: str = None
-    sweep_id: str = None
+    launch_id: Optional[str] = None
+    sweep_id: Optional[str] = None
     run_id: str = "default"

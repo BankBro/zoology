@@ -3,8 +3,13 @@ import os
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
+
+try:
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+except ImportError:  # pragma: no cover - optional plotting dependency
+    sns = None
+    plt = None
 
 from zoology.analysis.utils import fetch_wandb_runs
 
@@ -15,6 +20,8 @@ def plot(
     df: pd.DataFrame,
     max_seq_len: int = 512,
 ):
+    if sns is None or plt is None:
+        raise ImportError("plot 依赖 seaborn 和 matplotlib, 当前环境未安装.")
     
     plot_df = df.groupby([
         "model.sequence_mixer.name",

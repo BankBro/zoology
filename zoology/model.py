@@ -18,7 +18,7 @@ class TokenEmbeddings(nn.Module):
         word_embed_proj_dim=None,
         learnable: bool = True,
         init_type: str = "default",  # "default", "spherical", "normal"
-        device='cuda',
+        device=None,
         dtype=torch.float32,
     ):
         """
@@ -39,6 +39,8 @@ class TokenEmbeddings(nn.Module):
             dtype: Data type for embeddings
         """
         super().__init__()
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
         self.dtype = dtype
         
@@ -313,7 +315,7 @@ class LanguageModel(nn.Module):
             self.lm_head.weight = self.backbone.embeddings.word_embeddings.weight
 
     def forward(
-        self, input_ids, position_ids=None, state=None, return_embeddings=True
+        self, input_ids, position_ids=None, state=None, return_embeddings=False
     ): 
         hidden_states = self.backbone(input_ids, position_ids=position_ids)
         if return_embeddings:

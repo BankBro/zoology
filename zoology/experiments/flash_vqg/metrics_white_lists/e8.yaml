@@ -1,0 +1,5 @@
+- train/loss
+- valid/loss
+- valid/accuracy
+- valid/input_seq_len/*
+- valid/num_kv_pairs/*
