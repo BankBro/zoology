@@ -336,6 +336,16 @@ def _normalize_fox_clr_rank(fox_clr_rank: int | None) -> int:
     return rank
 
 
+def _normalize_fox_clr_remat_mode(fox_clr_remat_mode: str | None) -> str:
+    mode = "off" if fox_clr_remat_mode is None else str(fox_clr_remat_mode).lower()
+    if mode not in {"off", "post_phase1"}:
+        raise ValueError(
+            "fox_clr_remat_mode 只能是 ['off', 'post_phase1'], "
+            f"当前收到: {fox_clr_remat_mode}"
+        )
+    return mode
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -361,6 +371,13 @@ def _remote_formula_run_tag(
     if fox_remote_formula == "legacy":
         return "legacy"
     return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
+
+
+def _clr_remat_run_tag(fox_clr_remat_mode: str) -> str:
+    return {
+        "off": "off",
+        "post_phase1": "postp1",
+    }[fox_clr_remat_mode]
 
 
 def _build_data_config(
@@ -460,6 +477,7 @@ def build_configs(
     fox_remote_formula: str = "legacy",
     fox_clr_rank: int = 4,
     fox_clr_use_den_residual: bool = True,
+    fox_clr_remat_mode: str = "off",
     cache_dir: str = DEFAULT_CACHE_DIR,
     metrics_white_list: Iterable[str] | None = None,
 ) -> list[TrainConfig]:
@@ -526,6 +544,7 @@ def build_configs(
     )
     resolved_remote_formula = _normalize_fox_remote_formula(fox_remote_formula)
     resolved_clr_rank = _normalize_fox_clr_rank(fox_clr_rank)
+    resolved_clr_remat_mode = _normalize_fox_clr_remat_mode(fox_clr_remat_mode)
     remote_read_topk_list = _normalize_fox_remote_read_topk_values(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
@@ -539,7 +558,16 @@ def build_configs(
             raise ValueError("fox_remote_formula='clr_v1' 暂不支持 fox_remote_read_topk.")
         if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
             raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
+        if (
+            resolved_clr_remat_mode == "post_phase1"
+            and metric_controls["enable_layer_metrics"]
+        ):
+            raise ValueError(
+                "fox_clr_remat_mode='post_phase1' 目前不支持 enable_layer_metrics=True."
+            )
         remote_read_topk_list = [None]
+    elif resolved_clr_remat_mode != "off":
+        raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1'.")
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
     include_read_suffix = (
         fox_remote_read_topk_values is not None
@@ -620,6 +648,7 @@ def build_configs(
                         fox_remote_formula=resolved_remote_formula,
                         fox_clr_rank=resolved_clr_rank,
                         fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                        fox_clr_remat_mode=resolved_clr_remat_mode,
                         local_num_blocks=current_local_num_blocks,
                         use_time_mixing="kv_shift",
                         vq_score_mode="l2",
@@ -698,6 +727,11 @@ def build_configs(
                                             fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
                                         )}"
                                     )
+                                    if resolved_remote_formula == "clr_v1":
+                                        run_id = (
+                                            f"{run_id}-rremat-"
+                                            f"{_clr_remat_run_tag(resolved_clr_remat_mode)}"
+                                        )
                                     if include_read_suffix:
                                         run_id = f"{run_id}-rread-{read_tag}"
                                     if include_seed_suffix:

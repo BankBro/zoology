@@ -21,6 +21,7 @@ class FlashVQGMixer(nn.Module):
         fox_remote_formula: str = "legacy",
         fox_clr_rank: int = 4,
         fox_clr_use_den_residual: bool = True,
+        fox_clr_remat_mode: str = "off",
         attn_backend: str = "flash",
         attn_cfg: dict | None = None,
         use_time_mixing: str | None = "kv_shift",
@@ -58,6 +59,7 @@ class FlashVQGMixer(nn.Module):
         self.fox_remote_formula = str(fox_remote_formula)
         self.fox_clr_rank = int(fox_clr_rank)
         self.fox_clr_use_den_residual = bool(fox_clr_use_den_residual)
+        self.fox_clr_remat_mode = str(fox_clr_remat_mode)
         self.codebook_beta = float(codebook_beta)
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
@@ -76,6 +78,7 @@ class FlashVQGMixer(nn.Module):
             fox_remote_formula=self.fox_remote_formula,
             fox_clr_rank=self.fox_clr_rank,
             fox_clr_use_den_residual=self.fox_clr_use_den_residual,
+            fox_clr_remat_mode=self.fox_clr_remat_mode,
             attn_backend=attn_backend,
             attn_cfg={} if attn_cfg is None else attn_cfg,
             use_time_mixing=use_time_mixing,

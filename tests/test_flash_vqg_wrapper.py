@@ -94,6 +94,7 @@ def test_render_generated_config_writes_block_len_values_scan():
         fox_remote_formula="legacy",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -105,6 +106,7 @@ def test_render_generated_config_writes_block_len_values_scan():
     assert "block_len=" not in rendered
     assert "metrics_white_list=['valid/accuracy', 'valid/mqar_case/*']" in rendered
     assert "fox_remote_formula='legacy'" in rendered
+    assert "fox_clr_remat_mode='off'" in rendered
 
 
 def test_render_generated_config_writes_paired_block_local_scan():
@@ -129,6 +131,7 @@ def test_render_generated_config_writes_paired_block_local_scan():
         fox_remote_formula="legacy",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -164,6 +167,7 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         fox_remote_formula="legacy",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -196,6 +200,7 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         fox_remote_formula="legacy",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -221,6 +226,10 @@ def _flash_remote_path_backend(config) -> str:
 
 def _flash_remote_formula(config) -> str:
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_remote_formula"]
+
+
+def _flash_clr_remat_mode(config) -> str:
+    return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_clr_remat_mode"]
 
 
 def test_build_configs_sweeps_num_codebook_vectors_values():
@@ -335,12 +344,14 @@ def test_build_configs_supports_clr_formula_suffix():
         fox_remote_formula="clr_v1",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
         metrics_white_list=["valid/accuracy"],
     )
 
     assert len(configs) == 1
     assert _flash_remote_formula(configs[0]) == "clr_v1"
-    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1")
+    assert _flash_clr_remat_mode(configs[0]) == "off"
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off")
 
 
 def test_build_configs_supports_clr_rank_zero_suffix():
@@ -357,12 +368,14 @@ def test_build_configs_supports_clr_rank_zero_suffix():
         fox_remote_formula="clr_v1",
         fox_clr_rank=0,
         fox_clr_use_den_residual=False,
+        fox_clr_remat_mode="off",
         metrics_white_list=["valid/accuracy"],
     )
 
     assert len(configs) == 1
     assert _flash_remote_formula(configs[0]) == "clr_v1"
-    assert configs[0].run_id.endswith("-rformula-clr1-r0-den0")
+    assert _flash_clr_remat_mode(configs[0]) == "off"
+    assert configs[0].run_id.endswith("-rformula-clr1-r0-den0-rremat-off")
 
 
 def test_build_configs_rejects_clr_rank_zero_with_den_residual():
@@ -380,6 +393,7 @@ def test_build_configs_rejects_clr_rank_zero_with_den_residual():
             fox_remote_formula="clr_v1",
             fox_clr_rank=0,
             fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="off",
             metrics_white_list=["valid/accuracy"],
         )
 
@@ -399,6 +413,7 @@ def test_build_configs_rejects_clr_with_accel_backend():
             fox_remote_formula="clr_v1",
             fox_clr_rank=4,
             fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="off",
             metrics_white_list=["valid/accuracy"],
         )
 
@@ -418,8 +433,72 @@ def test_build_configs_rejects_clr_with_triton_remote_backend():
             fox_remote_formula="clr_v1",
             fox_clr_rank=4,
             fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="off",
             fox_remote_path_backend="triton",
             metrics_white_list=["valid/accuracy"],
+        )
+
+
+def test_build_configs_supports_clr_remat_suffix():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="post_phase1",
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert _flash_clr_remat_mode(configs[0]) == "post_phase1"
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-postp1")
+
+
+def test_build_configs_rejects_legacy_with_clr_remat():
+    with pytest.raises(ValueError, match="fox_clr_remat_mode"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="legacy",
+            fox_clr_rank=4,
+            fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="post_phase1",
+            metrics_white_list=["valid/accuracy"],
+        )
+
+
+def test_build_configs_rejects_clr_remat_when_layer_metrics_enabled():
+    with pytest.raises(ValueError, match="enable_layer_metrics=True"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="clr_v1",
+            fox_clr_rank=4,
+            fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="post_phase1",
+            metrics_white_list=["attn/remote_win_rate"],
         )
 
 
