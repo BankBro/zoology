@@ -538,9 +538,9 @@ def main():
     )
     parser.add_argument(
         "--fox-remote-formula",
-        choices=["legacy", "clr_v1"],
+        choices=["legacy", "clr_v1", "clr_delta_v1"],
         default="legacy",
-        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似.",
+        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似, clr_delta_v1 为 Delta memory residual.",
     )
     parser.add_argument(
         "--fox-clr-rank",

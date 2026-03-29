@@ -322,9 +322,9 @@ def _normalize_fox_remote_read_topk_values(
 
 def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
     normalized = "legacy" if fox_remote_formula is None else str(fox_remote_formula).lower()
-    if normalized not in {"legacy", "clr_v1"}:
+    if normalized not in {"legacy", "clr_v1", "clr_delta_v1"}:
         raise ValueError(
-            f"fox_remote_formula 只能是 ['legacy', 'clr_v1'], 当前收到: {fox_remote_formula}"
+            f"fox_remote_formula 只能是 ['legacy', 'clr_v1', 'clr_delta_v1'], 当前收到: {fox_remote_formula}"
         )
     return normalized
 
@@ -370,6 +370,8 @@ def _remote_formula_run_tag(
 ) -> str:
     if fox_remote_formula == "legacy":
         return "legacy"
+    if fox_remote_formula == "clr_delta_v1":
+        return f"clrdelta1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
     return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
 
 
@@ -549,13 +551,13 @@ def build_configs(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
     )
-    if resolved_remote_formula == "clr_v1":
+    if resolved_remote_formula in ("clr_v1", "clr_delta_v1"):
         if flash_backend != "torch":
-            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 flash_backend='torch'.")
+            raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 目前只支持 flash_backend='torch'.")
         if resolved_remote_path_backend != "torch":
-            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 fox_remote_path_backend='torch'.")
+            raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 目前只支持 fox_remote_path_backend='torch'.")
         if any(value is not None for value in remote_read_topk_list):
-            raise ValueError("fox_remote_formula='clr_v1' 暂不支持 fox_remote_read_topk.")
+            raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 暂不支持 fox_remote_read_topk.")
         if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
             raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
         if (
@@ -567,7 +569,7 @@ def build_configs(
             )
         remote_read_topk_list = [None]
     elif resolved_clr_remat_mode != "off":
-        raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1'.")
+        raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1' 或 'clr_delta_v1'.")
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
     include_read_suffix = (
         fox_remote_read_topk_values is not None
@@ -727,7 +729,7 @@ def build_configs(
                                             fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
                                         )}"
                                     )
-                                    if resolved_remote_formula == "clr_v1":
+                                    if resolved_remote_formula in ("clr_v1", "clr_delta_v1"):
                                         run_id = (
                                             f"{run_id}-rremat-"
                                             f"{_clr_remat_run_tag(resolved_clr_remat_mode)}"
