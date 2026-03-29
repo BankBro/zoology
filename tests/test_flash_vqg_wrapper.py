@@ -343,6 +343,47 @@ def test_build_configs_supports_clr_formula_suffix():
     assert configs[0].run_id.endswith("-rformula-clr1-r4-den1")
 
 
+def test_build_configs_supports_clr_rank_zero_suffix():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=0,
+        fox_clr_use_den_residual=False,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert _flash_remote_formula(configs[0]) == "clr_v1"
+    assert configs[0].run_id.endswith("-rformula-clr1-r0-den0")
+
+
+def test_build_configs_rejects_clr_rank_zero_with_den_residual():
+    with pytest.raises(ValueError, match="fox_clr_rank=0"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="clr_v1",
+            fox_clr_rank=0,
+            fox_clr_use_den_residual=True,
+            metrics_white_list=["valid/accuracy"],
+        )
+
+
 def test_build_configs_rejects_clr_with_accel_backend():
     with pytest.raises(ValueError, match="flash_backend='torch'"):
         build_configs(
