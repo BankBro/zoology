@@ -21,7 +21,7 @@ LOCAL_NUM_BLOCKS="${LOCAL_NUM_BLOCKS:-2}"
 NUM_CODEBOOK_VECTORS="${NUM_CODEBOOK_VECTORS:-128}"
 TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
 DATA_SEED="${DATA_SEED:-123}"
-GPUS="${GPUS:-0,1}"
+GPUS="${GPUS:-1}"
 METRICS_WHITE_LIST_FILE="${METRICS_WHITE_LIST_FILE:-${ROOT_DIR}/zoology/experiments/flash_vqg/metrics_white_lists/e0.yaml}"
 LOG_DIR="${LOG_DIR:-${ROOT_DIR}/tmp/flash_vqg_clr_r2_r4_r8_den1_single_launch}"
 RANKS_CSV="${RANKS_CSV:-2,4,8}"
@@ -178,11 +178,6 @@ if [[ ${#CONFIG_FILES[@]} -eq 0 ]]; then
   exit 1
 fi
 
-declare -a ACTIVE_PIDS=()
-declare -a ACTIVE_GPUS=()
-declare -a ACTIVE_CONFIGS=()
-FREED_GPU=""
-
 launch_one() {
   local config_file="$1"
   local gpu_id="$2"
@@ -195,86 +190,14 @@ launch_one() {
   echo "==> 启动 ${base_name} 使用 GPU ${gpu_id}"
   env FLASH_VQG_MANIFEST_PATH="${MANIFEST_PATH}" \
     "${PYTHON_BIN}" -m zoology.launch "${config_file}" --launch-id "${LAUNCH_ID}" --gpus "${gpu_id}" \
-    >"${log_file}" 2>&1 &
-  local pid=$!
-  ACTIVE_PIDS+=("${pid}")
-  ACTIVE_GPUS+=("${gpu_id}")
-  ACTIVE_CONFIGS+=("${config_file}")
+    2>&1 | tee "${log_file}"
 }
 
-wait_for_one() {
-  FREED_GPU=""
-  local wait_code=0
-  if ! wait -n; then
-    wait_code=$?
-  fi
-
-  local new_pids=()
-  local new_gpus=()
-  local new_configs=()
-  local freed_gpu=""
-
-  for idx in "${!ACTIVE_PIDS[@]}"; do
-    local pid="${ACTIVE_PIDS[$idx]}"
-    local gpu="${ACTIVE_GPUS[$idx]}"
-    local config_file="${ACTIVE_CONFIGS[$idx]}"
-    if kill -0 "${pid}" 2>/dev/null; then
-      new_pids+=("${pid}")
-      new_gpus+=("${gpu}")
-      new_configs+=("${config_file}")
-    else
-      if [[ -z "${FREED_GPU}" ]]; then
-        FREED_GPU="${gpu}"
-      fi
-    fi
-  done
-
-  ACTIVE_PIDS=("${new_pids[@]}")
-  ACTIVE_GPUS=("${new_gpus[@]}")
-  ACTIVE_CONFIGS=("${new_configs[@]}")
-
-  if [[ ${wait_code} -ne 0 ]]; then
-    echo "==> 检测到子任务失败, 正在清理剩余任务" >&2
-    for pid in "${ACTIVE_PIDS[@]:-}"; do
-      kill "${pid}" 2>/dev/null || true
-    done
-    wait || true
-    exit "${wait_code}"
-  fi
-}
-
-cleanup() {
-  local exit_code=$?
-  if [[ ${exit_code} -ne 0 ]]; then
-    for pid in "${ACTIVE_PIDS[@]:-}"; do
-      kill "${pid}" 2>/dev/null || true
-    done
-  fi
-}
-trap cleanup EXIT
-
-config_index=0
-while [[ ${config_index} -lt ${#CONFIG_FILES[@]} && ${config_index} -lt ${#GPU_IDS[@]} ]]; do
-  gpu_id="$(echo "${GPU_IDS[$config_index]}" | xargs)"
+for config_index in "${!CONFIG_FILES[@]}"; do
+  gpu_slot=$((config_index % ${#GPU_IDS[@]}))
+  gpu_id="$(echo "${GPU_IDS[$gpu_slot]}" | xargs)"
   launch_one "${CONFIG_FILES[$config_index]}" "${gpu_id}"
-  config_index=$((config_index + 1))
 done
-
-while [[ ${config_index} -lt ${#CONFIG_FILES[@]} ]]; do
-  wait_for_one
-  if [[ -z "${FREED_GPU}" ]]; then
-    echo "未能获取空闲 GPU, 调度失败" >&2
-    exit 1
-  fi
-  launch_one "${CONFIG_FILES[$config_index]}" "${FREED_GPU}"
-  config_index=$((config_index + 1))
-done
-
-while [[ ${#ACTIVE_PIDS[@]} -gt 0 ]]; do
-  wait_for_one >/dev/null
-done
-
-trap - EXIT
 
 ANALYSIS_CMD=(
   "${PYTHON_BIN}" -m zoology.analysis.flash_vqg.run_flash_vqg_analysis
