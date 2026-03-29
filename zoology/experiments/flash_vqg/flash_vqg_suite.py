@@ -320,6 +320,22 @@ def _normalize_fox_remote_read_topk_values(
     return normalized
 
 
+def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
+    normalized = "legacy" if fox_remote_formula is None else str(fox_remote_formula).lower()
+    if normalized not in {"legacy", "clr_v1"}:
+        raise ValueError(
+            f"fox_remote_formula 只能是 ['legacy', 'clr_v1'], 当前收到: {fox_remote_formula}"
+        )
+    return normalized
+
+
+def _normalize_fox_clr_rank(fox_clr_rank: int | None) -> int:
+    rank = 4 if fox_clr_rank is None else int(fox_clr_rank)
+    if rank <= 0:
+        raise ValueError(f"fox_clr_rank 必须是正整数, 当前收到: {fox_clr_rank}")
+    return rank
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -334,6 +350,17 @@ def _structure_run_tag(*, local_num_blocks: int, if_remote_enabled: bool) -> str
 
 def _remote_read_run_tag(read_topk: int | None) -> str:
     return "dense" if read_topk is None else f"top{int(read_topk)}"
+
+
+def _remote_formula_run_tag(
+    *,
+    fox_remote_formula: str,
+    fox_clr_rank: int,
+    fox_clr_use_den_residual: bool,
+) -> str:
+    if fox_remote_formula == "legacy":
+        return "legacy"
+    return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
 
 
 def _build_data_config(
@@ -430,6 +457,9 @@ def build_configs(
     fox_remote_path_backend: str | None = None,
     fox_remote_read_topk_values: Iterable[int | None] | None = None,
     fox_remote_read_topk: int | None = None,
+    fox_remote_formula: str = "legacy",
+    fox_clr_rank: int = 4,
+    fox_clr_use_den_residual: bool = True,
     cache_dir: str = DEFAULT_CACHE_DIR,
     metrics_white_list: Iterable[str] | None = None,
 ) -> list[TrainConfig]:
@@ -494,16 +524,28 @@ def build_configs(
         fox_remote_path_backend,
         flash_backend=flash_backend,
     )
+    resolved_remote_formula = _normalize_fox_remote_formula(fox_remote_formula)
+    resolved_clr_rank = _normalize_fox_clr_rank(fox_clr_rank)
     remote_read_topk_list = _normalize_fox_remote_read_topk_values(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
     )
+    if resolved_remote_formula == "clr_v1":
+        if flash_backend != "torch":
+            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 flash_backend='torch'.")
+        if resolved_remote_path_backend != "torch":
+            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 fox_remote_path_backend='torch'.")
+        if any(value is not None for value in remote_read_topk_list):
+            raise ValueError("fox_remote_formula='clr_v1' 暂不支持 fox_remote_read_topk.")
+        remote_read_topk_list = [None]
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
     include_read_suffix = (
         fox_remote_read_topk_values is not None
         or fox_remote_read_topk is not None
         or len(remote_read_topk_list) > 1
     )
+    if resolved_remote_formula == "clr_v1":
+        include_read_suffix = False
     if normalized_num_codebook_vectors_values is not None:
         codebook_variants = [
             {
@@ -573,6 +615,9 @@ def build_configs(
                         fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
                         fox_remote_path_backend=resolved_remote_path_backend,
                         fox_remote_read_topk=current_remote_read_topk,
+                        fox_remote_formula=resolved_remote_formula,
+                        fox_clr_rank=resolved_clr_rank,
+                        fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
                         local_num_blocks=current_local_num_blocks,
                         use_time_mixing="kv_shift",
                         vq_score_mode="l2",
@@ -642,6 +687,14 @@ def build_configs(
                                     run_id = (
                                         f"{flash_tag}-dmodel{model.d_model}-cb{num_codebook_vectors}-"
                                         f"lr{lr:.1e}-{structure_tag}-sampler-{sampler_tag}"
+                                    )
+                                    run_id = (
+                                        f"{run_id}-rformula-"
+                                        f"{_remote_formula_run_tag(
+                                            fox_remote_formula=resolved_remote_formula,
+                                            fox_clr_rank=resolved_clr_rank,
+                                            fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                                        )}"
                                     )
                                     if include_read_suffix:
                                         run_id = f"{run_id}-rread-{read_tag}"

@@ -18,6 +18,9 @@ class FlashVQGMixer(nn.Module):
         block_len: int = 8,
         local_num_blocks: int = 1,
         if_remote_enabled: bool = False,
+        fox_remote_formula: str = "legacy",
+        fox_clr_rank: int = 4,
+        fox_clr_use_den_residual: bool = True,
         attn_backend: str = "flash",
         attn_cfg: dict | None = None,
         use_time_mixing: str | None = "kv_shift",
@@ -52,6 +55,9 @@ class FlashVQGMixer(nn.Module):
         self.block_len = int(block_len)
         self.local_num_blocks = int(local_num_blocks)
         self.if_remote_enabled = bool(if_remote_enabled)
+        self.fox_remote_formula = str(fox_remote_formula)
+        self.fox_clr_rank = int(fox_clr_rank)
+        self.fox_clr_use_den_residual = bool(fox_clr_use_den_residual)
         self.codebook_beta = float(codebook_beta)
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
@@ -67,6 +73,9 @@ class FlashVQGMixer(nn.Module):
             block_len=self.block_len,
             local_num_blocks=self.local_num_blocks,
             if_remote_enabled=self.if_remote_enabled,
+            fox_remote_formula=self.fox_remote_formula,
+            fox_clr_rank=self.fox_clr_rank,
+            fox_clr_use_den_residual=self.fox_clr_use_den_residual,
             attn_backend=attn_backend,
             attn_cfg={} if attn_cfg is None else attn_cfg,
             use_time_mixing=use_time_mixing,
@@ -132,5 +141,13 @@ class FlashVQGMixer(nn.Module):
         local_state_size = self.num_heads * local_window_len * (self.key_dim + self.value_dim)
         if not self.if_remote_enabled:
             return local_state_size
-        remote_state_size = self.num_heads * self.num_codebook_vectors * (self.value_dim + 1)
+        if self.fox_remote_formula == "clr_v1":
+            remote_state_size = self.num_heads * self.num_codebook_vectors * (
+                self.value_dim
+                + self.value_dim * self.fox_clr_rank
+                + 1
+                + self.fox_clr_rank
+            )
+        else:
+            remote_state_size = self.num_heads * self.num_codebook_vectors * (self.value_dim + 1)
         return remote_state_size + local_state_size

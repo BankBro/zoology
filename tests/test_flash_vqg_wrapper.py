@@ -91,6 +91,9 @@ def test_render_generated_config_writes_block_len_values_scan():
         num_codebook_vectors_map=None,
         fox_remote_path_backend=None,
         fox_remote_read_topk_values=None,
+        fox_remote_formula="legacy",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -101,6 +104,7 @@ def test_render_generated_config_writes_block_len_values_scan():
     assert "block_len_values=[8, 16, 32, 64]" in rendered
     assert "block_len=" not in rendered
     assert "metrics_white_list=['valid/accuracy', 'valid/mqar_case/*']" in rendered
+    assert "fox_remote_formula='legacy'" in rendered
 
 
 def test_render_generated_config_writes_paired_block_local_scan():
@@ -122,6 +126,9 @@ def test_render_generated_config_writes_paired_block_local_scan():
         num_codebook_vectors_map=None,
         fox_remote_path_backend=None,
         fox_remote_read_topk_values=None,
+        fox_remote_formula="legacy",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -132,6 +139,7 @@ def test_render_generated_config_writes_paired_block_local_scan():
     assert "paired_block_local_values=[(8, 8), (16, 4), (32, 2), (64, 1)]" in rendered
     assert "block_len_values=" not in rendered
     assert "local_num_blocks_values=" not in rendered
+    assert "fox_clr_rank=4" in rendered
 
 
 def test_render_generated_config_writes_codebook_sweep_and_map():
@@ -153,6 +161,9 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         num_codebook_vectors_map=None,
         fox_remote_path_backend=None,
         fox_remote_read_topk_values=None,
+        fox_remote_formula="legacy",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -162,6 +173,7 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
 
     assert "num_codebook_vectors_values=[64, 128, 256, 512]" in rendered
     assert "num_codebook_vectors_map=None" in rendered
+    assert "fox_clr_use_den_residual=True" in rendered
 
     rendered_map = _render_generated_config(
         sweep_id="flash-vqg-default",
@@ -181,6 +193,9 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         num_codebook_vectors_map={128: 128, 256: 256},
         fox_remote_path_backend=None,
         fox_remote_read_topk_values=None,
+        fox_remote_formula="legacy",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -204,6 +219,10 @@ def _flash_remote_path_backend(config) -> str:
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_remote_path_backend"]
 
 
+def _flash_remote_formula(config) -> str:
+    return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_remote_formula"]
+
+
 def test_build_configs_sweeps_num_codebook_vectors_values():
     configs = build_configs(
         include_gdn=False,
@@ -220,10 +239,10 @@ def test_build_configs_sweeps_num_codebook_vectors_values():
     assert len(configs) == 4
     assert [_flash_num_codebook_vectors(config) for config in configs] == [64, 128, 256, 512]
     assert [config.run_id for config in configs] == [
-        "flash_vqg_h2_accel-block32-dmodel128-cb64-lr1.0e-03-local2-remote1-sampler-gshuffle",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle",
-        "flash_vqg_h2_accel-block32-dmodel128-cb256-lr1.0e-03-local2-remote1-sampler-gshuffle",
-        "flash_vqg_h2_accel-block32-dmodel128-cb512-lr1.0e-03-local2-remote1-sampler-gshuffle",
+        "flash_vqg_h2_accel-block32-dmodel128-cb64-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel128-cb256-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel128-cb512-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
     ]
 
 
@@ -246,8 +265,8 @@ def test_build_configs_applies_num_codebook_vectors_map_for_selected_dmodels():
         (256, 192),
     ]
     assert [config.run_id for config in configs] == [
-        "flash_vqg_h2_accel-block32-dmodel128-cb96-lr1.0e-03-local2-remote1-sampler-gshuffle",
-        "flash_vqg_h2_accel-block32-dmodel256-cb192-lr1.0e-03-local2-remote1-sampler-gshuffle",
+        "flash_vqg_h2_accel-block32-dmodel128-cb96-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel256-cb192-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
     ]
 
 
@@ -287,18 +306,80 @@ def test_build_configs_sweeps_seed_and_remote_read_topk_values():
     assert [config.seed for config in configs] == [123, 456, 789, 123, 456, 789, 123, 456, 789]
     assert [config.data.seed for config in configs] == [123] * 9
     assert [_flash_remote_path_backend(config) for config in configs] == ["torch"] * 9
+    assert [_flash_remote_formula(config) for config in configs] == ["legacy"] * 9
     assert [_flash_remote_read_topk(config) for config in configs] == [None, None, None, 2, 2, 2, 4, 4, 4]
     assert [config.run_id for config in configs] == [
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed123",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed456",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-dense-seed789",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed123",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed456",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top2-seed789",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed123",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed456",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rread-top4-seed789",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-dense-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-dense-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-dense-seed789",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top2-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top2-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top2-seed789",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top4-seed123",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top4-seed456",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy-rread-top4-seed789",
     ]
+
+
+def test_build_configs_supports_clr_formula_suffix():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert _flash_remote_formula(configs[0]) == "clr_v1"
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1")
+
+
+def test_build_configs_rejects_clr_with_accel_backend():
+    with pytest.raises(ValueError, match="flash_backend='torch'"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="accel",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="clr_v1",
+            fox_clr_rank=4,
+            fox_clr_use_den_residual=True,
+            metrics_white_list=["valid/accuracy"],
+        )
+
+
+def test_build_configs_rejects_clr_with_triton_remote_backend():
+    with pytest.raises(ValueError, match="fox_remote_path_backend='torch'"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="clr_v1",
+            fox_clr_rank=4,
+            fox_clr_use_den_residual=True,
+            fox_remote_path_backend="triton",
+            metrics_white_list=["valid/accuracy"],
+        )
 
 
 def test_main_eval_only_requires_checkpoint_ids(monkeypatch):
@@ -637,5 +718,6 @@ def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
     assert "data_seed=123" in generated_config
     assert "fox_remote_path_backend='torch'" in generated_config
     assert "fox_remote_read_topk_values=[None, 2, 4]" in generated_config
+    assert "fox_remote_formula='legacy'" in generated_config
     assert len(subprocess_calls) == 1
     assert subprocess_calls[0]["manifest_env"] == str((generated_dir / "manifest.json").resolve())
