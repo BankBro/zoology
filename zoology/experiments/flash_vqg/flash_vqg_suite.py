@@ -331,8 +331,8 @@ def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
 
 def _normalize_fox_clr_rank(fox_clr_rank: int | None) -> int:
     rank = 4 if fox_clr_rank is None else int(fox_clr_rank)
-    if rank <= 0:
-        raise ValueError(f"fox_clr_rank 必须是正整数, 当前收到: {fox_clr_rank}")
+    if rank < 0:
+        raise ValueError(f"fox_clr_rank 必须是非负整数, 当前收到: {fox_clr_rank}")
     return rank
 
 
@@ -537,6 +537,8 @@ def build_configs(
             raise ValueError("fox_remote_formula='clr_v1' 目前只支持 fox_remote_path_backend='torch'.")
         if any(value is not None for value in remote_read_topk_list):
             raise ValueError("fox_remote_formula='clr_v1' 暂不支持 fox_remote_read_topk.")
+        if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
+            raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
         remote_read_topk_list = [None]
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
     include_read_suffix = (
