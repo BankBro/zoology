@@ -517,8 +517,11 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
     model = config.get("model") or {}
     data = config.get("data") or {}
     flash_kwargs = _find_flash_vqg_kwargs(model) or {}
+    fox_remote_read_topk = flash_kwargs.get("fox_remote_read_topk")
     row.update(
         {
+            "seed": config.get("seed"),
+            "data_seed": data.get("seed"),
             "learning_rate": config.get("learning_rate"),
             "d_model": model.get("d_model"),
             "n_layers": model.get("n_layers"),
@@ -529,6 +532,9 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
             "num_codebook_vectors": flash_kwargs.get("num_codebook_vectors"),
             "num_heads": flash_kwargs.get("num_heads"),
             "use_time_mixing": flash_kwargs.get("use_time_mixing"),
+            "fox_remote_path_backend": flash_kwargs.get("fox_remote_path_backend"),
+            "fox_remote_read_topk": fox_remote_read_topk,
+            "read_mode": "dense" if fox_remote_read_topk is None else f"top{int(fox_remote_read_topk)}",
         }
     )
     return row

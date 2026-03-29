@@ -76,9 +76,9 @@ def test_build_configs_expands_multiple_train_batch_orders_under_one_sweep():
         "balanced_interleave",
     }
     assert {config.run_id for config in configs} == {
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle",
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-binterleave",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-binterleave-rformula-legacy",
     }
 
 
@@ -94,10 +94,10 @@ def test_build_configs_expands_local_and_remote_scan_dimensions():
 
     assert len(configs) == 4
     assert {config.run_id for config in configs} == {
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local1-remote0-sampler-seq",
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local1-remote1-sampler-seq",
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote0-sampler-seq",
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local1-remote0-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local1-remote1-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote0-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
     }
 
 
@@ -114,10 +114,10 @@ def test_build_configs_expands_block_len_scan_dimension():
 
     assert len(configs) == 4
     assert {config.run_id for config in configs} == {
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
-        "flash_vqg_h2_accel-block16-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
-        "flash_vqg_h2_accel-block64-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block16-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block64-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-seq-rformula-legacy",
     }
 
 
@@ -133,10 +133,10 @@ def test_build_configs_supports_paired_block_local_scan_without_cross_product():
 
     assert len(configs) == 4
     assert {config.run_id for config in configs} == {
-        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local8-remote0-sampler-seq",
-        "flash_vqg_h2_accel-block16-dmodel128-cb128-lr1.0e-03-local4-remote0-sampler-seq",
-        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote0-sampler-seq",
-        "flash_vqg_h2_accel-block64-dmodel128-cb128-lr1.0e-03-local1-remote0-sampler-seq",
+        "flash_vqg_h2_accel-dmodel128-cb128-lr1.0e-03-local8-remote0-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block16-dmodel128-cb128-lr1.0e-03-local4-remote0-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block32-dmodel128-cb128-lr1.0e-03-local2-remote0-sampler-seq-rformula-legacy",
+        "flash_vqg_h2_accel-block64-dmodel128-cb128-lr1.0e-03-local1-remote0-sampler-seq-rformula-legacy",
     }
 
 

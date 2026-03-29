@@ -145,6 +145,43 @@ python -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
 - `launch_analysis/valid__loss.png`
 - 若白名单里包含对应指标, 还会额外生成对应 telemetry 图, 例如 `launch_analysis/valid__attn__o_remote_energy_ratio.png`
 
+E7-train, 独立训练 `dense`, `top2`, `top4` 三种 read-side 配置, 并对每个配置跑 3 个训练 seed:
+
+```bash
+bash zoology/experiments/flash_vqg/scripts/run_flash_vqg_e7_train.sh
+```
+
+这个脚本默认会生成一个新的训练 `launch_id`, 其中包含 9 个 run:
+
+- `dense/top2/top4`
+- 每个 mode 对应 `seed=123,456,789`
+
+默认训练矩阵固定为:
+
+- `--flash-only`
+- `--backend accel`
+- `--block-len 32`
+- `--dmodels 128`
+- `--learning-rates 1e-3`
+- `--local-num-blocks 2`
+- `--if-remote-enabled true`
+- `--train-batch-order global_shuffle`
+- `--seed-values 123,456,789`
+- `--data-seed 123`
+- `--fox-remote-path-backend torch`
+- `--fox-remote-read-topk-values dense,2,4`
+- `--num-codebook-vectors 128`
+
+如果你想手动覆盖默认值, 例如显式指定 GPU 和 seed:
+
+```bash
+GPU_ID=0 \
+SEED_VALUES=123,456,789 \
+REMOTE_READ_TOPK_VALUES=dense,2,4 \
+REMOTE_PATH_BACKEND=torch \
+bash zoology/experiments/flash_vqg/scripts/run_flash_vqg_e7_train.sh
+```
+
 如果希望自动 analysis 直接走本地 SwanLab 日志:
 
 ```bash

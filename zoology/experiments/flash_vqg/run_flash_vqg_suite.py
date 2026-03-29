@@ -28,6 +28,23 @@ def _parse_csv_ints(raw: str) -> list[int]:
     return [int(v) for v in values]
 
 
+def _parse_seed_values(raw: str) -> list[int]:
+    values = [part.strip() for part in raw.split(",") if part.strip()]
+    if not values:
+        raise ValueError("seed_values 不能为空.")
+
+    normalized: list[int] = []
+    seen: set[int] = set()
+    for value in values:
+        parsed = int(value)
+        if parsed < 0:
+            raise ValueError(f"seed 必须是非负整数, 当前收到: {value}")
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
 def _parse_codebook_vectors_map(raw: str) -> dict[int, int]:
     values = [part.strip() for part in raw.split(",") if part.strip()]
     if not values:
@@ -124,6 +141,33 @@ def _parse_train_batch_orders(raw: str) -> list[str]:
     return normalized
 
 
+def _parse_remote_read_topk_values(raw: str) -> list[int | None]:
+    values = [part.strip().lower() for part in raw.split(",") if part.strip()]
+    if not values:
+        raise ValueError("fox_remote_read_topk_values 不能为空.")
+
+    normalized: list[int | None] = []
+    seen: set[int | None] = set()
+    for value in values:
+        if value in {"dense", "none", "null"}:
+            parsed = None
+        else:
+            try:
+                parsed = int(value)
+            except ValueError as exc:
+                raise ValueError(
+                    f"fox_remote_read_topk_values 只能包含 dense 或正整数, 当前收到: {value}"
+                ) from exc
+            if parsed <= 0:
+                raise ValueError(
+                    f"fox_remote_read_topk_values 只能包含 dense 或正整数, 当前收到: {value}"
+                )
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
 def _resolve_metrics_white_list(
     *,
     metrics_white_list_raw: str | None,
@@ -208,8 +252,15 @@ def _render_generated_config(
     if_remote_enabled_values: list[bool],
     local_num_blocks_values: list[int] | None,
     train_batch_orders: list[str],
+    seed_values: list[int] | None,
+    data_seed: int,
     num_codebook_vectors_values: list[int] | None,
     num_codebook_vectors_map: dict[int, int] | None,
+    fox_remote_path_backend: str | None,
+    fox_remote_read_topk_values: list[int | None] | None,
+    fox_remote_formula: str,
+    fox_clr_rank: int,
+    fox_clr_use_den_residual: bool,
     cache_dir: str,
     wandb_project: str,
     wandb_entity: str,
@@ -244,8 +295,15 @@ def _render_generated_config(
         f"    learning_rates={learning_rates!r},",
         f"    if_remote_enabled_values={if_remote_enabled_values!r},",
         f"    train_batch_orders={train_batch_orders!r},",
+        f"    seed_values={seed_values!r},",
+        f"    data_seed={data_seed!r},",
         f"    num_codebook_vectors_values={num_codebook_vectors_values!r},",
         f"    num_codebook_vectors_map={num_codebook_vectors_map!r},",
+        f"    fox_remote_path_backend={fox_remote_path_backend!r},",
+        f"    fox_remote_read_topk_values={fox_remote_read_topk_values!r},",
+        f"    fox_remote_formula={fox_remote_formula!r},",
+        f"    fox_clr_rank={fox_clr_rank!r},",
+        f"    fox_clr_use_den_residual={fox_clr_use_den_residual!r},",
         f"    cache_dir={cache_dir!r},",
         f"    wandb_project={wandb_project!r},",
         f"    wandb_entity={wandb_entity!r},",
@@ -271,8 +329,15 @@ def _build_manifest_run_ids(
     if_remote_enabled_values: list[bool],
     local_num_blocks_values: list[int] | None,
     train_batch_orders: list[str],
+    seed_values: list[int] | None,
+    data_seed: int,
     num_codebook_vectors_values: list[int] | None,
     num_codebook_vectors_map: dict[int, int] | None,
+    fox_remote_path_backend: str | None,
+    fox_remote_read_topk_values: list[int | None] | None,
+    fox_remote_formula: str,
+    fox_clr_rank: int,
+    fox_clr_use_den_residual: bool,
     cache_dir: str,
     project: str,
     entity: str,
@@ -296,8 +361,15 @@ def _build_manifest_run_ids(
         learning_rates=learning_rates,
         if_remote_enabled_values=if_remote_enabled_values,
         train_batch_orders=train_batch_orders,
+        seed_values=seed_values,
+        data_seed=data_seed,
         num_codebook_vectors_values=num_codebook_vectors_values,
         num_codebook_vectors_map=num_codebook_vectors_map,
+        fox_remote_path_backend=fox_remote_path_backend,
+        fox_remote_read_topk_values=fox_remote_read_topk_values,
+        fox_remote_formula=fox_remote_formula,
+        fox_clr_rank=fox_clr_rank,
+        fox_clr_use_den_residual=fox_clr_use_den_residual,
         cache_dir=cache_dir,
         wandb_project=project,
         wandb_entity=entity,
@@ -445,7 +517,40 @@ def main():
     parser.add_argument("--if-remote-enabled", type=str, default="true")
     parser.add_argument("--local-num-blocks", type=str, default="2")
     parser.add_argument("--train-batch-order", type=str, default="sequential")
+    parser.add_argument("--seed-values", type=str, default=None)
+    parser.add_argument("--data-seed", type=int, default=123)
     parser.add_argument("--cache-dir", type=str, default="./data/flash_vqg")
+    parser.add_argument(
+        "--fox-remote-path-backend",
+        choices=["torch", "triton"],
+        default=None,
+        help="训练模式下 Flash-VQG remote reduce backend. 默认跟随 --backend.",
+    )
+    parser.add_argument(
+        "--fox-remote-read-topk-values",
+        type=str,
+        default=None,
+        help="逗号分隔的 read-side top-k 扫描, 例如 dense,2,4.",
+    )
+    parser.add_argument(
+        "--fox-remote-formula",
+        choices=["legacy", "clr_v1"],
+        default="legacy",
+        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似.",
+    )
+    parser.add_argument(
+        "--fox-clr-rank",
+        type=int,
+        default=4,
+        help="CLR v1 residual 坐标秩.",
+    )
+    parser.add_argument(
+        "--fox-clr-use-den-residual",
+        type=str,
+        choices=["true", "false"],
+        default="true",
+        help="CLR v1 是否启用分母 residual 修正.",
+    )
     parser.add_argument(
         "--metrics-white-list",
         type=str,
@@ -590,6 +695,16 @@ def main():
         _parse_csv_ints(args.local_num_blocks) if paired_block_local_values is None else None
     )
     train_batch_orders = _parse_train_batch_orders(args.train_batch_order)
+    seed_values = (
+        _parse_seed_values(args.seed_values)
+        if args.seed_values is not None
+        else None
+    )
+    fox_remote_read_topk_values = (
+        _parse_remote_read_topk_values(args.fox_remote_read_topk_values)
+        if args.fox_remote_read_topk_values is not None
+        else None
+    )
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
 
@@ -610,8 +725,15 @@ def main():
         if_remote_enabled_values=if_remote_enabled_values,
         local_num_blocks_values=local_num_blocks_values,
         train_batch_orders=train_batch_orders,
+        seed_values=seed_values,
+        data_seed=args.data_seed,
         num_codebook_vectors_values=num_codebook_vectors_values,
         num_codebook_vectors_map=num_codebook_vectors_map,
+        fox_remote_path_backend=args.fox_remote_path_backend,
+        fox_remote_read_topk_values=fox_remote_read_topk_values,
+        fox_remote_formula=args.fox_remote_formula,
+        fox_clr_rank=args.fox_clr_rank,
+        fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
         cache_dir=args.cache_dir,
         project=args.project,
         entity=args.entity,
@@ -631,8 +753,15 @@ def main():
             if_remote_enabled_values=if_remote_enabled_values,
             local_num_blocks_values=local_num_blocks_values,
             train_batch_orders=train_batch_orders,
+            seed_values=seed_values,
+            data_seed=args.data_seed,
             num_codebook_vectors_values=num_codebook_vectors_values,
             num_codebook_vectors_map=num_codebook_vectors_map,
+            fox_remote_path_backend=args.fox_remote_path_backend,
+            fox_remote_read_topk_values=fox_remote_read_topk_values,
+            fox_remote_formula=args.fox_remote_formula,
+            fox_clr_rank=args.fox_clr_rank,
+            fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
             cache_dir=args.cache_dir,
             wandb_project=args.project,
             wandb_entity=args.entity,

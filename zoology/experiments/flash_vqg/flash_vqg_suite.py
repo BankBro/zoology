@@ -22,6 +22,8 @@ DEFAULT_BLOCK_LENS = [8]
 DEFAULT_IF_REMOTE_ENABLED = [True]
 DEFAULT_LOCAL_NUM_BLOCKS = [2]
 DEFAULT_NUM_CODEBOOK_VECTORS_MAP = {64: 64, 128: 128, 256: 256}
+DEFAULT_TRAIN_SEED = 123
+DEFAULT_DATA_SEED = 123
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -36,6 +38,44 @@ def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
 def _normalize_learning_rates(learning_rates: Iterable[float] | None) -> list[float]:
     values = DEFAULT_LEARNING_RATES if learning_rates is None else list(learning_rates)
     return [float(v) for v in values]
+
+
+def _normalize_seed_values(
+    seed_values: Iterable[int] | None = None,
+    seed: int | None = None,
+) -> list[int]:
+    if seed_values is not None and seed is not None:
+        raise ValueError("seed_values 和 seed 不能同时传入.")
+
+    raw_values: Iterable[int]
+    if seed_values is not None:
+        raw_values = seed_values
+    elif seed is not None:
+        raw_values = [seed]
+    else:
+        raw_values = [DEFAULT_TRAIN_SEED]
+
+    normalized: list[int] = []
+    seen: set[int] = set()
+    for value in raw_values:
+        parsed = int(value)
+        if parsed < 0:
+            raise ValueError(f"seed 必须是非负整数, 当前收到: {value}")
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    if not normalized:
+        raise ValueError("seed_values 不能为空.")
+    return normalized
+
+
+def _normalize_data_seed(data_seed: int | None = None) -> int:
+    if data_seed is None:
+        return DEFAULT_DATA_SEED
+    parsed = int(data_seed)
+    if parsed < 0:
+        raise ValueError(f"data_seed 必须是非负整数, 当前收到: {data_seed}")
+    return parsed
 
 
 def _normalize_num_codebook_vectors_values(
@@ -232,6 +272,70 @@ def _normalize_local_num_blocks_values(
     return normalized
 
 
+def _normalize_fox_remote_path_backend(
+    fox_remote_path_backend: str | None,
+    *,
+    flash_backend: str,
+) -> str:
+    if fox_remote_path_backend is None:
+        return "triton" if flash_backend == "accel" else "torch"
+
+    normalized = str(fox_remote_path_backend).lower()
+    if normalized not in {"torch", "triton"}:
+        raise ValueError(
+            f"fox_remote_path_backend 只能是 ['torch', 'triton'], 当前收到: {fox_remote_path_backend}"
+        )
+    return normalized
+
+
+def _normalize_fox_remote_read_topk_values(
+    fox_remote_read_topk_values: Iterable[int | None] | None = None,
+    *,
+    fox_remote_read_topk: int | None = None,
+) -> list[int | None]:
+    if fox_remote_read_topk_values is not None and fox_remote_read_topk is not None:
+        raise ValueError("fox_remote_read_topk_values 和 fox_remote_read_topk 不能同时传入.")
+
+    raw_values: Iterable[int | None]
+    if fox_remote_read_topk_values is not None:
+        raw_values = fox_remote_read_topk_values
+    elif fox_remote_read_topk is not None:
+        raw_values = [fox_remote_read_topk]
+    else:
+        raw_values = [None]
+
+    normalized: list[int | None] = []
+    seen: set[int | None] = set()
+    for value in raw_values:
+        parsed = None if value is None else int(value)
+        if parsed is not None and parsed <= 0:
+            raise ValueError(
+                f"fox_remote_read_topk 必须是正整数或 None, 当前收到: {value}"
+            )
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    if not normalized:
+        raise ValueError("fox_remote_read_topk_values 不能为空.")
+    return normalized
+
+
+def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
+    normalized = "legacy" if fox_remote_formula is None else str(fox_remote_formula).lower()
+    if normalized not in {"legacy", "clr_v1"}:
+        raise ValueError(
+            f"fox_remote_formula 只能是 ['legacy', 'clr_v1'], 当前收到: {fox_remote_formula}"
+        )
+    return normalized
+
+
+def _normalize_fox_clr_rank(fox_clr_rank: int | None) -> int:
+    rank = 4 if fox_clr_rank is None else int(fox_clr_rank)
+    if rank <= 0:
+        raise ValueError(f"fox_clr_rank 必须是正整数, 当前收到: {fox_clr_rank}")
+    return rank
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -244,9 +348,25 @@ def _structure_run_tag(*, local_num_blocks: int, if_remote_enabled: bool) -> str
     return f"local{int(local_num_blocks)}-remote{int(bool(if_remote_enabled))}"
 
 
+def _remote_read_run_tag(read_topk: int | None) -> str:
+    return "dense" if read_topk is None else f"top{int(read_topk)}"
+
+
+def _remote_formula_run_tag(
+    *,
+    fox_remote_formula: str,
+    fox_clr_rank: int,
+    fox_clr_use_den_residual: bool,
+) -> str:
+    if fox_remote_formula == "legacy":
+        return "legacy"
+    return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
+
+
 def _build_data_config(
     vocab_size: int,
     train_batch_order: str,
+    data_seed: int = DEFAULT_DATA_SEED,
     cache_dir: str = DEFAULT_CACHE_DIR,
 ) -> tuple[DataConfig, int]:
     train_configs = [
@@ -273,6 +393,7 @@ def _build_data_config(
         test_configs=test_configs,
         batch_size=(batch_size, batch_size // 8),
         train_batch_order=train_batch_order,
+        seed=data_seed,
         cache_dir=cache_dir,
     )
     return data, input_seq_len
@@ -328,8 +449,17 @@ def build_configs(
     max_epochs: int = DEFAULT_MAX_EPOCHS,
     train_batch_orders: Iterable[str] | None = None,
     train_batch_order: str | None = None,
+    seed_values: Iterable[int] | None = None,
+    seed: int | None = None,
+    data_seed: int = DEFAULT_DATA_SEED,
     num_codebook_vectors_values: Iterable[int] | None = None,
     num_codebook_vectors_map: Mapping[int, int] | None = None,
+    fox_remote_path_backend: str | None = None,
+    fox_remote_read_topk_values: Iterable[int | None] | None = None,
+    fox_remote_read_topk: int | None = None,
+    fox_remote_formula: str = "legacy",
+    fox_clr_rank: int = 4,
+    fox_clr_use_den_residual: bool = True,
     cache_dir: str = DEFAULT_CACHE_DIR,
     metrics_white_list: Iterable[str] | None = None,
 ) -> list[TrainConfig]:
@@ -368,6 +498,8 @@ def build_configs(
 
     dmodels_list = _normalize_dmodels(dmodels)
     learning_rates_list = _normalize_learning_rates(learning_rates)
+    seed_values_list = _normalize_seed_values(seed_values=seed_values, seed=seed)
+    normalized_data_seed = _normalize_data_seed(data_seed)
     train_batch_orders_list = _normalize_train_batch_orders(train_batch_orders, train_batch_order)
     normalized_metrics_white_list = normalize_metrics_white_list(metrics_white_list)
     metric_controls = derive_flash_metric_controls(normalized_metrics_white_list)
@@ -388,6 +520,32 @@ def build_configs(
         if_remote_enabled_values=if_remote_enabled_values,
         if_remote_enabled=if_remote_enabled,
     )
+    resolved_remote_path_backend = _normalize_fox_remote_path_backend(
+        fox_remote_path_backend,
+        flash_backend=flash_backend,
+    )
+    resolved_remote_formula = _normalize_fox_remote_formula(fox_remote_formula)
+    resolved_clr_rank = _normalize_fox_clr_rank(fox_clr_rank)
+    remote_read_topk_list = _normalize_fox_remote_read_topk_values(
+        fox_remote_read_topk_values,
+        fox_remote_read_topk=fox_remote_read_topk,
+    )
+    if resolved_remote_formula == "clr_v1":
+        if flash_backend != "torch":
+            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 flash_backend='torch'.")
+        if resolved_remote_path_backend != "torch":
+            raise ValueError("fox_remote_formula='clr_v1' 目前只支持 fox_remote_path_backend='torch'.")
+        if any(value is not None for value in remote_read_topk_list):
+            raise ValueError("fox_remote_formula='clr_v1' 暂不支持 fox_remote_read_topk.")
+        remote_read_topk_list = [None]
+    include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
+    include_read_suffix = (
+        fox_remote_read_topk_values is not None
+        or fox_remote_read_topk is not None
+        or len(remote_read_topk_list) > 1
+    )
+    if resolved_remote_formula == "clr_v1":
+        include_read_suffix = False
     if normalized_num_codebook_vectors_values is not None:
         codebook_variants = [
             {
@@ -422,7 +580,12 @@ def build_configs(
     data_configs: dict[str, DataConfig] = {}
     input_seq_len = None
     for order in train_batch_orders_list:
-        data, current_input_seq_len = _build_data_config(vocab_size, order, cache_dir)
+        data, current_input_seq_len = _build_data_config(
+            vocab_size,
+            order,
+            data_seed=normalized_data_seed,
+            cache_dir=cache_dir,
+        )
         data_configs[order] = data
         if input_seq_len is None:
             input_seq_len = current_input_seq_len
@@ -434,46 +597,52 @@ def build_configs(
         "vocab_size": vocab_size,
     }
 
-    flash_models_by_structure: dict[tuple[int, int, bool, str], list] = {}
+    flash_models_by_structure: dict[tuple[int, int, bool, str, int | None], list] = {}
     for current_block_len, current_local_num_blocks in structure_pairs:
         for current_if_remote_enabled in if_remote_enabled_list:
             for codebook_variant in codebook_variants:
-                flash_models = add_flash_vqg(
-                    [],
-                    conv_mixer,
-                    input_seq_len,
-                    model_factory_kwargs,
-                    num_heads=2,
-                    if_remote_enabled=current_if_remote_enabled,
-                    num_codebook_vectors=codebook_variant["num_codebook_vectors"],
-                    block_len=current_block_len,
-                    vq_use_triton_shortcodes=(flash_backend == "accel"),
-                    fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
-                    fox_remote_path_backend="triton" if flash_backend == "accel" else "torch",
-                    local_num_blocks=current_local_num_blocks,
-                    use_time_mixing="kv_shift",
-                    vq_score_mode="l2",
-                    vq_weight_mode="one-hot",
-                    vq_update_mode="ema",
-                    if_value_silu=True,
-                    if_output_gate_use_rmsnorm=True,
-                    output_gate_activation="swish",
-                    fox_if_local_use_vq_k=False,
-                    enable_layer_metrics=metric_controls["enable_layer_metrics"],
-                    fox_phase2_metrics_mode=metric_controls["fox_phase2_metrics_mode"],
-                )
-                flash_models = [m for m in flash_models if m.d_model in dmodels_list]
-                flash_models_by_structure[
-                    (
-                        current_block_len,
-                        current_local_num_blocks,
-                        current_if_remote_enabled,
-                        codebook_variant["variant_id"],
+                for current_remote_read_topk in remote_read_topk_list:
+                    flash_models = add_flash_vqg(
+                        [],
+                        conv_mixer,
+                        input_seq_len,
+                        model_factory_kwargs,
+                        num_heads=2,
+                        if_remote_enabled=current_if_remote_enabled,
+                        num_codebook_vectors=codebook_variant["num_codebook_vectors"],
+                        block_len=current_block_len,
+                        vq_use_triton_shortcodes=(flash_backend == "accel"),
+                        fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
+                        fox_remote_path_backend=resolved_remote_path_backend,
+                        fox_remote_read_topk=current_remote_read_topk,
+                        fox_remote_formula=resolved_remote_formula,
+                        fox_clr_rank=resolved_clr_rank,
+                        fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                        local_num_blocks=current_local_num_blocks,
+                        use_time_mixing="kv_shift",
+                        vq_score_mode="l2",
+                        vq_weight_mode="one-hot",
+                        vq_update_mode="ema",
+                        if_value_silu=True,
+                        if_output_gate_use_rmsnorm=True,
+                        output_gate_activation="swish",
+                        fox_if_local_use_vq_k=False,
+                        enable_layer_metrics=metric_controls["enable_layer_metrics"],
+                        fox_phase2_metrics_mode=metric_controls["fox_phase2_metrics_mode"],
                     )
-                ] = sorted(
-                    flash_models,
-                    key=lambda m: m.d_model,
-                )
+                    flash_models = [m for m in flash_models if m.d_model in dmodels_list]
+                    flash_models_by_structure[
+                        (
+                            current_block_len,
+                            current_local_num_blocks,
+                            current_if_remote_enabled,
+                            codebook_variant["variant_id"],
+                            current_remote_read_topk,
+                        )
+                    ] = sorted(
+                        flash_models,
+                        key=lambda m: m.d_model,
+                    )
 
     gdn_models = []
     if include_gdn:
@@ -502,43 +671,68 @@ def build_configs(
                         if_remote_enabled=current_if_remote_enabled,
                     )
                     for codebook_variant in codebook_variants:
-                        for model in flash_models_by_structure[
-                            (
-                                current_block_len,
-                                current_local_num_blocks,
-                                current_if_remote_enabled,
-                                codebook_variant["variant_id"],
-                            )
-                        ]:
-                            num_codebook_vectors = _extract_flash_num_codebook_vectors(model)
-                            configs.append(
-                                TrainConfig(
-                                    model=model,
-                                    data=data,
-                                    learning_rate=lr,
-                                    max_epochs=max_epochs,
-                                    logger=logger,
-                                    metrics_white_list=normalized_metrics_white_list,
-                                    slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
-                                    sweep_id=sweep_id,
-                                    run_id=(
+                        for current_remote_read_topk in remote_read_topk_list:
+                            read_tag = _remote_read_run_tag(current_remote_read_topk)
+                            for current_seed in seed_values_list:
+                                for model in flash_models_by_structure[
+                                    (
+                                        current_block_len,
+                                        current_local_num_blocks,
+                                        current_if_remote_enabled,
+                                        codebook_variant["variant_id"],
+                                        current_remote_read_topk,
+                                    )
+                                ]:
+                                    num_codebook_vectors = _extract_flash_num_codebook_vectors(model)
+                                    run_id = (
                                         f"{flash_tag}-dmodel{model.d_model}-cb{num_codebook_vectors}-"
                                         f"lr{lr:.1e}-{structure_tag}-sampler-{sampler_tag}"
-                                    ),
-                                )
-                            )
-            for model in gdn_models:
-                configs.append(
-                    TrainConfig(
-                        model=model,
-                        data=data,
-                        learning_rate=lr,
-                        max_epochs=max_epochs,
-                        logger=logger,
-                        metrics_white_list=normalized_metrics_white_list,
-                        slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
-                        sweep_id=sweep_id,
-                        run_id=f"gated_delta_net-dmodel{model.d_model}-lr{lr:.1e}-sampler-{sampler_tag}",
+                                    )
+                                    run_id = (
+                                        f"{run_id}-rformula-"
+                                        f"{_remote_formula_run_tag(
+                                            fox_remote_formula=resolved_remote_formula,
+                                            fox_clr_rank=resolved_clr_rank,
+                                            fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                                        )}"
+                                    )
+                                    if include_read_suffix:
+                                        run_id = f"{run_id}-rread-{read_tag}"
+                                    if include_seed_suffix:
+                                        run_id = f"{run_id}-seed{current_seed}"
+                                    configs.append(
+                                        TrainConfig(
+                                            model=model,
+                                            data=data,
+                                            learning_rate=lr,
+                                            max_epochs=max_epochs,
+                                            logger=logger,
+                                            metrics_white_list=normalized_metrics_white_list,
+                                            slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
+                                            sweep_id=sweep_id,
+                                            seed=current_seed,
+                                            run_id=run_id,
+                                        )
+                                    )
+            for current_seed in seed_values_list:
+                for model in gdn_models:
+                    run_id = (
+                        f"gated_delta_net-dmodel{model.d_model}-lr{lr:.1e}-sampler-{sampler_tag}"
                     )
-                )
+                    if include_seed_suffix:
+                        run_id = f"{run_id}-seed{current_seed}"
+                    configs.append(
+                        TrainConfig(
+                            model=model,
+                            data=data,
+                            learning_rate=lr,
+                            max_epochs=max_epochs,
+                            logger=logger,
+                            metrics_white_list=normalized_metrics_white_list,
+                            slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
+                            sweep_id=sweep_id,
+                            seed=current_seed,
+                            run_id=run_id,
+                        )
+                    )
     return configs
