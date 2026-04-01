@@ -95,6 +95,9 @@ def test_render_generated_config_writes_block_len_values_scan():
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
         fox_clr_remat_mode="off",
+        gradient_accumulation_steps=1,
+        train_batch_size=None,
+        eval_batch_size=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -132,6 +135,9 @@ def test_render_generated_config_writes_paired_block_local_scan():
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
         fox_clr_remat_mode="off",
+        gradient_accumulation_steps=1,
+        train_batch_size=None,
+        eval_batch_size=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -168,6 +174,9 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
         fox_clr_remat_mode="off",
+        gradient_accumulation_steps=1,
+        train_batch_size=None,
+        eval_batch_size=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -201,6 +210,9 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
         fox_clr_remat_mode="off",
+        gradient_accumulation_steps=1,
+        train_batch_size=None,
+        eval_batch_size=None,
         cache_dir="./data/flash_vqg",
         wandb_project="flash_vqg_mqar",
         wandb_entity="scu-mclab",
@@ -210,6 +222,44 @@ def test_render_generated_config_writes_codebook_sweep_and_map():
 
     assert "num_codebook_vectors_values=None" in rendered_map
     assert "num_codebook_vectors_map={128: 128, 256: 256}" in rendered_map
+
+
+def test_render_generated_config_writes_batch_and_gradient_accumulation_overrides():
+    rendered = _render_generated_config(
+        sweep_id="flash-vqg-ga",
+        backend="torch",
+        logger_backend="none",
+        include_gdn=False,
+        block_lens=[32],
+        paired_block_local_values=None,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled_values=[True],
+        local_num_blocks_values=[2],
+        train_batch_orders=["global_shuffle"],
+        seed_values=None,
+        data_seed=123,
+        num_codebook_vectors_values=[128],
+        num_codebook_vectors_map=None,
+        fox_remote_path_backend="torch",
+        fox_remote_read_topk_values=None,
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        gradient_accumulation_steps=8,
+        train_batch_size=16,
+        eval_batch_size=24,
+        cache_dir="./data/flash_vqg",
+        wandb_project="flash_vqg_mqar",
+        wandb_entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert "gradient_accumulation_steps=8" in rendered
+    assert "train_batch_size=16" in rendered
+    assert "eval_batch_size=24" in rendered
 
 
 def _flash_num_codebook_vectors(config) -> int:
@@ -352,6 +402,87 @@ def test_build_configs_supports_clr_formula_suffix():
     assert _flash_remote_formula(configs[0]) == "clr_v1"
     assert _flash_clr_remat_mode(configs[0]) == "off"
     assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off")
+
+
+def test_build_configs_supports_batch_and_gradient_accumulation_overrides():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        train_batch_size=16,
+        eval_batch_size=24,
+        gradient_accumulation_steps=8,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert configs[0].data.batch_size == (16, 24)
+    assert configs[0].gradient_accumulation_steps == 8
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off-tbs16-ebs24-ga8")
+
+
+def test_build_configs_keeps_default_run_id_when_batch_and_gradient_accumulation_match_defaults():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        train_batch_size=256,
+        eval_batch_size=32,
+        gradient_accumulation_steps=1,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off")
+    assert "-tbs256-ebs32-ga1" not in configs[0].run_id
+
+
+def test_build_configs_rejects_non_positive_batch_or_gradient_accumulation():
+    with pytest.raises(ValueError, match="train_batch_size"):
+        build_configs(
+            include_gdn=False,
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            train_batch_size=0,
+            metrics_white_list=["valid/accuracy"],
+        )
+
+    with pytest.raises(ValueError, match="gradient_accumulation_steps"):
+        build_configs(
+            include_gdn=False,
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            gradient_accumulation_steps=0,
+            metrics_white_list=["valid/accuracy"],
+        )
 
 
 def test_build_configs_supports_clr_rank_zero_suffix():
@@ -820,6 +951,12 @@ def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
             "dense,2,4",
             "--num-codebook-vectors",
             "128",
+            "--train-batch-size",
+            "16",
+            "--eval-batch-size",
+            "24",
+            "--gradient-accumulation-steps",
+            "8",
             "--launch-id-prefix",
             "flash-vqg-e7-train",
         ],
@@ -832,12 +969,15 @@ def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
     generated_config = (generated_dir / "launch_configs.py").read_text(encoding="utf-8")
 
     assert len(manifest["runs"]) == 9
-    assert manifest["runs"][0]["run_id"].endswith("-rread-dense-seed123")
-    assert manifest["runs"][-1]["run_id"].endswith("-rread-top4-seed789")
+    assert manifest["runs"][0]["run_id"].endswith("-rread-dense-seed123-tbs16-ebs24-ga8")
+    assert manifest["runs"][-1]["run_id"].endswith("-rread-top4-seed789-tbs16-ebs24-ga8")
     assert "seed_values=[123, 456, 789]" in generated_config
     assert "data_seed=123" in generated_config
     assert "fox_remote_path_backend='torch'" in generated_config
     assert "fox_remote_read_topk_values=[None, 2, 4]" in generated_config
     assert "fox_remote_formula='legacy'" in generated_config
+    assert "train_batch_size=16" in generated_config
+    assert "eval_batch_size=24" in generated_config
+    assert "gradient_accumulation_steps=8" in generated_config
     assert len(subprocess_calls) == 1
     assert subprocess_calls[0]["manifest_env"] == str((generated_dir / "manifest.json").resolve())

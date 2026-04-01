@@ -24,6 +24,9 @@ DEFAULT_LOCAL_NUM_BLOCKS = [2]
 DEFAULT_NUM_CODEBOOK_VECTORS_MAP = {64: 64, 128: 128, 256: 256}
 DEFAULT_TRAIN_SEED = 123
 DEFAULT_DATA_SEED = 123
+DEFAULT_TRAIN_BATCH_SIZE = 256
+DEFAULT_EVAL_BATCH_SIZE = 32
+DEFAULT_GRADIENT_ACCUMULATION_STEPS = 1
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -75,6 +78,15 @@ def _normalize_data_seed(data_seed: int | None = None) -> int:
     parsed = int(data_seed)
     if parsed < 0:
         raise ValueError(f"data_seed 必须是非负整数, 当前收到: {data_seed}")
+    return parsed
+
+
+def _normalize_positive_int(value: int | None, *, field_name: str) -> int | None:
+    if value is None:
+        return None
+    parsed = int(value)
+    if parsed <= 0:
+        raise ValueError(f"{field_name} 必须是正整数, 当前收到: {value}")
     return parsed
 
 
@@ -406,11 +418,10 @@ def _build_data_config(
         MQARConfig(vocab_size=vocab_size, input_seq_len=1024, num_examples=1_000, num_kv_pairs=256),
     ]
     input_seq_len = max(c.input_seq_len for c in train_configs + test_configs)
-    batch_size = 256
     data = DataConfig(
         train_configs=train_configs,
         test_configs=test_configs,
-        batch_size=(batch_size, batch_size // 8),
+        batch_size=(DEFAULT_TRAIN_BATCH_SIZE, DEFAULT_EVAL_BATCH_SIZE),
         train_batch_order=train_batch_order,
         seed=data_seed,
         cache_dir=cache_dir,
@@ -480,6 +491,9 @@ def build_configs(
     fox_clr_rank: int = 4,
     fox_clr_use_den_residual: bool = True,
     fox_clr_remat_mode: str = "off",
+    gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+    train_batch_size: int | None = None,
+    eval_batch_size: int | None = None,
     cache_dir: str = DEFAULT_CACHE_DIR,
     metrics_white_list: Iterable[str] | None = None,
 ) -> list[TrainConfig]:
@@ -547,6 +561,18 @@ def build_configs(
     resolved_remote_formula = _normalize_fox_remote_formula(fox_remote_formula)
     resolved_clr_rank = _normalize_fox_clr_rank(fox_clr_rank)
     resolved_clr_remat_mode = _normalize_fox_clr_remat_mode(fox_clr_remat_mode)
+    resolved_gradient_accumulation_steps = _normalize_positive_int(
+        gradient_accumulation_steps,
+        field_name="gradient_accumulation_steps",
+    ) or DEFAULT_GRADIENT_ACCUMULATION_STEPS
+    resolved_train_batch_size = _normalize_positive_int(
+        train_batch_size,
+        field_name="train_batch_size",
+    )
+    resolved_eval_batch_size = _normalize_positive_int(
+        eval_batch_size,
+        field_name="eval_batch_size",
+    )
     remote_read_topk_list = _normalize_fox_remote_read_topk_values(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
@@ -618,6 +644,12 @@ def build_configs(
             data_seed=normalized_data_seed,
             cache_dir=cache_dir,
         )
+        if resolved_train_batch_size is not None or resolved_eval_batch_size is not None:
+            train_bs, eval_bs = data.batch_size
+            data.batch_size = (
+                resolved_train_batch_size or int(train_bs),
+                resolved_eval_batch_size or int(eval_bs),
+            )
         data_configs[order] = data
         if input_seq_len is None:
             input_seq_len = current_input_seq_len
@@ -689,6 +721,15 @@ def build_configs(
         project_name=wandb_project,
         entity=wandb_entity,
     )
+    effective_train_batch_size = resolved_train_batch_size or DEFAULT_TRAIN_BATCH_SIZE
+    effective_eval_batch_size = resolved_eval_batch_size or DEFAULT_EVAL_BATCH_SIZE
+    include_batch_accum_suffix = any(
+        (
+            effective_train_batch_size != DEFAULT_TRAIN_BATCH_SIZE,
+            effective_eval_batch_size != DEFAULT_EVAL_BATCH_SIZE,
+            resolved_gradient_accumulation_steps != DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+        )
+    )
     for order in train_batch_orders_list:
         sampler_tag = _sampler_run_tag(order)
         data = data_configs[order]
@@ -738,12 +779,19 @@ def build_configs(
                                         run_id = f"{run_id}-rread-{read_tag}"
                                     if include_seed_suffix:
                                         run_id = f"{run_id}-seed{current_seed}"
+                                    if include_batch_accum_suffix:
+                                        train_bs, eval_bs = data.batch_size
+                                        run_id = (
+                                            f"{run_id}-tbs{int(train_bs)}-ebs{int(eval_bs)}-"
+                                            f"ga{resolved_gradient_accumulation_steps}"
+                                        )
                                     configs.append(
                                         TrainConfig(
                                             model=model,
                                             data=data,
                                             learning_rate=lr,
                                             max_epochs=max_epochs,
+                                            gradient_accumulation_steps=resolved_gradient_accumulation_steps,
                                             logger=logger,
                                             metrics_white_list=normalized_metrics_white_list,
                                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
@@ -759,12 +807,19 @@ def build_configs(
                     )
                     if include_seed_suffix:
                         run_id = f"{run_id}-seed{current_seed}"
+                    if include_batch_accum_suffix:
+                        train_bs, eval_bs = data.batch_size
+                        run_id = (
+                            f"{run_id}-tbs{int(train_bs)}-ebs{int(eval_bs)}-"
+                            f"ga{resolved_gradient_accumulation_steps}"
+                        )
                     configs.append(
                         TrainConfig(
                             model=model,
                             data=data,
                             learning_rate=lr,
                             max_epochs=max_epochs,
+                            gradient_accumulation_steps=resolved_gradient_accumulation_steps,
                             logger=logger,
                             metrics_white_list=normalized_metrics_white_list,
                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
