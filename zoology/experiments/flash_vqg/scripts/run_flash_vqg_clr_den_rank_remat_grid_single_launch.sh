@@ -350,6 +350,37 @@ launch_shard_worker() {
   SHARD_PIDS+=("$!")
 }
 
+record_log_file_for_configs() {
+  local log_file="$1"
+  shift
+  env MANIFEST_PATH="${MANIFEST_PATH}" LOG_FILE="${log_file}" "${PYTHON_BIN}" - "$@" <<'PY'
+import importlib.util
+import json
+import os
+import sys
+from pathlib import Path
+
+manifest_path = Path(os.environ["MANIFEST_PATH"])
+log_file = os.environ["LOG_FILE"]
+config_modules = sys.argv[1:]
+
+run_ids = []
+for idx, config_module in enumerate(config_modules):
+    spec = importlib.util.spec_from_file_location(f"log_manifest_config_{idx}", config_module)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    run_ids.extend(config.run_id for config in module.configs)
+
+manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+for run in manifest.get("runs", []):
+    if run.get("run_id") not in run_ids:
+        continue
+    run.setdefault("local", {})["log_file"] = log_file
+
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
 launch_with_manual_shards() {
   echo "==> launch mode: manual-shards"
   echo "==> ray 不可用, 回退到多 worker 分片并发"
@@ -374,6 +405,8 @@ launch_with_manual_shards() {
 
   for ((shard_index = 0; shard_index < ${#shard_files[@]}; shard_index++)); do
     gpu="${GPU_IDS[shard_index]}"
+    log_file="${LOG_DIR}/worker_gpu${gpu}_shard${shard_index}.log"
+    record_log_file_for_configs "${log_file}" "${shard_files[shard_index]}"
     launch_shard_worker "${shard_files[shard_index]}" "${gpu}" "${shard_index}"
   done
 
@@ -392,6 +425,7 @@ launch_with_manual_shards() {
 }
 
 if [[ "${PARALLELIZE}" == "1" && "${RAY_AVAILABLE}" == "1" ]]; then
+  record_log_file_for_configs "${LOG_DIR}/launch.log" "${GENERATED_DIR}/prepare_sweep.py"
   launch_with_ray
 elif [[ "${GPU_COUNT}" -gt 1 ]]; then
   launch_with_manual_shards
@@ -406,6 +440,8 @@ else
   echo "==> launch command:"
   printf '    %q ' "${LAUNCH_CMD[@]}"
   printf '\n'
+
+  record_log_file_for_configs "${LOG_DIR}/launch.log" "${GENERATED_DIR}/prepare_sweep.py"
 
   env FLASH_VQG_MANIFEST_PATH="${MANIFEST_PATH}" \
     "${LAUNCH_CMD[@]}" 2>&1 | tee "${LOG_DIR}/launch.log"

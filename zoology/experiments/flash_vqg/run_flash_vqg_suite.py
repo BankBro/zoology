@@ -617,6 +617,14 @@ def main():
         help="训练完成后是否自动执行 analysis, 以及使用的数据源.",
     )
     args = parser.parse_args()
+
+    if args.logger_backend == "none" and args.analysis != "off":
+        raise ValueError(
+            "logger_backend='none' 时无法生成结构化 metrics, analysis 阶段将无法工作. "
+            "请设置一个 logger backend (如 --logger-backend swanlab), "
+            "或设置 --analysis off 跳过 analysis."
+        )
+
     metrics_white_list_provided = (
         args.metrics_white_list is not None or args.metrics_white_list_file is not None
     )

@@ -405,7 +405,8 @@ def compute_metrics(
 
 
 def train(config: TrainConfig):
-    set_determinism(config.seed)
+    import os
+    set_determinism(config.seed, deterministic=os.environ.get("TORCH_DETERMINISTIC", "0") == "1")
     checkpoint_manager = CheckpointManager(config)
     logger: LoggerProtocol | None = None
     try:
