@@ -120,6 +120,7 @@ def initialize_manifest(
                     "backup_file": None,
                     "config_file": None,
                     "metadata_file": None,
+                    "log_file": None,
                     "checkpoint_run_dir": None,
                     "best_checkpoint": None,
                     "last_checkpoint": None,

@@ -339,6 +339,7 @@ def add_flash_vqg(
     fox_remote_formula="legacy",
     fox_clr_rank=4,
     fox_clr_use_den_residual=True,
+    fox_clr_remat_mode="off",
     local_num_blocks=1,
     use_time_mixing="kv_shift",
     vq_score_mode="l2",
@@ -350,6 +351,10 @@ def add_flash_vqg(
     fox_if_local_use_vq_k=False,
     enable_layer_metrics=False,
     fox_phase2_metrics_mode="full",
+    fox_clr_delta_beta_mode="learned_scalar",
+    fox_clr_delta_beta_init=0.5,
+    fox_clr_delta_y_den=1.0,
+    fox_clr_delta_eps=1e-6,
 ):
     """
     Add Flash-VQG models with a shared sweep over d_model in [64, 128, 256].
@@ -375,6 +380,7 @@ def add_flash_vqg(
         fox_remote_formula: Remote read formula. One of {"legacy", "clr_v1"}.
         fox_clr_rank: CLR residual coordinate rank.
         fox_clr_use_den_residual: Whether CLR enables the denominator residual correction.
+        fox_clr_remat_mode: CLR materialize remat mode. One of {"off", "post_phase1"}.
         local_num_blocks: Number of local FoX blocks to retain.
         use_time_mixing: Flash-VQG time-mixing mode. Typical values are
             "kv_shift", "shortconv", or None.
@@ -419,6 +425,7 @@ def add_flash_vqg(
                 "fox_remote_formula": str(fox_remote_formula),
                 "fox_clr_rank": int(fox_clr_rank),
                 "fox_clr_use_den_residual": bool(fox_clr_use_den_residual),
+                "fox_clr_remat_mode": str(fox_clr_remat_mode),
                 "use_time_mixing": use_time_mixing,
                 "vq_score_mode": str(vq_score_mode),
                 "vq_weight_mode": str(vq_weight_mode),
@@ -432,6 +439,14 @@ def add_flash_vqg(
                 "fox_phase2_metrics_mode": str(fox_phase2_metrics_mode),
             },
         )
+        # Only inject delta-specific configs when using clr_delta_v1
+        if str(fox_remote_formula).lower() == "clr_delta_v1":
+            flash_vqg_mixer["kwargs"].update({
+                "fox_clr_delta_beta_mode": str(fox_clr_delta_beta_mode),
+                "fox_clr_delta_beta_init": float(fox_clr_delta_beta_init),
+                "fox_clr_delta_y_den": float(fox_clr_delta_y_den),
+                "fox_clr_delta_eps": float(fox_clr_delta_eps),
+            })
         mixers = [conv_mixer, flash_vqg_mixer] if conv_mixer is not None else [flash_vqg_mixer]
         mixer = ModuleConfig(
             name="zoology.mixers.hybrid.Hybrid",

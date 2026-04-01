@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -334,24 +335,24 @@ def fetch_remote_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[st
 
 
 def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str, Any], dict[str, Any], pd.DataFrame]:
-    from swanlab.data.porter.datastore import DataStore
-    from swanlab.proto.v0 import BaseModel, Scalar
-
     local_info = run_entry.get("local") or {}
     run_dir_raw = local_info.get("run_dir")
     backup_file_raw = local_info.get("backup_file")
+    checkpoint_run_dir_raw = local_info.get("checkpoint_run_dir")
     if run_dir_raw:
         run_dir = Path(run_dir_raw)
+    elif checkpoint_run_dir_raw:
+        run_dir = Path(checkpoint_run_dir_raw)
     elif backup_file_raw:
         run_dir = Path(backup_file_raw).resolve().parent
     else:
-        raise ValueError(f"run_id={run_entry.get('run_id')} 缺少 local 所需的 run_dir/backup_file.")
+        raise ValueError(
+            f"run_id={run_entry.get('run_id')} 缺少 local 所需的 run_dir/checkpoint_run_dir/backup_file."
+        )
 
     backup_file = Path(backup_file_raw) if backup_file_raw else run_dir / "backup.swanlab"
-    if not backup_file.exists():
-        raise FileNotFoundError(f"run_id={run_entry.get('run_id')} 缺少 backup 文件: {backup_file}")
-
-    config_file = Path(local_info["config_file"]) if local_info.get("config_file") else run_dir / "files" / "config.yaml"
+    config_file_raw = local_info.get("config_file") or local_info.get("train_config_json")
+    config_file = Path(config_file_raw) if config_file_raw else run_dir / "files" / "config.yaml"
     metadata_file = Path(local_info["metadata_file"]) if local_info.get("metadata_file") else run_dir / "files" / "swanlab-metadata.json"
     parsed_config = {}
     if config_file.exists():
@@ -362,26 +363,37 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
     eval_task = run_entry.get("eval_task")
     metric_specs = _metric_specs_from_config(parsed_config, eval_task=eval_task)
 
-    ds = DataStore()
-    ds.open_for_scan(str(backup_file))
-    rows = []
-    for raw in ds:
-        record = BaseModel.from_record(raw)
-        if isinstance(record, Scalar):
-            rows.append(
-                {
-                    "metric": record.key,
-                    "step": int(record.step),
-                    "epoch": int(record.epoch),
-                    "timestamp": record.metric.get("create_time"),
-                    "value": float(record.metric.get("data")),
-                }
-            )
-    history = pd.DataFrame(rows)
-    if history.empty:
-        history = pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    if backup_file.exists():
+        from swanlab.data.porter.datastore import DataStore
+        from swanlab.proto.v0 import BaseModel, Scalar
+
+        ds = DataStore()
+        ds.open_for_scan(str(backup_file))
+        rows = []
+        for raw in ds:
+            record = BaseModel.from_record(raw)
+            if isinstance(record, Scalar):
+                rows.append(
+                    {
+                        "metric": record.key,
+                        "step": int(record.step),
+                        "epoch": int(record.epoch),
+                        "timestamp": record.metric.get("create_time"),
+                        "value": float(record.metric.get("data")),
+                    }
+                )
+        history = pd.DataFrame(rows)
+        if history.empty:
+            history = pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+        else:
+            history = history.sort_values(["metric", "step"]).reset_index(drop=True)
     else:
-        history = history.sort_values(["metric", "step"]).reset_index(drop=True)
+        log_file_raw = local_info.get("log_file")
+        if not log_file_raw:
+            raise FileNotFoundError(
+                f"run_id={run_entry.get('run_id')} 缺少 backup 文件: {backup_file}, 且 manifest 未提供 local.log_file."
+            )
+        history = _history_from_local_log(Path(log_file_raw), run_entry["run_id"])
     history = _filter_model_metrics(history, metric_specs)
 
     summary = {
@@ -409,6 +421,63 @@ def fetch_local_run(run_entry: dict[str, Any], launch_id: str) -> tuple[dict[str
         "eval_task": eval_task,
     }
     return summary, metadata, history
+
+
+def _history_from_local_log(log_file: Path, run_id: str) -> pd.DataFrame:
+    if not log_file.exists():
+        raise FileNotFoundError(f"run_id={run_id} 的 local.log_file 不存在: {log_file}")
+
+    text = log_file.read_text(encoding="utf-8", errors="ignore").replace("\r", "\n")
+    run_matches = list(re.finditer(r"run_id='([^']+)'", text, flags=re.S))
+    if not run_matches:
+        raise ValueError(f"log_file={log_file} 中未找到任何 run_id 记录.")
+
+    normalized_target = re.sub(r"\s+", "", run_id)
+    chunk = None
+    for idx, match in enumerate(run_matches):
+        normalized_found = re.sub(r"\s+", "", match.group(1))
+        if normalized_found != normalized_target:
+            continue
+        start = match.end()
+        end = run_matches[idx + 1].start() if idx + 1 < len(run_matches) else len(text)
+        chunk = text[start:end]
+        break
+
+    if chunk is None:
+        raise ValueError(f"log_file={log_file} 中未找到 run_id={run_id} 的日志分段.")
+
+    epoch_metrics: dict[int, dict[str, float]] = {}
+    for line in chunk.splitlines():
+        if "Valid Epoch " not in line or "valid/" not in line:
+            continue
+        epoch_match = re.search(r"Valid Epoch (\d+)/(\d+)", line)
+        if epoch_match is None:
+            continue
+        epoch = int(epoch_match.group(1))
+        metrics = {
+            metric: float(value)
+            for metric, value in re.findall(r"(valid/[A-Za-z0-9_./-]+)=(-?\d+(?:\.\d+)?)", line)
+        }
+        if not metrics:
+            continue
+        epoch_metrics[epoch] = metrics
+
+    rows = []
+    for epoch, metrics in sorted(epoch_metrics.items()):
+        for metric, value in sorted(metrics.items()):
+            rows.append(
+                {
+                    "metric": metric,
+                    "step": epoch,
+                    "epoch": epoch,
+                    "timestamp": None,
+                    "value": value,
+                }
+            )
+
+    if not rows:
+        return pd.DataFrame(columns=["metric", "step", "epoch", "timestamp", "value"])
+    return pd.DataFrame(rows).sort_values(["metric", "step"]).reset_index(drop=True)
 
 
 def _run_metrics_index(history: pd.DataFrame, metric_specs: dict[str, MetricSpec]) -> list[dict[str, Any]]:

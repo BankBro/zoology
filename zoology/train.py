@@ -118,6 +118,7 @@ class Trainer:
         max_epochs: int = 100,
         learning_rate: float = 1e-3,
         weight_decay: float = 0.1,
+        gradient_accumulation_steps: int = 1,
         early_stopping_metric: str = None,
         early_stopping_threshold: float = None,
         loss_type: str = "ce",
@@ -139,6 +140,7 @@ class Trainer:
         self.early_stopping_threshold = early_stopping_threshold
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
+        self.gradient_accumulation_steps = gradient_accumulation_steps
         self.slice_keys = slice_keys
         self.loss_type = loss_type
         self.global_step = 0
@@ -240,15 +242,23 @@ class Trainer:
         if sampler is not None and hasattr(sampler, "set_epoch"):
             sampler.set_epoch(epoch_idx)
 
+        accum_steps = self.gradient_accumulation_steps
+        num_batches = len(self.train_dataloader)
+        remainder = num_batches % accum_steps
+        # Index where the last (possibly partial) accumulation window begins
+        partial_start = num_batches - remainder if remainder > 0 else num_batches
+
         iterator = tqdm(
             self.train_dataloader,
-            total=len(self.train_dataloader),
+            total=num_batches,
             desc=f"Train Epoch {epoch_idx}/{self.max_epochs}",
         )
 
-        for inputs, targets, slices in iterator:
+        self.optimizer.zero_grad()
+        accum_loss = 0.0
+
+        for step_idx, (inputs, targets, slices) in enumerate(iterator):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
-            self.optimizer.zero_grad()
 
             loss, preds = self.compute_loss(inputs, targets)
 
@@ -262,16 +272,29 @@ class Trainer:
                 if auxiliary_loss:
                     loss = loss + sum(auxiliary_loss)
 
-            loss.backward()
-            self.optimizer.step()
-            iterator.set_postfix({"loss": loss.item()})
-            metrics = {"train/loss": loss.item(), "epoch": epoch_idx}
-            if slices:
-                mqar_case = slices[0].get("mqar_case")
-                if mqar_case is not None:
-                    metrics[f"train/mqar_case/loss-{mqar_case}"] = loss.item()
-            metrics.update(self._collect_model_scalar_metrics())
-            self._log_metrics(metrics)
+            # Use correct divisor for the last partial window
+            effective_accum = remainder if step_idx >= partial_start else accum_steps
+            (loss / effective_accum).backward()
+            accum_loss += loss.item()
+
+            is_accum_boundary = (step_idx + 1) % accum_steps == 0
+            is_last_batch = (step_idx + 1) == num_batches
+
+            if is_accum_boundary or is_last_batch:
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+
+                micro_count = effective_accum if is_last_batch and not is_accum_boundary else accum_steps
+                avg_loss = accum_loss / micro_count
+                iterator.set_postfix({"loss": avg_loss})
+                metrics = {"train/loss": avg_loss, "epoch": epoch_idx}
+                if slices:
+                    mqar_case = slices[0].get("mqar_case")
+                    if mqar_case is not None:
+                        metrics[f"train/mqar_case/loss-{mqar_case}"] = avg_loss
+                metrics.update(self._collect_model_scalar_metrics())
+                self._log_metrics(metrics)
+                accum_loss = 0.0
 
     def test(self, epoch_idx: int):
         self.model.eval()
@@ -382,7 +405,8 @@ def compute_metrics(
 
 
 def train(config: TrainConfig):
-    set_determinism(config.seed)
+    import os
+    set_determinism(config.seed, deterministic=os.environ.get("TORCH_DETERMINISTIC", "0") == "1")
     checkpoint_manager = CheckpointManager(config)
     logger: LoggerProtocol | None = None
     try:
@@ -415,6 +439,7 @@ def train(config: TrainConfig):
             max_epochs=config.max_epochs,
             learning_rate=config.learning_rate,
             weight_decay=config.weight_decay,
+            gradient_accumulation_steps=config.gradient_accumulation_steps,
             early_stopping_metric=config.early_stopping_metric,
             early_stopping_threshold=config.early_stopping_threshold,
             slice_keys=config.slice_keys,

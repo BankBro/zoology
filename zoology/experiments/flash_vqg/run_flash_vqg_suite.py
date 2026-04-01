@@ -261,6 +261,10 @@ def _render_generated_config(
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
+    fox_clr_remat_mode: str,
+    gradient_accumulation_steps: int,
+    train_batch_size: int | None,
+    eval_batch_size: int | None,
     cache_dir: str,
     wandb_project: str,
     wandb_entity: str,
@@ -304,6 +308,10 @@ def _render_generated_config(
         f"    fox_remote_formula={fox_remote_formula!r},",
         f"    fox_clr_rank={fox_clr_rank!r},",
         f"    fox_clr_use_den_residual={fox_clr_use_den_residual!r},",
+        f"    fox_clr_remat_mode={fox_clr_remat_mode!r},",
+        f"    gradient_accumulation_steps={gradient_accumulation_steps!r},",
+        f"    train_batch_size={train_batch_size!r},",
+        f"    eval_batch_size={eval_batch_size!r},",
         f"    cache_dir={cache_dir!r},",
         f"    wandb_project={wandb_project!r},",
         f"    wandb_entity={wandb_entity!r},",
@@ -338,6 +346,10 @@ def _build_manifest_run_ids(
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
+    fox_clr_remat_mode: str,
+    gradient_accumulation_steps: int,
+    train_batch_size: int | None,
+    eval_batch_size: int | None,
     cache_dir: str,
     project: str,
     entity: str,
@@ -370,6 +382,10 @@ def _build_manifest_run_ids(
         fox_remote_formula=fox_remote_formula,
         fox_clr_rank=fox_clr_rank,
         fox_clr_use_den_residual=fox_clr_use_den_residual,
+        fox_clr_remat_mode=fox_clr_remat_mode,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        train_batch_size=train_batch_size,
+        eval_batch_size=eval_batch_size,
         cache_dir=cache_dir,
         wandb_project=project,
         wandb_entity=entity,
@@ -534,9 +550,9 @@ def main():
     )
     parser.add_argument(
         "--fox-remote-formula",
-        choices=["legacy", "clr_v1"],
+        choices=["legacy", "clr_v1", "clr_delta_v1"],
         default="legacy",
-        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似.",
+        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似, clr_delta_v1 为 Delta memory residual.",
     )
     parser.add_argument(
         "--fox-clr-rank",
@@ -550,6 +566,30 @@ def main():
         choices=["true", "false"],
         default="true",
         help="CLR v1 是否启用分母 residual 修正.",
+    )
+    parser.add_argument(
+        "--fox-clr-remat-mode",
+        choices=["off", "post_phase1"],
+        default="off",
+        help="CLR v1 materialize 路径的 remat 模式.",
+    )
+    parser.add_argument(
+        "--gradient-accumulation-steps",
+        type=int,
+        default=1,
+        help="每多少个 train micro-batches 做一次 optimizer step.",
+    )
+    parser.add_argument(
+        "--train-batch-size",
+        type=int,
+        default=None,
+        help="覆盖默认 train micro-batch 大小.",
+    )
+    parser.add_argument(
+        "--eval-batch-size",
+        type=int,
+        default=None,
+        help="覆盖默认 eval micro-batch 大小.",
     )
     parser.add_argument(
         "--metrics-white-list",
@@ -577,6 +617,14 @@ def main():
         help="训练完成后是否自动执行 analysis, 以及使用的数据源.",
     )
     args = parser.parse_args()
+
+    if args.logger_backend == "none" and args.analysis != "off":
+        raise ValueError(
+            "logger_backend='none' 时无法生成结构化 metrics, analysis 阶段将无法工作. "
+            "请设置一个 logger backend (如 --logger-backend swanlab), "
+            "或设置 --analysis off 跳过 analysis."
+        )
+
     metrics_white_list_provided = (
         args.metrics_white_list is not None or args.metrics_white_list_file is not None
     )
@@ -734,6 +782,10 @@ def main():
         fox_remote_formula=args.fox_remote_formula,
         fox_clr_rank=args.fox_clr_rank,
         fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
+        fox_clr_remat_mode=args.fox_clr_remat_mode,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+        train_batch_size=args.train_batch_size,
+        eval_batch_size=args.eval_batch_size,
         cache_dir=args.cache_dir,
         project=args.project,
         entity=args.entity,
@@ -762,6 +814,10 @@ def main():
             fox_remote_formula=args.fox_remote_formula,
             fox_clr_rank=args.fox_clr_rank,
             fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
+            fox_clr_remat_mode=args.fox_clr_remat_mode,
+            gradient_accumulation_steps=args.gradient_accumulation_steps,
+            train_batch_size=args.train_batch_size,
+            eval_batch_size=args.eval_batch_size,
             cache_dir=args.cache_dir,
             wandb_project=args.project,
             wandb_entity=args.entity,

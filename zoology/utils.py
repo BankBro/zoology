@@ -23,11 +23,17 @@ def import_from_str(path) -> Union[type, Callable]:
     except AttributeError as e:
         raise AttributeError(f"Class '{obj_name}' not found in module '{module_name}'.") from e
 
-def set_determinism(seed: int):
+def set_determinism(seed: int, deterministic: bool = False):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
+    if deterministic:
+        import os
+        os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+        torch.use_deterministic_algorithms(True)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 from typing import List
