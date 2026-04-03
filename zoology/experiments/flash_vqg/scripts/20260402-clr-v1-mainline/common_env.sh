@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="/home/lyj/mnt/project/zoology"
+PYTHON_BIN="${PYTHON_BIN:-/home/lyj/miniconda3/envs/flash-vqg/bin/python}"
+GPU_ID="${GPU_ID:-0}"
+PYTHONPATH="${ROOT_DIR}:${PYTHONPATH:-}"
+export PYTHONPATH
+
+BACKEND="${BACKEND:-torch}"
+DMODEL="${DMODEL:-128}"
+LR="${LR:-1e-3}"
+MAX_EPOCHS="${MAX_EPOCHS:-32}"
+CACHE_DIR="${CACHE_DIR:-./data/flash_vqg}"
+PROJECT="${PROJECT:-flash_vqg_clr_v1_mainline}"
+ENTITY="${ENTITY:-scu-mclab}"
+ANALYSIS_SOURCE="${ANALYSIS_SOURCE:-local}"
+
+BLOCK_LEN="${BLOCK_LEN:-32}"
+LOCAL_NUM_BLOCKS="${LOCAL_NUM_BLOCKS:-2}"
+TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
+SEED_VALUES="${SEED_VALUES:-123}"
+DATA_SEED="${DATA_SEED:-123}"
+NUM_CODEBOOK_VECTORS="${NUM_CODEBOOK_VECTORS:-128}"
+
+FOX_REMOTE_FORMULA="${FOX_REMOTE_FORMULA:-clr_v1}"
+FOX_CLR_RANK="${FOX_CLR_RANK:-4}"
+FOX_CLR_USE_DEN_RESIDUAL="${FOX_CLR_USE_DEN_RESIDUAL:-true}"
+FOX_CLR_REMAT_MODE="${FOX_CLR_REMAT_MODE:-off}"
+REMOTE_PATH_BACKEND="${REMOTE_PATH_BACKEND:-torch}"
+REMOTE_READ_TOPK_VALUES="${REMOTE_READ_TOPK_VALUES:-dense,1,2,4}"
+
+LAUNCH_ID_PREFIX_E1="${LAUNCH_ID_PREFIX_E1:-flash-vqg-20260402-clr-v1-e1}"
+LAUNCH_ID_PREFIX_E1_SMOKE="${LAUNCH_ID_PREFIX_E1_SMOKE:-flash-vqg-20260402-clr-v1-e1-smoke}"
+METRICS_WHITE_LIST_FILE="${METRICS_WHITE_LIST_FILE:-${ROOT_DIR}/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/metrics_e1_soft_topk.yaml}"

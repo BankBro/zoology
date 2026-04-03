@@ -14,15 +14,19 @@ DEFAULT_LAYER_SENTINEL_COUNT = 8
 
 DEFAULT_ATTN_METRICS = [
     "attn/den_min",
-    "attn/remote_win_rate",
     "attn/nan_inf_count",
-    "attn/den_cache_ratio",
     "attn/o_remote_energy_ratio",
-    "attn/o_remote_local_cos",
-    "attn/remote_dominance_rate",
+    "attn/clr_alpha_norm_mean",
+    "attn/clr_den_neg_ratio",
+    "attn/remote_win_rate",
+    "attn/den_cache_ratio",
+    "attn/remote_routing_entropy",
+    "attn/remote_top1_top2_margin",
+    "attn/remote_topk_den_capture_ratio",
     "attn/q_rms_mean",
     "attn/k_rms_mean",
     "attn/k_hat_rms_mean",
+    "attn/clr_h_norm_mean",
 ]
 DEFAULT_VQ_METRICS = [
     "vq/c_sim_min",
@@ -53,14 +57,21 @@ DEFAULT_VQ_METRICS = [
 ]
 REMOTE_LITE_BASE_KEYS = {
     "attn/den_min",
-    "attn/remote_win_rate",
     "attn/nan_inf_count",
-    "attn/den_cache_ratio",
+    "attn/o_remote_energy_ratio",
+    "attn/clr_alpha_norm_mean",
+    "attn/clr_den_neg_ratio",
 }
 REMOTE_FULL_ONLY_BASE_KEYS = {
-    "attn/o_remote_energy_ratio",
-    "attn/o_remote_local_cos",
-    "attn/remote_dominance_rate",
+    "attn/remote_win_rate",
+    "attn/den_cache_ratio",
+    "attn/remote_routing_entropy",
+    "attn/remote_top1_top2_margin",
+    "attn/remote_topk_den_capture_ratio",
+    "attn/q_rms_mean",
+    "attn/k_rms_mean",
+    "attn/k_hat_rms_mean",
+    "attn/clr_h_norm_mean",
 }
 
 T = TypeVar("T")

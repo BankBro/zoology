@@ -21,8 +21,8 @@ class _TinyModel(torch.nn.Module):
 
 def test_derive_flash_metric_controls_respects_white_list_scope():
     no_model_metrics = derive_flash_metric_controls(["valid/accuracy", "valid/mqar_case/*"])
-    lite_remote_metrics = derive_flash_metric_controls(["attn/remote_win_rate", "valid/attn/den_cache_ratio"])
-    full_remote_metrics = derive_flash_metric_controls(["valid/attn/o_remote_energy_ratio"])
+    lite_remote_metrics = derive_flash_metric_controls(["attn/o_remote_energy_ratio", "valid/attn/clr_alpha_norm_mean"])
+    full_remote_metrics = derive_flash_metric_controls(["valid/attn/remote_topk_den_capture_ratio"])
     vq_metrics_only = derive_flash_metric_controls(["vq/c_entropy", "valid/vq/relative_err_mean"])
 
     assert no_model_metrics == {
@@ -48,7 +48,7 @@ def test_metric_specs_from_config_respects_metrics_white_list():
         "metrics_white_list": [
             "valid/accuracy",
             "valid/mqar_case/*",
-            "attn/remote_win_rate",
+            "attn/clr_alpha_norm_mean",
         ],
         "data": {
             "train_configs": [{"input_seq_len": 64, "num_kv_pairs": 4}],
@@ -62,7 +62,7 @@ def test_metric_specs_from_config_respects_metrics_white_list():
     metric_specs = _metric_specs_from_config(config_dict)
 
     assert sorted(metric_specs) == [
-        "attn/remote_win_rate",
+        "attn/clr_alpha_norm_mean",
         "valid/accuracy",
         "valid/mqar_case/accuracy-64x4",
     ]
@@ -101,6 +101,8 @@ def test_doc_aligned_metrics_white_list_templates_are_trimmed():
 
     e0 = _read_template("e0.yaml")
     e1 = _read_template("e1.yaml")
+    e3 = _read_template("e3.yaml")
+    e4 = _read_template("e4.yaml")
     e5 = _read_template("e5.yaml")
     e6 = _read_template("e6.yaml")
     e8 = _read_template("e8.yaml")
@@ -114,3 +116,29 @@ def test_doc_aligned_metrics_white_list_templates_are_trimmed():
     assert "valid/mqar_case/*" not in e8
     assert "valid/input_seq_len/*" in e8
     assert "valid/num_kv_pairs/*" in e8
+    assert "attn/o_remote_local_cos" not in e1
+    assert "attn/remote_dominance_rate" not in e1
+    assert "attn/clr_alpha_norm_mean" in e1
+    assert "attn/clr_h_norm_mean" in e1
+    assert "attn/remote_routing_entropy" not in e1
+    assert "attn/remote_win_rate" not in e3
+    assert "attn/remote_win_rate" not in e4
+    assert "attn/o_remote_energy_ratio" in e3
+    assert "attn/clr_den_neg_ratio" in e3
+    assert "attn/o_remote_local_cos" not in e6
+    assert "attn/remote_dominance_rate" not in e6
+
+
+def test_derive_flash_metric_controls_treats_new_routing_metrics_as_full_only():
+    controls = derive_flash_metric_controls(
+        [
+            "attn/remote_routing_entropy",
+            "valid/attn/remote_top1_top2_margin",
+            "layer_0/attn/remote_topk_den_capture_ratio",
+        ]
+    )
+
+    assert controls == {
+        "enable_layer_metrics": True,
+        "fox_phase2_metrics_mode": "full",
+    }
