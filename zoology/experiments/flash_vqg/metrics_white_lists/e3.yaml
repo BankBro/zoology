@@ -4,7 +4,13 @@
 - valid/input_seq_len/*
 - valid/num_kv_pairs/*
 - valid/mqar_case/*
-- attn/remote_win_rate
+- attn/nan_inf_count
+- attn/den_min
 - attn/o_remote_energy_ratio
-- valid/attn/remote_win_rate
+- attn/clr_alpha_norm_mean
+- attn/clr_den_neg_ratio
+- valid/attn/nan_inf_count
+- valid/attn/den_min
 - valid/attn/o_remote_energy_ratio
+- valid/attn/clr_alpha_norm_mean
+- valid/attn/clr_den_neg_ratio

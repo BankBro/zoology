@@ -4,7 +4,7 @@ import os
 import shlex
 import subprocess
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from zoology.experiments.flash_vqg.flash_vqg_suite import build_configs
@@ -190,7 +190,7 @@ def _normalize_launch_id_prefix(prefix: str) -> str:
 
 
 def _build_launch_id(launch_id_prefix: str) -> str:
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
     return f"{launch_id_prefix}-{timestamp}"
 
 

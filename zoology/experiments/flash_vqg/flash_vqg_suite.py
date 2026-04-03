@@ -582,7 +582,7 @@ def build_configs(
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 目前只支持 flash_backend='torch'.")
         if resolved_remote_path_backend != "torch":
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 目前只支持 fox_remote_path_backend='torch'.")
-        if any(value is not None for value in remote_read_topk_list):
+        if resolved_remote_formula == "clr_delta_v1" and any(value is not None for value in remote_read_topk_list):
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 暂不支持 fox_remote_read_topk.")
         if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
             raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
@@ -593,7 +593,8 @@ def build_configs(
             raise ValueError(
                 "fox_clr_remat_mode='post_phase1' 目前不支持 enable_layer_metrics=True."
             )
-        remote_read_topk_list = [None]
+        if resolved_remote_formula == "clr_delta_v1":
+            remote_read_topk_list = [None]
     elif resolved_clr_remat_mode != "off":
         raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1' 或 'clr_delta_v1'.")
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
@@ -602,8 +603,6 @@ def build_configs(
         or fox_remote_read_topk is not None
         or len(remote_read_topk_list) > 1
     )
-    if resolved_remote_formula == "clr_v1":
-        include_read_suffix = False
     if normalized_num_codebook_vectors_values is not None:
         codebook_variants = [
             {

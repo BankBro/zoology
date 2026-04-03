@@ -1,3 +1,6 @@
+import importlib.util
+from pathlib import Path
+
 from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import fetch_local_run
 from zoology.experiments.flash_vqg.scripts.compare_remat_training import _build_config as build_remat_config
 from zoology.experiments.flash_vqg.scripts.smoke_clr_oom_grid import _build_one_config as build_smoke_config
@@ -29,6 +32,49 @@ def test_smoke_clr_oom_grid_build_config_supports_batch_and_gradient_accumulatio
     assert config.data.batch_size == (32, 12)
     assert config.gradient_accumulation_steps == 4
     assert config.run_id.endswith("-rformula-clr1-r4-den1-rremat-off-tbs32-ebs12-ga4")
+
+
+def _load_e1_smoke_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/smoke_e1_batch_accum.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_e1_smoke", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_e1_smoke_build_config_supports_top4_and_batch_overrides():
+    module = _load_e1_smoke_module()
+    config = module._build_one_config(
+        read_topk=4,
+        train_batch_size=32,
+        eval_batch_size=8,
+        gradient_accumulation_steps=8,
+        metrics_white_list=["train/loss", "valid/accuracy", "attn/remote_topk_den_capture_ratio"],
+    )
+
+    flash_kwargs = config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
+    assert flash_kwargs["fox_remote_formula"] == "clr_v1"
+    assert flash_kwargs["fox_remote_read_topk"] == 4
+    assert config.data.batch_size == (32, 8)
+    assert config.gradient_accumulation_steps == 8
+    assert config.run_id.endswith("-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs32-ebs8-ga8")
+
+
+def test_e1_train_script_uses_local_analysis_and_dense_top1_top2_top4_modes():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/run_e1_train.sh"
+    )
+    content = script_path.read_text(encoding="utf-8")
+
+    assert "--analysis \"${ANALYSIS_SOURCE}\"" in content
+    assert "--project \"${PROJECT}\"" in content
+    assert "--fox-remote-read-topk-values \"${REMOTE_READ_TOPK_VALUES}\"" in content
+    assert "REMOTE_READ_TOPK_VALUES=\"${REMOTE_READ_TOPK_VALUES:-dense,1,2,4}\"" in Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/common_env.sh"
+    ).read_text(encoding="utf-8")
 
 
 def test_fetch_local_run_falls_back_to_worker_log_when_backup_is_missing(tmp_path):

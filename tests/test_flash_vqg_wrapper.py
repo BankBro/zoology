@@ -404,6 +404,36 @@ def test_build_configs_supports_clr_formula_suffix():
     assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off")
 
 
+def test_build_configs_supports_clr_v1_remote_read_topk_suffixes():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        fox_remote_read_topk_values=[None, 1, 2, 4],
+        fox_remote_path_backend="torch",
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 4
+    assert [_flash_remote_read_topk(config) for config in configs] == [None, 1, 2, 4]
+    assert [config.run_id for config in configs] == [
+        "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense",
+        "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1",
+        "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2",
+        "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4",
+    ]
+
+
 def test_build_configs_supports_batch_and_gradient_accumulation_overrides():
     configs = build_configs(
         include_gdn=False,
@@ -566,6 +596,28 @@ def test_build_configs_rejects_clr_with_triton_remote_backend():
             fox_clr_use_den_residual=True,
             fox_clr_remat_mode="off",
             fox_remote_path_backend="triton",
+            metrics_white_list=["valid/accuracy"],
+        )
+
+
+def test_build_configs_rejects_clr_delta_v1_remote_topk():
+    with pytest.raises(ValueError, match="clr_delta_v1"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_formula="clr_delta_v1",
+            fox_clr_rank=4,
+            fox_clr_use_den_residual=True,
+            fox_clr_remat_mode="off",
+            fox_remote_path_backend="torch",
+            fox_remote_read_topk_values=[None, 2],
             metrics_white_list=["valid/accuracy"],
         )
 

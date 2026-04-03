@@ -1,3 +1,4 @@
+- train/loss
 - valid/loss
 - valid/accuracy
 - valid/input_seq_len/*
@@ -8,10 +9,16 @@
 - attn/o_remote_energy_ratio
 - attn/clr_alpha_norm_mean
 - attn/clr_den_neg_ratio
+- attn/remote_routing_entropy
+- attn/remote_top1_top2_margin
+- attn/remote_topk_den_capture_ratio
 - valid/attn/nan_inf_count
 - valid/attn/den_min
 - valid/attn/o_remote_energy_ratio
 - valid/attn/clr_alpha_norm_mean
 - valid/attn/clr_den_neg_ratio
+- valid/attn/remote_routing_entropy
+- valid/attn/remote_top1_top2_margin
+- valid/attn/remote_topk_den_capture_ratio
 - vq/relative_err_mean
 - valid/vq/relative_err_mean
