@@ -99,40 +99,97 @@
 
 ## 3. 主线实验总览
 
+### 3.1 基线晋升总规则
+
+实验 1 到实验 6 统一采用同一条裁决规则. 每个实验都拿当前 baseline 做对照, 并只在满足以下条件时晋升为下一轮 baseline:
+
+- `best_valid_accuracy` 明确更好
+- 至少两个 hard buckets 同时上涨
+- 没有明显训练不稳, 机制塌缩, 或实现异常
+
+如果以上条件同时满足, 则当前实验的最佳变体晋升为新 baseline, 再进入下一个实验. 如果不满足, 则不晋升, 只把结果保留为机理判断, 后续实验继续沿用旧 baseline.
+
+裁决优先级固定为:
+
+- `valid/*` 主指标决定是否晋升
+- `attn/*` 与 `vq/*` 只用于解释机理, 不单独决定晋升
+
+### 3.2 执行顺序与主线分工
+
+- 先跑实验 1, 实验 2, 实验 3, 优先判断读法, remote denominator, 与码本学习谁是当前主瓶颈
+- 再跑实验 4, 实验 5, 实验 6, 在主方向基本明确后继续做高精度检索与写入侧优化
+- 一句话概括: 前 3 个实验用于找主矛盾, 后 3 个实验用于沿着主矛盾做精细化优化
+
 ### 实验 1: soft top-k read
 
 - 变量: `fox_remote_read_topk ∈ {dense,1,2,4}`
+- 当前 baseline: `dense read`
 - 目标: 验证 remote read 是否太 dense, 太糊
-- 本轮状态: 实现并执行
+- 简述: 把 remote 从对所有 code 的 dense 聚合改成只读 top-k 候选 code, 重点判断当前瓶颈是否主要来自 remote 读得太糊, 检索不够准. 理想现象是 `top2` 先拉升长长度和大 `num_kv_pairs` 的 hard buckets
+- 候选判断:
+  - 如果 `top2` 或 `top4` 明显优于 `dense`, 且 hard buckets 也上涨, 则说明 read-side blur 是关键问题, 最优 top-k 版本晋升为新 baseline
+  - 如果 overall 只小涨, 但 hard buckets 基本不动, 则说明 read-side blur 不是唯一主瓶颈, 不晋升
+  - 如果 top-k 比 `dense` 更差, 或出现训练不稳, 则不晋升, 后续继续沿用 `dense baseline`
+- 本轮状态: 实现并执行, 当前结果支持 `top2` 作为后续优先候选
 
 ### 实验 2: 去 remote denominator
 
 - 变量: `residual expert` 与 `shared local denominator`
+- 当前 baseline: 来自实验 1 的晋升版本, 若实验 1 不晋升则沿用旧 baseline
 - 目标: 验证 remote denominator 是否必要
+- 简述: 分别测试 remote 只做 residual value correction, 或与 local 共享 denominator, 重点判断 remote 分母是否真的必要, 以及 remote 是否更适合作 value expert
+- 候选判断:
+  - 如果 `2A residual expert` 明显最好, 则说明 remote 更适合作 residual value expert, `2A` 晋升为新 baseline
+  - 如果 `2B shared local denominator` 明显最好, 则说明 remote 不需要独立 denominator, 但仍需要 local denominator 锚定, `2B` 晋升为新 baseline
+  - 如果 `2A` 和 `2B` 都不如原版, 则说明当前 remote 仍离不开显式 denominator, 不晋升
 - 本轮状态: 只保留文档规划
 
 ### 实验 3: learnable routingVQ / codebook
 
 - 变量: codebook 慢更新, 例如 EMA 或小学习率
+- 当前 baseline: 来自实验 2 的 baseline
 - 目标: 验证问题是否来自码本不会分桶
+- 简述: 把码本改成可学习, 但用 EMA, 小学习率, 或 warmup 控制更新速度, 重点判断瓶颈是否来自码本本身不会分桶, 而不是读法有问题. 理想现象是 usage 更健康, 量化误差下降, 且 hard buckets 同时上涨
+- 候选判断:
+  - 如果 `valid/*` 主指标上涨, hard buckets 也上涨, 且 codebook usage 更健康, 则说明主瓶颈偏 codebook 学习与分桶能力, learnable codebook 晋升为新 baseline
+  - 如果 `vq/*` 指标更好看, 但 MQAR 主指标基本不动, 则说明码本更会用, 但 retrieval 仍未更准, 不晋升
+  - 如果训练不稳, 或 code usage 明显塌缩, 则回退并保持旧 baseline
 - 本轮状态: 只保留文档规划
 
 ### 实验 4: 两级 key quantization
 
 - 变量: coarse + residual 两级量化
+- 当前 baseline: 来自实验 3 的 baseline
 - 目标: 验证单级量化是否过粗
+- 简述: 把单级量化改成 `coarse code + residual code` 的两级 key quantization, 重点判断单级量化是否过粗, 导致近邻 key 在 code 空间里分不开
+- 候选判断:
+  - 如果 recon 更好, routing 更稳, 且 hard buckets 明显上涨, 则说明单级 quantization 过粗是主因, 两级 quantization 晋升为新 baseline
+  - 如果 recon 更好, 但任务表现基本不动, 则说明问题不主要在量化级数不够, 不晋升
+  - 如果成本明显上升而收益很小, 则说明当前两级 quantization 性价比不足, 不晋升
 - 本轮状态: 只保留文档规划
 
 ### 实验 5: retrieval-aware VQ loss
 
 - 变量: `q·k_hat ≈ q·k` 的 retrieval-aware 辅助损失
+- 当前 baseline: 来自实验 4 的 baseline
 - 目标: 验证 query 看见量化 key 后是否仍然排序错误
+- 简述: 在 VQ loss 上增加 retrieval 对齐目标, 例如让 `q·k_hat` 更接近 `q·k`, 重点判断即使重建误差不大, query 面对量化 key 时是否仍然存在排序失真. 理想现象是 routing 更稳, hard buckets 提升更明显
+- 候选判断:
+  - 如果 routing 更稳, `top1-top2 margin` 更健康, 且 hard buckets 明显上涨, 则说明主瓶颈是 retrieval ranking distortion, retrieval-aware loss 晋升为新 baseline
+  - 如果 routing 指标更好, 但任务基本不动, 则说明 read-side ranking 已不是主矛盾, 不晋升
+  - 如果主训练被明显拖坏, 则说明当前 retrieval-aware loss 权重或形式不合适, 回退并保持旧 baseline
 - 本轮状态: 只保留文档规划
 
 ### 实验 6: remote write hygiene
 
 - 变量: 轻量写入 gate
+- 当前 baseline: 来自实验 5 的 baseline
 - 目标: 验证 remote memory 是否被低价值 token 污染
+- 简述: 给 remote 写入增加轻量 gate, 只让更值得记忆的 token 强写入, 重点判断 remote 是否被低价值 token 污染. 理想现象是 remote 总能量下降或持平, 但 hard buckets 反而更好
+- 候选判断:
+  - 如果 `o_remote_energy_ratio` 下降或持平, 但 hard buckets 上涨, 则说明 remote 更干净了, 不是更强了, write hygiene 晋升为新 baseline
+  - 如果 remote 能量明显塌缩, 且任务一起变差, 则说明 gate 太强, 把 remote 写废了, 回退并保持旧 baseline
+  - 如果 easy buckets 上涨, 但 hard buckets 不动, 则说明 write pollution 不是主瓶颈, 不晋升
 - 本轮状态: 只保留文档规划
 
 ## 4. 实验 1: soft top-k read
