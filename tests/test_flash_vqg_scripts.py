@@ -1,4 +1,5 @@
 import importlib.util
+from argparse import Namespace
 from pathlib import Path
 
 from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import fetch_local_run
@@ -45,6 +46,52 @@ def _load_e1_smoke_module():
     return module
 
 
+def _load_e2_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_e2_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _build_e2_args() -> Namespace:
+    return Namespace(
+        launch_id_prefix="flash-vqg-e2-test",
+        backend="torch",
+        logger_backend="none",
+        dmodels="128",
+        learning_rates="1e-3",
+        train_batch_order="global_shuffle",
+        seed_values="123",
+        data_seed=123,
+        num_codebook_vectors="128",
+        fox_remote_path_backend="torch",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual="true",
+        fox_clr_remat_mode="off",
+        gradient_accumulation_steps=8,
+        train_batch_size=16,
+        eval_batch_size=8,
+        cache_dir="./data/flash_vqg",
+        project="flash_vqg_clr_v1_mainline",
+        entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=None,
+        metrics_white_list_file=str(
+            Path(
+                "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/metrics.yaml"
+            )
+        ),
+    )
+
+
+def _extract_flash_kwargs(config):
+    return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
+
+
 def test_e1_smoke_build_config_supports_top4_and_batch_overrides():
     module = _load_e1_smoke_module()
     config = module._build_one_config(
@@ -63,6 +110,62 @@ def test_e1_smoke_build_config_supports_top4_and_batch_overrides():
     assert config.run_id.endswith("-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs32-ebs8-ga8")
 
 
+def test_e2_main_builder_returns_expected_smoke_and_train_matrix():
+    module = _load_e2_builder_module()
+    args = _build_e2_args()
+
+    smoke_configs = module.build_e2_main_smoke_configs(args)
+    train_configs = module.build_e2_main_train_configs(args)
+
+    assert [config.run_id for config in smoke_configs] == ["baseline", "2a-l050", "2b-l050", "2c-lmax050"]
+    assert len(train_configs) == 10
+    assert [config.run_id for config in train_configs][:4] == ["baseline", "2a-l025", "2b-l025", "2c-lmax025"]
+
+    for config in train_configs:
+        flash_kwargs = _extract_flash_kwargs(config)
+        assert flash_kwargs["fox_remote_read_topk"] == 2
+        assert flash_kwargs["experiment_part"] == "e2_main"
+
+    baseline_kwargs = _extract_flash_kwargs(train_configs[0])
+    assert baseline_kwargs["fox_clr_selector_mode"] == "den_aware"
+    assert baseline_kwargs["fox_clr_merge_mode"] == "shared_den"
+
+    two_a_kwargs = _extract_flash_kwargs(train_configs[1])
+    assert two_a_kwargs["fox_clr_selector_mode"] == "score_only"
+    assert two_a_kwargs["fox_clr_merge_mode"] == "residual_add"
+    assert two_a_kwargs["fox_clr_lambda_remote"] == 0.25
+
+    two_c_kwargs = _extract_flash_kwargs(train_configs[3])
+    assert two_c_kwargs["fox_clr_gate_mode"] == "shared_query_linear"
+    assert two_c_kwargs["fox_clr_gate_init_bias"] == -2.0
+
+
+def test_e2b_builder_returns_expected_smoke_and_train_matrix():
+    module = _load_e2_builder_module()
+    args = _build_e2_args()
+
+    smoke_configs = module.build_e2b_smoke_configs(args)
+    train_configs = module.build_e2b_train_configs(args)
+
+    assert [config.run_id for config in smoke_configs] == [
+        "baseline",
+        "e2b-2a-l050",
+        "e2b-2b-l050",
+        "e2b-2c-lmax050",
+    ]
+    assert len(train_configs) == 10
+
+    for config in train_configs:
+        flash_kwargs = _extract_flash_kwargs(config)
+        assert flash_kwargs["fox_remote_read_topk"] == 2
+        assert flash_kwargs["experiment_part"] == "e2b"
+        assert flash_kwargs["fox_clr_selector_mode"] == "den_aware"
+
+    two_b_kwargs = _extract_flash_kwargs(train_configs[2])
+    assert two_b_kwargs["fox_clr_merge_mode"] == "shared_local_den"
+    assert two_b_kwargs["fox_clr_lambda_remote"] == 0.25
+
+
 def test_e1_train_script_uses_local_analysis_and_dense_top1_top2_top4_modes():
     script_path = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/run_e1_train.sh"
@@ -75,6 +178,39 @@ def test_e1_train_script_uses_local_analysis_and_dense_top1_top2_top4_modes():
     assert "REMOTE_READ_TOPK_VALUES=\"${REMOTE_READ_TOPK_VALUES:-dense,1,2,4}\"" in Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/common_env.sh"
     ).read_text(encoding="utf-8")
+
+
+def test_e2_scripts_use_config_builder_and_smoke_env_files():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface"
+    )
+    smoke_main = (base_dir / "run_e2_main_smoke.sh").read_text(encoding="utf-8")
+    smoke_e2b = (base_dir / "run_e2b_smoke.sh").read_text(encoding="utf-8")
+    train_main = (base_dir / "run_e2_main_train.sh").read_text(encoding="utf-8")
+    train_e2b = (base_dir / "run_e2b_train.sh").read_text(encoding="utf-8")
+    dual_train = (base_dir / "run_e2_dual_train.sh").read_text(encoding="utf-8")
+    common_env = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/common_env.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "SMOKE_ENV_FILE" in smoke_main
+    assert "e2_main_smoke.env" in smoke_main
+    assert "SMOKE_ENV_FILE" in smoke_e2b
+    assert "e2b_smoke.env" in smoke_e2b
+
+    assert "--config-builder \"${BUILDER_SPEC}\"" in train_main
+    assert "source \"${ENV_FILE}\"" in train_main
+    assert "--analysis \"${ANALYSIS_SOURCE}\"" in train_main
+    assert "--config-builder \"${BUILDER_SPEC}\"" in train_e2b
+    assert "source \"${ENV_FILE}\"" in train_e2b
+
+    assert "GPU_ID_E2_MAIN" in dual_train
+    assert "TRAIN_BATCH_SIZE_E2_MAIN" in dual_train
+    assert "TRAIN_BATCH_SIZE_E2B" in dual_train
+
+    assert "LAUNCH_ID_PREFIX_E2_MAIN" in common_env
+    assert "LAUNCH_ID_PREFIX_E2B" in common_env
+    assert "METRICS_WHITE_LIST_FILE_E2" in common_env
 
 
 def test_fetch_local_run_falls_back_to_worker_log_when_backup_is_missing(tmp_path):

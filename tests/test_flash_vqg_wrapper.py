@@ -2,19 +2,25 @@ import json
 import os
 import sys
 import types
+from argparse import Namespace
+from pathlib import Path
 
 import pytest
 
 from zoology.experiments.flash_vqg.flash_vqg_suite import build_configs
 import zoology.experiments.flash_vqg.run_flash_vqg_suite as suite
 from zoology.experiments.flash_vqg.run_flash_vqg_suite import (
+    _build_configs_from_builder,
     _build_e7_eval_run_ids,
     _build_eval_run_id,
+    _builder_args_dict,
+    _load_config_builder,
     _parse_codebook_vectors_map,
     _parse_csv_ints,
     _parse_paired_block_local,
     _parse_remote_read_topk_values,
     _parse_seed_values,
+    _render_generated_config_from_builder,
     _resolve_metrics_white_list,
     _render_generated_config,
 )
@@ -70,6 +76,53 @@ def test_resolve_metrics_white_list_merges_file_and_inline(tmp_path):
     )
 
     assert resolved == ["valid/accuracy", "valid/mqar_case/*", "attn/remote_win_rate"]
+
+
+def test_load_config_builder_supports_file_path():
+    builder_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/config_builder.py"
+    )
+    builder = _load_config_builder(f"{builder_path}:build_e2_main_smoke_configs")
+
+    assert callable(builder)
+    assert builder.__name__ == "build_e2_main_smoke_configs"
+
+
+def test_builder_args_dict_excludes_eval_only_fields():
+    args = Namespace(
+        backend="torch",
+        eval_only=True,
+        checkpoint_launch_id="launch-x",
+        checkpoint_run_id="run-y",
+        dmodels="128",
+    )
+
+    payload = _builder_args_dict(args)
+
+    assert payload == {"backend": "torch", "dmodels": "128"}
+
+
+def test_render_generated_config_from_builder_writes_builder_loader():
+    rendered = _render_generated_config_from_builder(
+        builder_spec="/tmp/demo_builder.py:build_demo",
+        builder_args={"backend": "torch", "dmodels": "128"},
+    )
+
+    assert "_load_config_builder('/tmp/demo_builder.py:build_demo')" in rendered
+    assert "_builder_args = argparse.Namespace(**{'backend': 'torch', 'dmodels': '128'})" in rendered
+    assert "configs = _builder(_builder_args)" in rendered
+
+
+def test_build_configs_from_builder_requires_non_empty_list(tmp_path):
+    builder_path = tmp_path / "bad_builder.py"
+    builder_path.write_text(
+        "def build_configs(args):\n    return []\n",
+        encoding="utf-8",
+    )
+    args = Namespace()
+
+    with pytest.raises(ValueError, match="非空 list"):
+        _build_configs_from_builder(builder_spec=f"{builder_path}:build_configs", args=args)
 
 
 def test_render_generated_config_writes_block_len_values_scan():

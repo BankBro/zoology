@@ -358,6 +358,36 @@ def _normalize_fox_clr_remat_mode(fox_clr_remat_mode: str | None) -> str:
     return mode
 
 
+def _normalize_fox_clr_selector_mode(fox_clr_selector_mode: str | None) -> str:
+    mode = "den_aware" if fox_clr_selector_mode is None else str(fox_clr_selector_mode).lower()
+    if mode not in {"den_aware", "score_only"}:
+        raise ValueError(
+            "fox_clr_selector_mode 只能是 ['den_aware', 'score_only'], "
+            f"当前收到: {fox_clr_selector_mode}"
+        )
+    return mode
+
+
+def _normalize_fox_clr_merge_mode(fox_clr_merge_mode: str | None) -> str:
+    mode = "shared_den" if fox_clr_merge_mode is None else str(fox_clr_merge_mode).lower()
+    if mode not in {"shared_den", "shared_local_den", "residual_add"}:
+        raise ValueError(
+            "fox_clr_merge_mode 只能是 ['shared_den', 'shared_local_den', 'residual_add'], "
+            f"当前收到: {fox_clr_merge_mode}"
+        )
+    return mode
+
+
+def _normalize_fox_clr_gate_mode(fox_clr_gate_mode: str | None) -> str:
+    mode = "off" if fox_clr_gate_mode is None else str(fox_clr_gate_mode).lower()
+    if mode not in {"off", "shared_query_linear"}:
+        raise ValueError(
+            "fox_clr_gate_mode 只能是 ['off', 'shared_query_linear'], "
+            f"当前收到: {fox_clr_gate_mode}"
+        )
+    return mode
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -491,6 +521,13 @@ def build_configs(
     fox_clr_rank: int = 4,
     fox_clr_use_den_residual: bool = True,
     fox_clr_remat_mode: str = "off",
+    fox_clr_selector_mode: str = "den_aware",
+    fox_clr_merge_mode: str = "shared_den",
+    fox_clr_gate_mode: str = "off",
+    fox_clr_lambda_remote: float = 1.0,
+    fox_clr_gate_init_bias: float = -2.0,
+    experiment_part: str | None = None,
+    experiment_mode: str | None = None,
     gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
     train_batch_size: int | None = None,
     eval_batch_size: int | None = None,
@@ -561,6 +598,9 @@ def build_configs(
     resolved_remote_formula = _normalize_fox_remote_formula(fox_remote_formula)
     resolved_clr_rank = _normalize_fox_clr_rank(fox_clr_rank)
     resolved_clr_remat_mode = _normalize_fox_clr_remat_mode(fox_clr_remat_mode)
+    resolved_clr_selector_mode = _normalize_fox_clr_selector_mode(fox_clr_selector_mode)
+    resolved_clr_merge_mode = _normalize_fox_clr_merge_mode(fox_clr_merge_mode)
+    resolved_clr_gate_mode = _normalize_fox_clr_gate_mode(fox_clr_gate_mode)
     resolved_gradient_accumulation_steps = _normalize_positive_int(
         gradient_accumulation_steps,
         field_name="gradient_accumulation_steps",
@@ -586,6 +626,12 @@ def build_configs(
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 暂不支持 fox_remote_read_topk.")
         if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
             raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
+        if resolved_clr_merge_mode == "shared_den" and resolved_clr_selector_mode != "den_aware":
+            raise ValueError("fox_clr_merge_mode='shared_den' 要求 fox_clr_selector_mode='den_aware'.")
+        if resolved_clr_merge_mode != "residual_add" and resolved_clr_gate_mode != "off":
+            raise ValueError("fox_clr_gate_mode='shared_query_linear' 只支持 fox_clr_merge_mode='residual_add'.")
+        if resolved_clr_merge_mode == "shared_den" and abs(float(fox_clr_lambda_remote) - 1.0) > 1e-9:
+            raise ValueError("fox_clr_lambda_remote=1.0 是 fox_clr_merge_mode='shared_den' 的固定要求.")
         if (
             resolved_clr_remat_mode == "post_phase1"
             and metric_controls["enable_layer_metrics"]
@@ -682,6 +728,13 @@ def build_configs(
                         fox_clr_rank=resolved_clr_rank,
                         fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
                         fox_clr_remat_mode=resolved_clr_remat_mode,
+                        fox_clr_selector_mode=resolved_clr_selector_mode,
+                        fox_clr_merge_mode=resolved_clr_merge_mode,
+                        fox_clr_gate_mode=resolved_clr_gate_mode,
+                        fox_clr_lambda_remote=float(fox_clr_lambda_remote),
+                        fox_clr_gate_init_bias=float(fox_clr_gate_init_bias),
+                        experiment_part=experiment_part,
+                        experiment_mode=experiment_mode,
                         local_num_blocks=current_local_num_blocks,
                         use_time_mixing="kv_shift",
                         vq_score_mode="l2",

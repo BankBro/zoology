@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import importlib.util
 import os
 import shlex
 import subprocess
@@ -324,6 +325,68 @@ def _render_generated_config(
     return "\n".join(lines)
 
 
+def _builder_args_dict(args: argparse.Namespace) -> dict:
+    return {
+        key: value
+        for key, value in vars(args).items()
+        if key not in {"eval_only", "checkpoint_launch_id", "checkpoint_run_id"}
+    }
+
+
+def _load_config_builder(builder_spec: str):
+    if ":" not in builder_spec:
+        raise ValueError("--config-builder 必须使用 <module_or_file>:<callable> 格式.")
+    target, callable_name = builder_spec.split(":", maxsplit=1)
+    target = target.strip()
+    callable_name = callable_name.strip()
+    if not target or not callable_name:
+        raise ValueError("--config-builder 必须使用 <module_or_file>:<callable> 格式.")
+
+    if target.endswith(".py") or "/" in target or target.startswith("."):
+        builder_path = Path(target).expanduser().resolve()
+        if not builder_path.exists():
+            raise FileNotFoundError(f"未找到 config builder 文件: {builder_path}")
+        module_name = f"flash_vqg_builder_{abs(hash(str(builder_path)))}"
+        spec = importlib.util.spec_from_file_location(module_name, builder_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"无法从文件加载 config builder: {builder_path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    else:
+        module = importlib.import_module(target)
+
+    builder = getattr(module, callable_name, None)
+    if builder is None or not callable(builder):
+        raise AttributeError(f"config builder 中未找到可调用对象: {builder_spec}")
+    return builder
+
+
+def _build_configs_from_builder(*, builder_spec: str, args: argparse.Namespace):
+    builder = _load_config_builder(builder_spec)
+    configs = builder(args)
+    if not isinstance(configs, list) or not configs:
+        raise ValueError("config builder 必须返回非空 list[TrainConfig].")
+    return configs
+
+
+def _render_generated_config_from_builder(*, builder_spec: str, builder_args: dict) -> str:
+    lines = [
+        "# -*- coding: utf-8 -*-",
+        "# 此文件由 run_flash_vqg_suite.py 自动生成.",
+        "# 如需调整实验参数, 请修改 wrapper 入参后重新生成.",
+        "",
+        "import argparse",
+        "",
+        "from zoology.experiments.flash_vqg.run_flash_vqg_suite import _load_config_builder",
+        "",
+        f"_builder = _load_config_builder({builder_spec!r})",
+        f"_builder_args = argparse.Namespace(**{builder_args!r})",
+        "configs = _builder(_builder_args)",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _build_manifest_run_ids(
     *,
     sweep_id: str,
@@ -607,6 +670,12 @@ def main():
     parser.add_argument("--entity", type=str, default="scu-mclab")
     parser.add_argument("--max-epochs", type=int, default=32)
     parser.add_argument("--launch-id-prefix", type=str, default="flash-vqg-suite")
+    parser.add_argument(
+        "--config-builder",
+        type=str,
+        default=None,
+        help="实验专用预组装配置入口, 格式为 <module_or_file>:<callable>.",
+    )
     parser.add_argument("--outdir", type=str, default=None)
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("-p", "--parallelize", action="store_true")
@@ -761,39 +830,18 @@ def main():
     generated_launch_dir.mkdir(parents=True, exist_ok=True)
     generated_path = generated_launch_dir / "launch_configs.py"
     manifest_path = generated_launch_dir / "manifest.json"
-    run_ids = _build_manifest_run_ids(
-        sweep_id=launch_id_prefix,
-        backend=args.backend,
-        logger_backend=args.logger_backend,
-        include_gdn=args.include_gdn,
-        block_lens=block_lens,
-        paired_block_local_values=paired_block_local_values,
-        dmodels=dmodels,
-        learning_rates=learning_rates,
-        if_remote_enabled_values=if_remote_enabled_values,
-        local_num_blocks_values=local_num_blocks_values,
-        train_batch_orders=train_batch_orders,
-        seed_values=seed_values,
-        data_seed=args.data_seed,
-        num_codebook_vectors_values=num_codebook_vectors_values,
-        num_codebook_vectors_map=num_codebook_vectors_map,
-        fox_remote_path_backend=args.fox_remote_path_backend,
-        fox_remote_read_topk_values=fox_remote_read_topk_values,
-        fox_remote_formula=args.fox_remote_formula,
-        fox_clr_rank=args.fox_clr_rank,
-        fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
-        fox_clr_remat_mode=args.fox_clr_remat_mode,
-        gradient_accumulation_steps=args.gradient_accumulation_steps,
-        train_batch_size=args.train_batch_size,
-        eval_batch_size=args.eval_batch_size,
-        cache_dir=args.cache_dir,
-        project=args.project,
-        entity=args.entity,
-        max_epochs=args.max_epochs,
-        metrics_white_list=metrics_white_list,
-    )
-    generated_path.write_text(
-        _render_generated_config(
+    if args.config_builder is not None:
+        configs = _build_configs_from_builder(builder_spec=args.config_builder, args=args)
+        run_ids = [config.run_id for config in configs]
+        generated_path.write_text(
+            _render_generated_config_from_builder(
+                builder_spec=args.config_builder,
+                builder_args=_builder_args_dict(args),
+            ),
+            encoding="utf-8",
+        )
+    else:
+        run_ids = _build_manifest_run_ids(
             sweep_id=launch_id_prefix,
             backend=args.backend,
             logger_backend=args.logger_backend,
@@ -819,13 +867,45 @@ def main():
             train_batch_size=args.train_batch_size,
             eval_batch_size=args.eval_batch_size,
             cache_dir=args.cache_dir,
-            wandb_project=args.project,
-            wandb_entity=args.entity,
+            project=args.project,
+            entity=args.entity,
             max_epochs=args.max_epochs,
             metrics_white_list=metrics_white_list,
-        ),
-        encoding="utf-8",
-    )
+        )
+        generated_path.write_text(
+            _render_generated_config(
+                sweep_id=launch_id_prefix,
+                backend=args.backend,
+                logger_backend=args.logger_backend,
+                include_gdn=args.include_gdn,
+                block_lens=block_lens,
+                paired_block_local_values=paired_block_local_values,
+                dmodels=dmodels,
+                learning_rates=learning_rates,
+                if_remote_enabled_values=if_remote_enabled_values,
+                local_num_blocks_values=local_num_blocks_values,
+                train_batch_orders=train_batch_orders,
+                seed_values=seed_values,
+                data_seed=args.data_seed,
+                num_codebook_vectors_values=num_codebook_vectors_values,
+                num_codebook_vectors_map=num_codebook_vectors_map,
+                fox_remote_path_backend=args.fox_remote_path_backend,
+                fox_remote_read_topk_values=fox_remote_read_topk_values,
+                fox_remote_formula=args.fox_remote_formula,
+                fox_clr_rank=args.fox_clr_rank,
+                fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
+                fox_clr_remat_mode=args.fox_clr_remat_mode,
+                gradient_accumulation_steps=args.gradient_accumulation_steps,
+                train_batch_size=args.train_batch_size,
+                eval_batch_size=args.eval_batch_size,
+                cache_dir=args.cache_dir,
+                wandb_project=args.project,
+                wandb_entity=args.entity,
+                max_epochs=args.max_epochs,
+                metrics_white_list=metrics_white_list,
+            ),
+            encoding="utf-8",
+        )
     initialize_manifest(
         manifest_path=manifest_path,
         launch_id=launch_id,

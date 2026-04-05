@@ -9,7 +9,7 @@ from zoology.config import TrainConfig
 
 
 MANIFEST_ENV_VAR = "FLASH_VQG_MANIFEST_PATH"
-MANIFEST_SCHEMA_VERSION = 3
+MANIFEST_SCHEMA_VERSION = 4
 CHECKPOINT_LOCAL_FIELDS = (
     "checkpoint_run_dir",
     "best_checkpoint",
@@ -77,6 +77,38 @@ def checkpoint_local_paths_from_config(config: TrainConfig) -> dict[str, str | N
     }
 
 
+def _find_flash_vqg_kwargs(node: Any) -> dict[str, Any] | None:
+    if isinstance(node, dict):
+        if node.get("name") == "zoology.mixers.flash_vqg.FlashVQGMixer":
+            kwargs = node.get("kwargs")
+            return kwargs if isinstance(kwargs, dict) else {}
+        for value in node.values():
+            found = _find_flash_vqg_kwargs(value)
+            if found is not None:
+                return found
+    elif isinstance(node, list):
+        for item in node:
+            found = _find_flash_vqg_kwargs(item)
+            if found is not None:
+                return found
+    return None
+
+
+def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
+    config_dict = config.model_dump() if hasattr(config, "model_dump") else config.dict()
+    flash_kwargs = _find_flash_vqg_kwargs(config_dict.get("model") or {}) or {}
+    return {
+        "experiment_part": flash_kwargs.get("experiment_part"),
+        "experiment_mode": flash_kwargs.get("experiment_mode"),
+        "fox_remote_read_topk": flash_kwargs.get("fox_remote_read_topk"),
+        "fox_clr_selector_mode": flash_kwargs.get("fox_clr_selector_mode"),
+        "fox_clr_merge_mode": flash_kwargs.get("fox_clr_merge_mode"),
+        "fox_clr_gate_mode": flash_kwargs.get("fox_clr_gate_mode"),
+        "fox_clr_lambda_remote": flash_kwargs.get("fox_clr_lambda_remote"),
+        "fox_clr_gate_init_bias": flash_kwargs.get("fox_clr_gate_init_bias"),
+    }
+
+
 def initialize_manifest(
     *,
     manifest_path: Path,
@@ -130,6 +162,7 @@ def initialize_manifest(
                     field: eval_sources.get(run_id, {}).get(field)
                     for field in EVAL_SOURCE_FIELDS
                 },
+                "config_summary": None,
             }
             for run_id in run_ids
         ],
@@ -170,6 +203,7 @@ def update_manifest_for_run(
         target["status"] = status
         target["error"] = error
         target["updated_at_utc"] = _utc_now()
+        target["config_summary"] = config_summary_from_config(config)
 
         swanlab_payload = target.setdefault("swanlab", {})
         local_payload = target.setdefault("local", {})
