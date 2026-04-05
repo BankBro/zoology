@@ -582,10 +582,12 @@ def _find_flash_vqg_kwargs(node: Any) -> dict[str, Any] | None:
 
 def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) -> dict[str, Any]:
     row = dict(summary)
+    manifest_entry = metadata.get("manifest_entry") or {}
     config = metadata.get("config") or {}
     model = config.get("model") or {}
     data = config.get("data") or {}
     flash_kwargs = _find_flash_vqg_kwargs(model) or {}
+    config_summary = manifest_entry.get("config_summary") or {}
     fox_remote_read_topk = flash_kwargs.get("fox_remote_read_topk")
     row.update(
         {
@@ -604,6 +606,13 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
             "fox_remote_path_backend": flash_kwargs.get("fox_remote_path_backend"),
             "fox_remote_read_topk": fox_remote_read_topk,
             "read_mode": "dense" if fox_remote_read_topk is None else f"top{int(fox_remote_read_topk)}",
+            "experiment_part": config_summary.get("experiment_part", flash_kwargs.get("experiment_part")),
+            "experiment_mode": config_summary.get("experiment_mode", flash_kwargs.get("experiment_mode")),
+            "fox_clr_selector_mode": config_summary.get("fox_clr_selector_mode", flash_kwargs.get("fox_clr_selector_mode")),
+            "fox_clr_merge_mode": config_summary.get("fox_clr_merge_mode", flash_kwargs.get("fox_clr_merge_mode")),
+            "fox_clr_gate_mode": config_summary.get("fox_clr_gate_mode", flash_kwargs.get("fox_clr_gate_mode")),
+            "fox_clr_lambda_remote": config_summary.get("fox_clr_lambda_remote", flash_kwargs.get("fox_clr_lambda_remote")),
+            "fox_clr_gate_init_bias": config_summary.get("fox_clr_gate_init_bias", flash_kwargs.get("fox_clr_gate_init_bias")),
         }
     )
     return row
@@ -765,6 +774,29 @@ def run_launch_analysis(*, launch_id: str, source: str = DEFAULT_SOURCE) -> dict
             "launch_id": launch_id,
             "source": source,
             "metrics": _launch_metrics_index(history_by_run, launch_metric_specs),
+        },
+    )
+    _write_json(
+        launch_analysis_dir / "summary.json",
+        {
+            "launch_id": launch_id,
+            "source": source,
+            "run_count": len(run_summary_rows),
+            "experiment_modes": sorted(
+                {
+                    str(row["experiment_mode"])
+                    for row in run_summary_rows
+                    if row.get("experiment_mode") not in {None, ""}
+                }
+            ),
+            "fox_remote_read_topk_values": sorted(
+                {
+                    "dense" if row.get("fox_remote_read_topk") is None else int(row["fox_remote_read_topk"])
+                    for row in run_summary_rows
+                },
+                key=lambda value: (-1 if value == "dense" else int(value)),
+            ),
+            "generated_plots": [],
         },
     )
     _sync_launch_summary_generated_plots(launch_analysis_dir)

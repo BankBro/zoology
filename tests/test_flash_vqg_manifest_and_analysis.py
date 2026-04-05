@@ -10,10 +10,11 @@ from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import (
     _history_from_remote_wide,
     run_launch_analysis,
 )
-from zoology.config import DataConfig, DataSegmentConfig, LoggerConfig, ModelConfig, TrainConfig
+from zoology.config import DataConfig, DataSegmentConfig, LoggerConfig, ModelConfig, ModuleConfig, TrainConfig
 from zoology.experiments.flash_vqg.manifest import (
     MANIFEST_SCHEMA_VERSION,
     checkpoint_local_paths_from_config,
+    config_summary_from_config,
     initialize_manifest,
     update_manifest_for_run,
 )
@@ -23,6 +24,48 @@ def _build_config() -> TrainConfig:
     data_segment = DataSegmentConfig(input_seq_len=16, num_examples=4)
     return TrainConfig(
         model=ModelConfig(name="toy"),
+        data=DataConfig(train_configs=[data_segment], test_configs=[data_segment]),
+        logger=LoggerConfig(
+            backend="swanlab",
+            project_name="demo-project",
+            entity="demo-entity",
+        ),
+        launch_id="demo-launch",
+        sweep_id="demo-sweep",
+        run_id="demo-run",
+    )
+
+
+def _build_flash_config() -> TrainConfig:
+    data_segment = DataSegmentConfig(input_seq_len=16, num_examples=4)
+    return TrainConfig(
+        model=ModelConfig(
+            name="toy",
+            sequence_mixer=ModuleConfig(
+                name="zoology.mixers.hybrid.Hybrid",
+                kwargs={
+                    "configs": [
+                        {
+                            "name": "zoology.mixers.flash_vqg.FlashVQGMixer",
+                            "kwargs": {
+                                "block_len": 32,
+                                "local_num_blocks": 2,
+                                "if_remote_enabled": True,
+                                "num_codebook_vectors": 128,
+                                "fox_remote_read_topk": 2,
+                                "fox_clr_selector_mode": "score_only",
+                                "fox_clr_merge_mode": "residual_add",
+                                "fox_clr_gate_mode": "shared_query_linear",
+                                "fox_clr_lambda_remote": 0.5,
+                                "fox_clr_gate_init_bias": -2.0,
+                                "experiment_part": "e2_main",
+                                "experiment_mode": "2c",
+                            },
+                        }
+                    ]
+                },
+            ),
+        ),
         data=DataConfig(train_configs=[data_segment], test_configs=[data_segment]),
         logger=LoggerConfig(
             backend="swanlab",
@@ -130,6 +173,48 @@ def test_initialize_and_update_manifest(tmp_path):
     }
 
 
+def test_config_summary_from_config_extracts_e2_fields():
+    summary = config_summary_from_config(_build_flash_config())
+
+    assert summary == {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2c",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "shared_query_linear",
+        "fox_clr_lambda_remote": 0.5,
+        "fox_clr_gate_init_bias": -2.0,
+    }
+
+
+def test_update_manifest_writes_config_summary(tmp_path):
+    manifest_path = tmp_path / "generated" / "demo-launch" / "manifest.json"
+    initialize_manifest(
+        manifest_path=manifest_path,
+        launch_id="demo-launch",
+        sweep_id="demo-sweep",
+        logger_backend="swanlab",
+        project="demo-project",
+        entity="demo-entity",
+        run_ids=["demo-run"],
+        launch_config_file=tmp_path / "generated" / "demo-launch" / "launch_configs.py",
+    )
+
+    update_manifest_for_run(
+        config=_build_flash_config(),
+        logger_summary=None,
+        status="completed",
+        manifest_path=manifest_path,
+    )
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    run = manifest["runs"][0]
+    assert run["config_summary"]["experiment_part"] == "e2_main"
+    assert run["config_summary"]["experiment_mode"] == "2c"
+    assert run["config_summary"]["fox_clr_selector_mode"] == "score_only"
+
+
 def test_checkpoint_local_paths_are_empty_when_checkpoint_disabled():
     config = _build_config()
     config.checkpoint.enabled = False
@@ -213,6 +298,16 @@ model:
     manifest["runs"][0]["local"]["backup_file"] = str(run_dir / "backup.swanlab")
     manifest["runs"][0]["local"]["config_file"] = str(files_dir / "config.yaml")
     manifest["runs"][0]["local"]["metadata_file"] = str(files_dir / "swanlab-metadata.json")
+    manifest["runs"][0]["config_summary"] = {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2b",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "shared_local_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 0.5,
+        "fox_clr_gate_init_bias": -2.0,
+    }
     (launch_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     preserved_data_file = results_root / launch_id / "demo-run" / "data" / "e7_metrics.csv"
@@ -248,6 +343,22 @@ model:
     assert row["fox_remote_path_backend"] == "torch"
     assert row["fox_remote_read_topk"] == 2
     assert row["read_mode"] == "top2"
+    assert row["experiment_part"] == "e2_main"
+    assert row["experiment_mode"] == "2b"
+    assert row["fox_clr_selector_mode"] == "score_only"
+    assert row["fox_clr_merge_mode"] == "shared_local_den"
+    assert row["fox_clr_gate_mode"] == "off"
+    assert row["fox_clr_lambda_remote"] == 0.5
+
+    launch_summary = json.loads(
+        (results_root / launch_id / "launch_analysis" / "summary.json").read_text(encoding="utf-8")
+    )
+    assert launch_summary["launch_id"] == launch_id
+    assert launch_summary["source"] == "local"
+    assert launch_summary["run_count"] == 1
+    assert launch_summary["experiment_modes"] == ["2b"]
+    assert launch_summary["fox_remote_read_topk_values"] == [2]
+    assert "train__loss.png" in launch_summary["generated_plots"]
 
 
 def test_e7_local_analysis_keeps_default_metric_names_and_launch_outputs(tmp_path, monkeypatch):
