@@ -1,2 +1,14 @@
 *
 !.gitignore
+!flash-vqg-20260402-clr-v1-e2*/
+!flash-vqg-20260402-clr-v1-e2*/**/
+!flash-vqg-20260402-clr-v1-e2*/**/*
+flash-vqg-20260402-clr-v1-e2*/**/*.png
+flash-vqg-20260402-clr-v1-e2*/**/*.jpg
+flash-vqg-20260402-clr-v1-e2*/**/*.jpeg
+flash-vqg-20260402-clr-v1-e2*/**/*.gif
+flash-vqg-20260402-clr-v1-e2*/**/*.bmp
+flash-vqg-20260402-clr-v1-e2*/**/*.webp
+flash-vqg-20260402-clr-v1-e2*/**/*.svg
+flash-vqg-20260402-clr-v1-e2*/**/__pycache__/
+flash-vqg-20260402-clr-v1-e2*/**/*.pyc

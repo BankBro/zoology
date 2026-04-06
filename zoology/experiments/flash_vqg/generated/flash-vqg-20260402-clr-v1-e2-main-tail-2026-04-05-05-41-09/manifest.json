@@ -1,0 +1,53 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09",
+  "sweep_id": "flash-vqg-20260402-clr-v1-e2-main-tail",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-05T05:41:09.247789+00:00",
+  "updated_at_utc": "2026-04-05T08:15:38.441699+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "2c-lmax100",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-05T08:15:38.437356+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "qauafgr96y2ak4lf8sf5w",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/qauafgr96y2ak4lf8sf5w"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2c",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "shared_query_linear",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    }
+  ]
+}
