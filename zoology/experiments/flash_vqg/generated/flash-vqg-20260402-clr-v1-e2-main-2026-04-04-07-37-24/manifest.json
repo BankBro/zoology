@@ -1,0 +1,404 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24",
+  "sweep_id": "flash-vqg-20260402-clr-v1-e2-main",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-04T07:37:24.123807+00:00",
+  "updated_at_utc": "2026-04-05T08:47:54.254907+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "baseline",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T09:35:32.390628+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "9eva4c9xolh6siskvjt5q",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/9eva4c9xolh6siskvjt5q"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_073729-9eva4c9xolh6siskvjt5q",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_073729-9eva4c9xolh6siskvjt5q/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_073729-9eva4c9xolh6siskvjt5q/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_073729-9eva4c9xolh6siskvjt5q/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/baseline",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/baseline/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/baseline/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/baseline/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "baseline",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2a-l025",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T12:06:32.222102+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "0r0r074sguf8oeoef8xnn",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/0r0r074sguf8oeoef8xnn"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_093534-0r0r074sguf8oeoef8xnn",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_093534-0r0r074sguf8oeoef8xnn/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_093534-0r0r074sguf8oeoef8xnn/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_093534-0r0r074sguf8oeoef8xnn/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l025",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l025/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l025/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l025/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2a",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 0.25,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2b-l025",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T14:32:06.897995+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "z0zyzayvfrxjo2vpnd4c0",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/z0zyzayvfrxjo2vpnd4c0"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_120634-z0zyzayvfrxjo2vpnd4c0",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_120634-z0zyzayvfrxjo2vpnd4c0/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_120634-z0zyzayvfrxjo2vpnd4c0/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_120634-z0zyzayvfrxjo2vpnd4c0/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l025",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l025/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l025/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l025/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2b",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "shared_local_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 0.25,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2c-lmax025",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T16:58:32.713781+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "cwi49w3wpj9yli7m7gyku",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/cwi49w3wpj9yli7m7gyku"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_143209-cwi49w3wpj9yli7m7gyku",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_143209-cwi49w3wpj9yli7m7gyku/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_143209-cwi49w3wpj9yli7m7gyku/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_143209-cwi49w3wpj9yli7m7gyku/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax025",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax025/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax025/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax025/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2c",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "shared_query_linear",
+        "fox_clr_lambda_remote": 0.25,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2a-l050",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T19:23:34.374973+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "rykdrtypvctk48mh8eyps",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/rykdrtypvctk48mh8eyps"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_165834-rykdrtypvctk48mh8eyps",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_165834-rykdrtypvctk48mh8eyps/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_165834-rykdrtypvctk48mh8eyps/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_165834-rykdrtypvctk48mh8eyps/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l050",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l050/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l050/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l050/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2a",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 0.5,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2b-l050",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-04T21:47:16.252890+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "99fap4otji1tdldnwatai",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/99fap4otji1tdldnwatai"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_192337-99fap4otji1tdldnwatai",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_192337-99fap4otji1tdldnwatai/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_192337-99fap4otji1tdldnwatai/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_192337-99fap4otji1tdldnwatai/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l050",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l050/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l050/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l050/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2b",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "shared_local_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 0.5,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2c-lmax050",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-05T00:11:08.604274+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "pukkpkws1zlcvwd7ijyo4",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/pukkpkws1zlcvwd7ijyo4"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_214718-pukkpkws1zlcvwd7ijyo4",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_214718-pukkpkws1zlcvwd7ijyo4/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_214718-pukkpkws1zlcvwd7ijyo4/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260404_214718-pukkpkws1zlcvwd7ijyo4/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax050",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax050/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax050/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2c-lmax050/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2c",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "shared_query_linear",
+        "fox_clr_lambda_remote": 0.5,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2a-l100",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-05T02:35:15.555485+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "e2kdp9goljvaqft8rc0fn",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/e2kdp9goljvaqft8rc0fn"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_001110-e2kdp9goljvaqft8rc0fn",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_001110-e2kdp9goljvaqft8rc0fn/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_001110-e2kdp9goljvaqft8rc0fn/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_001110-e2kdp9goljvaqft8rc0fn/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l100",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l100/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l100/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2a-l100/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2a",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2b-l100",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-05T05:02:10.485136+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "f711vstlvyqfxlfp8m3ea",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/f711vstlvyqfxlfp8m3ea"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_023517-f711vstlvyqfxlfp8m3ea",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_023517-f711vstlvyqfxlfp8m3ea/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_023517-f711vstlvyqfxlfp8m3ea/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_023517-f711vstlvyqfxlfp8m3ea/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l100",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l100/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l100/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-2026-04-04-07-37-24/2b-l100/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2b",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "shared_local_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "2c-lmax100",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-05T08:47:54.254907+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "qauafgr96y2ak4lf8sf5w",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/qauafgr96y2ak4lf8sf5w"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260405_054114-qauafgr96y2ak4lf8sf5w/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e2-main-tail-2026-04-05-05-41-09/2c-lmax100/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e2_main",
+        "experiment_mode": "2c",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "score_only",
+        "fox_clr_merge_mode": "residual_add",
+        "fox_clr_gate_mode": "shared_query_linear",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    }
+  ]
+}
