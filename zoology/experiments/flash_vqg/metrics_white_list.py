@@ -54,6 +54,8 @@ DEFAULT_VQ_METRICS = [
     "vq/c_entropy_batch",
     "vq/c_usage_small_ratio",
     "vq/c_usage_large_ratio",
+    "vq/write_entropy_mean",
+    "vq/write_top1_mass_mean",
 ]
 REMOTE_LITE_BASE_KEYS = {
     "attn/den_min",

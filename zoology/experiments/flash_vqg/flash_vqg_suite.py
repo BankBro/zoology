@@ -27,6 +27,11 @@ DEFAULT_DATA_SEED = 123
 DEFAULT_TRAIN_BATCH_SIZE = 256
 DEFAULT_EVAL_BATCH_SIZE = 32
 DEFAULT_GRADIENT_ACCUMULATION_STEPS = 1
+DEFAULT_VQ_SCORE_MODE = "l2"
+DEFAULT_VQ_WEIGHT_MODE = "one-hot"
+DEFAULT_VQ_UPDATE_MODE = "ema"
+DEFAULT_VQ_SOFTMAX_TAU = 1.0
+DEFAULT_VQ_TOPK = 4
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -205,6 +210,20 @@ def _normalize_train_batch_order(train_batch_order: str) -> str:
             f"train_batch_order 只能是 {sorted(valid_orders)}, 当前收到: {train_batch_order}"
         )
     return normalized
+
+
+def _normalize_vq_softmax_tau(vq_softmax_tau: float) -> float:
+    tau = float(vq_softmax_tau)
+    if tau <= 0.0:
+        raise ValueError(f"vq_softmax_tau 必须是正数, 当前收到: {vq_softmax_tau}")
+    return tau
+
+
+def _normalize_vq_topk(vq_topk: int) -> int:
+    parsed = int(vq_topk)
+    if parsed <= 0:
+        raise ValueError(f"vq_topk 必须是正整数, 当前收到: {vq_topk}")
+    return parsed
 
 
 def _normalize_train_batch_orders(
@@ -528,6 +547,11 @@ def build_configs(
     fox_clr_gate_init_bias: float = -2.0,
     experiment_part: str | None = None,
     experiment_mode: str | None = None,
+    vq_score_mode: str = DEFAULT_VQ_SCORE_MODE,
+    vq_weight_mode: str = DEFAULT_VQ_WEIGHT_MODE,
+    vq_update_mode: str = DEFAULT_VQ_UPDATE_MODE,
+    vq_softmax_tau: float = DEFAULT_VQ_SOFTMAX_TAU,
+    vq_topk: int = DEFAULT_VQ_TOPK,
     gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
     train_batch_size: int | None = None,
     eval_batch_size: int | None = None,
@@ -601,6 +625,11 @@ def build_configs(
     resolved_clr_selector_mode = _normalize_fox_clr_selector_mode(fox_clr_selector_mode)
     resolved_clr_merge_mode = _normalize_fox_clr_merge_mode(fox_clr_merge_mode)
     resolved_clr_gate_mode = _normalize_fox_clr_gate_mode(fox_clr_gate_mode)
+    resolved_vq_score_mode = str(vq_score_mode).lower()
+    resolved_vq_weight_mode = str(vq_weight_mode).lower()
+    resolved_vq_update_mode = str(vq_update_mode).lower()
+    resolved_vq_softmax_tau = _normalize_vq_softmax_tau(vq_softmax_tau)
+    resolved_vq_topk = _normalize_vq_topk(vq_topk)
     resolved_gradient_accumulation_steps = _normalize_positive_int(
         gradient_accumulation_steps,
         field_name="gradient_accumulation_steps",
@@ -737,9 +766,11 @@ def build_configs(
                         experiment_mode=experiment_mode,
                         local_num_blocks=current_local_num_blocks,
                         use_time_mixing="kv_shift",
-                        vq_score_mode="l2",
-                        vq_weight_mode="one-hot",
-                        vq_update_mode="ema",
+                        vq_score_mode=resolved_vq_score_mode,
+                        vq_weight_mode=resolved_vq_weight_mode,
+                        vq_update_mode=resolved_vq_update_mode,
+                        vq_softmax_tau=resolved_vq_softmax_tau,
+                        vq_topk=resolved_vq_topk,
                         if_value_silu=True,
                         if_output_gate_use_rmsnorm=True,
                         output_gate_activation="swish",

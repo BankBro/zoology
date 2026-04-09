@@ -315,6 +315,51 @@ def test_render_generated_config_writes_batch_and_gradient_accumulation_override
     assert "eval_batch_size=24" in rendered
 
 
+def test_render_generated_config_writes_vq_dense_write_overrides():
+    rendered = _render_generated_config(
+        sweep_id="flash-vqg-e3",
+        backend="torch",
+        logger_backend="swanlab",
+        include_gdn=False,
+        block_lens=[32],
+        paired_block_local_values=None,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled_values=[True],
+        local_num_blocks_values=[2],
+        train_batch_orders=["global_shuffle"],
+        seed_values=[123],
+        data_seed=123,
+        num_codebook_vectors_values=[128],
+        num_codebook_vectors_map=None,
+        fox_remote_path_backend="torch",
+        fox_remote_read_topk_values=[2],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        vq_softmax_tau=0.5,
+        vq_topk=8,
+        gradient_accumulation_steps=4,
+        train_batch_size=32,
+        eval_batch_size=8,
+        cache_dir="./data/flash_vqg",
+        wandb_project="flash_vqg_clr_v1_mainline",
+        wandb_entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert "vq_score_mode='codebook_dot'" in rendered
+    assert "vq_weight_mode='dense_softmax'" in rendered
+    assert "vq_update_mode='grad'" in rendered
+    assert "vq_softmax_tau=0.5" in rendered
+    assert "vq_topk=8" in rendered
+
+
 def _flash_num_codebook_vectors(config) -> int:
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["num_codebook_vectors"]
 
@@ -333,6 +378,17 @@ def _flash_remote_formula(config) -> str:
 
 def _flash_clr_remat_mode(config) -> str:
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]["fox_clr_remat_mode"]
+
+
+def _flash_vq_kwargs(config) -> dict:
+    flash_kwargs = config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
+    return {
+        "vq_score_mode": flash_kwargs["vq_score_mode"],
+        "vq_weight_mode": flash_kwargs["vq_weight_mode"],
+        "vq_update_mode": flash_kwargs["vq_update_mode"],
+        "vq_softmax_tau": flash_kwargs["vq_softmax_tau"],
+        "vq_topk": flash_kwargs["vq_topk"],
+    }
 
 
 def test_build_configs_sweeps_num_codebook_vectors_values():
@@ -485,6 +541,41 @@ def test_build_configs_supports_clr_v1_remote_read_topk_suffixes():
         "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2",
         "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4",
     ]
+
+
+def test_build_configs_passes_vq_dense_write_kwargs():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_path_backend="torch",
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        fox_remote_read_topk=2,
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        vq_softmax_tau=0.5,
+        vq_topk=8,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert _flash_vq_kwargs(configs[0]) == {
+        "vq_score_mode": "codebook_dot",
+        "vq_weight_mode": "dense_softmax",
+        "vq_update_mode": "grad",
+        "vq_softmax_tau": 0.5,
+        "vq_topk": 8,
+    }
 
 
 def test_build_configs_supports_batch_and_gradient_accumulation_overrides():

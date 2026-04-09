@@ -46,6 +46,10 @@ def test_candidate_metrics_include_attn_and_valid_variants():
     assert "attn/remote_routing_entropy" in metrics
     assert "valid/attn/remote_top1_top2_margin" in metrics
     assert "layer_1/attn/remote_topk_den_capture_ratio" in metrics
+    assert "vq/write_entropy_mean" in metrics
+    assert "valid/vq/write_entropy_mean" in metrics
+    assert "vq/write_top1_mass_mean" in metrics
+    assert "valid/vq/write_top1_mass_mean" in metrics
     assert "__swanlab__.cpu.pct" not in metrics
     assert "valid/vq/c_entropy" in metrics
     assert metric_specs["num_parameters"].chart_type == "bar"
