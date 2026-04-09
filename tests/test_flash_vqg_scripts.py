@@ -209,6 +209,24 @@ def test_e2b_builder_returns_expected_smoke_and_train_matrix():
     assert two_b_kwargs["fox_clr_lambda_remote"] == 0.25
 
 
+def test_e2b_decoupled_baseline_probe_builder_allows_seed_data_seed_mismatch():
+    module = _load_e2_builder_module()
+    args = _build_e2_args()
+    args.seed_values = "123"
+    args.data_seed = 124
+
+    configs = module.build_e2b_baseline_probe_decoupled_configs(args)
+
+    assert [config.run_id for config in configs] == ["baseline-s123-d124"]
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+    assert flash_kwargs["experiment_part"] == "e2b_probe"
+    assert flash_kwargs["experiment_mode"] == "baseline"
+    assert flash_kwargs["fox_clr_selector_mode"] == "den_aware"
+    assert flash_kwargs["fox_clr_merge_mode"] == "shared_den"
+    assert flash_kwargs["fox_clr_gate_mode"] == "off"
+    assert flash_kwargs["fox_clr_lambda_remote"] == 1.0
+
+
 def test_e3_builder_returns_expected_smoke_and_train_matrix():
     module = _load_e3_builder_module()
     args = _build_e3_args()
@@ -286,6 +304,19 @@ def test_e2_scripts_use_config_builder_and_smoke_env_files():
     assert "LAUNCH_ID_PREFIX_E2_MAIN" in common_env
     assert "LAUNCH_ID_PREFIX_E2B" in common_env
     assert "METRICS_WHITE_LIST_FILE_E2" in common_env
+
+
+def test_e2_decoupled_baseline_probe_script_uses_dedicated_builder():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface"
+    )
+    script = (base_dir / "run_e2b_baseline_probe_decoupled.sh").read_text(encoding="utf-8")
+    readme = (base_dir / "README.md").read_text(encoding="utf-8")
+
+    assert "build_e2b_baseline_probe_decoupled_configs" in script
+    assert "decoupled baseline probe 只接受单个 SEED_VALUES" in script
+    assert "run_e2b_baseline_probe_decoupled.sh" in readme
+    assert "允许 `SEED_VALUES != DATA_SEED`" in readme
 
 
 def test_e3_scripts_use_config_builder_and_smoke_env_files():

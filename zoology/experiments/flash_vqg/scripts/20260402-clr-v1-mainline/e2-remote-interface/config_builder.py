@@ -79,11 +79,15 @@ def _build_single(args, *, experiment_part: str, experiment_mode: str, selector_
     return _rewrite_run_id(configs[0], run_id=run_id)
 
 
-def _resolve_probe_seed_value(args, *, probe_name: str) -> int:
+def _resolve_single_seed_value(args, *, probe_name: str) -> int:
     seed_values = _parse_seed_values(args.seed_values) if args.seed_values is not None else [123]
     if len(seed_values) != 1:
         raise RuntimeError(f'{probe_name} 需要且只接受 1 个 seed, 当前收到: {seed_values}')
-    seed_value = int(seed_values[0])
+    return int(seed_values[0])
+
+
+def _resolve_probe_seed_value(args, *, probe_name: str) -> int:
+    seed_value = _resolve_single_seed_value(args, probe_name=probe_name)
     data_seed = int(args.data_seed)
     if seed_value != data_seed:
         raise RuntimeError(f'{probe_name} 要求 seed == data_seed, 当前收到 seed={seed_value}, data_seed={data_seed}')
@@ -192,5 +196,23 @@ def build_e2b_baseline_probe_configs(args):
             lambda_remote=1.0,
             gate_init_bias=-2.0,
             run_id=f'baseline-s{seed_value}',
+        )
+    ]
+
+
+def build_e2b_baseline_probe_decoupled_configs(args):
+    seed_value = _resolve_single_seed_value(args, probe_name='e2b decoupled baseline probe')
+    data_seed = int(args.data_seed)
+    return [
+        _build_single(
+            args,
+            experiment_part='e2b_probe',
+            experiment_mode='baseline',
+            selector_mode='den_aware',
+            merge_mode='shared_den',
+            gate_mode='off',
+            lambda_remote=1.0,
+            gate_init_bias=-2.0,
+            run_id=f'baseline-s{seed_value}-d{data_seed}',
         )
     ]

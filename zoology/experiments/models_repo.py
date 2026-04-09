@@ -352,6 +352,8 @@ def add_flash_vqg(
     vq_score_mode="l2",
     vq_weight_mode="one-hot",
     vq_update_mode="ema",
+    vq_softmax_tau=1.0,
+    vq_topk=4,
     if_value_silu=True,
     if_output_gate_use_rmsnorm=True,
     output_gate_activation="swish",
@@ -394,6 +396,8 @@ def add_flash_vqg(
         vq_score_mode: VQ score mode, e.g. "l2".
         vq_weight_mode: VQ weight mode, e.g. "one-hot".
         vq_update_mode: VQ update mode, e.g. "ema".
+        vq_softmax_tau: Routing VQ softmax temperature.
+        vq_topk: Routing VQ write-side top-k.
         if_value_silu: Whether to enable value SiLU in Flash-VQG.
         if_output_gate_use_rmsnorm: Whether output gate uses RMSNorm.
         output_gate_activation: Output gate activation, e.g. "swish".
@@ -444,6 +448,8 @@ def add_flash_vqg(
                 "vq_score_mode": str(vq_score_mode),
                 "vq_weight_mode": str(vq_weight_mode),
                 "vq_update_mode": str(vq_update_mode),
+                "vq_softmax_tau": float(vq_softmax_tau),
+                "vq_topk": int(vq_topk),
                 "if_value_silu": bool(if_value_silu),
                 "if_output_gate_use_rmsnorm": bool(if_output_gate_use_rmsnorm),
                 "output_gate_activation": str(output_gate_activation),

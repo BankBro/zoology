@@ -15,12 +15,14 @@
 当前为了收尾实验2, 额外补充 2 个单 run probe 入口:
 
 - `run_e2b_baseline_probe.sh`: 补 canonical E2b baseline 的 matched-seed 对照
+- `run_e2b_baseline_probe_decoupled.sh`: 补 canonical E2b baseline 的 seed/data_seed 解耦诊断
 - `run_e2b_2a_l100_probe.sh`: 补 `E2b-2A(l100)` 的单 seed probe 或 rerun
 
 probe 约定:
 
 - 只接受单个 `SEED_VALUES`
-- 要求 `SEED_VALUES == DATA_SEED`
+- `run_e2b_baseline_probe.sh` 和 `run_e2b_2a_l100_probe.sh` 要求 `SEED_VALUES == DATA_SEED`
+- `run_e2b_baseline_probe_decoupled.sh` 允许 `SEED_VALUES != DATA_SEED`
 - batch / eval / GA 参数默认仍从 `e2b_smoke.env` 继承
 - 这轮推荐的 `launch_id_prefix`:
   - `flash-vqg-20260402-clr-v1-e2b-baseline-s124`
@@ -47,4 +49,39 @@ bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-in
 GPU_ID=0 SEED_VALUES=123 DATA_SEED=123 \
 LAUNCH_ID_PREFIX=flash-vqg-20260402-clr-v1-e2b-2a-l100-s123-rerun \
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/run_e2b_2a_l100_probe.sh
+```
+
+baseline 稳定性解耦诊断:
+
+- 目标是拆开判断 `seed` 和 `data_seed` 哪个对 baseline 崩溃更敏感
+- decoupled baseline probe 仍然使用 canonical E2b baseline 语义:
+  - `selector_mode=den_aware`
+  - `merge_mode=shared_den`
+  - `gate_mode=off`
+  - `lambda_remote=1.0`
+- run_id 固定为 `baseline-s{seed}-d{data_seed}`
+- 当前推荐顺序:
+  1. `baseline-s123-d125`
+  2. `baseline-s125-d123`
+  3. `baseline-s123-d124`
+  4. `baseline-s124-d123`
+
+示例:
+
+```bash
+GPU_ID=1 SEED_VALUES=123 DATA_SEED=125 \
+LAUNCH_ID_PREFIX=flash-vqg-20260402-clr-v1-e2b-baseline-s123-d125 \
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/run_e2b_baseline_probe_decoupled.sh
+
+GPU_ID=1 SEED_VALUES=125 DATA_SEED=123 \
+LAUNCH_ID_PREFIX=flash-vqg-20260402-clr-v1-e2b-baseline-s125-d123 \
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/run_e2b_baseline_probe_decoupled.sh
+
+GPU_ID=1 SEED_VALUES=123 DATA_SEED=124 \
+LAUNCH_ID_PREFIX=flash-vqg-20260402-clr-v1-e2b-baseline-s123-d124 \
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/run_e2b_baseline_probe_decoupled.sh
+
+GPU_ID=1 SEED_VALUES=124 DATA_SEED=123 \
+LAUNCH_ID_PREFIX=flash-vqg-20260402-clr-v1-e2b-baseline-s124-d123 \
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/run_e2b_baseline_probe_decoupled.sh
 ```
