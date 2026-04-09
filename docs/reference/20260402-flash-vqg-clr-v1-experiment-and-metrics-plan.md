@@ -45,7 +45,7 @@
 - 实验 1 已完成并晋升 `clr_v1 + top2 read` 为当前主线 baseline
 - 实验 2 已完成, 当前不支持 denominator-free 方案晋升, `den_aware selector + residual_add` 只保留为后续候选
 - 实验 3 已完成 `baseline + dense-t050/t100/t200` 的单 seed 正式训练, 并对 `dense-t050` 补了 `seed=124/125` 稳定性 run
-- 当前结果支持 `dense-t050` 作为实验 3 的最优工作点
+- 当前结果已完成 `tau` 局部精调, matched validation, `top-k write` probe 与 `dense read` probe, **`dense-t025 + top2 read + den_aware selector + shared_den` 已正式成为实验 3 默认工作点**
 - 实验 4 到实验 6 继续保留为主线规划
 - 实验 7 当前只保留结果记录占位, 不在本轮实现
 - `20260402-clr-v1-mainline/` 目录继续作为实验 1 到实验 6 的公共根目录
@@ -165,7 +165,7 @@
   - 如果 dense write 的 `valid/*` 主指标上涨, hard buckets 同时上涨, 且 `vq/write_entropy_mean` 与 `vq/c_entropy` 没有塌缩, 则说明 write-side 离散化过硬是主瓶颈, dense write 晋升为下一轮 baseline
   - 如果 `vq/*` 指标更好看, 但 MQAR 主指标基本不动, 则说明码本使用更平滑, 但 retrieval 仍未更准, 不晋升
   - 如果训练不稳, `nan_inf_count` 升高, `den_min` 恶化, 或 usage 明显塌缩, 则回退并保持旧 baseline
-- 本轮状态: 已完成单 seed 正式矩阵与 `dense-t050` 的 3-seed 补跑, 当前最优点是 `dense-t050`
+- 本轮状态: 已完成单 seed 正式矩阵, `tau` 局部精调, `dense-t025` 相对 `dense-t050` 的 matched validation, `top-k write` probe 与 `dense read` probe; **当前最优点已收口为 `dense-t025 + top2 read + den_aware selector + shared_den`**
 
 ### 实验 4: 两级 key quantization
 
@@ -899,7 +899,7 @@ VQ / write-side 指标:
 | `top2` | `0.913348` | `0.913348` | `0.431028` | `0.608180` |
 | `top4` | `0.888548` | `0.888548` | `0.527936` | `0.507922` |
 
-当前排序为:
+单 seed 排序为:
 
 - `top2` 最优
 - `dense` 次优
@@ -1333,7 +1333,7 @@ baseline 的变化固定为:
 | `dense-t100` | `0.943368` | `0.255391` | `0.961426` | `0.641938` | `overall 仍高于 baseline, 但 hardest bucket 已回落` |
 | `dense-t200` | `0.892124` | `0.525412` | `0.894504` | `0.380340` | `明显退化; 本地 backup checksum 异常, 最终指标取 remote SwanLab` |
 
-当前排序为:
+单 seed 排序为:
 
 - `dense-t050` 明确最优
 - `dense-t100` 仍优于 `baseline`, 但已经明显低于 `dense-t050`
@@ -1501,20 +1501,22 @@ baseline 的变化固定为:
 - **`dense-t025 + top2 read + den_aware selector + shared_den` 正式晋升为实验 3 默认工作点**
 - **`dense-t050` 降级为保守回退点和对照点, 不再占主验证预算**
 
-3. `dense -> top-k write` 不晋升主线.
+3. `write/read` 交互与 `dense -> top-k write` 的当前证据, 都继续支持 `dense-t025 + top2 read` 作为实验 3 默认主线.
 
-- 在固定 `tau=0.25`, `top2 read`, `den_aware selector`, `shared_den` 的条件下, `topk2`, `topk4`, `topk8`, `topk16` 已全部完成
-- `vq_topk` 从 `2 -> 4 -> 8 -> 16` 呈现单调恢复趋势, 说明 top-k write 的主要问题是过强稀疏化在逐步缓解, 不是训练不稳
-- 但最佳 sparse 点 `topk16` 仍低于 `dense-t025-s123-d123`: `valid/accuracy -0.010779`, `valid/loss +0.045061`, `acc@512 -0.009723`, `acc@1024 -0.062738`
-- telemetry 也支持同一结论: 随 `k` 增大, `relative_err_mean` 持续下降, `c_entropy` 与 `write_entropy_mean` 回升, `write_top1_mass_mean` 回落, 但整体仍是在逼近 dense anchor, 而不是超过 dense anchor
+- 基于实验 3 当前已完成的 `tau` 局部精调, `dense-t025` 相对 `dense-t050` 的 matched validation, 以及 `top-k write` probe 数据, 目前可以得到较明确的结构性结论: 实验 3 的最优工作点不是单独追求更 dense 或更 sparse, 而是 **`dense write + top2 read`** 这一配套组合
+- `dense-t025` 在 write 侧表现最佳, 说明写入阶段需要保留一定的软分配能力, 以兼顾更低的重建误差, 更健康的 codebook 使用, 以及更强的长序列表现
+- 相比之下, `topk2`, `topk4`, `topk8`, `topk16` 虽然逐步改善 slot 纯度, 但会过早截断写入信息, 导致重建误差上升, codebook 使用收缩, 最终整体指标和 `1024` 长度表现均落后于 `dense-t025`
+- 其中 `topk16` 是当前 top-k 家族最强点, 但仍低于 `dense-t025-s123-d123`: `valid/accuracy -0.010779`, `valid/loss +0.045061`, `acc@512 -0.009723`, `acc@1024 -0.062738`
+- read 侧的现有证据也继续支持 **`top2 read` 优于 dense read**: 历史实验中 `one-hot + top2 read` 已优于 `one-hot + dense read`, 而当前 `dense-t025 + dense read` probe 最终结果仍明显落后于 `dense-t025 + top2 read`: `valid/accuracy -0.015795`, `valid/loss +0.076486`, `acc@512 -0.003609`, `acc@1024 -0.109379`, 表明对 MQAR 这类更依赖精确远程检索的任务而言, remote read 更适合做稀疏选择而不是全量混合
 
-因此, top-k write 的最终定位应写成:
+因此, 当前最合理的机制判断是:
 
-- **实验 3 最终确定的 baseline 是 `dense-t025 + top2 read + den_aware selector + shared_den`**
+- **write 端应采用尖锐但不硬截断的 dense write**
+- **read 端应采用稀疏的 top-k read**
+- **`dense-t025 + top2 read + den_aware selector + shared_den` 应继续作为实验 3 的默认主线配置**
 - **`topk2` 可以排除**
-- **`topk16` 是当前 top-k 家族最强点, 但仍不足以超过 `dense-t025`**
-- **`dense -> top-k write` 不晋升为实验 3 主线, 也不再扩成 matched validation 矩阵**
-- **若后续继续研究 top-k write, 应把它放到效率/稀疏化副线, 而不是当前主性能线**
+- **`topk16` 可保留为 sparse-write 参考点, 但仍不足以替代 dense write**
+- **dense-read 分支当前不具竞争力, 不再继续扩成 2x2 matched validation 矩阵**
 
 #### 10.4.6 实验数据记录表
 
@@ -1587,6 +1589,15 @@ baseline 的变化固定为:
 | `topk4-t025-s123-d123` | `topk_softmax` | `4` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-2026-04-08-19-08-17` | `completed` | `0.956567` | `-0.024642` | `0.187159` | `+0.105537` | `0.969309` | `-0.021723` | `0.729371` | `-0.145516` | `0.035858` | `2.126657` | `0.951813` | `0.674146` | `-` | `clear recovery vs topk2, but still below dense anchor` |
 | `topk8-t025-s123-d123` | `topk_softmax` | `8` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.964524` | `-0.016684` | `0.152148` | `+0.070527` | `0.977973` | `-0.013059` | `0.772375` | `-0.102512` | `0.023085` | `2.732556` | `1.569098` | `0.530218` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `continued recovery; still below dense anchor` |
 | `topk16-t025-s123-d123` | `topk_softmax` | `16` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.970430` | `-0.010779` | `0.126683` | `+0.045061` | `0.981309` | `-0.009723` | `0.812148` | `-0.062738` | `0.021223` | `3.296324` | `2.166535` | `0.434942` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `best sparse point; trends toward dense but does not beat dense anchor` |
+
+8. `best-write x read` interaction 2x2 记录表. 固定 `tau=0.25`, `den_aware selector`, `shared_den`, 只比较当前最优 dense write 候选 `dense-t025` 与当前最优 sparse write 候选 `topk16-t025` 在 `top2 read` 和 `dense read` 下的表现. 本表只记录实验 3 当前机制族内部的 interaction/probe 数据, 不引入 `one-hot + ema` 历史结果.
+
+| run_id | write_mode | `vq_topk` | read_mode | `fox_remote_read_topk` | launch_id | status | final `valid/accuracy` | delta vs `dense-t025 + top2` | final `valid/loss` | delta vs `dense-t025 + top2` | `acc@512` | delta vs `dense-t025 + top2` | `acc@1024` | delta vs `dense-t025 + top2` | queue / session | decision_note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `dense-t025-s123-d123` | `dense_softmax` | `128` | `topk` | `2` | `flash-vqg-20260402-clr-v1-e3-tau-local-t025-2026-04-08-11-45-12` | `completed` | `0.981208` | `reference` | `0.081622` | `reference` | `0.991031` | `reference` | `0.874887` | `reference` | `-` | `current write/read anchor` |
+| `dense-t025-dread-s123-d123` | `dense_softmax` | `128` | `dense` | `None` | `flash-vqg-20260402-clr-v1-e3-dread-t025-2026-04-09-08-32-54` | `completed` | `0.965413` | `-0.015795` | `0.158107` | `+0.076486` | `0.987422` | `-0.003609` | `0.765508` | `-0.109379` | `GPU0 detached queue / e3_t025_dread_083252` | `completed probe; dense read is not competitive under dense write` |
+| `topk16-t025-s123-d123` | `topk_softmax` | `16` | `topk` | `2` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.970430` | `-0.010779` | `0.126683` | `+0.045061` | `0.981309` | `-0.009723` | `0.812148` | `-0.062738` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `best sparse-write point under top2 read; still below dense anchor` |
+| `topk16-t025-dread-s123-d123` | `topk_softmax` | `16` | `dense` | `None` | `-` | `dropped` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `not scheduled because dense-read branch is already non-competitive` |
 
 ### 10.5 实验 4 结果
 
