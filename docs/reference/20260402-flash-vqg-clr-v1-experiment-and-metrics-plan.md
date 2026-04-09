@@ -43,10 +43,10 @@
 ### 1.2 本轮交付范围
 
 - 实验 1 已完成并晋升 `clr_v1 + top2 read` 为当前主线 baseline
-- 本轮继续实现并执行实验 2, 且明确拆成 `E2-main` 与 `E2b`
-- `E2-main` 是主实验, `E2b` 是补充实验
-- 预算按不收紧版本执行时, `E2-main` 与 `E2b` 使用两张显卡并行训练
-- 实验 3 到实验 6 继续保留为主线规划
+- 实验 2 已完成, 当前不支持 denominator-free 方案晋升, `den_aware selector + residual_add` 只保留为后续候选
+- 实验 3 已完成 `baseline + dense-t050/t100/t200` 的单 seed 正式训练, 并对 `dense-t050` 补了 `seed=124/125` 稳定性 run
+- 当前结果支持 `dense-t050` 作为实验 3 的最优工作点
+- 实验 4 到实验 6 继续保留为主线规划
 - 实验 7 当前只保留结果记录占位, 不在本轮实现
 - `20260402-clr-v1-mainline/` 目录继续作为实验 1 到实验 6 的公共根目录
 
@@ -141,7 +141,7 @@
   - 如果 `top2` 或 `top4` 明显优于 `dense`, 且 hard buckets 也上涨, 则说明 read-side blur 是关键问题, 最优 top-k 版本晋升为新 baseline
   - 如果 overall 只小涨, 但 hard buckets 基本不动, 则说明 read-side blur 不是唯一主瓶颈, 不晋升
   - 如果 top-k 比 `dense` 更差, 或出现训练不稳, 则不晋升, 后续继续沿用 `dense baseline`
-- 本轮状态: 实现并执行, 当前结果支持 `top2` 作为后续优先候选
+- 本轮状态: 已完成并把 `top2` 晋升为当前主线 baseline
 
 ### 实验 2: 去 remote denominator
 
@@ -153,19 +153,19 @@
   - 如果 `2A residual expert` 明显最好, 则说明 remote 更适合作 residual value expert, `2A` 晋升为新 baseline
   - 如果 `2B shared local denominator` 明显最好, 则说明 remote 不需要独立 denominator, 但仍需要 local denominator 锚定, `2B` 晋升为新 baseline
   - 如果 `2A` 和 `2B` 都不如原版, 则说明当前 remote 仍离不开显式 denominator, 不晋升
-- 本轮状态: 已进入实现与执行, 其中 `E2-main` 为主实验, `E2b` 为补充实验
+- 本轮状态: 已完成结果记录, 当前不支持 denominator-free 方案晋升, `2A residual_add` 只保留为候选
 
-### 实验 3: learnable routingVQ / codebook
+### 实验 3: dense write routingVQ / codebook
 
-- 变量: codebook 慢更新, 例如 EMA 或小学习率
-- 当前 baseline: 来自实验 2 的 baseline
-- 目标: 验证问题是否来自码本不会分桶
-- 简述: 把码本改成可学习, 但用 EMA, 小学习率, 或 warmup 控制更新速度, 重点判断瓶颈是否来自码本本身不会分桶, 而不是读法有问题. 理想现象是 usage 更健康, 量化误差下降, 且 hard buckets 同时上涨
+- 变量: write-side 从硬指派 `Δ` 改成 dense 分配 `Π`
+- 当前 baseline: `clr_v1 + top2 read + den_aware selector + shared_den merge + legacy one-hot write`
+- 目标: 验证当前瓶颈是否来自 write-side 分桶过硬, 导致 remote cache 写入过糙
+- 简述: 实验 3 本轮不改 read-side, 只改 write-side. 具体做法是把 remote memory 的写入从 hard one-hot `Δ` 推广为 dense assignment `Π`, 并保持 FoX forgetting, local 精确分支, remote cache 递推, 以及 `shared_den` 合并语义不变. 理想现象是 write entropy, usage 与重建误差更健康, 同时 hard buckets 与总 `valid/accuracy` 上涨
 - 候选判断:
-  - 如果 `valid/*` 主指标上涨, hard buckets 也上涨, 且 codebook usage 更健康, 则说明主瓶颈偏 codebook 学习与分桶能力, learnable codebook 晋升为新 baseline
-  - 如果 `vq/*` 指标更好看, 但 MQAR 主指标基本不动, 则说明码本更会用, 但 retrieval 仍未更准, 不晋升
-  - 如果训练不稳, 或 code usage 明显塌缩, 则回退并保持旧 baseline
-- 本轮状态: 只保留文档规划
+  - 如果 dense write 的 `valid/*` 主指标上涨, hard buckets 同时上涨, 且 `vq/write_entropy_mean` 与 `vq/c_entropy` 没有塌缩, 则说明 write-side 离散化过硬是主瓶颈, dense write 晋升为下一轮 baseline
+  - 如果 `vq/*` 指标更好看, 但 MQAR 主指标基本不动, 则说明码本使用更平滑, 但 retrieval 仍未更准, 不晋升
+  - 如果训练不稳, `nan_inf_count` 升高, `den_min` 恶化, 或 usage 明显塌缩, 则回退并保持旧 baseline
+- 本轮状态: 已完成单 seed 正式矩阵与 `dense-t050` 的 3-seed 补跑, 当前最优点是 `dense-t050`
 
 ### 实验 4: 两级 key quantization
 
@@ -608,23 +608,214 @@ smoke 口径固定为:
 - 再看 `attn/*` 与 `vq/*` 是否解释该分支为什么有效
 - 若 `E2-main` 与 `E2b` 结论不同, 主线判断仍以 `E2-main` 为准
 
-## 6. 实验 3: learnable routingVQ / codebook
+## 6. 实验 3: dense write routingVQ / codebook
 
-### 6.1 目标与变量
+### 6.1 目标与范围
 
-- 目标: 验证问题是否来自码本不会分桶
-- 变量: codebook 慢更新, 例如 EMA 或小学习率
-- 本轮状态: 待补充详细方案
+- 当前 baseline 固定为 `clr_v1 + top2 read + den_aware selector + shared_den merge + legacy one-hot write`
+- 实验 3 本轮只实现 `dense write + top2 read`
+- read-side 继续固定 `fox_remote_read_topk=2`, 不回退到 dense read
+- local 分支不改
+- FoX forgetting 不改
+- `shared_den` 归一化语义不改
+- 当前不引入 codebook 慢更新, 统一使用 `vq_update_mode=grad`
+- 当前只做 dense 版, 但接口必须预留后续 `topk write`
 
-### 6.2 待补充项
+一句话概括:
 
-后续在本章补充:
+- 实验 3 不是改 remote read, 而是把 write-side 的 `Δ -> Π`
 
-- 实验 3 专有覆盖项
-- 更新规则与训练稳定性约束
-- 指标与脚本方案
-- 主要观察指标
-- 与实验 1, 实验 2 的衔接关系
+### 6.2 Dense 数学口径
+
+本轮严格采用 dense write 公式:
+
+- write-side 打分:
+
+$$
+B^{(n)} = \frac{K^{(n)} E^\top}{\sqrt{d} \cdot \tau_w}
+$$
+
+- dense 分配:
+
+$$
+\Pi^{(n)} = \mathrm{rowSoftmax}(B^{(n)})
+$$
+
+- dense block summary:
+
+$$
+\beta_n^{U,dense} = (\Pi^{(n)})^\top (s^{(n)} \odot V^{(n)})
+$$
+
+$$
+\beta_n^{Z,dense} = (\Pi^{(n)})^\top s^{(n)}
+$$
+
+- 块间递推保持 FoX 原样:
+
+$$
+U_{e_n}^{dense} = \alpha_n U_{e_{n-1}}^{dense} + \beta_n^{U,dense}
+$$
+
+$$
+Z_{e_n}^{dense} = \alpha_n Z_{e_{n-1}}^{dense} + \beta_n^{Z,dense}
+$$
+
+- remote read 仍保持当前 `clr_v1 + top2 read` 结构, 本轮不做 dense read
+- 最终输出继续使用 shared denominator:
+
+$$
+O = \frac{Num_{loc} + Num_{far}}{Den_{loc} + Den_{far}}
+$$
+
+对 `clr_v1` 额外约束:
+
+- dense write 不只要写 `U/Z`, 还要把 CLR rank/basis 相关状态同步推广为 weighted 写入
+- 这样 readout 和 merge 逻辑才能保持主线不变
+
+### 6.3 配置映射与实现约束
+
+实验 3 的配置映射固定为:
+
+- baseline:
+  - `vq_score_mode=l2`
+  - `vq_weight_mode=one-hot`
+  - `vq_update_mode=ema`
+- dense write:
+  - `vq_score_mode=codebook_dot`
+  - `vq_weight_mode=dense_softmax`
+  - `vq_update_mode=grad`
+  - `vq_softmax_tau ∈ {0.5, 1.0, 2.0}`
+
+为了预留 top-k write, 代码层需要一次性透传:
+
+- `vq_score_mode`
+- `vq_weight_mode`
+- `vq_update_mode`
+- `vq_softmax_tau`
+- `vq_topk`
+
+但本轮默认正式主矩阵只启用 `dense_softmax`. 截至 2026-04-09, `topk_softmax` 已进入独立 probe launch, 但尚未进入默认正式主矩阵.
+
+当前实现约束固定为:
+
+- `fox_remote_formula=clr_v1`
+- `fox_remote_path_backend=torch`
+- `fox_state_build_backend=torch`
+- `fox_clr_remat_mode=off`
+
+也就是说, 实验 3 dense write 当前只在 `torch + clr_v1 + eager materialize` 路径下成立.
+
+### 6.4 实验 3 专有覆盖项
+
+- `backend=torch`
+- `fox_state_build_backend=torch`
+- `fox_remote_path_backend=torch`
+- `vq_use_triton_shortcodes=false`
+- `fox_remote_formula=clr_v1`
+- `fox_remote_read_topk=2`
+- `fox_clr_rank=4`
+- `fox_clr_use_den_residual=true`
+- `fox_clr_remat_mode=off`
+- `fox_clr_selector_mode=den_aware`
+- `fox_clr_merge_mode=shared_den`
+- `block_len=32`
+- `local_num_blocks=2`
+- `num_codebook_vectors=128`
+
+### 6.5 正式实验矩阵
+
+本轮先做单 seed `123`, 正式训练矩阵固定为 4 组:
+
+- `baseline`
+- `dense-t050`
+- `dense-t100`
+- `dense-t200`
+
+对应配置:
+
+- `baseline`: `l2 + one-hot + ema`
+- `dense-t050`: `codebook_dot + dense_softmax + grad`, `vq_softmax_tau=0.5`
+- `dense-t100`: `codebook_dot + dense_softmax + grad`, `vq_softmax_tau=1.0`
+- `dense-t200`: `codebook_dot + dense_softmax + grad`, `vq_softmax_tau=2.0`
+
+smoke 只跑 2 组:
+
+- `baseline`
+- `dense-t100`
+
+原因很直接:
+
+- smoke 只负责确认实现和 batch/GA 稳定性
+- 正式区分不同温度值的比较留到 full train
+
+### 6.6 指标与脚本方案
+
+实验 3 除保留主线指标外, 额外要求记录 dense write 相关指标.
+
+主指标:
+
+- `valid/accuracy`
+- `valid/loss`
+- `valid/input_seq_len/*`
+- `valid/num_kv_pairs/*`
+- `valid/mqar_case/*`
+
+稳定性与 remote 指标:
+
+- `attn/nan_inf_count`
+- `attn/den_min`
+- `attn/o_remote_energy_ratio`
+- `attn/clr_alpha_norm_mean`
+- `attn/clr_den_neg_ratio`
+- `attn/remote_routing_entropy`
+- `attn/remote_top1_top2_margin`
+
+VQ / write-side 指标:
+
+- `vq/relative_err_mean`
+- `vq/k_norm_mean`
+- `vq/k_hat_norm_mean`
+- `vq/c_rms_mean`
+- `vq/c_entropy`
+- `vq/c_usage_mean`
+- `vq/c_usage_max`
+- `vq/write_entropy_mean`
+- `vq/write_top1_mass_mean`
+
+上述指标都要求有 `valid/*` 镜像.
+
+脚本目录固定为:
+
+- `zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e3-dense-routing/`
+
+其中:
+
+- `config_builder.py`: 组装 `baseline + dense` 矩阵
+- `smoke_e3_batch_accum.py`: 选择 `train_batch_size / eval_batch_size / gradient_accumulation_steps`
+- `run_e3_smoke.sh`: 先跑 smoke
+- `run_e3_train.sh`: 再跑正式训练
+- `metrics.yaml`: SwanLab 与 analysis 统一指标白名单
+
+### 6.7 执行顺序与验收
+
+执行顺序固定为:
+
+1. 先完成代码修改与文档更新
+2. 跑低层单测和脚本层回归
+3. 跑 `E3 smoke`, 确定 `train_batch_size / eval_batch_size / gradient_accumulation_steps`
+4. 确认 `dense-t100` smoke 无 OOM, 无 NaN/Inf
+5. 在空闲 GPU 上启动 `baseline + dense-t050/t100/t200` 的单 seed 正式训练
+6. 正式训练统一记录到 SwanLab
+
+晋升标准:
+
+- `best valid/accuracy` 明确高于 baseline
+- 至少两个 hard buckets 同时上涨
+- `vq/write_entropy_mean` 与 `vq/write_top1_mass_mean` 没有塌缩
+- `attn/nan_inf_count` 不升高, `attn/den_min` 不恶化
+
+若只看到 usage/entropy 更好看, 但主任务指标没有变好, 则不晋升.
 
 ## 7. 实验 4: 两级 key quantization
 
@@ -819,41 +1010,583 @@ baseline 的变化固定为:
 
 #### 10.3.1 E2-main 结果
 
-- 配置范围:
-  - `baseline`
-  - `2a-l025`, `2a-l050`, `2a-l100`
-  - `2b-l025`, `2b-l050`, `2b-l100`
-  - `2c-lmax025`, `2c-lmax050`, `2c-lmax100`
-- 记录模板:
-  - `valid/accuracy`, `valid/loss`
-  - `valid/input_seq_len/accuracy-*`
-  - `valid/num_kv_pairs/accuracy-*`
-  - `attn/remote_routing_entropy`
-  - `attn/remote_top1_top2_margin`
-  - `attn/o_remote_energy_ratio`
-- 结论模板:
-  - 若 2A 最优, 记录为 `residual expert` 胜出
-  - 若 2B 最优, 记录为 `shared local denominator` 胜出
-  - 若 2C 最优, 记录为 `gated residual expert` 胜出
-  - 若 baseline 最优, 记录为当前 remote denominator-aware 接口仍需保留
+`E2-main` 的目标是判断: 当 remote selector 不再使用 denominator-aware routing, 而改成 `score_only` 时, 当前 remote interface 是否仍然成立.
+
+本轮 `E2-main` 覆盖了 10 个配置:
+
+- `baseline`
+- `2a-l025`, `2a-l050`, `2a-l100`
+- `2b-l025`, `2b-l050`, `2b-l100`
+- `2c-lmax025`, `2c-lmax050`, `2c-lmax100`
+
+其中:
+
+- `baseline` = `den_aware selector + shared_den merge`
+- `2A` = `score_only selector + residual_add`
+- `2B` = `score_only selector + shared_local_den`
+- `2C` = `score_only selector + residual_add + shared_query_linear gate`
+
+关键结果表如下:
+
+| config | best valid_acc | final valid_acc | final delta vs baseline | final `o_remote_energy_ratio` | final routing entropy |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `baseline` | 0.9490 | 0.9324 | 0.0000 | 0.2694 | 2.3222 |
+| `2a-l025` | 0.9205 | 0.9111 | -0.0213 | 0.0917 | 2.4888 |
+| `2a-l050` | 0.9261 | 0.9249 | -0.0075 | 0.2970 | 2.8600 |
+| `2a-l100` | 0.9219 | 0.9149 | -0.0175 | 0.3892 | 3.0017 |
+| `2b-l025` | 0.4132 | 0.4049 | -0.5275 | 0.0127 | 1.7919 |
+| `2b-l050` | 0.4207 | 0.4055 | -0.5269 | 0.0982 | 1.5927 |
+| `2b-l100` | 0.4405 | 0.3961 | -0.5363 | 0.5946 | 0.6251 |
+| `2c-lmax025` | 0.9231 | 0.9210 | -0.0114 | 0.0465 | 3.4800 |
+| `2c-lmax050` | 0.9349 | 0.9326 | +0.0002 | 0.2030 | 3.4511 |
+| `2c-lmax100` | 0.9331 | 0.9300 | -0.0024 | 0.3568 | 2.5944 |
+
+当前结果的主结论是:
+
+- `E2-main` 中没有任何一个 denominator-free 配置形成 "稳定超过 baseline" 的证据
+- 因此, 本轮主线判断仍然支持: **当前 remote interface 仍需要 denominator-aware 设计**
+- 换句话说, 在 `clr_v1 + top2 read` 这条主线上, `score_only selector` 目前还不足以替代 `score + log d` 的 selector 口径
+
+从本轮结果看, 三类 denominator-free 变体的相对结论可以概括为:
+
+- `2A` 说明: remote 在拿掉 denominator-aware selector 之后, 仍然保留了一定 usable signal, 但整体还不足以稳定打过 baseline
+- `2B` 说明: 单纯改成 `shared_local_den` 并没有把 denominator-free interface 救回来, 这一路径当前没有显示出主线价值
+- `2C` 说明: gate 能在一定程度上约束 residual remote 的注入强度, 但目前更像 "缓和波动的辅助项", 而不是能够改写主结论的主胜方案
+
+因此, `E2-main` 的结论不是 "2A / 2C 完全无效", 而是:
+
+- **当前 remote path 仍离不开 denominator-aware selector**
+- 如果后续还要继续优化 remote interface, 应优先在保留 `den_aware selector` 的前提下继续做 merge / routing / codebook 优化, 而不是直接把 remote denominator 从主接口中拿掉
 
 #### 10.3.2 E2b 结果
 
-- 配置范围:
-  - `baseline`
-  - `e2b-2a-l025`, `e2b-2a-l050`, `e2b-2a-l100`
-  - `e2b-2b-l025`, `e2b-2b-l050`, `e2b-2b-l100`
-  - `e2b-2c-lmax025`, `e2b-2c-lmax050`, `e2b-2c-lmax100`
-- 记录模板:
-  - 与 `E2-main` 相同的主指标和分析指标
-- 结论模板:
-  - 只解释固定 denominator-aware selector 时哪种 merge 更好
-  - 不直接用于裁决 "remote denominator 是否是必要接口组成"
+`E2b` 的目标是判断: **在固定当前 denominator-aware selector 不变时, 哪种 merge 更有潜力.**
+
+本轮 `E2b` 也覆盖了 10 个配置:
+
+- `baseline`
+- `e2b-2a-l025`, `e2b-2a-l050`, `e2b-2a-l100`
+- `e2b-2b-l025`, `e2b-2b-l050`, `e2b-2b-l100`
+- `e2b-2c-lmax025`, `e2b-2c-lmax050`, `e2b-2c-lmax100`
+
+其解释口径与 `E2-main` 不同:
+
+- `E2-main` 回答的是 "remote denominator 是否仍是必要接口组成"
+- `E2b` 回答的是 "当 selector 继续保持 denominator-aware 时, 哪种 merge 更好"
+
+关键结果表如下:
+
+| config | best valid_acc | final valid_acc | final delta vs baseline | final `o_remote_energy_ratio` | final routing entropy |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `baseline` | 0.9414 | 0.9388 | 0.0000 | 0.2682 | 2.6089 |
+| `e2b-2a-l025` | 0.5969 | 0.5209 | -0.4179 | 0.0501 | 2.5238 |
+| `e2b-2a-l050` | 0.9288 | 0.9266 | -0.0122 | 0.1748 | 2.7580 |
+| `e2b-2a-l100` | 0.9588 | 0.9551 | +0.0163 | 0.4088 | 1.8823 |
+| `e2b-2b-l025` | 0.4155 | 0.4051 | -0.5337 | 0.0002 | 1.7319 |
+| `e2b-2b-l050` | 0.4220 | 0.4043 | -0.5345 | 0.1112 | 1.0236 |
+| `e2b-2b-l100` | 0.4303 | 0.4097 | -0.5291 | 0.1056 | 0.9850 |
+| `e2b-2c-lmax025` | 0.9384 | 0.9361 | -0.0027 | 0.0182 | 3.0867 |
+| `e2b-2c-lmax050` | 0.9177 | 0.5895 | -0.3493 | 0.0549 | 2.7714 |
+| `e2b-2c-lmax100` | 0.9298 | 0.9205 | -0.0183 | 0.2508 | 2.0518 |
+
+当前 `E2b` 的主要结论是:
+
+- 在保留 denominator-aware selector 的前提下, **`2A residual_add` 是本轮最有潜力的 merge 方向**
+- 其中, `e2b-2a-l100` 给出了本轮 `E2b` 中最强的单次结果, 说明:
+  - `den_aware selector + residual_add`
+  - 是一个值得继续追踪的组合
+  - remote 更可能适合作为一个 **residual value expert**, 而不是重新组织一套独立的 denominator 归一化接口
+
+与此同时, `E2b` 也给出了两个重要限制:
+
+- `2B` 在 `E2-main` 和 `E2b` 两条线上都没有显示出竞争力, 说明 `shared_local_den` 当前不是值得继续投入主预算的方向
+- `2C` 虽然体现出一定稳定性价值, 但当前更像是在 `2A` 基础上加了一个轻量调节器; 它还没有形成 "比 `2A` 更强" 的清晰证据
+
+因此, `E2b` 的结论可以总结为:
+
+- **merge 侧最值得继续追的不是 `2B`, 而是 `2A residual_add`**
+- `2C` 可保留为稳定性备选
+- `2B` 当前可以降级处理
+
+#### 10.3.3 `E2b` 的对称补跑与稳定性判断
+
+为了把实验 2 的结论做稳, 本轮在已有 `e2b-2a-l100-s124` 和 `e2b-2a-l100-s125` probe 的基础上, 又补了 3 条 matched-seed run:
+
+- `baseline-s124`
+- `baseline-s125`
+- `e2b-2a-l100-s123-rerun`
+
+这一步的目标不再只是看 `e2b-2a-l100` 有没有单次高点, 而是同时回答 3 个问题:
+
+- `E2b baseline` 自己是否稳定
+- `e2b-2a-l100` 的 `seed=123` 强结果能否自复现
+- `l100` 和 baseline 的差异, 究竟来自结构性增益, 还是来自 baseline 自身的高方差
+
+先看 baseline 的对称补跑结果:
+
+| run | best valid_acc | final valid_acc | final `512x128` | final `1024x256` | final `o_remote_energy_ratio` | final routing entropy | final top1-top2 margin |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `baseline` (`seed=123`) | 0.9414 | 0.9388 | 0.8957 | 0.7086 | 0.2682 | 2.6089 | 0.4767 |
+| `baseline-s124` | 0.9124 | 0.9123 | 0.8243 | 0.6334 | 0.2930 | 1.9598 | 0.6092 |
+| `baseline-s125` | 0.5725 | 0.5713 | 0.1179 | 0.0310 | 0.3744 | 0.5908 | 0.8841 |
+
+这个结果直接说明:
+
+- `E2b baseline` 不是稳定控制组
+- 3 个 seed 的 `final valid_acc` 极差达到 `0.3676`
+- `1024x256` hardest bucket 的极差达到 `0.6776`
+- `baseline-s125` 并不是 "中后期掉点" 的假峰值, 而是从头到尾都收敛到明显更差的区域
+
+也就是说, 到这一步为止, 实验 2 的关键不确定性已经从 "某个候选点是不是偶然跑高" 扩展成了 "baseline 本身存在显著 seed 敏感性".
+
+再看 `e2b-2a-l100` 的复现情况:
+
+| run | best valid_acc | final valid_acc | final `512x128` | final `1024x256` | final `o_remote_energy_ratio` | final routing entropy | final top1-top2 margin |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `e2b-2a-l100` (`seed=123`) | 0.9588 | 0.9551 | 0.9414 | 0.8047 | 0.4088 | 1.8823 | 0.9814 |
+| `e2b-2a-l100-s123-rerun` | 0.9386 | 0.9376 | 0.9055 | 0.7917 | 0.3413 | 2.5359 | 0.6030 |
+| `e2b-2a-l100-s124` | 0.9078 | 0.9073 | 0.8461 | 0.6549 | 0.3519 | 2.5274 | 0.6549 |
+| `e2b-2a-l100-s125` | 0.9288 | 0.9284 | 0.8832 | 0.8089 | 0.4333 | 2.0580 | 0.7185 |
+
+这里有两个需要同时成立的事实:
+
+- 一方面, `seed=123` 的最强结果没有被 rerun 复现
+  - `e2b-2a-l100-s123-rerun` 相比原 `seed=123`, `final valid_acc` 下降了 `0.0175`
+  - `1024x256` 也下降了 `0.0130`
+- 另一方面, `l100` 的跨 seed 波动显著小于 baseline
+  - `l100` 三个 seed 的 `final valid_acc` 极差只有 `0.0303`
+  - `1024x256` 的极差是 `0.1540`
+
+因此, 这一步不能简单总结成 "`l100` 只是偶然高点". 更准确的判断是:
+
+- `l100` 还没有证明自己是 **稳定优于 baseline** 的新主胜配置
+- 但它显示出比 baseline 更强的 **抗 seed 崩溃能力**, 尤其在 hardest bucket 上更稳
+
+把 matched-seed 对照写开后, 结论会更清楚:
+
+| seed | baseline final valid_acc | `l100` final valid_acc | final delta | baseline `1024x256` | `l100` `1024x256` | `1024x256` delta |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `123` | 0.9388 | 0.9376 | -0.0012 | 0.7086 | 0.7917 | +0.0831 |
+| `124` | 0.9123 | 0.9073 | -0.0050 | 0.6334 | 0.6549 | +0.0215 |
+| `125` | 0.5713 | 0.9284 | +0.3571 | 0.0310 | 0.8089 | +0.7779 |
+
+这个 matched-seed 比较说明:
+
+- 对健康 seed 来说, `l100` 并没有稳定赢下 overall `valid_acc`
+- 但在 `1024x256` hardest bucket 上, `l100` 3 个 seed 全部不差于 matched baseline, 而且 `seed=123/125` 的优势很明显
+- `seed=125` 的巨大差距更多说明 baseline 本身会崩, 而不能直接当成 "`l100` 已经稳定更强" 的证据
+
+因此, 当前更合理的稳定性裁决是:
+
+- `baseline`: **unstable**
+- `e2b-2a-l100`: **not yet reproducible as a new winner, but more robust than baseline**
+- `e2b-2a-l050`: 仍然保持 `no clear gain`
+
+#### 10.3.4 `E2b baseline` 的 decoupled 诊断结果
+
+为了进一步拆开 baseline 的不稳定性来源, 本轮又补了 4 条 decoupled baseline run:
+
+- `baseline-s123-d124`
+- `baseline-s123-d125`
+- `baseline-s124-d123`
+- `baseline-s125-d123`
+
+这里的目标不再是比较新候选点, 而是专门回答:
+
+- baseline 是更敏感于 `seed`, 还是更敏感于 `data_seed`
+- baseline 的坏收敛是 "从头就学坏", 还是 "先冲高后回落"
+- baseline 的问题是否主要来自数值稳定性
+
+先给出 anchor + decoupled 的关键结果表:
+
+| run | best valid_acc | final valid_acc | best-last | final `1024x256` | final routing entropy | final top1-top2 margin |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `s123-d123` | 0.9414 | 0.9388 | 0.0026 | 0.7086 | 2.6089 | 0.4767 |
+| `s123-d124` | 0.7548 | 0.7463 | 0.0085 | 0.2067 | 1.3415 | 1.7410 |
+| `s123-d125` | 0.7215 | 0.6185 | 0.1030 | 0.0196 | 1.4985 | 0.3962 |
+| `s124-d123` | 0.9021 | 0.6470 | 0.2552 | 0.0550 | 1.9215 | 0.4097 |
+| `s125-d123` | 0.8215 | 0.7735 | 0.0481 | 0.2923 | 1.3685 | 1.4556 |
+
+把两条轴分开后, 结论会更清楚:
+
+- `data axis`: `s123-d123 -> s123-d124 -> s123-d125`
+  - `final valid_acc` 极差是 `0.3203`
+  - `1024x256` 极差是 `0.6890`
+- `seed axis`: `s123-d123 -> s124-d123 -> s125-d123`
+  - `final valid_acc` 极差是 `0.2918`
+  - `1024x256` 极差是 `0.6536`
+
+这说明:
+
+- `data_seed` 对 terminal quality 和 hardest bucket 的破坏略更重
+- 但 `seed` 轴本身也足够单独把 baseline 弄崩
+- 因此 baseline 的不稳不能被简化成 "只是模型初始化问题" 或 "只是数据实例问题"
+
+更关键的是, decoupled 结果暴露出很强的交互项:
+
+- `s124-d124` 本来是健康 run, `final valid_acc = 0.9123`
+- 但 `s123-d124` 和 `s124-d123` 都明显更差, 说明不能把 `124` 简单归因成单侧坏值
+- `s125-d125` 也比 `s125-d123` 和 `s123-d125` 更差, 说明 `125/125` 这组组合还存在额外的负交互放大
+
+坏收敛的形态也并不相同:
+
+- `s123-d124` 更像 "从一开始就偏弱, 后期相对平稳"
+- `s123-d125` 更像 "很早冲到局部高点, 然后一路掉回去"
+- `s124-d123` 是最典型的 late collapse, `best-last = 0.2552`
+- `s125-d123` 能学起来, 但整体明显偏弱
+
+同时, 这 4 条 decoupled run 都满足:
+
+- `valid/attn/nan_inf_count = 0`
+- `valid/attn/den_min = 1.0`
+
+因此, decoupled 诊断进一步支持:
+
+- baseline 的问题主要来自训练动力学 / routing 收敛
+- 不是数值爆炸或 denominator 直接失稳
+
+这一步之后, baseline 的稳定性裁决可以进一步收紧为:
+
+- `baseline` 的不稳同时来自 `model seed`, `data_seed`, 以及二者交互
+- 如果硬要排优先级, `data_seed` 的破坏略强, 但不足以把问题归因到单一来源
+
+#### 10.3.5 实验 2 的总体结论
+
+把 `E2-main`, `E2b`, baseline 对称补跑, 以及 `e2b-2a-l100` 的 probe / rerun 结果合在一起, 本轮实验 2 的总体结论可以整理为:
+
+1. **主线仍应保持 baseline**
+
+- `E2-main` 没有给出 denominator-free interface 稳定优于 baseline 的证据
+- 因而当前 `clr_v1` 主线仍应保持:
+  - `den_aware selector`
+  - `shared_den` baseline interface
+  - `top2 read`
+
+2. **`den_aware selector + residual_add` 仍然是实验 2 中最值得继续追的方向**
+
+- `E2b` 说明在保留 denominator-aware selector 时, `2A residual_add` 最有潜力
+- 这支持把 remote 进一步理解为一个 residual remote expert, 而不是强行改写成独立归一化接口
+
+3. **当前实验 2 的首要问题已经变成 baseline 稳定性**
+
+- 对称补跑和 decoupled 诊断都表明 `E2b baseline` 本身存在显著稳定性问题
+- `seed` 和 `data_seed` 两边都能单独触发坏收敛, 而且还存在明显交互放大
+- 因而接下来不能再把单条 baseline 曲线当成足够可靠的裁决器
+- 在 baseline 稳定性没有解释清楚之前, 后续实验的结构比较都容易被训练方差污染
+
+4. **`2B` 可以基本排除**
+
+- `2B` 在 `E2-main` 和 `E2b` 两条线上都没有形成主线竞争力
+- 后续若继续保留, 也只需要作为轻量对照, 不应再占主实验预算
+
+5. **`2C` 当前更适合作为稳定性备选, 而不是主攻方向**
+
+- 它有一定 "抑制注入过强 / 缓和波动" 的价值
+- 但目前还没有形成 "比 `2A` 更强" 的清晰证据
+
+6. **`e2b-2a-l100` 值得继续追, 但暂时不应晋升主线**
+
+- 它是本轮最值得继续保留的 robustness 候选点
+- 但在完成更系统的稳定性诊断前, 还不能把它视为已被验证的新 baseline
+- 特别是 `seed=123` 的原最强结果没有被 rerun 复现, 所以当前还不能把它定义为 "已证明稳定更强"
+
+#### 10.3.6 对后续实验排序的影响
+
+实验 2 结束后, 后续实验排序应按下面的逻辑推进:
+
+- 第一优先级: 先稳定化 `E2b baseline`, 重点拆解 `model seed`, `data_seed`, 以及二者交互
+- 第二优先级: 在 baseline 稳定化方案更清楚后, 再围绕 `E2b-2A(l100)` 做更系统的多 seed / 邻域 λ 复现
+- 第三优先级: 在 baseline 稳定性和 `l100` 的真实收益边界都更清楚之后, 再进入实验 3
+
+也就是说, 实验 2 的更新结果仍然不支持 "直接跳到实验 3", 也不支持 "直接把 `e2b-2a-l100` 升成新 baseline".
+
+更合理的动作是:
+
+- **先把 baseline 的 `model seed / data_seed / interaction` 不稳定性解释清楚**
+- **再判断 `2A` 到底是在提升性能, 还是只是在提升鲁棒性**
+- **最后再进入实验 3**
+
+后续实际仍执行了实验 3 的单 seed 正式矩阵, 并对 `dense-t050` 追加了 3-seed 稳定性补跑, 结果见 10.4. 因而本节应理解为实验 2 收官时点的排序意见, 而不是对后续工作的禁止约束.
 
 ### 10.4 实验 3 结果
 
-- 状态: 待补充
-- 记录项: 配置范围, 核心结果表, 关键指标联动, 当前结论
+#### 10.4.1 结果摘要
+
+本节记录 2026-04-06 到 2026-04-08 完成的实验 3 结果. 当前主结论由两部分组成:
+
+- 2026-04-06 完成的 `baseline + dense-t050/t100/t200` 单 seed 正式矩阵
+- 2026-04-07 到 2026-04-08 对 `dense-t050` 追加的 `seed=124/125` 稳定性补跑
+
+本轮 `E3 smoke` 选出的训练配置为:
+
+- `train_batch_size=64`
+- `eval_batch_size=16`
+- `gradient_accumulation_steps=4`
+- `effective_train_batch_size=256`
+
+4 个单 seed 配置的核心结果如下:
+
+| config | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | note |
+| --- | --- | --- | --- | --- | --- |
+| `baseline` | `0.930982` | `0.378482` | `0.915094` | `0.673875` | `legacy one-hot write` |
+| `dense-t050` | `0.966792` | `0.141224` | `0.985051` | `0.776309` | `单 seed 最优` |
+| `dense-t100` | `0.943368` | `0.255391` | `0.961426` | `0.641938` | `overall 仍高于 baseline, 但 hardest bucket 已回落` |
+| `dense-t200` | `0.892124` | `0.525412` | `0.894504` | `0.380340` | `明显退化; 本地 backup checksum 异常, 最终指标取 remote SwanLab` |
+
+当前排序为:
+
+- `dense-t050` 明确最优
+- `dense-t100` 仍优于 `baseline`, 但已经明显低于 `dense-t050`
+- `dense-t200` 明显失败
+
+这个排序说明:
+
+- dense write 确实是有效方向
+- 但有效区间不是 "越 dense 越好"
+- 当前 sweet spot 落在 `vq_softmax_tau=0.5`, 继续增大到 `1.0` 和 `2.0` 都会回落
+
+#### 10.4.2 指标联动分析
+
+先看与 write-side 最相关的几组指标:
+
+| config | `valid/attn/o_remote_energy_ratio` | `valid/attn/remote_routing_entropy` | `valid/vq/relative_err_mean` | `valid/vq/write_entropy_mean` | `valid/vq/write_top1_mass_mean` |
+| --- | --- | --- | --- | --- | --- |
+| `baseline` | `0.132093` | `2.348460` | `0.041568` | `-` | `-` |
+| `dense-t050` | `0.271016` | `3.404022` | `0.020689` | `3.790525` | `0.143738` |
+| `dense-t100` | `0.277255` | `3.788672` | `0.023802` | `4.588185` | `0.036676` |
+| `dense-t200` | `0.266110` | `3.742404` | `0.036605` | `4.731038` | `0.019364` |
+
+这里有 3 个清晰信号.
+
+1. `dense-t050` 同时做对了两件事:
+
+- remote 参与度明显高于 `baseline`
+- `vq/relative_err_mean` 明显降低
+- 同时任务精度和长序列 bucket 一起上涨
+
+这说明 `dense-t050` 不是单纯 "让 remote 更强", 而是让 write-side 表示更可用.
+
+2. `dense-t100` 和 `dense-t200` 继续把 `write_entropy` 推高, 把 `top1_mass` 压低, 但任务指标反而回落.
+
+- 这说明更平滑的 dense write 并不自动等于更好的 retrieval
+- 当写入过于分散时, hardest bucket 会最先受伤
+
+3. hardest bucket 对过强 dense write 最敏感.
+
+- `dense-t050` 的 `acc@1024 = 0.776309`, 明显高于 `baseline = 0.673875`
+- `dense-t100` 的 `acc@1024 = 0.641938`, 已经低于 `baseline`
+- `dense-t200` 的 `acc@1024 = 0.380340`, 可以视为明显失效
+
+因此, 当前更合理的机理解释是:
+
+- 实验 3 的收益来自适度缓和 hard one-hot write 带来的分桶过硬
+- 但一旦 write 分布过平, remote cache 会先失去 hardest case 所需的判别性
+- 所以实验 3 的关键不是 "把 write 尽量做 dense", 而是找到一个适度 dense 的工作点
+
+#### 10.4.3 `dense-t050` 的 3-seed 稳定性
+
+为判断 `dense-t050` 的收益是否只是 `seed=123` 的偶然高点, 本轮又追加了 2 个 seed. 其中, 最初的 `seed=125` 运行因 CLI 会话退出被中断, 最终统计采用从头 rerun 的结果, 不纳入半截 run.
+
+3 个 seed 的最终结果如下:
+
+| seed | run_id | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` |
+| --- | --- | --- | --- | --- | --- |
+| `123` | `dense-t050` | `0.966792` | `0.141224` | `0.985051` | `0.776309` |
+| `124` | `dense-t050-s124` | `0.966789` | `0.140598` | `0.984707` | `0.777801` |
+| `125` | `dense-t050-s125-rerun` | `0.962067` | `0.164392` | `0.974266` | `0.764488` |
+
+汇总后:
+
+- `valid/accuracy = 0.965216 ± 0.002727`
+- `valid/loss = 0.148738 ± 0.013561`
+- `acc@512 = 0.981341 ± 0.006130`
+- `acc@1024 = 0.772866 ± 0.007293`
+
+稳定性判断可以写得更具体一些:
+
+- `seed=123` 和 `seed=124` 基本重合, 说明 `dense-t050` 至少存在一条很稳的高性能收敛轨道
+- `seed=125` 明显偏弱, 但没有翻车
+- 最弱的 `seed=125` 仍然比 `baseline` 高 `+3.11` 个百分点, 比 `dense-t100` 高 `+1.87` 个百分点
+
+如果继续看 telemetry, `seed=125` 的 `valid/attn/o_remote_energy_ratio` 降到 `0.238132`, 同时 `valid/attn/remote_routing_entropy` 升到 `3.951421`. 这更像 remote 使用变得更分散, 而不是 dense write 完全失效.
+
+因此, `dense-t050` 不是 "完全无 seed 波动", 但它的 seed 波动远小于它相对 `baseline` 和 `dense-t100` 的收益.
+
+#### 10.4.4 `tau` 局部精调决策分析
+
+本小节只基于同一 `seed=123, data_seed=123` 的 `tau` 邻域局部扫描做工作点裁决. 相关数据见 10.4.6 中第 3 张表. 其目标不是直接晋升新 baseline, 而是决定实验 3 下一轮验证预算应压在哪个 `tau` 点上.
+
+先看排序:
+
+| tau | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | `valid/vq/relative_err_mean` |
+| --- | --- | --- | --- | --- | --- |
+| `0.25` | `0.981208` | `0.081622` | `0.991031` | `0.874887` | `0.015469` |
+| `0.50` | `0.966792` | `0.141224` | `0.985051` | `0.776309` | `0.020689` |
+| `0.625` | `0.962646` | `0.165927` | `0.974984` | `0.767289` | `0.022640` |
+| `0.375` | `0.959515` | `0.184253` | `0.970082` | `0.752281` | `0.021957` |
+| `0.75` | `0.946263` | `0.239818` | `0.964105` | `0.657563` | `0.021967` |
+
+可以看到 3 个明确信号.
+
+1. `tau=0.25` 不是边缘改善, 而是显著优于当前 anchor `tau=0.5`.
+
+- `valid/accuracy` 提高 `+0.014416`
+- `valid/loss` 下降 `-0.059602`
+- `acc@512` 提高 `+0.005980`
+- `acc@1024` 提高 `+0.098578`
+- `valid/vq/relative_err_mean` 下降 `-0.005220`
+
+这说明收益不是只体现在平均准确率上, hardest bucket 和 VQ 重建质量也一起改善.
+
+2. `tau > 0.5` 的右侧区间已经可以收住.
+
+- `tau=0.625` 相对 `0.5` 已经整体回落
+- `tau=0.75` 进一步明显回落
+
+因此, 当前数据不支持继续往更软的 write 分布上加预算.
+
+3. 左侧局部地形并不平滑, `tau=0.375` 是一个明显异常点.
+
+- 按直觉, `0.375` 应位于 `0.25` 和 `0.5` 之间
+- 但它同时低于 `0.25` 和 `0.5`
+
+这说明目前不能简单归纳成 "`tau` 越小越好". 更稳的说法是: `0.25` 是当前扫描中最强候选, 但左侧局部区域存在非单调性, 因而下一步应该做验证而不是继续盲扫更密网格.
+
+从 telemetry 看, `tau=0.25` 的组合也更一致:
+
+- `write_entropy_mean` 从 `3.790525` 降到 `2.969296`
+- `write_top1_mass_mean` 从 `0.143738` 升到 `0.287130`
+- `o_remote_energy_ratio` 从 `0.271016` 升到 `0.312489`
+- `remote_routing_entropy` 从 `3.404022` 降到 `2.905342`
+
+这更像是更尖锐, 更有判别性的 write routing 带来了更好的 remote 读出, 而不是简单依赖更分散的 dense mixing.
+
+因此, 本轮 `tau` 扫描的裁决应当写成:
+
+- 停止继续扩 `tau` 网格
+- 将 `tau=0.25` 晋升为实验 3 的下一轮主候选
+- 下一步先补 `tau=0.25` 的稳定性验证, 而不是直接进入新的 write/read 交互矩阵
+
+更具体的后续顺序建议是:
+
+1. `dense-t025`, `seed=124`, `data_seed=123`
+2. `dense-t025`, `seed=123`, `data_seed=124`
+3. 如预算允许, 再补 `dense-t025`, `seed=123`, `data_seed=125`
+
+只有当 `tau=0.25` 在 seed 轴和危险 `data_seed` 轴上都站稳后, 才应正式替代 `dense-t050` 成为实验 3 的默认工作点.
+
+#### 10.4.5 当前结论
+
+基于实验 3 当前完整数据, 本节结论可以归纳为 3 点.
+
+1. `dense write` 已经被证明是有效主方向, 但最优区间不是 "越 dense 越好" 或 "越软越好".
+
+- `dense-t100` 和 `dense-t200` 已可排除
+- 真正值得保留的工作区间在 `tau=0.25` 到 `tau=0.5` 左侧邻域
+- 从 telemetry 看, 更优点更像是来自更尖锐, 更有判别性的 write routing 和更强的 remote 参与, 而不是单纯依赖更低的 `relative_err_mean`
+
+因此, `tau` 局部扫描的最终裁决不是继续扩网格, 而是停止 `tau` 搜索, 将 `tau=0.25` 作为最终收口候选, 再用 matched validation 完成默认工作点裁决.
+
+2. `dense-t025` 已经收口, 应正式晋升为实验 3 默认工作点.
+
+- `dense-t025` 在 `reference`, `seed=124`, `seed=125`, `data_seed=124`, `data_seed=125` 这 5 个 matched 口径里, 全部优于对应的 `dense-t050`
+- 在固定 `data_seed=123` 的 3-seed 口径上, `dense-t025` 平均 `valid/accuracy = 0.978818`, 高于 `dense-t050` 的 `0.965216`
+- 同一 3-seed 口径下, `dense-t025` 的 `valid/loss` 更低, `acc@512` 更高, `acc@1024` 平均高出 `+0.091566`
+- 在危险 `data_seed` 轴上, `dense-t025` 对 `dense-t050` 的 `acc@1024` 平均仍高出 `+0.050734`
+
+这里也需要把 `dense-t050` 的角色写清楚: 它不是当前最优点, 但仍是证据最完整的保守回退点. 因而后续文档和实验口径都应把 `dense-t050` 视为 fallback / control, 而不是继续作为实验 3 的默认主线.
+
+因此, 当前工程口径应明确写成:
+
+- **`dense-t025 + top2 read + den_aware selector + shared_den` 正式晋升为实验 3 默认工作点**
+- **`dense-t050` 降级为保守回退点和对照点, 不再占主验证预算**
+
+3. `dense -> top-k write` 不晋升主线.
+
+- 在固定 `tau=0.25`, `top2 read`, `den_aware selector`, `shared_den` 的条件下, `topk2`, `topk4`, `topk8`, `topk16` 已全部完成
+- `vq_topk` 从 `2 -> 4 -> 8 -> 16` 呈现单调恢复趋势, 说明 top-k write 的主要问题是过强稀疏化在逐步缓解, 不是训练不稳
+- 但最佳 sparse 点 `topk16` 仍低于 `dense-t025-s123-d123`: `valid/accuracy -0.010779`, `valid/loss +0.045061`, `acc@512 -0.009723`, `acc@1024 -0.062738`
+- telemetry 也支持同一结论: 随 `k` 增大, `relative_err_mean` 持续下降, `c_entropy` 与 `write_entropy_mean` 回升, `write_top1_mass_mean` 回落, 但整体仍是在逼近 dense anchor, 而不是超过 dense anchor
+
+因此, top-k write 的最终定位应写成:
+
+- **实验 3 最终确定的 baseline 是 `dense-t025 + top2 read + den_aware selector + shared_den`**
+- **`topk2` 可以排除**
+- **`topk16` 是当前 top-k 家族最强点, 但仍不足以超过 `dense-t025`**
+- **`dense -> top-k write` 不晋升为实验 3 主线, 也不再扩成 matched validation 矩阵**
+- **若后续继续研究 top-k write, 应把它放到效率/稀疏化副线, 而不是当前主性能线**
+
+#### 10.4.6 实验数据记录表
+
+本小节只作为实验 3 的数据台账入口. 原始数据以 `CSV / history.csv / summary.json / manifest.json` 为准. Markdown 表格只承担人工回填, 复核和后续决策入口作用.
+
+1. 主矩阵记录表. 记录实验 3 正式 4-run 矩阵.
+
+| run_id | tau / mode | seed | data_seed | launch_id | status | manifest | history.csv | summary.json | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `baseline` | `one-hot` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `generated/.../manifest.json` | `results/.../baseline/data/history.csv` | `results/.../baseline/data/summary.json` | `0.930982` | `0.378482` | `0.915094` | `0.673875` | `legacy one-hot write` |
+| `dense-t050` | `tau=0.5` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `generated/.../manifest.json` | `results/.../dense-t050/data/history.csv` | `results/.../dense-t050/data/summary.json` | `0.966792` | `0.141224` | `0.985051` | `0.776309` | `single-seed winner` |
+| `dense-t100` | `tau=1.0` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `generated/.../manifest.json` | `results/.../dense-t100/data/history.csv` | `results/.../dense-t100/data/summary.json` | `0.943368` | `0.255391` | `0.961426` | `0.641938` | `overall > baseline, hard bucket fallback` |
+| `dense-t200` | `tau=2.0` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `generated/.../manifest.json` | `results/.../dense-t200/data/history.csv` | `results/.../dense-t200/data/summary.json` | `0.892124` | `0.525412` | `0.894504` | `0.380340` | `remote SwanLab backfill used for final metrics` |
+
+2. `dense-t050` 稳定性记录表. 记录 seed 轴和危险 `data_seed` 轴.
+
+| run_id | seed | data_seed | launch_id | status | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `dense-t050` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `0.966792` | `0.141224` | `0.985051` | `0.776309` | `anchor` |
+| `dense-t050-s124` | `124` | `123` | `flash-vqg-20260402-clr-v1-e3-dense-t050-seeds124-125-2026-04-07-10-24-16` | `completed` | `0.966789` | `0.140598` | `0.984707` | `0.777801` | `seed axis` |
+| `dense-t050-s125-rerun` | `125` | `123` | `flash-vqg-20260402-clr-v1-e3-dense-t050-s125-rerun-2026-04-07-16-00-32` | `completed` | `0.962067` | `0.164392` | `0.974266` | `0.764488` | `rerun result; interrupted half-run excluded` |
+| `dense-t050-s123-d124` | `123` | `124` | `flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-rerun-2026-04-08-05-51-07` | `completed` | `0.970286` | `0.126707` | `0.979867` | `0.817445` | `danger data axis` |
+| `dense-t050-s123-d125` | `123` | `125` | `flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-rerun-2026-04-08-05-51-07` | `completed` | `0.969170` | `0.131283` | `0.978938` | `0.811410` | `danger data axis` |
+
+3. `tau` 局部精调记录表. 记录 `dense-t050` 邻域工作点扫描.
+
+| run_id | tau | seed | data_seed | launch_id | status | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | `valid/vq/relative_err_mean` | `valid/vq/c_entropy` | `valid/vq/write_entropy_mean` | `valid/vq/write_top1_mass_mean` | `valid/attn/o_remote_energy_ratio` | `valid/attn/remote_routing_entropy` | decision_note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `dense-t025-s123-d123` | `0.25` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-tau-local-t025-2026-04-08-11-45-12` | `completed` | `0.981208` | `0.081622` | `0.991031` | `0.874887` | `0.015469` | `3.568453` | `2.969296` | `0.287130` | `0.312489` | `2.905342` | `final promoted default after matched validation closed` |
+| `dense-t0375-s123-d123` | `0.375` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-tau-local-t0375-2026-04-08-11-47-12` | `completed` | `0.959515` | `0.184253` | `0.970082` | `0.752281` | `0.021957` | `3.475924` | `3.276300` | `0.321505` | `0.321408` | `3.543396` | `non-monotonic dip; lower than 0.25 and 0.5; no extra budget` |
+| `dense-t050` | `0.5` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22` | `completed` | `0.966792` | `0.141224` | `0.985051` | `0.776309` | `0.020689` | `4.075660` | `3.790525` | `0.143738` | `0.271016` | `3.404022` | `current conservative default; most fully validated point` |
+| `dense-t0625-s123-d123` | `0.625` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-tau-local-t0625-2026-04-08-14-44-02` | `completed` | `0.962646` | `0.165927` | `0.974984` | `0.767289` | `0.022640` | `4.213327` | `4.080534` | `0.188378` | `0.379031` | `2.325209` | `right-side fallback; stop expanding softer tau` |
+| `dense-t075-s123-d123` | `0.75` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-tau-local-t075-2026-04-08-15-00-38` | `completed` | `0.946263` | `0.239818` | `0.964105` | `0.657563` | `0.021967` | `4.375891` | `4.272873` | `0.154602` | `0.355248` | `3.892298` | `clear fallback; exclude from next budget` |
+
+4. `dense-t025 vs dense-t050` 对应验证口径主对照表. 用于直接判断 `dense-t025` 能否稳定替代 `dense-t050`.
+
+| axis | `dense-t025` run_id | `dense-t050` run_id | seed | data_seed | `t025 valid/accuracy` | `t050 valid/accuracy` | delta | `t025 valid/loss` | `t050 valid/loss` | delta | `t025 acc@512` | `t050 acc@512` | delta | `t025 acc@1024` | `t050 acc@1024` | delta | verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `reference` | `dense-t025-s123-d123` | `dense-t050` | `123` | `123` | `0.981208` | `0.966792` | `+0.014416` | `0.081622` | `0.141224` | `-0.059602` | `0.991031` | `0.985051` | `+0.005980` | `0.874887` | `0.776309` | `+0.098578` | `t025 anchor > t050 anchor` |
+| `seed axis` | `dense-t025-s124-d123` | `dense-t050-s124` | `124` | `123` | `0.980097` | `0.966789` | `+0.013308` | `0.090468` | `0.140598` | `-0.050130` | `0.992430` | `0.984707` | `+0.007723` | `0.860320` | `0.777801` | `+0.082519` | `t025 > t050; seed-axis pass` |
+| `seed axis` | `dense-t025-s125-d123` | `dense-t050-s125-rerun` | `125` | `123` | `0.975150` | `0.962067` | `+0.013083` | `0.107810` | `0.164392` | `-0.056582` | `0.979109` | `0.974266` | `+0.004844` | `0.858090` | `0.764488` | `+0.093602` | `t025 > t050; seed-axis pass` |
+| `danger data axis` | `dense-t025-s123-d124` | `dense-t050-s123-d124` | `123` | `124` | `0.977402` | `0.970286` | `+0.007116` | `0.098177` | `0.126707` | `-0.028530` | `0.980609` | `0.979867` | `+0.000742` | `0.874203` | `0.817445` | `+0.056758` | `t025 > t050; danger-data pass` |
+| `danger data axis` | `dense-t025-s123-d125` | `dense-t050-s123-d125` | `123` | `125` | `0.975364` | `0.969170` | `+0.006194` | `0.106890` | `0.131283` | `-0.024393` | `0.980098` | `0.978938` | `+0.001160` | `0.856121` | `0.811410` | `+0.044711` | `t025 > t050; danger-data pass` |
+
+5. `dense-t025 vs dense-t050` telemetry 辅助对照表. 用于判断收益是否伴随表示质量和 remote 路由模式的同步变化.
+
+| axis | `dense-t025` run_id | `dense-t050` run_id | `t025 relative_err` | `t050 relative_err` | delta | `t025 remote_energy` | `t050 remote_energy` | delta | `t025 routing_entropy` | `t050 routing_entropy` | delta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `reference` | `dense-t025-s123-d123` | `dense-t050` | `0.015469` | `0.020689` | `-0.005220` | `0.312489` | `0.271016` | `+0.041473` | `2.905342` | `3.404022` | `-0.498680` |
+| `seed axis` | `dense-t025-s124-d123` | `dense-t050-s124` | `0.011814` | `0.021286` | `-0.009472` | `0.305752` | `0.275976` | `+0.029775` | `2.621012` | `3.445248` | `-0.824236` |
+| `seed axis` | `dense-t025-s125-d123` | `dense-t050-s125-rerun` | `0.023259` | `0.020406` | `+0.002852` | `0.286617` | `0.238132` | `+0.048485` | `3.531729` | `3.951421` | `-0.419692` |
+| `danger data axis` | `dense-t025-s123-d124` | `dense-t050-s123-d124` | `0.023502` | `0.022500` | `+0.001002` | `0.325135` | `0.226479` | `+0.098656` | `2.262894` | `3.889661` | `-1.626767` |
+| `danger data axis` | `dense-t025-s123-d125` | `dense-t050-s123-d125` | `0.027154` | `0.023563` | `+0.003591` | `0.301903` | `0.234914` | `+0.066989` | `3.497218` | `3.828746` | `-0.331528` |
+
+6. `dense-t025` 验证运行跟踪表. 记录当前已启动和排队中的验证任务, 便于后续回填 4, 5 两张对照表.
+
+| run_id | seed | data_seed | current_status | queue / session | launch_id | notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `dense-t025-s124-d123` | `124` | `123` | `completed` | `GPU0 queue / e3_t025_val_182802` | `flash-vqg-20260402-clr-v1-e3-t025-s124-d123-2026-04-08-18-28-05` | `seed axis validation; matched pass vs dense-t050-s124` |
+| `dense-t025-s123-d124` | `123` | `124` | `completed` | `GPU0 queue / e3_t025_val_182802` | `flash-vqg-20260402-clr-v1-e3-t025-s123-d124-2026-04-08-21-34-52` | `danger data axis validation; matched pass vs dense-t050-s123-d124` |
+| `dense-t025-s123-d125` | `123` | `125` | `completed` | `GPU0 queue / e3_t025_val_182802` | `flash-vqg-20260402-clr-v1-e3-t025-s123-d125-2026-04-09-00-43-34` | `danger data axis validation; matched pass vs dense-t050-s123-d125` |
+| `dense-t025-s125-d123` | `125` | `123` | `completed` | `GPU0 follow-up queue / e3_t025_wait_183741` | `flash-vqg-20260402-clr-v1-e3-t025-s125-d123-2026-04-09-03-45-46` | `seed axis validation; matched pass vs dense-t050-s125-rerun` |
+
+7. `dense -> top-k write` probe 对照表. 固定 `tau=0.25`, `top2 read`, `den_aware selector`, `shared_den`, 只改 `vq_weight_mode=topk_softmax` 和 `vq_topk`.
+
+| run_id | write_mode | `vq_topk` | launch_id | status | final `valid/accuracy` | delta vs `dense-t025` | final `valid/loss` | delta vs `dense-t025` | `acc@512` | delta vs `dense-t025` | `acc@1024` | delta vs `dense-t025` | `valid/vq/relative_err_mean` | `valid/vq/c_entropy` | `valid/vq/write_entropy_mean` | `valid/vq/write_top1_mass_mean` | queue / session | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `dense-t025-s123-d123` | `dense_softmax` | `128` | `flash-vqg-20260402-clr-v1-e3-tau-local-t025-2026-04-08-11-45-12` | `completed` | `0.981208` | `reference` | `0.081622` | `reference` | `0.991031` | `reference` | `0.874887` | `reference` | `0.015469` | `3.568453` | `2.969296` | `0.287130` | `-` | `dense anchor` |
+| `topk2-t025-s123-d123` | `topk_softmax` | `2` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-2026-04-08-19-08-17` | `completed` | `0.893867` | `-0.087341` | `0.506182` | `+0.424560` | `0.886621` | `-0.104410` | `0.419883` | `-0.455004` | `0.059813` | `1.335524` | `0.403248` | `0.845876` | `-` | `clear fallback vs dense anchor` |
+| `topk4-t025-s123-d123` | `topk_softmax` | `4` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-2026-04-08-19-08-17` | `completed` | `0.956567` | `-0.024642` | `0.187159` | `+0.105537` | `0.969309` | `-0.021723` | `0.729371` | `-0.145516` | `0.035858` | `2.126657` | `0.951813` | `0.674146` | `-` | `clear recovery vs topk2, but still below dense anchor` |
+| `topk8-t025-s123-d123` | `topk_softmax` | `8` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.964524` | `-0.016684` | `0.152148` | `+0.070527` | `0.977973` | `-0.013059` | `0.772375` | `-0.102512` | `0.023085` | `2.732556` | `1.569098` | `0.530218` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `continued recovery; still below dense anchor` |
+| `topk16-t025-s123-d123` | `topk_softmax` | `16` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.970430` | `-0.010779` | `0.126683` | `+0.045061` | `0.981309` | `-0.009723` | `0.812148` | `-0.062738` | `0.021223` | `3.296324` | `2.166535` | `0.434942` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `best sparse point; trends toward dense but does not beat dense anchor` |
 
 ### 10.5 实验 4 结果
 
@@ -878,8 +1611,10 @@ baseline 的变化固定为:
 ## 11. 假设与默认值
 
 - 实验 1 已完成并把 `clr_v1 + top2 read` 晋升为当前主线 baseline
-- 实验 2 当前正式拆成 `E2-main` 与 `E2b`, 其中主线判断以 `E2-main` 为准
+- 实验 2 已完成, 当前不支持 denominator-free 方案晋升, `2A residual_add` 只保留为候选
 - 预算不收紧时, `E2-main` 与 `E2b` 使用双卡并行训练
 - 两边 full train 前都必须先完成 smoke, 并各自确定 batch/GA
+- 实验 3 当前默认工作点是 `dense-t025 + top2 read + den_aware selector + shared_den`, `dense-t050` 退回保守回退点
+- 实验 3 full train 前也必须先完成自己的 smoke, 并单独确定 batch/GA
 - 只在 `clr_v1` 主线内推进实验 2, 不引入 `clr_delta_v1`
 - SwanLab 继续作为 logger, 但分析统一优先读取本地产物
