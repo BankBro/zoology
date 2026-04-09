@@ -57,6 +57,17 @@ def _load_e2_builder_module():
     return module
 
 
+def _load_e3_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e3-dense-routing/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_e3_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _build_e2_args() -> Namespace:
     return Namespace(
         launch_id_prefix="flash-vqg-e2-test",
@@ -83,6 +94,38 @@ def _build_e2_args() -> Namespace:
         metrics_white_list_file=str(
             Path(
                 "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface/metrics.yaml"
+            )
+        ),
+    )
+
+
+def _build_e3_args() -> Namespace:
+    return Namespace(
+        launch_id_prefix="flash-vqg-e3-test",
+        backend="torch",
+        logger_backend="none",
+        dmodels="128",
+        learning_rates="1e-3",
+        train_batch_order="global_shuffle",
+        seed_values="123",
+        data_seed=123,
+        num_codebook_vectors="128",
+        fox_remote_path_backend="torch",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual="true",
+        fox_clr_remat_mode="off",
+        vq_topk=8,
+        gradient_accumulation_steps=8,
+        train_batch_size=16,
+        eval_batch_size=8,
+        cache_dir="./data/flash_vqg",
+        project="flash_vqg_clr_v1_mainline",
+        entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=None,
+        metrics_white_list_file=str(
+            Path(
+                "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e3-dense-routing/metrics.yaml"
             )
         ),
     )
@@ -166,6 +209,56 @@ def test_e2b_builder_returns_expected_smoke_and_train_matrix():
     assert two_b_kwargs["fox_clr_lambda_remote"] == 0.25
 
 
+def test_e2b_decoupled_baseline_probe_builder_allows_seed_data_seed_mismatch():
+    module = _load_e2_builder_module()
+    args = _build_e2_args()
+    args.seed_values = "123"
+    args.data_seed = 124
+
+    configs = module.build_e2b_baseline_probe_decoupled_configs(args)
+
+    assert [config.run_id for config in configs] == ["baseline-s123-d124"]
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+    assert flash_kwargs["experiment_part"] == "e2b_probe"
+    assert flash_kwargs["experiment_mode"] == "baseline"
+    assert flash_kwargs["fox_clr_selector_mode"] == "den_aware"
+    assert flash_kwargs["fox_clr_merge_mode"] == "shared_den"
+    assert flash_kwargs["fox_clr_gate_mode"] == "off"
+    assert flash_kwargs["fox_clr_lambda_remote"] == 1.0
+
+
+def test_e3_builder_returns_expected_smoke_and_train_matrix():
+    module = _load_e3_builder_module()
+    args = _build_e3_args()
+
+    smoke_configs = module.build_e3_smoke_configs(args)
+    train_configs = module.build_e3_train_configs(args)
+
+    assert [config.run_id for config in smoke_configs] == ["baseline", "dense-t100"]
+    assert [config.run_id for config in train_configs] == [
+        "baseline",
+        "dense-t050",
+        "dense-t100",
+        "dense-t200",
+    ]
+
+    baseline_kwargs = _extract_flash_kwargs(train_configs[0])
+    assert baseline_kwargs["vq_score_mode"] == "l2"
+    assert baseline_kwargs["vq_weight_mode"] == "one-hot"
+    assert baseline_kwargs["vq_update_mode"] == "ema"
+    assert baseline_kwargs["fox_remote_read_topk"] == 2
+    assert baseline_kwargs["fox_clr_selector_mode"] == "den_aware"
+    assert baseline_kwargs["fox_clr_merge_mode"] == "shared_den"
+
+    dense_kwargs = _extract_flash_kwargs(train_configs[1])
+    assert dense_kwargs["vq_score_mode"] == "codebook_dot"
+    assert dense_kwargs["vq_weight_mode"] == "dense_softmax"
+    assert dense_kwargs["vq_update_mode"] == "grad"
+    assert dense_kwargs["vq_softmax_tau"] == 0.5
+    assert dense_kwargs["vq_topk"] == 8
+    assert dense_kwargs["experiment_part"] == "e3_dense"
+
+
 def test_e1_train_script_uses_local_analysis_and_dense_top1_top2_top4_modes():
     script_path = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/run_e1_train.sh"
@@ -211,6 +304,39 @@ def test_e2_scripts_use_config_builder_and_smoke_env_files():
     assert "LAUNCH_ID_PREFIX_E2_MAIN" in common_env
     assert "LAUNCH_ID_PREFIX_E2B" in common_env
     assert "METRICS_WHITE_LIST_FILE_E2" in common_env
+
+
+def test_e2_decoupled_baseline_probe_script_uses_dedicated_builder():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e2-remote-interface"
+    )
+    script = (base_dir / "run_e2b_baseline_probe_decoupled.sh").read_text(encoding="utf-8")
+    readme = (base_dir / "README.md").read_text(encoding="utf-8")
+
+    assert "build_e2b_baseline_probe_decoupled_configs" in script
+    assert "decoupled baseline probe 只接受单个 SEED_VALUES" in script
+    assert "run_e2b_baseline_probe_decoupled.sh" in readme
+    assert "允许 `SEED_VALUES != DATA_SEED`" in readme
+
+
+def test_e3_scripts_use_config_builder_and_smoke_env_files():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e3-dense-routing"
+    )
+    readme = (base_dir / "README.md").read_text(encoding="utf-8")
+    smoke = (base_dir / "run_e3_smoke.sh").read_text(encoding="utf-8")
+    train = (base_dir / "run_e3_train.sh").read_text(encoding="utf-8")
+    metrics_yaml = (base_dir / "metrics.yaml").read_text(encoding="utf-8")
+
+    assert "dense write + top2 read" in readme
+    assert "e3_smoke.env" in smoke
+    assert "SMOKE_ENV_FILE" in smoke
+    assert "--config-builder \"${BUILDER_SPEC}\"" in train
+    assert "--logger-backend swanlab" in train
+    assert "source \"${ENV_FILE}\"" in train
+    assert "--analysis \"${ANALYSIS_SOURCE}\"" in train
+    assert "vq/write_entropy_mean" in metrics_yaml
+    assert "valid/vq/write_top1_mass_mean" in metrics_yaml
 
 
 def test_fetch_local_run_falls_back_to_worker_log_when_backup_is_missing(tmp_path):
