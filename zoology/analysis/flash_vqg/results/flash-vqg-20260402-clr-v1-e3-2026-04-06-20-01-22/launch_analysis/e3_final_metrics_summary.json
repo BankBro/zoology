@@ -1,0 +1,14 @@
+{
+  "launch_id": "flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22",
+  "run_count": 4,
+  "metric_source_by_run": {
+    "baseline": "local",
+    "dense-t050": "local",
+    "dense-t100": "local",
+    "dense-t200": "remote"
+  },
+  "best_run_by_valid_accuracy": {
+    "run_id": "dense-t050",
+    "valid_accuracy": 0.96679150390625
+  }
+}

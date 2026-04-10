@@ -1,0 +1,332 @@
+{
+  "metrics": [
+    {
+      "metric": "attn/clr_alpha_norm_mean",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "attn__clr_alpha_norm_mean.png"
+    },
+    {
+      "metric": "attn/clr_den_neg_ratio",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "attn__clr_den_neg_ratio.png"
+    },
+    {
+      "metric": "attn/den_min",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "attn__den_min.png"
+    },
+    {
+      "metric": "attn/nan_inf_count",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "attn__nan_inf_count.png"
+    },
+    {
+      "metric": "attn/o_remote_energy_ratio",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "attn__o_remote_energy_ratio.png"
+    },
+    {
+      "metric": "attn/remote_routing_entropy",
+      "chart_type": "line",
+      "num_points": 10123,
+      "first_step": 1,
+      "last_step": 22590,
+      "picture_file": "attn__remote_routing_entropy.png"
+    },
+    {
+      "metric": "attn/remote_top1_top2_margin",
+      "chart_type": "line",
+      "num_points": 10123,
+      "first_step": 1,
+      "last_step": 22590,
+      "picture_file": "attn__remote_top1_top2_margin.png"
+    },
+    {
+      "metric": "attn/remote_topk_den_capture_ratio",
+      "chart_type": "line",
+      "num_points": 10123,
+      "first_step": 1,
+      "last_step": 22590,
+      "picture_file": "attn__remote_topk_den_capture_ratio.png"
+    },
+    {
+      "metric": "train/loss",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "train__loss.png"
+    },
+    {
+      "metric": "valid/accuracy",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__accuracy.png"
+    },
+    {
+      "metric": "valid/attn/clr_alpha_norm_mean",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__clr_alpha_norm_mean.png"
+    },
+    {
+      "metric": "valid/attn/clr_den_neg_ratio",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__clr_den_neg_ratio.png"
+    },
+    {
+      "metric": "valid/attn/den_min",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__den_min.png"
+    },
+    {
+      "metric": "valid/attn/nan_inf_count",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__nan_inf_count.png"
+    },
+    {
+      "metric": "valid/attn/o_remote_energy_ratio",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__o_remote_energy_ratio.png"
+    },
+    {
+      "metric": "valid/attn/remote_routing_entropy",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__remote_routing_entropy.png"
+    },
+    {
+      "metric": "valid/attn/remote_top1_top2_margin",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__remote_top1_top2_margin.png"
+    },
+    {
+      "metric": "valid/attn/remote_topk_den_capture_ratio",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__attn__remote_topk_den_capture_ratio.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-1024",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__input_seq_len__accuracy-1024.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-128",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__input_seq_len__accuracy-128.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-256",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__input_seq_len__accuracy-256.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-512",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__input_seq_len__accuracy-512.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-64",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__input_seq_len__accuracy-64.png"
+    },
+    {
+      "metric": "valid/loss",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__loss.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-1024x256",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-1024x256.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-128x32",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-128x32.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-256x64",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-256x64.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-512x128",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-512x128.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-512x64",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-512x64.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x16",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-64x16.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x4",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-64x4.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x8",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__mqar_case__accuracy-64x8.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-128",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-128.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-16",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-16.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-256",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-256.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-32",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-32.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-4",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-4.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-64",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-64.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-8",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__num_kv_pairs__accuracy-8.png"
+    },
+    {
+      "metric": "valid/vq/relative_err_mean",
+      "chart_type": "line",
+      "num_points": 32,
+      "first_step": 705,
+      "last_step": 22591,
+      "picture_file": "valid__vq__relative_err_mean.png"
+    },
+    {
+      "metric": "vq/relative_err_mean",
+      "chart_type": "line",
+      "num_points": 22560,
+      "first_step": 0,
+      "last_step": 22590,
+      "picture_file": "vq__relative_err_mean.png"
+    }
+  ]
+}
