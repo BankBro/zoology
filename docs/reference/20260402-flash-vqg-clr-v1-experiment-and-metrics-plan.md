@@ -1518,6 +1518,13 @@ baseline 的变化固定为:
 - **`topk16` 可保留为 sparse-write 参考点, 但仍不足以替代 dense write**
 - **dense-read 分支当前不具竞争力, 不再继续扩成 2x2 matched validation 矩阵**
 
+4. E3.5 `codebook` 容量 sweep 的分流结论是: `cb128` 仍是当前甜点, 单纯扩大容量不是优先方向.
+
+- `cb64` 明显容量不足
+- `cb256` 没有稳定收益, 且 `s124` 明显退化
+- 剩余瓶颈更像 retrieval ranking distortion / VQ 目标与检索排序不对齐
+- 后续优先推进实验 5 `retrieval-aware VQ loss`; 实验 4 `two-level key quantization` 保留为次优先级候选
+
 #### 10.4.6 实验数据记录表
 
 本小节只作为实验 3 的数据台账入口. 原始数据以 `CSV / history.csv / summary.json / manifest.json` 为准. Markdown 表格只承担人工回填, 复核和后续决策入口作用.
@@ -1598,6 +1605,17 @@ baseline 的变化固定为:
 | `dense-t025-dread-s123-d123` | `dense_softmax` | `128` | `dense` | `None` | `flash-vqg-20260402-clr-v1-e3-dread-t025-2026-04-09-08-32-54` | `completed` | `0.965413` | `-0.015795` | `0.158107` | `+0.076486` | `0.987422` | `-0.003609` | `0.765508` | `-0.109379` | `GPU0 detached queue / e3_t025_dread_083252` | `completed probe; dense read is not competitive under dense write` |
 | `topk16-t025-s123-d123` | `topk_softmax` | `16` | `topk` | `2` | `flash-vqg-20260402-clr-v1-e3-topkwrite-probe-t025-k8k16-2026-04-09-03-14-58` | `completed` | `0.970430` | `-0.010779` | `0.126683` | `+0.045061` | `0.981309` | `-0.009723` | `0.812148` | `-0.062738` | `GPU1 detached queue / e3_topkwrite_probe_k8k16_031456` | `best sparse-write point under top2 read; still below dense anchor` |
 | `topk16-t025-dread-s123-d123` | `topk_softmax` | `16` | `dense` | `None` | `-` | `dropped` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `-` | `not scheduled because dense-read branch is already non-competitive` |
+
+9. `E3.5 codebook` 容量 sweep 分流记录表. 固定 `dense-t025`, `top2 read`, `den_aware selector`, `shared_den`, 只改 `num_codebook_vectors`. 本表是低成本瓶颈分流实验, 用于判断后续优先走实验 4 还是实验 5, 不是新的主线晋升实验. `cb128` 两行均复用已有实验 3 结果, 不是 E3.5 新增重跑.
+
+| run_id | cb | seed | data_seed | launch_id | status | final `valid/accuracy` | final `valid/loss` | `acc@512` | `acc@1024` | `valid/vq/relative_err_mean` | `valid/vq/c_entropy` | `valid/vq/write_entropy_mean` | `valid/vq/write_top1_mass_mean` | `valid/attn/o_remote_energy_ratio` | notes |
+| --- | ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `dense-t025-cb64-s123-d123` | `64` | `123` | `123` | `flash-vqg-20260402-clr-v1-e35-codebook-sweep-t025-2026-04-09-16-15-45` | `completed` | `0.923458` | `0.372907` | `0.917617` | `0.579992` | `0.022692` | `1.931412` | `1.671735` | `0.552028` | `0.411586` | `E3.5 new run; full launch analysis completed` |
+| `dense-t025-cb64-s124-d123` | `64` | `124` | `123` | `flash-vqg-20260402-clr-v1-e35-codebook-sweep-t025-2026-04-09-16-15-45` | `completed` | `0.956714` | `0.188268` | `0.962066` | `0.749629` | `0.026321` | `2.140938` | `1.849831` | `0.630878` | `0.334775` | `E3.5 new run; full launch analysis completed` |
+| `dense-t025-s123-d123` | `128` | `123` | `123` | `flash-vqg-20260402-clr-v1-e3-tau-local-t025-2026-04-08-11-45-12` | `completed / reused` | `0.981208` | `0.081622` | `0.991031` | `0.874887` | `0.015469` | `3.568453` | `2.969296` | `0.287130` | `0.312489` | `cb128 anchor; reused from E3 tau local scan, not rerun for E3.5` |
+| `dense-t025-s124-d123` | `128` | `124` | `123` | `flash-vqg-20260402-clr-v1-e3-t025-s124-d123-2026-04-08-18-28-05` | `completed / reused` | `0.980097` | `0.090468` | `0.992430` | `0.860320` | `0.011814` | `3.582025` | `3.019536` | `0.181986` | `0.305752` | `cb128 seed-axis reference; reused from E3 matched validation, not rerun for E3.5` |
+| `dense-t025-cb256-s123-d123` | `256` | `123` | `123` | `flash-vqg-20260402-clr-v1-e35-codebook-sweep-t025-2026-04-09-16-15-45` | `completed` | `0.981071` | `0.084111` | `0.991539` | `0.871535` | `0.015897` | `3.914883` | `3.353381` | `0.216045` | `0.305798` | `E3.5 new run; full launch analysis completed` |
+| `dense-t025-cb256-s124-d123` | `256` | `124` | `123` | `flash-vqg-20260402-clr-v1-e35-codebook-sweep-t025-2026-04-09-16-15-45` | `completed` | `0.939210` | `0.285109` | `0.950613` | `0.627754` | `0.017691` | `2.813682` | `2.586391` | `0.455668` | `0.368983` | `E3.5 new run; full launch analysis completed` |
 
 ### 10.5 实验 4 结果
 

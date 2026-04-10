@@ -1,0 +1,130 @@
+{
+  "schema_version": 3,
+  "launch_id": "flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50",
+  "sweep_id": "flash-vqg-20260402-clr-v1-e1",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-03T05:44:51.385866+00:00",
+  "updated_at_utc": "2026-04-03T12:32:09.399719+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense-seed123-tbs128-ebs16-ga2",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-03T07:25:01.074641+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "r0phhxeb63x0jdjltbtjt",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/r0phhxeb63x0jdjltbtjt"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_054456-r0phhxeb63x0jdjltbtjt",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_054456-r0phhxeb63x0jdjltbtjt/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_054456-r0phhxeb63x0jdjltbtjt/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_054456-r0phhxeb63x0jdjltbtjt/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense-seed123-tbs128-ebs16-ga2",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense-seed123-tbs128-ebs16-ga2/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense-seed123-tbs128-ebs16-ga2/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-dense-seed123-tbs128-ebs16-ga2/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      }
+    },
+    {
+      "run_id": "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1-seed123-tbs128-ebs16-ga2",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-03T09:08:25.050748+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "5jypauqkisk70188k6n46",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/5jypauqkisk70188k6n46"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_072503-5jypauqkisk70188k6n46",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_072503-5jypauqkisk70188k6n46/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_072503-5jypauqkisk70188k6n46/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_072503-5jypauqkisk70188k6n46/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1-seed123-tbs128-ebs16-ga2",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1-seed123-tbs128-ebs16-ga2/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1-seed123-tbs128-ebs16-ga2/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top1-seed123-tbs128-ebs16-ga2/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      }
+    },
+    {
+      "run_id": "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2-seed123-tbs128-ebs16-ga2",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-03T10:52:07.890709+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "gyy9ayp13979d0feaejc3",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/gyy9ayp13979d0feaejc3"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_090827-gyy9ayp13979d0feaejc3",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_090827-gyy9ayp13979d0feaejc3/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_090827-gyy9ayp13979d0feaejc3/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_090827-gyy9ayp13979d0feaejc3/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2-seed123-tbs128-ebs16-ga2",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2-seed123-tbs128-ebs16-ga2/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2-seed123-tbs128-ebs16-ga2/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top2-seed123-tbs128-ebs16-ga2/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      }
+    },
+    {
+      "run_id": "flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs128-ebs16-ga2",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-03T12:32:09.398467+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "a2cqxecw43to17qdbwuxa",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/a2cqxecw43to17qdbwuxa"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_105210-a2cqxecw43to17qdbwuxa",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_105210-a2cqxecw43to17qdbwuxa/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_105210-a2cqxecw43to17qdbwuxa/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260403_105210-a2cqxecw43to17qdbwuxa/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs128-ebs16-ga2",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs128-ebs16-ga2/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs128-ebs16-ga2/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e1-2026-04-03-05-44-50/flash_vqg_h2_torch-block32-dmodel128-cb128-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-clr1-r4-den1-rremat-off-rread-top4-seed123-tbs128-ebs16-ga2/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      }
+    }
+  ]
+}

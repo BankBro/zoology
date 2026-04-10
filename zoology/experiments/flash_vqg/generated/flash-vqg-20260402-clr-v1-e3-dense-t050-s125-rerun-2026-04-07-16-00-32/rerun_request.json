@@ -1,0 +1,13 @@
+{
+  "base_launch_id": "flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22",
+  "base_run_id": "dense-t050",
+  "replaces_launch_id": "flash-vqg-20260402-clr-v1-e3-dense-t050-seeds124-125-2026-04-07-10-24-16",
+  "replaces_run_id": "dense-t050-s125",
+  "launch_id": "flash-vqg-20260402-clr-v1-e3-dense-t050-s125-rerun-2026-04-07-16-00-32",
+  "launch_id_prefix": "flash-vqg-20260402-clr-v1-e3-dense-t050-s125-rerun",
+  "run_id": "dense-t050-s125-rerun",
+  "seed": 125,
+  "data_seed": 123,
+  "gpus": "0",
+  "notes": "single_gpu_seed125_rerun_after_interrupted_cli_session"
+}

@@ -1,0 +1,170 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22",
+  "sweep_id": "flash-vqg-20260402-clr-v1-e3",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-06T20:01:22.685506+00:00",
+  "updated_at_utc": "2026-04-07T06:25:25.687885+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "baseline",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-06T21:55:49.330234+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "11apvj4hyrn8ye119uvg6",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/11apvj4hyrn8ye119uvg6"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e3_dense",
+        "experiment_mode": "baseline",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "dense-t050",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-07T00:51:16.701785+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "y4vfyg2prcc411vbza3yo",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/y4vfyg2prcc411vbza3yo"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_215551-y4vfyg2prcc411vbza3yo",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_215551-y4vfyg2prcc411vbza3yo/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_215551-y4vfyg2prcc411vbza3yo/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_215551-y4vfyg2prcc411vbza3yo/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t050",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t050/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t050/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t050/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e3_dense",
+        "experiment_mode": "dense_t050",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "dense-t100",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-07T03:47:03.585177+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "7vu7lp8o75k36bmw105t6",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/7vu7lp8o75k36bmw105t6"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_005118-7vu7lp8o75k36bmw105t6",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_005118-7vu7lp8o75k36bmw105t6/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_005118-7vu7lp8o75k36bmw105t6/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_005118-7vu7lp8o75k36bmw105t6/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t100",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t100/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t100/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t100/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e3_dense",
+        "experiment_mode": "dense_t100",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "dense-t200",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-07T06:25:25.687885+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "v0vl6o0hjum58plhvoobw",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/v0vl6o0hjum58plhvoobw"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_034706-v0vl6o0hjum58plhvoobw",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_034706-v0vl6o0hjum58plhvoobw/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_034706-v0vl6o0hjum58plhvoobw/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260407_034706-v0vl6o0hjum58plhvoobw/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t200",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t200/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t200/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/dense-t200/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e3_dense",
+        "experiment_mode": "dense_t200",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    }
+  ]
+}

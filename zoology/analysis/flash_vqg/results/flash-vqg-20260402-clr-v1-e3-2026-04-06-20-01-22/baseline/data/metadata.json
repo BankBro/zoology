@@ -1,0 +1,867 @@
+{
+  "fetched_at_utc": "2026-04-07T06:33:46.164480+00:00",
+  "manifest_entry": {
+    "run_id": "baseline",
+    "eval_task": null,
+    "status": "completed",
+    "error": null,
+    "updated_at_utc": "2026-04-06T21:55:49.330234+00:00",
+    "swanlab": {
+      "project": "flash_vqg_clr_v1_mainline",
+      "entity": "scu-mclab",
+      "experiment_id": "11apvj4hyrn8ye119uvg6",
+      "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/11apvj4hyrn8ye119uvg6"
+    },
+    "local": {
+      "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6",
+      "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/backup.swanlab",
+      "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/files/config.yaml",
+      "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6/files/swanlab-metadata.json",
+      "log_file": null,
+      "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline",
+      "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/best.pt",
+      "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/last.pt",
+      "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/baseline/train_config.json"
+    },
+    "eval_source": {
+      "checkpoint_launch_id": null,
+      "checkpoint_run_id": null,
+      "best_checkpoint": null
+    },
+    "config_summary": {
+      "experiment_part": "e3_dense",
+      "experiment_mode": "baseline",
+      "fox_remote_read_topk": 2,
+      "fox_clr_selector_mode": "den_aware",
+      "fox_clr_merge_mode": "shared_den",
+      "fox_clr_gate_mode": "off",
+      "fox_clr_lambda_remote": 1.0,
+      "fox_clr_gate_init_bias": -2.0
+    }
+  },
+  "experiment": {
+    "cuid": "11apvj4hyrn8ye119uvg6",
+    "name": "baseline",
+    "description": "",
+    "state": "FINISHED",
+    "show": true,
+    "createdAt": "2026-04-06T20:01:27.550Z",
+    "finishedAt": "2026-04-06T21:55:49.862Z",
+    "user": {
+      "username": "Bank",
+      "name": "Bank"
+    },
+    "profile": {
+      "config": {
+        "data": {
+          "desc": "",
+          "sort": 0,
+          "value": {
+            "seed": 123,
+            "cache_dir": "./data/flash_vqg",
+            "batch_size": [
+              64,
+              16
+            ],
+            "num_passes": 1,
+            "force_cache": false,
+            "test_configs": [
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 64
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 64
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 64
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 128
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 256
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 512
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 512
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 1000,
+                "input_seq_len": 1024
+              }
+            ],
+            "train_configs": [
+              {
+                "vocab_size": 8192,
+                "num_examples": 100000,
+                "input_seq_len": 64
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 20000,
+                "input_seq_len": 128
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 20000,
+                "input_seq_len": 256
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 20000,
+                "input_seq_len": 256
+              },
+              {
+                "vocab_size": 8192,
+                "num_examples": 20000,
+                "input_seq_len": 256
+              }
+            ],
+            "train_batch_order": "global_shuffle"
+          }
+        },
+        "seed": {
+          "desc": "",
+          "sort": 14,
+          "value": 123
+        },
+        "model": {
+          "desc": "",
+          "sort": 1,
+          "value": {
+            "name": "flash_vqg",
+            "d_model": 128,
+            "n_layers": 2,
+            "drop_path": 0,
+            "block_type": "TransformerBlock",
+            "vocab_size": 8192,
+            "state_mixer": {
+              "name": "torch.nn.Identity",
+              "kwargs": {}
+            },
+            "embed_dropout": 0.1,
+            "resid_dropout": 0,
+            "sequence_mixer": {
+              "name": "zoology.mixers.hybrid.Hybrid",
+              "kwargs": {
+                "configs": [
+                  {
+                    "name": "zoology.mixers.base_conv.BaseConv",
+                    "kwargs": {
+                      "l_max": 1024,
+                      "kernel_size": 3,
+                      "implicit_long_conv": true
+                    }
+                  },
+                  {
+                    "name": "zoology.mixers.flash_vqg.FlashVQGMixer",
+                    "kwargs": {
+                      "key_dim": 64,
+                      "vq_topk": 4,
+                      "attn_cfg": {},
+                      "block_len": 32,
+                      "num_heads": 2,
+                      "value_dim": 64,
+                      "vocab_size": 8192,
+                      "attn_backend": "flash",
+                      "fox_clr_rank": 4,
+                      "codebook_beta": 0.25,
+                      "if_value_silu": true,
+                      "vq_score_mode": "l2",
+                      "vq_softmax_tau": 1,
+                      "vq_update_mode": "ema",
+                      "vq_weight_mode": "one-hot",
+                      "experiment_mode": "baseline",
+                      "experiment_part": "e3_dense",
+                      "use_time_mixing": "kv_shift",
+                      "local_num_blocks": 2,
+                      "fox_clr_gate_mode": "off",
+                      "if_remote_enabled": true,
+                      "fox_clr_merge_mode": "shared_den",
+                      "fox_clr_remat_mode": "off",
+                      "fox_remote_formula": "clr_v1",
+                      "enable_layer_metrics": true,
+                      "fox_remote_read_topk": 2,
+                      "num_codebook_vectors": 128,
+                      "fox_clr_lambda_remote": 1,
+                      "fox_clr_selector_mode": "den_aware",
+                      "fox_if_local_use_vq_k": false,
+                      "fox_clr_gate_init_bias": -2,
+                      "output_gate_activation": "swish",
+                      "fox_phase2_metrics_mode": "full",
+                      "fox_remote_path_backend": "torch",
+                      "fox_state_build_backend": "torch",
+                      "fox_clr_use_den_residual": true,
+                      "vq_use_triton_shortcodes": false,
+                      "if_output_gate_use_rmsnorm": true
+                    }
+                  }
+                ]
+              }
+            },
+            "layer_norm_epsilon": 1e-05,
+            "embedding_init_type": "default",
+            "max_position_embeddings": 0,
+            "pad_vocab_size_multiple": 1,
+            "learnable_word_embeddings": true
+          }
+        },
+        "logger": {
+          "desc": "",
+          "sort": 2,
+          "value": {
+            "entity": "scu-mclab",
+            "backend": "swanlab",
+            "project_name": "flash_vqg_clr_v1_mainline"
+          }
+        },
+        "run_id": {
+          "desc": "",
+          "sort": 17,
+          "value": "baseline"
+        },
+        "sweep_id": {
+          "desc": "",
+          "sort": 16,
+          "value": "flash-vqg-20260402-clr-v1-e3"
+        },
+        "launch_id": {
+          "desc": "",
+          "sort": 15,
+          "value": "flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22"
+        },
+        "loss_type": {
+          "desc": "",
+          "sort": 6,
+          "value": "ce"
+        },
+        "checkpoint": {
+          "desc": "",
+          "sort": 3,
+          "value": {
+            "enabled": true,
+            "root_dir": "checkpoints",
+            "best_mode": "max",
+            "save_best": true,
+            "save_last": true,
+            "best_metric": null,
+            "save_config_json": true
+          }
+        },
+        "input_type": {
+          "desc": "",
+          "sort": 7,
+          "value": "discrete"
+        },
+        "max_epochs": {
+          "desc": "",
+          "sort": 5,
+          "value": 32
+        },
+        "slice_keys": {
+          "desc": "",
+          "sort": 10,
+          "value": [
+            "num_kv_pairs",
+            "input_seq_len",
+            "mqar_case"
+          ]
+        },
+        "weight_decay": {
+          "desc": "",
+          "sort": 12,
+          "value": 0.1
+        },
+        "learning_rate": {
+          "desc": "",
+          "sort": 11,
+          "value": 0.001
+        },
+        "metrics_white_list": {
+          "desc": "",
+          "sort": 4,
+          "value": [
+            "train/loss",
+            "valid/loss",
+            "valid/accuracy",
+            "valid/input_seq_len/*",
+            "valid/num_kv_pairs/*",
+            "valid/mqar_case/*",
+            "attn/nan_inf_count",
+            "attn/den_min",
+            "attn/o_remote_energy_ratio",
+            "attn/clr_alpha_norm_mean",
+            "attn/clr_den_neg_ratio",
+            "attn/remote_routing_entropy",
+            "attn/remote_top1_top2_margin",
+            "valid/attn/nan_inf_count",
+            "valid/attn/den_min",
+            "valid/attn/o_remote_energy_ratio",
+            "valid/attn/clr_alpha_norm_mean",
+            "valid/attn/clr_den_neg_ratio",
+            "valid/attn/remote_routing_entropy",
+            "valid/attn/remote_top1_top2_margin",
+            "vq/relative_err_mean",
+            "vq/k_norm_mean",
+            "vq/k_hat_norm_mean",
+            "vq/c_rms_mean",
+            "vq/c_entropy",
+            "vq/c_usage_mean",
+            "vq/c_usage_max",
+            "vq/write_entropy_mean",
+            "vq/write_top1_mass_mean",
+            "valid/vq/relative_err_mean",
+            "valid/vq/k_norm_mean",
+            "valid/vq/k_hat_norm_mean",
+            "valid/vq/c_rms_mean",
+            "valid/vq/c_entropy",
+            "valid/vq/c_usage_mean",
+            "valid/vq/c_usage_max",
+            "valid/vq/write_entropy_mean",
+            "valid/vq/write_top1_mass_mean"
+          ]
+        },
+        "early_stopping_metric": {
+          "desc": "",
+          "sort": 8,
+          "value": "valid/accuracy"
+        },
+        "early_stopping_threshold": {
+          "desc": "",
+          "sort": 9,
+          "value": 0.99
+        },
+        "gradient_accumulation_steps": {
+          "desc": "",
+          "sort": 13,
+          "value": 4
+        }
+      },
+      "metadata": {
+        "os": "Linux-6.8.0-49-generic-x86_64-with-glibc2.35",
+        "cpu": {
+          "brand": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+          "cores": 12
+        },
+        "cwd": "/home/lyj/mnt/project/zoology",
+        "gpu": {
+          "nvidia": {
+            "cuda": "11.8",
+            "type": [
+              "NVIDIA GeForce RTX 2080 Ti",
+              "NVIDIA GeForce RTX 2080 Ti"
+            ],
+            "cores": 2,
+            "driver": "550.120",
+            "memory": [
+              "11",
+              "11"
+            ],
+            "cudacores": [
+              4352,
+              4352
+            ],
+            "architecture": [
+              "Turing",
+              "Turing"
+            ]
+          }
+        },
+        "pid": 110486,
+        "memory": "31",
+        "python": "3.12.11",
+        "command": "/home/lyj/mnt/project/zoology/zoology/launch.py /home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22/launch_configs.py --launch-id flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22 --gpus 1",
+        "swanlab": {
+          "logdir": "/home/lyj/mnt/project/zoology/swanlog/run-20260406_200128-11apvj4hyrn8ye119uvg6",
+          "version": "0.6.10",
+          "_monitor": 5
+        },
+        "git_info": [
+          "flash-vqg",
+          "27b10a9a797cb138700b8a4dfb8f0672b45b78c6"
+        ],
+        "hostname": "a0651c2c1c1f",
+        "executable": "/home/lyj/miniconda3/envs/flash-vqg/bin/python",
+        "git_remote": "https://github.com/BankBro/zoology",
+        "os_pretty_name": "Ubuntu 22.04.3 LTS",
+        "python_verbose": "3.12.11 | packaged by Anaconda, Inc. | (main, Jun  5 2025, 13:09:17) [GCC 11.2.0]"
+      },
+      "requirements": "absl-py==2.3.1\naiohappyeyeballs==2.6.1\naiohttp==3.12.15\naiosignal==1.4.0\nannotated-types==0.7.0\nantlr4-python3-runtime==4.9.3\napex==0.1\nattrs==25.3.0\nboto3==1.40.35\nbotocore==1.40.35\ncausal-conv1d==1.5.3.post1\ncertifi==2025.8.3\ncharset-normalizer==3.4.3\nclick==8.3.0\ncontourpy==1.3.3\ncycler==0.12.1\ndatasets==4.1.1\ndill==0.4.0\neinops==0.8.1\nfilelock==3.13.1\nflash-linear-attention==0.4.0\nflash-vqg==0.1.0\nfonttools==4.60.1\nfrozenlist==1.7.0\nfsspec==2024.6.1\ngitdb==4.0.12\nGitPython==3.1.45\ngrpcio==1.76.0\nhf_transfer==0.1.9\nhf-xet==1.1.10\nhuggingface-hub==0.35.0\nhydra-core==1.3.2\nidna==3.10\niniconfig==2.1.0\nJinja2==3.1.4\njmespath==1.0.1\nkiwisolver==1.4.9\nlightning==2.5.5\nlightning-utilities==0.15.2\nMarkdown==3.10\nmarkdown-it-py==4.0.0\nMarkupSafe==2.1.5\nmatplotlib==3.10.7\nmdurl==0.1.2\nmpmath==1.3.0\nmultidict==6.6.4\nmultiprocess==0.70.16\nnetworkx==3.3\nninja==1.13.0\nnumpy==2.1.2\nnvidia-cublas-cu11==11.11.3.6\nnvidia-cuda-cupti-cu11==11.8.87\nnvidia-cuda-nvrtc-cu11==11.8.89\nnvidia-cuda-runtime-cu11==11.8.89\nnvidia-cudnn-cu11==9.1.0.70\nnvidia-cufft-cu11==10.9.0.58\nnvidia-curand-cu11==10.3.0.86\nnvidia-cusolver-cu11==11.4.1.48\nnvidia-cusparse-cu11==11.7.5.86\nnvidia-ml-py==13.580.82\nnvidia-nccl-cu11==2.21.5\nnvidia-nvtx-cu11==11.8.86\nnvitop==1.6.2\nomegaconf==2.3.0\npackaging==25.0\npandas==2.3.2\npillow==11.0.0\npip==25.2\nplatformdirs==4.4.0\npluggy==1.6.0\nprettytable==3.16.0\npropcache==0.3.2\nprotobuf==6.32.1\npsutil==7.1.0\npyarrow==21.0.0\npydantic==2.11.9\npydantic_core==2.33.2\npyecharts==2.0.8\nPygments==2.19.2\npynvml==13.0.1\npyparsing==3.2.5\npytest==8.4.2\npython-dateutil==2.9.0.post0\npytorch-lightning==2.5.5\npytz==2025.2\nPyYAML==6.0.2\nregex==2025.9.18\nrequests==2.32.5\nrich==13.9.4\ns3transfer==0.14.0\nsafetensors==0.6.2\nsentry-sdk==2.38.0\nsetuptools==78.1.1\nsimplejson==3.20.1\nsix==1.17.0\nsmmap==5.0.2\nswankit==0.2.4\nswanlab==0.6.10\nsympy==1.13.1\ntensorboard==2.20.0\ntensorboard-data-server==0.7.2\ntimm==1.0.20\ntokenizers==0.22.1\ntorch==2.6.0+cu118\ntorch-tb-profiler==0.4.3\ntorchaudio==2.6.0+cu118\ntorchmetrics==1.8.2\ntorchvision==0.21.0+cu118\ntqdm==4.67.1\ntransformers==4.56.2\ntriton==3.2.0\ntyping_extensions==4.12.2\ntyping-inspection==0.4.1\ntzdata==2025.2\nurllib3==2.5.0\nwandb==0.25.1\nwcwidth==0.2.13\nWerkzeug==3.1.3\nwheel==0.45.1\nwrapt==1.17.3\nxxhash==3.5.0\nyarl==1.20.1\n",
+      "conda": null
+    }
+  },
+  "config": {
+    "data": {
+      "seed": 123,
+      "cache_dir": "./data/flash_vqg",
+      "batch_size": [
+        64,
+        16
+      ],
+      "num_passes": 1,
+      "force_cache": false,
+      "test_configs": [
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 64
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 64
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 64
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 128
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 256
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 512
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 512
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 1000,
+          "input_seq_len": 1024
+        }
+      ],
+      "train_configs": [
+        {
+          "vocab_size": 8192,
+          "num_examples": 100000,
+          "input_seq_len": 64
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 20000,
+          "input_seq_len": 128
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 20000,
+          "input_seq_len": 256
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 20000,
+          "input_seq_len": 256
+        },
+        {
+          "vocab_size": 8192,
+          "num_examples": 20000,
+          "input_seq_len": 256
+        }
+      ],
+      "train_batch_order": "global_shuffle"
+    },
+    "seed": 123,
+    "model": {
+      "name": "flash_vqg",
+      "d_model": 128,
+      "n_layers": 2,
+      "drop_path": 0,
+      "block_type": "TransformerBlock",
+      "vocab_size": 8192,
+      "state_mixer": {
+        "name": "torch.nn.Identity",
+        "kwargs": {}
+      },
+      "embed_dropout": 0.1,
+      "resid_dropout": 0,
+      "sequence_mixer": {
+        "name": "zoology.mixers.hybrid.Hybrid",
+        "kwargs": {
+          "configs": [
+            {
+              "name": "zoology.mixers.base_conv.BaseConv",
+              "kwargs": {
+                "l_max": 1024,
+                "kernel_size": 3,
+                "implicit_long_conv": true
+              }
+            },
+            {
+              "name": "zoology.mixers.flash_vqg.FlashVQGMixer",
+              "kwargs": {
+                "key_dim": 64,
+                "vq_topk": 4,
+                "attn_cfg": {},
+                "block_len": 32,
+                "num_heads": 2,
+                "value_dim": 64,
+                "vocab_size": 8192,
+                "attn_backend": "flash",
+                "fox_clr_rank": 4,
+                "codebook_beta": 0.25,
+                "if_value_silu": true,
+                "vq_score_mode": "l2",
+                "vq_softmax_tau": 1,
+                "vq_update_mode": "ema",
+                "vq_weight_mode": "one-hot",
+                "experiment_mode": "baseline",
+                "experiment_part": "e3_dense",
+                "use_time_mixing": "kv_shift",
+                "local_num_blocks": 2,
+                "fox_clr_gate_mode": "off",
+                "if_remote_enabled": true,
+                "fox_clr_merge_mode": "shared_den",
+                "fox_clr_remat_mode": "off",
+                "fox_remote_formula": "clr_v1",
+                "enable_layer_metrics": true,
+                "fox_remote_read_topk": 2,
+                "num_codebook_vectors": 128,
+                "fox_clr_lambda_remote": 1,
+                "fox_clr_selector_mode": "den_aware",
+                "fox_if_local_use_vq_k": false,
+                "fox_clr_gate_init_bias": -2,
+                "output_gate_activation": "swish",
+                "fox_phase2_metrics_mode": "full",
+                "fox_remote_path_backend": "torch",
+                "fox_state_build_backend": "torch",
+                "fox_clr_use_den_residual": true,
+                "vq_use_triton_shortcodes": false,
+                "if_output_gate_use_rmsnorm": true
+              }
+            }
+          ]
+        }
+      },
+      "layer_norm_epsilon": 1e-05,
+      "embedding_init_type": "default",
+      "max_position_embeddings": 0,
+      "pad_vocab_size_multiple": 1,
+      "learnable_word_embeddings": true
+    },
+    "logger": {
+      "entity": "scu-mclab",
+      "backend": "swanlab",
+      "project_name": "flash_vqg_clr_v1_mainline"
+    },
+    "run_id": "baseline",
+    "sweep_id": "flash-vqg-20260402-clr-v1-e3",
+    "launch_id": "flash-vqg-20260402-clr-v1-e3-2026-04-06-20-01-22",
+    "loss_type": "ce",
+    "checkpoint": {
+      "enabled": true,
+      "root_dir": "checkpoints",
+      "best_mode": "max",
+      "save_best": true,
+      "save_last": true,
+      "best_metric": null,
+      "save_config_json": true
+    },
+    "input_type": "discrete",
+    "max_epochs": 32,
+    "slice_keys": [
+      "num_kv_pairs",
+      "input_seq_len",
+      "mqar_case"
+    ],
+    "weight_decay": 0.1,
+    "learning_rate": 0.001,
+    "metrics_white_list": [
+      "train/loss",
+      "valid/loss",
+      "valid/accuracy",
+      "valid/input_seq_len/*",
+      "valid/num_kv_pairs/*",
+      "valid/mqar_case/*",
+      "attn/nan_inf_count",
+      "attn/den_min",
+      "attn/o_remote_energy_ratio",
+      "attn/clr_alpha_norm_mean",
+      "attn/clr_den_neg_ratio",
+      "attn/remote_routing_entropy",
+      "attn/remote_top1_top2_margin",
+      "valid/attn/nan_inf_count",
+      "valid/attn/den_min",
+      "valid/attn/o_remote_energy_ratio",
+      "valid/attn/clr_alpha_norm_mean",
+      "valid/attn/clr_den_neg_ratio",
+      "valid/attn/remote_routing_entropy",
+      "valid/attn/remote_top1_top2_margin",
+      "vq/relative_err_mean",
+      "vq/k_norm_mean",
+      "vq/k_hat_norm_mean",
+      "vq/c_rms_mean",
+      "vq/c_entropy",
+      "vq/c_usage_mean",
+      "vq/c_usage_max",
+      "vq/write_entropy_mean",
+      "vq/write_top1_mass_mean",
+      "valid/vq/relative_err_mean",
+      "valid/vq/k_norm_mean",
+      "valid/vq/k_hat_norm_mean",
+      "valid/vq/c_rms_mean",
+      "valid/vq/c_entropy",
+      "valid/vq/c_usage_mean",
+      "valid/vq/c_usage_max",
+      "valid/vq/write_entropy_mean",
+      "valid/vq/write_top1_mass_mean"
+    ],
+    "early_stopping_metric": "valid/accuracy",
+    "early_stopping_threshold": 0.99,
+    "gradient_accumulation_steps": 4
+  },
+  "candidate_metrics": [
+    "epoch",
+    "attn/clr_alpha_norm_mean",
+    "attn/clr_den_neg_ratio",
+    "attn/den_min",
+    "attn/nan_inf_count",
+    "attn/o_remote_energy_ratio",
+    "attn/remote_routing_entropy",
+    "attn/remote_top1_top2_margin",
+    "train/loss",
+    "valid/accuracy",
+    "valid/attn/clr_alpha_norm_mean",
+    "valid/attn/clr_den_neg_ratio",
+    "valid/attn/den_min",
+    "valid/attn/nan_inf_count",
+    "valid/attn/o_remote_energy_ratio",
+    "valid/attn/remote_routing_entropy",
+    "valid/attn/remote_top1_top2_margin",
+    "valid/input_seq_len/accuracy-1024",
+    "valid/input_seq_len/accuracy-128",
+    "valid/input_seq_len/accuracy-256",
+    "valid/input_seq_len/accuracy-512",
+    "valid/input_seq_len/accuracy-64",
+    "valid/loss",
+    "valid/mqar_case/accuracy-1024x256",
+    "valid/mqar_case/accuracy-128x32",
+    "valid/mqar_case/accuracy-256x64",
+    "valid/mqar_case/accuracy-512x128",
+    "valid/mqar_case/accuracy-512x64",
+    "valid/mqar_case/accuracy-64x16",
+    "valid/mqar_case/accuracy-64x4",
+    "valid/mqar_case/accuracy-64x8",
+    "valid/num_kv_pairs/accuracy-128",
+    "valid/num_kv_pairs/accuracy-16",
+    "valid/num_kv_pairs/accuracy-256",
+    "valid/num_kv_pairs/accuracy-32",
+    "valid/num_kv_pairs/accuracy-4",
+    "valid/num_kv_pairs/accuracy-64",
+    "valid/num_kv_pairs/accuracy-8",
+    "valid/vq/c_entropy",
+    "valid/vq/c_rms_mean",
+    "valid/vq/c_usage_max",
+    "valid/vq/c_usage_mean",
+    "valid/vq/k_hat_norm_mean",
+    "valid/vq/k_norm_mean",
+    "valid/vq/relative_err_mean",
+    "valid/vq/write_entropy_mean",
+    "valid/vq/write_top1_mass_mean",
+    "vq/c_entropy",
+    "vq/c_rms_mean",
+    "vq/c_usage_max",
+    "vq/c_usage_mean",
+    "vq/k_hat_norm_mean",
+    "vq/k_norm_mean",
+    "vq/relative_err_mean",
+    "vq/write_entropy_mean",
+    "vq/write_top1_mass_mean"
+  ],
+  "metric_specs": {
+    "attn/clr_alpha_norm_mean": {
+      "chart_type": "line"
+    },
+    "attn/clr_den_neg_ratio": {
+      "chart_type": "line"
+    },
+    "attn/den_min": {
+      "chart_type": "line"
+    },
+    "attn/nan_inf_count": {
+      "chart_type": "line"
+    },
+    "attn/o_remote_energy_ratio": {
+      "chart_type": "line"
+    },
+    "attn/remote_routing_entropy": {
+      "chart_type": "line"
+    },
+    "attn/remote_top1_top2_margin": {
+      "chart_type": "line"
+    },
+    "train/loss": {
+      "chart_type": "line"
+    },
+    "valid/accuracy": {
+      "chart_type": "line"
+    },
+    "valid/attn/clr_alpha_norm_mean": {
+      "chart_type": "line"
+    },
+    "valid/attn/clr_den_neg_ratio": {
+      "chart_type": "line"
+    },
+    "valid/attn/den_min": {
+      "chart_type": "line"
+    },
+    "valid/attn/nan_inf_count": {
+      "chart_type": "line"
+    },
+    "valid/attn/o_remote_energy_ratio": {
+      "chart_type": "line"
+    },
+    "valid/attn/remote_routing_entropy": {
+      "chart_type": "line"
+    },
+    "valid/attn/remote_top1_top2_margin": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-1024": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-128": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-256": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-512": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-64": {
+      "chart_type": "line"
+    },
+    "valid/loss": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-1024x256": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-128x32": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-256x64": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-512x128": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-512x64": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x16": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x4": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x8": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-128": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-16": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-256": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-32": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-4": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-64": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-8": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_entropy": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_rms_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_usage_max": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_usage_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/k_hat_norm_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/k_norm_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/relative_err_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/write_entropy_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/write_top1_mass_mean": {
+      "chart_type": "line"
+    },
+    "vq/c_entropy": {
+      "chart_type": "line"
+    },
+    "vq/c_rms_mean": {
+      "chart_type": "line"
+    },
+    "vq/c_usage_max": {
+      "chart_type": "line"
+    },
+    "vq/c_usage_mean": {
+      "chart_type": "line"
+    },
+    "vq/k_hat_norm_mean": {
+      "chart_type": "line"
+    },
+    "vq/k_norm_mean": {
+      "chart_type": "line"
+    },
+    "vq/relative_err_mean": {
+      "chart_type": "line"
+    },
+    "vq/write_entropy_mean": {
+      "chart_type": "line"
+    },
+    "vq/write_top1_mass_mean": {
+      "chart_type": "line"
+    }
+  },
+  "fetched_metric_count": 51,
+  "eval_task": null
+}

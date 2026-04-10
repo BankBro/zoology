@@ -1,0 +1,83 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06",
+  "sweep_id": "flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-08T05:27:06.122289+00:00",
+  "updated_at_utc": "2026-04-08T05:28:28Z",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "dense-t050-s123-d124",
+      "eval_task": null,
+      "status": "failed",
+      "error": "0 active drivers ([]). There should only be one.",
+      "updated_at_utc": "2026-04-08T05:27:13.348060+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "x97fk9qxu1j6nx0cliqy4",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/x97fk9qxu1j6nx0cliqy4"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260408_052711-x97fk9qxu1j6nx0cliqy4",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260408_052711-x97fk9qxu1j6nx0cliqy4/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260408_052711-x97fk9qxu1j6nx0cliqy4/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260408_052711-x97fk9qxu1j6nx0cliqy4/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06/dense-t050-s123-d124",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06/dense-t050-s123-d124/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06/dense-t050-s123-d124/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260402-clr-v1-e3-dense-t050-dseed124-125-2026-04-08-05-27-06/dense-t050-s123-d124/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "e3_dense",
+        "experiment_mode": "dense_t050",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0
+      }
+    },
+    {
+      "run_id": "dense-t050-s123-d125",
+      "eval_task": null,
+      "status": "interrupted",
+      "error": "launch aborted before this run started because previous run failed with: 0 active drivers ([]). There should only be one.",
+      "updated_at_utc": "2026-04-08T05:28:28Z",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": null,
+        "run_url": null
+      },
+      "local": {
+        "run_dir": null,
+        "backup_file": null,
+        "config_file": null,
+        "metadata_file": null,
+        "log_file": null,
+        "checkpoint_run_dir": null,
+        "best_checkpoint": null,
+        "last_checkpoint": null,
+        "train_config_json": null
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": null
+    }
+  ]
+}
