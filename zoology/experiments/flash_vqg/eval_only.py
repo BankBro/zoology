@@ -18,7 +18,6 @@ from zoology.checkpoints import load_checkpoint
 from zoology.config import LoggerConfig
 from zoology.data.multiquery_ar import MQARConfig
 from zoology.data.utils import DataSegment, _SyntheticDataset
-from zoology.experiments.flash_vqg.e5a_audit import run_e5a_audit
 from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
 from zoology.logger import build_logger
 from zoology.train import Trainer
@@ -755,6 +754,8 @@ def run_e5a_eval(
     manifest_path: Path | None = None,
     metrics_white_list: list[str] | None = None,
 ) -> dict[str, Any]:
+    from zoology.experiments.flash_vqg.e5a_audit import run_e5a_audit
+
     source_manifest = load_manifest(checkpoint_launch_id)
     checkpoint_path = resolve_best_checkpoint_from_manifest(source_manifest, checkpoint_run_id)
     device = "cuda" if torch.cuda.is_available() else "cpu"

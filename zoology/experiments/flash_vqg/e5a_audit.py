@@ -9,8 +9,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 import torch
 from torch.utils.data import DataLoader
 
@@ -21,6 +19,18 @@ E5A_AUDIT_LAYER_IDX = 1
 E5A_MODES = ("student", "write", "time", "query", "ref")
 E5A_CASES = ("512x128", "1024x256")
 E5A_EPS = 1e-12
+
+
+def _load_pyarrow():
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "E5A 需要额外依赖 `pyarrow` 才能写出 row_audit.parquet. "
+            "请安装 `pyarrow`, 或仅在具备该依赖的环境中运行 `--eval-only e5a`."
+        ) from exc
+    return pa, pq
 
 
 def _nanmean_tensor(values: torch.Tensor, dim: int) -> torch.Tensor:
@@ -584,7 +594,7 @@ class _AggregateStore:
 class _RowAuditWriter:
     def __init__(self, path: Path):
         self.path = path
-        self.writer: pq.ParquetWriter | None = None
+        self.writer: Any | None = None
 
     def write(
         self,
@@ -652,6 +662,7 @@ class _RowAuditWriter:
             "final_dist_to_ref": final_dist.cpu().numpy().astype(np.float32),
             "pred_changed_vs_student": pred_changed.cpu().numpy().astype(np.float32),
         }
+        pa, pq = _load_pyarrow()
         table = pa.Table.from_pydict(payload)
         if self.writer is None:
             self.path.parent.mkdir(parents=True, exist_ok=True)
