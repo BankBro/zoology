@@ -16,7 +16,7 @@ from flash_vqg.nn.attn_fox import FOX_CLR_REMOTE_CODE_CHUNK, compute_boundary_c_
 
 
 E5A_AUDIT_LAYER_IDX = 1
-E5A_MODES = ("student", "write", "time", "query", "ref")
+E5A_MODES = ("student", "write", "time", "query", "ref", "dense_mass", "dense_value")
 E5A_CASES = ("512x128", "1024x256")
 E5A_EPS = 1e-12
 
@@ -228,6 +228,46 @@ def _compute_query_ref_scores(payload: dict[str, torch.Tensor]) -> tuple[torch.T
     return query_scores, ref_scores
 
 
+def _compute_dense_teacher_scores(payload: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    Q_blk = payload["Q_blk"].float()
+    K_blk = payload["K_blk"].float()
+    V_blk = payload["V_blk"].float()
+    write_weights = payload["write_weights"].float()
+    c_all = payload["c_all"].reshape(Q_blk.size(0), Q_blk.size(1), -1).float()
+    hist_end = payload["hist_end"].to(torch.int64)
+
+    B, H, N, L, K = Q_blk.shape
+    S = write_weights.size(-1)
+    V = V_blk.size(-1)
+    T = N * L
+    K_flat = K_blk.reshape(B, H, T, K)
+    V_flat = V_blk.reshape(B, H, T, V)
+    W_flat = write_weights.reshape(B, H, T, S)
+    dense_mass_scores = torch.zeros((B, H, N, L, S), dtype=torch.float32, device=Q_blk.device)
+    dense_value_scores = torch.zeros_like(dense_mass_scores)
+
+    for block_idx in range(N):
+        hist = int(hist_end[block_idx].item())
+        if hist <= 0:
+            continue
+        q_block = Q_blk[:, :, block_idx].float()
+        k_hist = K_flat[:, :, :hist].float()
+        v_hist = V_flat[:, :, :hist].float()
+        w_hist = W_flat[:, :, :hist].float()
+        c_hist = c_all[:, :, :hist].float().unsqueeze(-2)
+
+        ref_logits = torch.einsum("bhlk,bhtk->bhlt", q_block, k_hist) - c_hist
+        alpha = torch.softmax(ref_logits, dim=-1)
+        dense_mass_scores[:, :, block_idx] = torch.einsum("bhlt,bhts->bhls", alpha, w_hist)
+
+        o_dense = torch.einsum("bhlt,bhtv->bhlv", alpha, v_hist)
+        o_hat = o_dense / o_dense.norm(dim=-1, keepdim=True).clamp_min(E5A_EPS)
+        code_value = torch.einsum("bhlt,bhts,bhtv->bhlsv", alpha, w_hist, v_hist)
+        dense_value_scores[:, :, block_idx] = torch.einsum("bhlsv,bhlv->bhls", code_value, o_hat)
+
+    return dense_mass_scores, dense_value_scores
+
+
 def _recompute_remote_outputs(
     payload: dict[str, torch.Tensor],
     override_top2_codes: torch.Tensor,
@@ -355,6 +395,7 @@ def _compute_mode_payload(payload: dict[str, torch.Tensor]) -> dict[str, dict[st
         hist_end=payload["hist_end"].to(torch.int64),
     )
     query_scores, ref_scores = _compute_query_ref_scores(payload)
+    dense_mass_scores, dense_value_scores = _compute_dense_teacher_scores(payload)
 
     write_top2, write_margin = _top2_from_scores(
         write_scores,
@@ -376,6 +417,21 @@ def _compute_mode_payload(payload: dict[str, torch.Tensor]) -> dict[str, dict[st
         fallback_top2=student_top2,
         hist_has_remote=hist_has_remote,
     )
+    dense_mass_top2, dense_mass_margin = _top2_from_scores(
+        dense_mass_scores,
+        fallback_top2=student_top2,
+        hist_has_remote=hist_has_remote,
+    )
+    dense_value_top2, dense_value_margin = _top2_from_scores(
+        dense_value_scores,
+        fallback_top2=student_top2,
+        hist_has_remote=hist_has_remote,
+    )
+
+    dense_mass_mismatch = int((dense_mass_top2 != ref_top2).any(dim=-1).to(torch.int64).sum().item())
+    if dense_mass_mismatch != 0:
+        dense_mass_top2 = ref_top2
+        dense_mass_margin = ref_margin
 
     student_valid = payload["valid_remote_code_count"] >= 2
     student_margin = torch.where(
@@ -405,6 +461,14 @@ def _compute_mode_payload(payload: dict[str, torch.Tensor]) -> dict[str, dict[st
             "top2_codes": ref_top2,
             "margin": ref_margin,
             "ref_scores": ref_scores.float(),
+        },
+        "dense_mass": {
+            "top2_codes": dense_mass_top2,
+            "margin": dense_mass_margin,
+        },
+        "dense_value": {
+            "top2_codes": dense_value_top2,
+            "margin": dense_value_margin,
         },
     }
 

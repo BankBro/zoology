@@ -34,6 +34,13 @@ E5A_SCRIPT_PATH = (
     / "e5a-top2-audit"
     / "e5a_audit.py"
 )
+E5B_SCRIPT_PATH = (
+    Path(__file__).resolve().parent
+    / "scripts"
+    / "20260402-clr-v1-mainline"
+    / "e5a-top2-audit"
+    / "e5b_partial_override.py"
+)
 
 E4A_LENGTH_PRIMARY_CASES = [(64, 16), (128, 16), (256, 16), (512, 16), (1024, 16)]
 E4A_LENGTH_AUX_CASES = [(64, 8), (128, 8), (256, 8), (512, 8), (1024, 8)]
@@ -41,6 +48,7 @@ E4A_CAPACITY_PRIMARY_CASES = [(256, 4), (256, 8), (256, 16), (256, 32), (256, 64
 E5A_SMOKE_CASES = [(512, 128), (1024, 256)]
 E7_READ_MODES = [("dense", None), ("top2", 2), ("top4", 4)]
 _E5A_RUNNER = None
+_E5B_RUNNER = None
 
 
 def generated_launch_dir(launch_id: str) -> Path:
@@ -63,6 +71,24 @@ def _load_e5a_audit_runner():
     spec.loader.exec_module(module)
     _E5A_RUNNER = getattr(module, "run_e5a_audit")
     return _E5A_RUNNER
+
+
+def _load_e5b_partial_override_runner():
+    global _E5B_RUNNER
+    if _E5B_RUNNER is not None:
+        return _E5B_RUNNER
+
+    module_name = "flash_vqg_e5b_partial_override"
+    if not E5B_SCRIPT_PATH.exists():
+        raise FileNotFoundError(f"未找到 E5B 审计脚本: {E5B_SCRIPT_PATH}")
+    spec = importlib.util.spec_from_file_location(module_name, E5B_SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"无法从 {E5B_SCRIPT_PATH} 加载 E5B 审计模块.")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    _E5B_RUNNER = getattr(module, "run_e5b_partial_override")
+    return _E5B_RUNNER
 
 
 def manifest_path_for_launch(launch_id: str) -> Path:
@@ -827,6 +853,98 @@ def run_e5a_eval(
         test_dataloader = _prepare_test_dataloader_from_data_config(eval_config.data)
         output_dir = RESULTS_ROOT / eval_launch_id / eval_run_id / "e5a_outputs"
         summary = run_e5a_audit(
+            bundle=bundle,
+            test_dataloader=test_dataloader,
+            checkpoint_launch_id=checkpoint_launch_id,
+            checkpoint_run_id=checkpoint_run_id,
+            checkpoint_path=checkpoint_path,
+            eval_launch_id=eval_launch_id,
+            eval_run_id=eval_run_id,
+            output_dir=output_dir,
+            logger=logger,
+        )
+        update_manifest_for_run(
+            config=eval_config,
+            logger_summary=logger.get_summary(),
+            status="completed",
+            manifest_path=manifest_path,
+            eval_source=eval_source,
+        )
+        return summary
+    except Exception as exc:
+        if logger is not None:
+            update_manifest_for_run(
+                config=eval_config,
+                logger_summary=logger.get_summary(),
+                status="failed",
+                error=str(exc),
+                manifest_path=manifest_path,
+                eval_source=eval_source,
+            )
+        raise
+    finally:
+        if logger is not None:
+            logger.finish()
+
+
+def run_e5b_eval(
+    *,
+    checkpoint_launch_id: str,
+    checkpoint_run_id: str,
+    eval_launch_id: str,
+    eval_sweep_id: str,
+    eval_run_id: str,
+    logger_backend: str,
+    project: str | None,
+    entity: str | None,
+    manifest_path: Path | None = None,
+    metrics_white_list: list[str] | None = None,
+) -> dict[str, Any]:
+    run_e5b_partial_override = _load_e5b_partial_override_runner()
+
+    source_manifest = load_manifest(checkpoint_launch_id)
+    checkpoint_path = resolve_best_checkpoint_from_manifest(source_manifest, checkpoint_run_id)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bundle = load_checkpoint(checkpoint_path, which="best", device=device)
+
+    template = _resolve_template_segment(bundle["config"])
+    valid_cases = [case for case in E5A_SMOKE_CASES if _is_valid_mqar_case(template, *case)]
+    if len(valid_cases) != len(E5A_SMOKE_CASES):
+        raise ValueError(f"E5B 固定 smoke case 不完整, 当前可用 case={valid_cases}.")
+
+    eval_config = _build_eval_config(
+        source_config=bundle["config"],
+        eval_launch_id=eval_launch_id,
+        eval_sweep_id=eval_sweep_id,
+        eval_run_id=eval_run_id,
+        logger_backend=logger_backend,
+        project=project,
+        entity=entity,
+        valid_cases=valid_cases,
+        template=template,
+        metrics_white_list=metrics_white_list,
+    )
+    eval_source = {
+        "checkpoint_launch_id": checkpoint_launch_id,
+        "checkpoint_run_id": checkpoint_run_id,
+        "best_checkpoint": str(checkpoint_path),
+    }
+    logger = None
+    try:
+        logger = build_logger(eval_config)
+        logger.log_config(eval_config)
+        logger.log_model(bundle["model"], config=eval_config)
+        update_manifest_for_run(
+            config=eval_config,
+            logger_summary=logger.get_summary(),
+            status="running",
+            manifest_path=manifest_path,
+            eval_source=eval_source,
+        )
+
+        test_dataloader = _prepare_test_dataloader_from_data_config(eval_config.data)
+        output_dir = RESULTS_ROOT / eval_launch_id / eval_run_id / "e5b_outputs"
+        summary = run_e5b_partial_override(
             bundle=bundle,
             test_dataloader=test_dataloader,
             checkpoint_launch_id=checkpoint_launch_id,
