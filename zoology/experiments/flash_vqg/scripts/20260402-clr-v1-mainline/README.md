@@ -19,3 +19,4 @@
 - `run_e1_smoke.sh`: smoke 包装脚本
 - `run_e1_train.sh`: 实验 1 正式训练入口
 - `e2-remote-interface/`: 实验 2 目录, 同时包含 `E2-main` 与 `E2b`
+- `e5-train-dense-teacher/`: train-time `dense_value teacher` 主线, 包含 smoke, screening, repro, confirm 与 paired control 包装脚本
