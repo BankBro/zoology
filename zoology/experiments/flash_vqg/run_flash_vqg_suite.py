@@ -539,6 +539,7 @@ def _run_eval_only(
     eval_fns = {
         "e4a": getattr(eval_only_module, "run_e4a_eval", None),
         "e5a": getattr(eval_only_module, "run_e5a_eval", None),
+        "e5b": getattr(eval_only_module, "run_e5b_eval", None),
         "e7": getattr(eval_only_module, "run_e7_eval", None),
     }
     if eval_task not in eval_fns:
@@ -587,7 +588,7 @@ def main():
     parser.add_argument("--flash-only", dest="include_gdn", action="store_false")
     parser.add_argument(
         "--eval-only",
-        choices=["e4a", "e5a", "e7"],
+        choices=["e4a", "e5a", "e5b", "e7"],
         default=None,
         help="跳过训练, 直接加载历史 checkpoint 执行指定 eval task.",
     )
