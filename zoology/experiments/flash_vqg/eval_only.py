@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 import matplotlib
@@ -18,7 +20,6 @@ from zoology.checkpoints import load_checkpoint
 from zoology.config import LoggerConfig
 from zoology.data.multiquery_ar import MQARConfig
 from zoology.data.utils import DataSegment, _SyntheticDataset
-from zoology.experiments.flash_vqg.e5a_audit import run_e5a_audit
 from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
 from zoology.logger import build_logger
 from zoology.train import Trainer
@@ -26,16 +27,42 @@ from zoology.train import Trainer
 
 RESULTS_ROOT = Path(__file__).resolve().parents[2] / "analysis" / "flash_vqg" / "results"
 GENERATED_ROOT = Path(__file__).resolve().parent / "generated"
+E5A_SCRIPT_PATH = (
+    Path(__file__).resolve().parent
+    / "scripts"
+    / "20260402-clr-v1-mainline"
+    / "e5a-top2-audit"
+    / "e5a_audit.py"
+)
 
 E4A_LENGTH_PRIMARY_CASES = [(64, 16), (128, 16), (256, 16), (512, 16), (1024, 16)]
 E4A_LENGTH_AUX_CASES = [(64, 8), (128, 8), (256, 8), (512, 8), (1024, 8)]
 E4A_CAPACITY_PRIMARY_CASES = [(256, 4), (256, 8), (256, 16), (256, 32), (256, 64), (256, 128)]
 E5A_SMOKE_CASES = [(512, 128), (1024, 256)]
 E7_READ_MODES = [("dense", None), ("top2", 2), ("top4", 4)]
+_E5A_RUNNER = None
 
 
 def generated_launch_dir(launch_id: str) -> Path:
     return GENERATED_ROOT / launch_id
+
+
+def _load_e5a_audit_runner():
+    global _E5A_RUNNER
+    if _E5A_RUNNER is not None:
+        return _E5A_RUNNER
+
+    module_name = "flash_vqg_e5a_audit"
+    if not E5A_SCRIPT_PATH.exists():
+        raise FileNotFoundError(f"未找到 E5A 审计脚本: {E5A_SCRIPT_PATH}")
+    spec = importlib.util.spec_from_file_location(module_name, E5A_SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"无法从 {E5A_SCRIPT_PATH} 加载 E5A 审计模块.")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    _E5A_RUNNER = getattr(module, "run_e5a_audit")
+    return _E5A_RUNNER
 
 
 def manifest_path_for_launch(launch_id: str) -> Path:
@@ -755,6 +782,8 @@ def run_e5a_eval(
     manifest_path: Path | None = None,
     metrics_white_list: list[str] | None = None,
 ) -> dict[str, Any]:
+    run_e5a_audit = _load_e5a_audit_runner()
+
     source_manifest = load_manifest(checkpoint_launch_id)
     checkpoint_path = resolve_best_checkpoint_from_manifest(source_manifest, checkpoint_run_id)
     device = "cuda" if torch.cuda.is_available() else "cpu"
