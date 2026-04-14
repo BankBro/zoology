@@ -330,7 +330,7 @@
 
 ### 5.1. 参考资料
 
-- `docs/reference/clr_delta_v1_algorithm_full.md`
+- `docs/reference/20260401-clr-delta-v1-algorithm-full.md`
 - `Flash-VQG` 分支: `20260401-clr-delta-v1-compare`
 
 ### 5.2. 相关文档与实验附件

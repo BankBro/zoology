@@ -109,6 +109,18 @@ class FlashVQGMixer(nn.Module):
         self._last_aux = out.aux
         return out.hidden_states
 
+    def set_audit_runtime(self, runtime) -> None:
+        setter = getattr(self.attn, "set_audit_runtime", None)
+        if setter is None:
+            raise RuntimeError("FlashVQGAttention does not support audit runtime.")
+        setter(runtime)
+
+    def clear_audit_runtime(self) -> None:
+        clearer = getattr(self.attn, "clear_audit_runtime", None)
+        if clearer is None:
+            return
+        clearer()
+
     def get_auxiliary_loss(self) -> torch.Tensor:
         zero = self.attn.res_proj.weight.new_zeros(())
         if not self._last_aux:

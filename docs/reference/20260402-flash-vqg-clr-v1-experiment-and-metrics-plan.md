@@ -181,15 +181,8 @@
 
 ### 实验 5: retrieval-aware VQ loss
 
-- 变量: `q·k_hat ≈ q·k` 的 retrieval-aware 辅助损失
-- 当前 baseline: 来自实验 4 的 baseline
-- 目标: 验证 query 看见量化 key 后是否仍然排序错误
-- 简述: 在 VQ loss 上增加 retrieval 对齐目标, 例如让 `q·k_hat` 更接近 `q·k`, 重点判断即使重建误差不大, query 面对量化 key 时是否仍然存在排序失真. 理想现象是 routing 更稳, hard buckets 提升更明显
-- 候选判断:
-  - 如果 routing 更稳, `top1-top2 margin` 更健康, 且 hard buckets 明显上涨, 则说明主瓶颈是 retrieval ranking distortion, retrieval-aware loss 晋升为新 baseline
-  - 如果 routing 指标更好, 但任务基本不动, 则说明 read-side ranking 已不是主矛盾, 不晋升
-  - 如果主训练被明显拖坏, 则说明当前 retrieval-aware loss 权重或形式不合适, 回退并保持旧 baseline
-- 本轮状态: 只保留文档规划
+- 详细方案, 实现边界, 指标定义与裁决规则统一参考 `docs/reference/20260413-e5a-top2-audit.md`
+- 当前状态: 实验 5 的前置审计方案已独立拆出, 后续以专项文档为准
 
 ### 实验 6: remote write hygiene
 
@@ -841,17 +834,13 @@ VQ / write-side 指标:
 
 - 目标: 验证 query 看见量化 key 后是否仍然排序错误
 - 变量: `q·k_hat ≈ q·k` 的 retrieval-aware 辅助损失
-- 本轮状态: 待补充详细方案
+- 本轮状态: 详细方案已独立拆出, 统一参考 `docs/reference/20260413-e5a-top2-audit.md`
 
 ### 8.2 待补充项
 
-后续在本章补充:
+实验 5 的方案定义, 审计边界, 中间量 contract, 指标口径和裁决规则, 统一参考:
 
-- 实验 5 专有覆盖项
-- loss 定义与权重口径
-- 指标与脚本方案
-- 主要观察指标
-- 与前序实验的衔接关系
+- `docs/reference/20260413-e5a-top2-audit.md`
 
 ## 9. 实验 6: remote write hygiene
 
