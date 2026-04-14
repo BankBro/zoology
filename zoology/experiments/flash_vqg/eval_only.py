@@ -18,6 +18,7 @@ from zoology.checkpoints import load_checkpoint
 from zoology.config import LoggerConfig
 from zoology.data.multiquery_ar import MQARConfig
 from zoology.data.utils import DataSegment, _SyntheticDataset
+from zoology.experiments.flash_vqg.e5a_audit import run_e5a_audit
 from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
 from zoology.logger import build_logger
 from zoology.train import Trainer
@@ -29,6 +30,7 @@ GENERATED_ROOT = Path(__file__).resolve().parent / "generated"
 E4A_LENGTH_PRIMARY_CASES = [(64, 16), (128, 16), (256, 16), (512, 16), (1024, 16)]
 E4A_LENGTH_AUX_CASES = [(64, 8), (128, 8), (256, 8), (512, 8), (1024, 8)]
 E4A_CAPACITY_PRIMARY_CASES = [(256, 4), (256, 8), (256, 16), (256, 32), (256, 64), (256, 128)]
+E5A_SMOKE_CASES = [(512, 128), (1024, 256)]
 E7_READ_MODES = [("dense", None), ("top2", 2), ("top4", 4)]
 
 
@@ -738,3 +740,93 @@ def run_e7_eval(
         for row in mode_rows
     }
     return compare_summary
+
+
+def run_e5a_eval(
+    *,
+    checkpoint_launch_id: str,
+    checkpoint_run_id: str,
+    eval_launch_id: str,
+    eval_sweep_id: str,
+    eval_run_id: str,
+    logger_backend: str,
+    project: str | None,
+    entity: str | None,
+    manifest_path: Path | None = None,
+    metrics_white_list: list[str] | None = None,
+) -> dict[str, Any]:
+    source_manifest = load_manifest(checkpoint_launch_id)
+    checkpoint_path = resolve_best_checkpoint_from_manifest(source_manifest, checkpoint_run_id)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bundle = load_checkpoint(checkpoint_path, which="best", device=device)
+
+    template = _resolve_template_segment(bundle["config"])
+    valid_cases = [case for case in E5A_SMOKE_CASES if _is_valid_mqar_case(template, *case)]
+    if len(valid_cases) != len(E5A_SMOKE_CASES):
+        raise ValueError(f"E5A 固定 smoke case 不完整, 当前可用 case={valid_cases}.")
+
+    eval_config = _build_eval_config(
+        source_config=bundle["config"],
+        eval_launch_id=eval_launch_id,
+        eval_sweep_id=eval_sweep_id,
+        eval_run_id=eval_run_id,
+        logger_backend=logger_backend,
+        project=project,
+        entity=entity,
+        valid_cases=valid_cases,
+        template=template,
+        metrics_white_list=metrics_white_list,
+    )
+    eval_source = {
+        "checkpoint_launch_id": checkpoint_launch_id,
+        "checkpoint_run_id": checkpoint_run_id,
+        "best_checkpoint": str(checkpoint_path),
+    }
+    logger = None
+    try:
+        logger = build_logger(eval_config)
+        logger.log_config(eval_config)
+        logger.log_model(bundle["model"], config=eval_config)
+        update_manifest_for_run(
+            config=eval_config,
+            logger_summary=logger.get_summary(),
+            status="running",
+            manifest_path=manifest_path,
+            eval_source=eval_source,
+        )
+
+        test_dataloader = _prepare_test_dataloader_from_data_config(eval_config.data)
+        output_dir = RESULTS_ROOT / eval_launch_id / eval_run_id / "e5a_outputs"
+        summary = run_e5a_audit(
+            bundle=bundle,
+            test_dataloader=test_dataloader,
+            checkpoint_launch_id=checkpoint_launch_id,
+            checkpoint_run_id=checkpoint_run_id,
+            checkpoint_path=checkpoint_path,
+            eval_launch_id=eval_launch_id,
+            eval_run_id=eval_run_id,
+            output_dir=output_dir,
+            logger=logger,
+        )
+        update_manifest_for_run(
+            config=eval_config,
+            logger_summary=logger.get_summary(),
+            status="completed",
+            manifest_path=manifest_path,
+            eval_source=eval_source,
+        )
+        return summary
+    except Exception as exc:
+        if logger is not None:
+            update_manifest_for_run(
+                config=eval_config,
+                logger_summary=logger.get_summary(),
+                status="failed",
+                error=str(exc),
+                manifest_path=manifest_path,
+                eval_source=eval_source,
+            )
+        raise
+    finally:
+        if logger is not None:
+            logger.finish()
