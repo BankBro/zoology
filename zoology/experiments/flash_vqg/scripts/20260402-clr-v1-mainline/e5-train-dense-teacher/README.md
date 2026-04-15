@@ -19,6 +19,7 @@
 - `run_e5_train_smoke.sh`: 1 epoch smoke
 - `run_e5_train_screening_s123.sh`: s123 上的 4-epoch screening, 含 control + lambda grid
 - `run_e5_train_continuation_calibration.sh`: `lambda=0.0` 的 continuation calibration, 扫 `LR x max_epochs`
+- `run_e5_train_rescreening_lr1e4_s123.sh`: 基于 `lr=1e-4, max_epochs=4` 新 control 底座的 teacher rescreening
 - `run_e5_train_repro_with_control_s124.sh`: s124 上的 4-epoch repro, 含 control
 - `run_e5_train_confirm_32epoch.sh`: 双 seed 的 32-epoch confirm, 含 control
 - `run_e5_train_lambda_grid_s123.sh`: 兼容旧名字, 等价于 `run_e5_train_screening_s123.sh`
@@ -31,6 +32,7 @@ cd /home/lyj/mnt/project/zoology
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_smoke.sh
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_screening_s123.sh
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_continuation_calibration.sh
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_rescreening_lr1e4_s123.sh
 BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
   bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_repro_with_control_s124.sh
 BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
@@ -44,7 +46,11 @@ BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
 - 默认执行顺序是 `smoke -> screening -> repro -> confirm`.
 - 从 `screening` 开始, 所有主脚本都自带 paired control, 不需要再手工补 `lambda=0.0`.
 - 若 `P1` 显示 continuation 本身在掉点, 先运行 `run_e5_train_continuation_calibration.sh`, 再决定是否重开 teacher grid.
+- 当前 continuation calibration 的最佳 control 是 `lr=1e-4, max_epochs=4`, 对应重筛入口是 `run_e5_train_rescreening_lr1e4_s123.sh`.
 - `run_e5_train_screening_s123.sh` 默认使用 `SCREENING_GPUS=0,1` 做双卡分片:
   - GPU 0: control + `lambda=0.05`
   - GPU 1: `lambda=0.02` + `lambda=0.10`
-- 如需退回单卡串行, 显式设置 `SCREENING_GPUS=0`.
+- `run_e5_train_rescreening_lr1e4_s123.sh` 默认使用 `RESCREENING_GPUS=0,1` 做双卡分片:
+  - GPU 0: control + `lambda=0.01`
+  - GPU 1: `lambda=0.005` + `lambda=0.02`
+- 如需退回单卡串行, 显式设置 `SCREENING_GPUS=0` 或 `RESCREENING_GPUS=0`.
