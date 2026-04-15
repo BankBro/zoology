@@ -252,6 +252,7 @@ L_total = L_task + lambda_teacher * L_dense_teacher + beta_commit * L_commit
 结果记录:
 
 - P1 screening 结果见 [20260415-e5-train-screening-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-screening-results.md)
+- continuation calibration 结果见 [20260415-e5-train-continuation-calibration-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-continuation-calibration-results.md)
 
 ### 7.1 P0: 1 epoch smoke
 
