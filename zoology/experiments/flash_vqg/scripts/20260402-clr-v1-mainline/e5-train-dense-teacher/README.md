@@ -41,3 +41,7 @@ BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
 - 它不是阶段 B 里的 eval-time partial override.
 - 默认执行顺序是 `smoke -> screening -> repro -> confirm`.
 - 从 `screening` 开始, 所有主脚本都自带 paired control, 不需要再手工补 `lambda=0.0`.
+- `run_e5_train_screening_s123.sh` 默认使用 `SCREENING_GPUS=0,1` 做双卡分片:
+  - GPU 0: control + `lambda=0.05`
+  - GPU 1: `lambda=0.02` + `lambda=0.10`
+- 如需退回单卡串行, 显式设置 `SCREENING_GPUS=0`.
