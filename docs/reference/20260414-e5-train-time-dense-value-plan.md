@@ -249,6 +249,10 @@ L_total = L_task + lambda_teacher * L_dense_teacher + beta_commit * L_commit
 
 当前正式执行口径不再直接从零训练大 sweep, 而是固定拆成 `P0 -> P1 -> P2 -> P3` 四段, 并且统一采用 paired control.
 
+结果记录:
+
+- P1 screening 结果见 [20260415-e5-train-screening-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-screening-results.md)
+
 ### 7.1 P0: 1 epoch smoke
 
 目标:
