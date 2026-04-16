@@ -20,10 +20,11 @@
 - `run_e5_train_screening_s123.sh`: s123 上的 4-epoch screening, 含 control + lambda grid
 - `run_e5_train_continuation_calibration.sh`: `lambda=0.0` 的 continuation calibration, 扫 `LR x max_epochs`
 - `run_e5_train_rescreening_lr1e4_s123.sh`: 基于 `lr=1e-4, max_epochs=4` 新 control 底座的 teacher rescreening
+- `run_e5_train_repro_lr1e4_l0010_s124.sh`: 基于 `lr=1e-4, max_epochs=4, lambda=0.010` 的 s124 paired repro
 - `run_e5_train_repro_with_control_s124.sh`: s124 上的 4-epoch repro, 含 control
 - `run_e5_train_confirm_32epoch.sh`: 双 seed 的 32-epoch confirm, 含 control
 - `run_e5_train_lambda_grid_s123.sh`: 兼容旧名字, 等价于 `run_e5_train_screening_s123.sh`
-- `run_e5_train_repro_s124.sh`: 兼容旧名字, 等价于 `run_e5_train_repro_with_control_s124.sh`
+- `run_e5_train_repro_s124.sh`: 当前推荐的 s124 repro 入口, 等价于 `run_e5_train_repro_lr1e4_l0010_s124.sh`
 
 最常用命令:
 
@@ -33,7 +34,8 @@ bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-den
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_screening_s123.sh
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_continuation_calibration.sh
 bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_rescreening_lr1e4_s123.sh
-BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
+bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_repro_lr1e4_l0010_s124.sh
+BEST_LAMBDA=0.01 BEST_LAMBDA_TAG=0010 LR=1e-4 E5TRAIN_MAX_EPOCHS=4 \
   bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_repro_with_control_s124.sh
 BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
   bash zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e5-train-dense-teacher/run_e5_train_confirm_32epoch.sh
@@ -47,10 +49,14 @@ BEST_LAMBDA=0.05 BEST_LAMBDA_TAG=005 \
 - 从 `screening` 开始, 所有主脚本都自带 paired control, 不需要再手工补 `lambda=0.0`.
 - 若 `P1` 显示 continuation 本身在掉点, 先运行 `run_e5_train_continuation_calibration.sh`, 再决定是否重开 teacher grid.
 - 当前 continuation calibration 的最佳 control 是 `lr=1e-4, max_epochs=4`, 对应重筛入口是 `run_e5_train_rescreening_lr1e4_s123.sh`.
+- 当前推荐的 s124 paired repro 配方是 `lr=1e-4, max_epochs=4, lambda=0.010`, 对应入口是 `run_e5_train_repro_lr1e4_l0010_s124.sh`.
 - `run_e5_train_screening_s123.sh` 默认使用 `SCREENING_GPUS=0,1` 做双卡分片:
   - GPU 0: control + `lambda=0.05`
   - GPU 1: `lambda=0.02` + `lambda=0.10`
 - `run_e5_train_rescreening_lr1e4_s123.sh` 默认使用 `RESCREENING_GPUS=0,1` 做双卡分片:
   - GPU 0: control + `lambda=0.01`
   - GPU 1: `lambda=0.005` + `lambda=0.02`
-- 如需退回单卡串行, 显式设置 `SCREENING_GPUS=0` 或 `RESCREENING_GPUS=0`.
+- `run_e5_train_repro_lr1e4_l0010_s124.sh` 默认使用 `REPRO_GPUS=0,1` 做双卡分片:
+  - GPU 0: control
+  - GPU 1: `lambda=0.010`
+- 如需退回单卡串行, 显式设置 `SCREENING_GPUS=0`, `RESCREENING_GPUS=0` 或 `REPRO_GPUS=0`.
