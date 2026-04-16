@@ -17,7 +17,11 @@ from einops import rearrange
 
 from zoology.data.utils import prepare_data, prepare_continuous_data
 from zoology.config import CheckpointConfig, TrainConfig
-from zoology.checkpoints import serialize_train_config
+from zoology.checkpoints import (
+    load_checkpoint_payload,
+    resolve_checkpoint_path,
+    serialize_train_config,
+)
 from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
 from zoology.model import LanguageModel, ContinuousInputModel
 from zoology.logger import LoggerProtocol, build_logger
@@ -145,6 +149,28 @@ class Trainer:
         self.loss_type = loss_type
         self.global_step = 0
 
+    def _set_dense_teacher_runtime(self, targets: torch.Tensor) -> None:
+        if self.input_type != "discrete":
+            return
+        runtime = {
+            "teacher_target_mask": (targets != -100).detach(),
+        }
+
+        def setter(module):
+            setter_fn = getattr(module, "set_dense_teacher_runtime", None)
+            if setter_fn is not None:
+                setter_fn(runtime)
+
+        self.model.apply(setter)
+
+    def _clear_dense_teacher_runtime(self) -> None:
+        def clearer(module):
+            clearer_fn = getattr(module, "clear_dense_teacher_runtime", None)
+            if clearer_fn is not None:
+                clearer_fn()
+
+        self.model.apply(clearer)
+
     def compute_loss(self, inputs, targets):
         if self.input_type == "continuous":
             
@@ -259,8 +285,11 @@ class Trainer:
 
         for step_idx, (inputs, targets, slices) in enumerate(iterator):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
-
-            loss, preds = self.compute_loss(inputs, targets)
+            self._set_dense_teacher_runtime(targets)
+            try:
+                loss, preds = self.compute_loss(inputs, targets)
+            finally:
+                self._clear_dense_teacher_runtime()
 
             # Auxiliary losses (discrete mode only)
             if self.input_type == "discrete":
@@ -309,7 +338,11 @@ class Trainer:
         ) as iterator:
             for inputs, targets, slices in self.test_dataloader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
-                loss, preds = self.compute_loss(inputs, targets)
+                self._set_dense_teacher_runtime(targets)
+                try:
+                    loss, preds = self.compute_loss(inputs, targets)
+                finally:
+                    self._clear_dense_teacher_runtime()
                 test_loss += loss / len(self.test_dataloader)
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
                 for key, value in self._collect_model_scalar_metrics().items():
@@ -423,6 +456,15 @@ def train(config: TrainConfig):
         else:
             model = LanguageModel(config.model)
             train_dataloader, test_dataloader = prepare_data(config.data)
+
+        if config.init_checkpoint_path is not None:
+            resolved_init_checkpoint = resolve_checkpoint_path(config.init_checkpoint_path, which="best")
+            payload = load_checkpoint_payload(resolved_init_checkpoint, map_location="cpu")
+            model.load_state_dict(
+                payload["model_state_dict"],
+                strict=bool(config.init_checkpoint_strict),
+            )
+            print(f"Loaded init checkpoint from {resolved_init_checkpoint}")
 
         logger.log_model(model, config=config)
         update_manifest_for_run(

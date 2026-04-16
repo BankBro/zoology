@@ -20,7 +20,11 @@ from zoology.checkpoints import load_checkpoint
 from zoology.config import LoggerConfig
 from zoology.data.multiquery_ar import MQARConfig
 from zoology.data.utils import DataSegment, _SyntheticDataset
-from zoology.experiments.flash_vqg.manifest import update_manifest_for_run
+from zoology.experiments.flash_vqg.manifest import (
+    load_manifest,
+    resolve_best_checkpoint_from_manifest,
+    update_manifest_for_run,
+)
 from zoology.logger import build_logger
 from zoology.train import Trainer
 
@@ -93,35 +97,6 @@ def _load_e5b_partial_override_runner():
 
 def manifest_path_for_launch(launch_id: str) -> Path:
     return generated_launch_dir(launch_id) / "manifest.json"
-
-
-def load_manifest(launch_id: str) -> dict[str, Any]:
-    path = manifest_path_for_launch(launch_id)
-    if not path.exists():
-        raise FileNotFoundError(f"未找到 manifest: {path}")
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _resolve_run_entry(manifest: dict[str, Any], run_id: str) -> dict[str, Any]:
-    for run in manifest.get("runs", []):
-        if run.get("run_id") == run_id:
-            return run
-    raise ValueError(f"launch_id={manifest.get('launch_id')} 中未找到 run_id={run_id}.")
-
-
-def resolve_best_checkpoint_from_manifest(manifest: dict[str, Any], run_id: str) -> Path:
-    run_entry = _resolve_run_entry(manifest, run_id)
-    local_info = run_entry.get("local") or {}
-    checkpoint_path_raw = local_info.get("best_checkpoint")
-    if not checkpoint_path_raw:
-        raise ValueError(
-            "manifest 中缺少 `local.best_checkpoint`. 该 launch 可能是旧 manifest, "
-            "请使用扩展后的新 run 重新生成 manifest."
-        )
-    checkpoint_path = Path(checkpoint_path_raw)
-    if not checkpoint_path.exists():
-        raise FileNotFoundError(f"manifest 记录的 checkpoint 不存在: {checkpoint_path}")
-    return checkpoint_path
 
 
 def e4a_test_cases() -> dict[str, list[tuple[int, int]]]:

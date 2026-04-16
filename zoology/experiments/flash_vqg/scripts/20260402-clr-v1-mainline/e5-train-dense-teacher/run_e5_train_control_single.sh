@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+: "${E5TRAIN_SOURCE_LAUNCH_ID:?需要设置 E5TRAIN_SOURCE_LAUNCH_ID}"
+: "${E5TRAIN_SOURCE_RUN_ID:?需要设置 E5TRAIN_SOURCE_RUN_ID}"
+: "${E5TRAIN_CONTROL_RUN_ID:?需要设置 E5TRAIN_CONTROL_RUN_ID}"
+
+export E5TRAIN_LAMBDA="0.0"
+export E5TRAIN_LAMBDA_TAG="${E5TRAIN_LAMBDA_TAG:-000}"
+export E5TRAIN_ROW_WEIGHT_MODE="${E5TRAIN_ROW_WEIGHT_MODE:-uniform}"
+export E5TRAIN_RUN_ID="${E5TRAIN_CONTROL_RUN_ID}"
+
+bash "${SCRIPT_DIR}/run_e5_train_single.sh"

@@ -135,6 +135,10 @@ class TrainConfig(BaseConfig):
     logger: LoggerConfig = LoggerConfig()
     checkpoint: CheckpointConfig = CheckpointConfig()
     metrics_white_list: List[str] = []
+    init_checkpoint_path: Optional[str] = None
+    init_checkpoint_source_launch_id: Optional[str] = None
+    init_checkpoint_source_run_id: Optional[str] = None
+    init_checkpoint_strict: bool = True
 
     max_epochs: int = 100
     loss_type: Literal["ce", "mse", "ce_embed"] = "ce"

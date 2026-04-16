@@ -121,14 +121,30 @@ class FlashVQGMixer(nn.Module):
             return
         clearer()
 
+    def set_dense_teacher_runtime(self, runtime) -> None:
+        setter = getattr(self.attn, "set_dense_teacher_runtime", None)
+        if setter is None:
+            raise RuntimeError("FlashVQGAttention does not support dense teacher runtime.")
+        setter(runtime)
+
+    def clear_dense_teacher_runtime(self) -> None:
+        clearer = getattr(self.attn, "clear_dense_teacher_runtime", None)
+        if clearer is None:
+            return
+        clearer()
+
     def get_auxiliary_loss(self) -> torch.Tensor:
         zero = self.attn.res_proj.weight.new_zeros(())
         if not self._last_aux:
             return zero
         l_commit = self._last_aux.get("l_commit")
-        if not isinstance(l_commit, torch.Tensor):
-            return zero
-        return self.codebook_beta * l_commit
+        l_dense_teacher = self._last_aux.get("l_dense_teacher")
+        total = zero
+        if isinstance(l_commit, torch.Tensor):
+            total = total + (self.codebook_beta * l_commit)
+        if isinstance(l_dense_teacher, torch.Tensor):
+            total = total + l_dense_teacher
+        return total
 
     def get_scalar_metrics(self) -> dict[str, float]:
         if not self._last_aux:

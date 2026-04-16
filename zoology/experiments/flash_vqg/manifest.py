@@ -10,6 +10,7 @@ from zoology.config import TrainConfig
 
 MANIFEST_ENV_VAR = "FLASH_VQG_MANIFEST_PATH"
 MANIFEST_SCHEMA_VERSION = 4
+GENERATED_ROOT = Path(__file__).resolve().parent / "generated"
 CHECKPOINT_LOCAL_FIELDS = (
     "checkpoint_run_dir",
     "best_checkpoint",
@@ -64,6 +65,43 @@ def manifest_path_from_env() -> Path | None:
     return Path(raw).resolve()
 
 
+def generated_launch_dir(launch_id: str) -> Path:
+    return GENERATED_ROOT / str(launch_id)
+
+
+def manifest_path_for_launch(launch_id: str) -> Path:
+    return generated_launch_dir(launch_id) / "manifest.json"
+
+
+def load_manifest(launch_id: str) -> dict[str, Any]:
+    path = manifest_path_for_launch(launch_id)
+    if not path.exists():
+        raise FileNotFoundError(f"未找到 manifest: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _resolve_run_entry(manifest: dict[str, Any], run_id: str) -> dict[str, Any]:
+    for run in manifest.get("runs", []):
+        if run.get("run_id") == run_id:
+            return run
+    raise ValueError(f"launch_id={manifest.get('launch_id')} 中未找到 run_id={run_id}.")
+
+
+def resolve_best_checkpoint_from_manifest(manifest: dict[str, Any], run_id: str) -> Path:
+    run_entry = _resolve_run_entry(manifest, run_id)
+    local_info = run_entry.get("local") or {}
+    checkpoint_path_raw = local_info.get("best_checkpoint")
+    if not checkpoint_path_raw:
+        raise ValueError(
+            "manifest 中缺少 `local.best_checkpoint`. 该 launch 可能是旧 manifest, "
+            "请使用扩展后的新 run 重新生成 manifest."
+        )
+    checkpoint_path = Path(checkpoint_path_raw)
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"manifest 记录的 checkpoint 不存在: {checkpoint_path}")
+    return checkpoint_path
+
+
 def checkpoint_local_paths_from_config(config: TrainConfig) -> dict[str, str | None]:
     if config.launch_id is None or not config.checkpoint.enabled:
         return {field: None for field in CHECKPOINT_LOCAL_FIELDS}
@@ -106,6 +144,16 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         "fox_clr_gate_mode": flash_kwargs.get("fox_clr_gate_mode"),
         "fox_clr_lambda_remote": flash_kwargs.get("fox_clr_lambda_remote"),
         "fox_clr_gate_init_bias": flash_kwargs.get("fox_clr_gate_init_bias"),
+        "fox_dense_teacher_mode": flash_kwargs.get("fox_dense_teacher_mode"),
+        "fox_dense_teacher_loss_mode": flash_kwargs.get("fox_dense_teacher_loss_mode"),
+        "fox_dense_teacher_layer_idx": flash_kwargs.get("fox_dense_teacher_layer_idx"),
+        "fox_dense_teacher_lambda": flash_kwargs.get("fox_dense_teacher_lambda"),
+        "fox_dense_teacher_tau_teacher": flash_kwargs.get("fox_dense_teacher_tau_teacher"),
+        "fox_dense_teacher_row_weight_mode": flash_kwargs.get("fox_dense_teacher_row_weight_mode"),
+        "fox_dense_teacher_warmup_steps": flash_kwargs.get("fox_dense_teacher_warmup_steps"),
+        "init_checkpoint_path": config_dict.get("init_checkpoint_path"),
+        "init_checkpoint_source_launch_id": config_dict.get("init_checkpoint_source_launch_id"),
+        "init_checkpoint_source_run_id": config_dict.get("init_checkpoint_source_run_id"),
     }
 
 
