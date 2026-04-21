@@ -613,6 +613,10 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
             "fox_clr_gate_mode": config_summary.get("fox_clr_gate_mode", flash_kwargs.get("fox_clr_gate_mode")),
             "fox_clr_lambda_remote": config_summary.get("fox_clr_lambda_remote", flash_kwargs.get("fox_clr_lambda_remote")),
             "fox_clr_gate_init_bias": config_summary.get("fox_clr_gate_init_bias", flash_kwargs.get("fox_clr_gate_init_bias")),
+            "fox_clr_residual_update_mode": config_summary.get("fox_clr_residual_update_mode", flash_kwargs.get("fox_clr_residual_update_mode")),
+            "fox_clr_residual_forget_mode": config_summary.get("fox_clr_residual_forget_mode", flash_kwargs.get("fox_clr_residual_forget_mode")),
+            "fox_clr_state_write_topk": config_summary.get("fox_clr_state_write_topk", flash_kwargs.get("fox_clr_state_write_topk")),
+            "fox_clr_delta_target_mode": config_summary.get("fox_clr_delta_target_mode", flash_kwargs.get("fox_clr_delta_target_mode")),
         }
     )
     return row

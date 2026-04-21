@@ -254,6 +254,7 @@ L_total = L_task + lambda_teacher * L_dense_teacher + beta_commit * L_commit
 - P1 screening 结果见 [20260415-e5-train-screening-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-screening-results.md)
 - continuation calibration 结果见 [20260415-e5-train-continuation-calibration-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-continuation-calibration-results.md)
 - 基于新 control 底座的 teacher rescreening 结果见 [20260415-e5-train-rescreening-lr1e4-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260415-e5-train-rescreening-lr1e4-results.md)
+- 第二个 seed 的 paired repro 结果见 [20260416-e5-train-s124-repro-lr1e4-l0010-results.md](/home/lyj/mnt/project/zoology/docs/reference/20260416-e5-train-s124-repro-lr1e4-l0010-results.md)
 
 ### 7.1 P0: 1 epoch smoke
 
