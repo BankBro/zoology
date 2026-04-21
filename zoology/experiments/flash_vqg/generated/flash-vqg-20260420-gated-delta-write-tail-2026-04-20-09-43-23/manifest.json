@@ -1,0 +1,120 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23",
+  "sweep_id": "flash-vqg-20260420-gated-delta-write-tail",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_clr_v1_mainline",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-20T09:43:23.350341+00:00",
+  "updated_at_utc": "2026-04-21T01:45:24.266694+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "dense-t025-delta-only-s123-d123",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-21T00:28:41.081555+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "w6bwqtlo26t11kzatykv3",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/w6bwqtlo26t11kzatykv3"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-w6bwqtlo26t11kzatykv3",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-w6bwqtlo26t11kzatykv3/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-w6bwqtlo26t11kzatykv3/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-w6bwqtlo26t11kzatykv3/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-delta-only-s123-d123",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-delta-only-s123-d123/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-delta-only-s123-d123/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-delta-only-s123-d123/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "gated_delta_write",
+        "experiment_mode": "delta",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0,
+        "fox_clr_residual_update_mode": "delta",
+        "fox_clr_residual_forget_mode": "global",
+        "fox_clr_state_write_topk": 4,
+        "fox_clr_delta_target_mode": "residual_to_coarse",
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    },
+    {
+      "run_id": "dense-t025-gated-delta-s123-d123",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "updated_at_utc": "2026-04-21T01:45:24.266335+00:00",
+      "swanlab": {
+        "project": "flash_vqg_clr_v1_mainline",
+        "entity": "scu-mclab",
+        "experiment_id": "fyi0u9gtvircbs76p8t5h",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/fyi0u9gtvircbs76p8t5h"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "gated_delta_write",
+        "experiment_mode": "delta_code_aware",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0,
+        "fox_clr_residual_update_mode": "delta",
+        "fox_clr_residual_forget_mode": "code_aware",
+        "fox_clr_state_write_topk": 4,
+        "fox_clr_delta_target_mode": "residual_to_coarse",
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    }
+  ]
+}

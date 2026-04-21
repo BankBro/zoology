@@ -182,9 +182,15 @@ cython_debug/
 /zoology/experiments/flash_vqg/generated/*
 !/zoology/experiments/flash_vqg/generated/.gitignore
 !/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e2*
+!/zoology/experiments/flash_vqg/generated/flash-vqg-20260419-gated-delta-write-2026-04-19-20-14-16*
+!/zoology/experiments/flash_vqg/generated/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23*
+!/zoology/experiments/flash_vqg/generated/flash-vqg-20260420-gdn-default-baseline-2026-04-20-08-35-50*
 /zoology/analysis/flash_vqg/results/*
 !/zoology/analysis/flash_vqg/results/.gitignore
 !/zoology/analysis/flash_vqg/results/flash-vqg-20260402-clr-v1-e2*
+!/zoology/analysis/flash_vqg/results/flash-vqg-20260419-gated-delta-write-2026-04-19-20-14-16*
+!/zoology/analysis/flash_vqg/results/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23*
+!/zoology/analysis/flash_vqg/results/flash-vqg-20260420-gdn-default-baseline-2026-04-20-08-35-50*
 
 # Local experiment artifacts
 /swanlog/*

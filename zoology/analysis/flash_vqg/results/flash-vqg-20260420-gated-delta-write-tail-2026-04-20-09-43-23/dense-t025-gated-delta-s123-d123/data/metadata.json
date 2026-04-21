@@ -1,0 +1,455 @@
+{
+  "fetched_at_utc": "2026-04-21T01:45:44.091749+00:00",
+  "manifest_entry": {
+    "run_id": "dense-t025-gated-delta-s123-d123",
+    "eval_task": null,
+    "status": "completed",
+    "error": null,
+    "updated_at_utc": "2026-04-21T01:45:24.266335+00:00",
+    "swanlab": {
+      "project": "flash_vqg_clr_v1_mainline",
+      "entity": "scu-mclab",
+      "experiment_id": "fyi0u9gtvircbs76p8t5h",
+      "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_clr_v1_mainline/runs/fyi0u9gtvircbs76p8t5h"
+    },
+    "local": {
+      "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h",
+      "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/backup.swanlab",
+      "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/files/config.yaml",
+      "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h/files/swanlab-metadata.json",
+      "log_file": null,
+      "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123",
+      "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/best.pt",
+      "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/last.pt",
+      "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/dense-t025-gated-delta-s123-d123/train_config.json"
+    },
+    "eval_source": {
+      "checkpoint_launch_id": null,
+      "checkpoint_run_id": null,
+      "best_checkpoint": null
+    },
+    "config_summary": {
+      "experiment_part": "gated_delta_write",
+      "experiment_mode": "delta_code_aware",
+      "fox_remote_read_topk": 2,
+      "fox_clr_selector_mode": "den_aware",
+      "fox_clr_merge_mode": "shared_den",
+      "fox_clr_gate_mode": "off",
+      "fox_clr_lambda_remote": 1.0,
+      "fox_clr_gate_init_bias": -2.0,
+      "fox_clr_residual_update_mode": "delta",
+      "fox_clr_residual_forget_mode": "code_aware",
+      "fox_clr_state_write_topk": 4,
+      "fox_clr_delta_target_mode": "residual_to_coarse",
+      "fox_dense_teacher_mode": null,
+      "fox_dense_teacher_loss_mode": null,
+      "fox_dense_teacher_layer_idx": null,
+      "fox_dense_teacher_lambda": null,
+      "fox_dense_teacher_tau_teacher": null,
+      "fox_dense_teacher_row_weight_mode": null,
+      "fox_dense_teacher_warmup_steps": null,
+      "init_checkpoint_path": null,
+      "init_checkpoint_source_launch_id": null,
+      "init_checkpoint_source_run_id": null
+    }
+  },
+  "swanlab_metadata": {
+    "memory": "31",
+    "cpu": {
+      "brand": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+      "cores": 12
+    },
+    "gpu": {
+      "nvidia": {
+        "driver": "550.120",
+        "cores": 2,
+        "type": [
+          "NVIDIA GeForce RTX 2080 Ti",
+          "NVIDIA GeForce RTX 2080 Ti"
+        ],
+        "memory": [
+          "11",
+          "11"
+        ],
+        "cuda": "11.8",
+        "architecture": [
+          "Turing",
+          "Turing"
+        ],
+        "cudacores": [
+          4352,
+          4352
+        ]
+      }
+    },
+    "os": "Linux-6.8.0-49-generic-x86_64-with-glibc2.35",
+    "os_pretty_name": "Ubuntu 22.04.3 LTS",
+    "hostname": "a0651c2c1c1f",
+    "pid": 46924,
+    "cwd": "/home/lyj/mnt/project/zoology",
+    "python": "3.12.11",
+    "python_verbose": "3.12.11 | packaged by Anaconda, Inc. | (main, Jun  5 2025, 13:09:17) [GCC 11.2.0]",
+    "executable": "/home/lyj/miniconda3/envs/flash-vqg/bin/python",
+    "command": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260419-gated-delta-remote-memory/local_parallel_launch.py --worker-index 1 --worker-gpu 1 --builder-args-file /home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/builder_args.json --config-builder /home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260419-gated-delta-remote-memory/write-mainline/config_builder.py:build_write_tail_configs --launch-id flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23 --manifest-path /home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23/manifest.json",
+    "git_remote": "https://github.com/BankBro/zoology",
+    "git_info": [
+      "flash-vqg",
+      "eea3ffa05e6957d7bbeb585f715179be8f859991"
+    ],
+    "swanlab": {
+      "version": "0.6.10",
+      "_monitor": 5,
+      "logdir": "/home/lyj/mnt/project/zoology/swanlog/run-20260420_094327-fyi0u9gtvircbs76p8t5h"
+    }
+  },
+  "config": {
+    "checkpoint": {
+      "best_metric": null,
+      "best_mode": "max",
+      "enabled": true,
+      "root_dir": "checkpoints",
+      "save_best": true,
+      "save_config_json": true,
+      "save_last": true
+    },
+    "data": {
+      "batch_size": [
+        64,
+        16
+      ],
+      "cache_dir": "./data/flash_vqg",
+      "force_cache": false,
+      "num_passes": 1,
+      "seed": 123,
+      "test_configs": [
+        {
+          "input_seq_len": 64,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 64,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 64,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 128,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 256,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 512,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 512,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 1024,
+          "num_examples": 1000,
+          "vocab_size": 8192
+        }
+      ],
+      "train_batch_order": "global_shuffle",
+      "train_configs": [
+        {
+          "input_seq_len": 64,
+          "num_examples": 100000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 128,
+          "num_examples": 20000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 256,
+          "num_examples": 20000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 256,
+          "num_examples": 20000,
+          "vocab_size": 8192
+        },
+        {
+          "input_seq_len": 256,
+          "num_examples": 20000,
+          "vocab_size": 8192
+        }
+      ]
+    },
+    "early_stopping_metric": "valid/accuracy",
+    "early_stopping_threshold": 0.99,
+    "gradient_accumulation_steps": 4,
+    "init_checkpoint_path": null,
+    "init_checkpoint_source_launch_id": null,
+    "init_checkpoint_source_run_id": null,
+    "init_checkpoint_strict": true,
+    "input_type": "discrete",
+    "launch_id": "flash-vqg-20260420-gated-delta-write-tail-2026-04-20-09-43-23",
+    "learning_rate": 0.001,
+    "logger": {
+      "backend": "swanlab",
+      "entity": "scu-mclab",
+      "project_name": "flash_vqg_clr_v1_mainline"
+    },
+    "loss_type": "ce",
+    "max_epochs": 32,
+    "metrics_white_list": [
+      "train/loss",
+      "valid/loss",
+      "valid/accuracy",
+      "valid/input_seq_len/*",
+      "valid/num_kv_pairs/*",
+      "valid/mqar_case/*",
+      "attn/nan_inf_count",
+      "attn/den_min",
+      "attn/o_remote_energy_ratio",
+      "attn/remote_routing_entropy",
+      "valid/attn/nan_inf_count",
+      "valid/attn/den_min",
+      "valid/attn/o_remote_energy_ratio",
+      "valid/attn/remote_routing_entropy",
+      "vq/relative_err_mean",
+      "vq/c_entropy",
+      "vq/c_usage_mean",
+      "vq/write_entropy_mean",
+      "vq/write_top1_mass_mean",
+      "valid/vq/relative_err_mean",
+      "valid/vq/c_entropy",
+      "valid/vq/c_usage_mean",
+      "valid/vq/write_entropy_mean",
+      "valid/vq/write_top1_mass_mean"
+    ],
+    "model": {
+      "block_type": "TransformerBlock",
+      "d_model": 128,
+      "drop_path": 0.0,
+      "embed_dropout": 0.1,
+      "embedding_init_type": "default",
+      "layer_norm_epsilon": 1e-05,
+      "learnable_word_embeddings": true,
+      "max_position_embeddings": 0,
+      "n_layers": 2,
+      "name": "flash_vqg",
+      "pad_vocab_size_multiple": 1,
+      "resid_dropout": 0.0,
+      "sequence_mixer": {
+        "kwargs": {
+          "configs": [
+            {
+              "kwargs": {
+                "implicit_long_conv": true,
+                "kernel_size": 3,
+                "l_max": 1024
+              },
+              "name": "zoology.mixers.base_conv.BaseConv"
+            },
+            {
+              "kwargs": {
+                "attn_backend": "flash",
+                "attn_cfg": {},
+                "block_len": 32,
+                "codebook_beta": 0.25,
+                "enable_layer_metrics": true,
+                "experiment_mode": "delta_code_aware",
+                "experiment_part": "gated_delta_write",
+                "fox_clr_delta_target_mode": "residual_to_coarse",
+                "fox_clr_gate_init_bias": -2.0,
+                "fox_clr_gate_mode": "off",
+                "fox_clr_lambda_remote": 1.0,
+                "fox_clr_merge_mode": "shared_den",
+                "fox_clr_rank": 4,
+                "fox_clr_remat_mode": "off",
+                "fox_clr_residual_forget_mode": "code_aware",
+                "fox_clr_residual_update_mode": "delta",
+                "fox_clr_selector_mode": "den_aware",
+                "fox_clr_state_write_topk": 4,
+                "fox_clr_use_den_residual": true,
+                "fox_if_local_use_vq_k": false,
+                "fox_phase2_metrics_mode": "full",
+                "fox_remote_formula": "clr_v1",
+                "fox_remote_path_backend": "torch",
+                "fox_remote_read_topk": 2,
+                "fox_state_build_backend": "torch",
+                "if_output_gate_use_rmsnorm": true,
+                "if_remote_enabled": true,
+                "if_value_silu": true,
+                "key_dim": 64,
+                "local_num_blocks": 2,
+                "num_codebook_vectors": 128,
+                "num_heads": 2,
+                "output_gate_activation": "swish",
+                "use_time_mixing": "kv_shift",
+                "value_dim": 64,
+                "vocab_size": 8192,
+                "vq_score_mode": "codebook_dot",
+                "vq_softmax_tau": 0.25,
+                "vq_topk": 4,
+                "vq_update_mode": "grad",
+                "vq_use_triton_shortcodes": false,
+                "vq_weight_mode": "dense_softmax"
+              },
+              "name": "zoology.mixers.flash_vqg.FlashVQGMixer"
+            }
+          ]
+        },
+        "name": "zoology.mixers.hybrid.Hybrid"
+      },
+      "state_mixer": {
+        "kwargs": {},
+        "name": "torch.nn.Identity"
+      },
+      "vocab_size": 8192
+    },
+    "run_id": "dense-t025-gated-delta-s123-d123",
+    "seed": 123,
+    "slice_keys": [
+      "num_kv_pairs",
+      "input_seq_len",
+      "mqar_case"
+    ],
+    "sweep_id": "flash-vqg-20260420-gated-delta-write-tail",
+    "weight_decay": 0.1
+  },
+  "metric_specs": {
+    "attn/den_min": {
+      "chart_type": "line"
+    },
+    "attn/nan_inf_count": {
+      "chart_type": "line"
+    },
+    "attn/o_remote_energy_ratio": {
+      "chart_type": "line"
+    },
+    "attn/remote_routing_entropy": {
+      "chart_type": "line"
+    },
+    "train/loss": {
+      "chart_type": "line"
+    },
+    "valid/accuracy": {
+      "chart_type": "line"
+    },
+    "valid/attn/den_min": {
+      "chart_type": "line"
+    },
+    "valid/attn/nan_inf_count": {
+      "chart_type": "line"
+    },
+    "valid/attn/o_remote_energy_ratio": {
+      "chart_type": "line"
+    },
+    "valid/attn/remote_routing_entropy": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-1024": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-128": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-256": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-512": {
+      "chart_type": "line"
+    },
+    "valid/input_seq_len/accuracy-64": {
+      "chart_type": "line"
+    },
+    "valid/loss": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-1024x256": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-128x32": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-256x64": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-512x128": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-512x64": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x16": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x4": {
+      "chart_type": "line"
+    },
+    "valid/mqar_case/accuracy-64x8": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-128": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-16": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-256": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-32": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-4": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-64": {
+      "chart_type": "line"
+    },
+    "valid/num_kv_pairs/accuracy-8": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_entropy": {
+      "chart_type": "line"
+    },
+    "valid/vq/c_usage_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/relative_err_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/write_entropy_mean": {
+      "chart_type": "line"
+    },
+    "valid/vq/write_top1_mass_mean": {
+      "chart_type": "line"
+    },
+    "vq/c_entropy": {
+      "chart_type": "line"
+    },
+    "vq/c_usage_mean": {
+      "chart_type": "line"
+    },
+    "vq/relative_err_mean": {
+      "chart_type": "line"
+    },
+    "vq/write_entropy_mean": {
+      "chart_type": "line"
+    },
+    "vq/write_top1_mass_mean": {
+      "chart_type": "line"
+    }
+  },
+  "eval_task": null
+}
