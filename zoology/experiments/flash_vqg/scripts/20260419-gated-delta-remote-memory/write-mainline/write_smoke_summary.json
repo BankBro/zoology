@@ -1,0 +1,91 @@
+{
+  "part": "gd_write",
+  "started_at_unix": 1776627189.2939122,
+  "duration_sec": 39.440380334854126,
+  "chosen": {
+    "train_batch_size": 64,
+    "eval_batch_size": 16,
+    "gradient_accumulation_steps": 4,
+    "effective_train_batch_size": 256
+  },
+  "candidates": [
+    {
+      "train_batch_size": 256,
+      "eval_batch_size": 32,
+      "gradient_accumulation_steps": 1,
+      "effective_train_batch_size": 256,
+      "results": [
+        {
+          "run_id": "dense-t025-additive-s123-d123",
+          "status": "oom",
+          "oom_phase": "train",
+          "train_steps": 1,
+          "eval_steps": 0,
+          "peak_mb": 9576,
+          "error": null
+        },
+        {
+          "run_id": "dense-t025-gated-delta-s123-d123",
+          "status": "oom",
+          "oom_phase": "train",
+          "train_steps": 1,
+          "eval_steps": 0,
+          "peak_mb": 10708,
+          "error": null
+        }
+      ]
+    },
+    {
+      "train_batch_size": 128,
+      "eval_batch_size": 16,
+      "gradient_accumulation_steps": 2,
+      "effective_train_batch_size": 256,
+      "results": [
+        {
+          "run_id": "dense-t025-additive-s123-d123",
+          "status": "oom",
+          "oom_phase": "train",
+          "train_steps": 1,
+          "eval_steps": 0,
+          "peak_mb": 10364,
+          "error": null
+        },
+        {
+          "run_id": "dense-t025-gated-delta-s123-d123",
+          "status": "oom",
+          "oom_phase": "train",
+          "train_steps": 1,
+          "eval_steps": 0,
+          "peak_mb": 10672,
+          "error": null
+        }
+      ]
+    },
+    {
+      "train_batch_size": 64,
+      "eval_batch_size": 16,
+      "gradient_accumulation_steps": 4,
+      "effective_train_batch_size": 256,
+      "results": [
+        {
+          "run_id": "dense-t025-additive-s123-d123",
+          "status": "pass",
+          "oom_phase": null,
+          "train_steps": 5,
+          "eval_steps": 8,
+          "peak_mb": 5715,
+          "error": null
+        },
+        {
+          "run_id": "dense-t025-gated-delta-s123-d123",
+          "status": "pass",
+          "oom_phase": null,
+          "train_steps": 5,
+          "eval_steps": 8,
+          "peak_mb": 7142,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

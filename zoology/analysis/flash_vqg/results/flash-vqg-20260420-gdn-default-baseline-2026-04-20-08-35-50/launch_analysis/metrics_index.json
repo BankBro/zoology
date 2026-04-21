@@ -1,0 +1,236 @@
+{
+  "launch_id": "flash-vqg-20260420-gdn-default-baseline-2026-04-20-08-35-50",
+  "source": "local",
+  "metrics": [
+    {
+      "metric": "train/loss",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 22528,
+      "picture_file": "train__loss.png"
+    },
+    {
+      "metric": "valid/accuracy",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__accuracy.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-1024",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__input_seq_len__accuracy-1024.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-128",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__input_seq_len__accuracy-128.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-256",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__input_seq_len__accuracy-256.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-512",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__input_seq_len__accuracy-512.png"
+    },
+    {
+      "metric": "valid/input_seq_len/accuracy-64",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__input_seq_len__accuracy-64.png"
+    },
+    {
+      "metric": "valid/loss",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__loss.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-1024x256",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-1024x256.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-128x32",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-128x32.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-256x64",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-256x64.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-512x128",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-512x128.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-512x64",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-512x64.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x16",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-64x16.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x4",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-64x4.png"
+    },
+    {
+      "metric": "valid/mqar_case/accuracy-64x8",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__mqar_case__accuracy-64x8.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-128",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-128.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-16",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-16.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-256",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-256.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-32",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-32.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-4",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-4.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-64",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-64.png"
+    },
+    {
+      "metric": "valid/num_kv_pairs/accuracy-8",
+      "chart_type": "line",
+      "runs_with_data": [
+        "gated_delta_net-default-s123-d123"
+      ],
+      "num_runs": 1,
+      "num_points": 32,
+      "picture_file": "valid__num_kv_pairs__accuracy-8.png"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "launch_id": "flash-vqg-20260420-gdn-default-baseline-2026-04-20-08-35-50",
+  "source": "local",
+  "run_count": 1,
+  "experiment_modes": [],
+  "fox_remote_read_topk_values": [
+    "dense"
+  ],
+  "generated_plots": [
+    "train__loss.png",
+    "valid__accuracy.png",
+    "valid__input_seq_len__accuracy-1024.png",
+    "valid__input_seq_len__accuracy-128.png",
+    "valid__input_seq_len__accuracy-256.png",
+    "valid__input_seq_len__accuracy-512.png",
+    "valid__input_seq_len__accuracy-64.png",
+    "valid__loss.png",
+    "valid__mqar_case__accuracy-1024x256.png",
+    "valid__mqar_case__accuracy-128x32.png",
+    "valid__mqar_case__accuracy-256x64.png",
+    "valid__mqar_case__accuracy-512x128.png",
+    "valid__mqar_case__accuracy-512x64.png",
+    "valid__mqar_case__accuracy-64x16.png",
+    "valid__mqar_case__accuracy-64x4.png",
+    "valid__mqar_case__accuracy-64x8.png",
+    "valid__num_kv_pairs__accuracy-128.png",
+    "valid__num_kv_pairs__accuracy-16.png",
+    "valid__num_kv_pairs__accuracy-256.png",
+    "valid__num_kv_pairs__accuracy-32.png",
+    "valid__num_kv_pairs__accuracy-4.png",
+    "valid__num_kv_pairs__accuracy-64.png",
+    "valid__num_kv_pairs__accuracy-8.png"
+  ]
+}
