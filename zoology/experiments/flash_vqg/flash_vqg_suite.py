@@ -407,6 +407,43 @@ def _normalize_fox_clr_gate_mode(fox_clr_gate_mode: str | None) -> str:
     return mode
 
 
+def _normalize_fox_clr_residual_update_mode(fox_clr_residual_update_mode: str | None) -> str:
+    mode = "additive" if fox_clr_residual_update_mode is None else str(fox_clr_residual_update_mode).lower()
+    if mode not in {"additive", "delta"}:
+        raise ValueError(
+            "fox_clr_residual_update_mode 只能是 ['additive', 'delta'], "
+            f"当前收到: {fox_clr_residual_update_mode}"
+        )
+    return mode
+
+
+def _normalize_fox_clr_residual_forget_mode(fox_clr_residual_forget_mode: str | None) -> str:
+    mode = "global" if fox_clr_residual_forget_mode is None else str(fox_clr_residual_forget_mode).lower()
+    if mode not in {"global", "code_aware"}:
+        raise ValueError(
+            "fox_clr_residual_forget_mode 只能是 ['global', 'code_aware'], "
+            f"当前收到: {fox_clr_residual_forget_mode}"
+        )
+    return mode
+
+
+def _normalize_fox_clr_state_write_topk(fox_clr_state_write_topk: int | None) -> int:
+    topk = 4 if fox_clr_state_write_topk is None else int(fox_clr_state_write_topk)
+    if topk <= 0:
+        raise ValueError(f"fox_clr_state_write_topk 必须是正整数, 当前收到: {fox_clr_state_write_topk}")
+    return topk
+
+
+def _normalize_fox_clr_delta_target_mode(fox_clr_delta_target_mode: str | None) -> str:
+    mode = "residual_to_coarse" if fox_clr_delta_target_mode is None else str(fox_clr_delta_target_mode).lower()
+    if mode not in {"residual_to_coarse"}:
+        raise ValueError(
+            "fox_clr_delta_target_mode 只能是 ['residual_to_coarse'], "
+            f"当前收到: {fox_clr_delta_target_mode}"
+        )
+    return mode
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -441,6 +478,18 @@ def _clr_remat_run_tag(fox_clr_remat_mode: str) -> str:
         "off": "off",
         "post_phase1": "postp1",
     }[fox_clr_remat_mode]
+
+
+def _clr_residual_write_run_tag(
+    *,
+    fox_clr_residual_update_mode: str,
+    fox_clr_residual_forget_mode: str,
+    fox_clr_state_write_topk: int,
+) -> str:
+    return (
+        f"rwrite-{fox_clr_residual_update_mode}-"
+        f"{fox_clr_residual_forget_mode}-wk{int(fox_clr_state_write_topk)}"
+    )
 
 
 def _build_data_config(
@@ -545,6 +594,10 @@ def build_configs(
     fox_clr_gate_mode: str = "off",
     fox_clr_lambda_remote: float = 1.0,
     fox_clr_gate_init_bias: float = -2.0,
+    fox_clr_residual_update_mode: str = "additive",
+    fox_clr_residual_forget_mode: str = "global",
+    fox_clr_state_write_topk: int = 4,
+    fox_clr_delta_target_mode: str = "residual_to_coarse",
     experiment_part: str | None = None,
     experiment_mode: str | None = None,
     vq_score_mode: str = DEFAULT_VQ_SCORE_MODE,
@@ -625,6 +678,10 @@ def build_configs(
     resolved_clr_selector_mode = _normalize_fox_clr_selector_mode(fox_clr_selector_mode)
     resolved_clr_merge_mode = _normalize_fox_clr_merge_mode(fox_clr_merge_mode)
     resolved_clr_gate_mode = _normalize_fox_clr_gate_mode(fox_clr_gate_mode)
+    resolved_clr_residual_update_mode = _normalize_fox_clr_residual_update_mode(fox_clr_residual_update_mode)
+    resolved_clr_residual_forget_mode = _normalize_fox_clr_residual_forget_mode(fox_clr_residual_forget_mode)
+    resolved_clr_state_write_topk = _normalize_fox_clr_state_write_topk(fox_clr_state_write_topk)
+    resolved_clr_delta_target_mode = _normalize_fox_clr_delta_target_mode(fox_clr_delta_target_mode)
     resolved_vq_score_mode = str(vq_score_mode).lower()
     resolved_vq_weight_mode = str(vq_weight_mode).lower()
     resolved_vq_update_mode = str(vq_update_mode).lower()
@@ -645,6 +702,11 @@ def build_configs(
     remote_read_topk_list = _normalize_fox_remote_read_topk_values(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
+    )
+    weighted_routing_write = (
+        resolved_vq_score_mode == "codebook_dot"
+        and resolved_vq_weight_mode in {"dense_softmax", "topk_softmax"}
+        and resolved_vq_update_mode == "grad"
     )
     if resolved_remote_formula in ("clr_v1", "clr_delta_v1"):
         if flash_backend != "torch":
@@ -670,8 +732,28 @@ def build_configs(
             )
         if resolved_remote_formula == "clr_delta_v1":
             remote_read_topk_list = [None]
+            if (
+                resolved_clr_residual_update_mode != "additive"
+                or resolved_clr_residual_forget_mode != "global"
+                or resolved_clr_state_write_topk != 4
+            ):
+                raise ValueError(
+                    "fox_clr_residual_* 开关当前只支持 fox_remote_formula='clr_v1' 的 weighted write 路径."
+                )
     elif resolved_clr_remat_mode != "off":
         raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1' 或 'clr_delta_v1'.")
+    if weighted_routing_write and resolved_remote_formula != "clr_v1":
+        raise ValueError("weighted routing write 当前只支持 fox_remote_formula='clr_v1'.")
+    if weighted_routing_write and resolved_clr_remat_mode != "off":
+        raise ValueError("weighted routing write 当前只支持 fox_clr_remat_mode='off'.")
+    if not weighted_routing_write and (
+        resolved_clr_residual_update_mode != "additive"
+        or resolved_clr_residual_forget_mode != "global"
+        or resolved_clr_state_write_topk != 4
+    ):
+        raise ValueError(
+            "fox_clr_residual_* 开关当前只支持 weighted routing write 路径."
+        )
     include_seed_suffix = seed_values is not None or seed is not None or len(seed_values_list) > 1
     include_read_suffix = (
         fox_remote_read_topk_values is not None
@@ -762,6 +844,10 @@ def build_configs(
                         fox_clr_gate_mode=resolved_clr_gate_mode,
                         fox_clr_lambda_remote=float(fox_clr_lambda_remote),
                         fox_clr_gate_init_bias=float(fox_clr_gate_init_bias),
+                        fox_clr_residual_update_mode=resolved_clr_residual_update_mode,
+                        fox_clr_residual_forget_mode=resolved_clr_residual_forget_mode,
+                        fox_clr_state_write_topk=resolved_clr_state_write_topk,
+                        fox_clr_delta_target_mode=resolved_clr_delta_target_mode,
                         experiment_part=experiment_part,
                         experiment_mode=experiment_mode,
                         local_num_blocks=current_local_num_blocks,
@@ -857,6 +943,15 @@ def build_configs(
                                         run_id = (
                                             f"{run_id}-rremat-"
                                             f"{_clr_remat_run_tag(resolved_clr_remat_mode)}"
+                                        )
+                                    if weighted_routing_write:
+                                        run_id = (
+                                            f"{run_id}-"
+                                            f"{_clr_residual_write_run_tag(
+                                                fox_clr_residual_update_mode=resolved_clr_residual_update_mode,
+                                                fox_clr_residual_forget_mode=resolved_clr_residual_forget_mode,
+                                                fox_clr_state_write_topk=resolved_clr_state_write_topk,
+                                            )}"
                                         )
                                     if include_read_suffix:
                                         run_id = f"{run_id}-rread-{read_tag}"

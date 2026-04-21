@@ -34,6 +34,13 @@ def sum_norm(x):
 # https://github.com/IDSIA/recurrent-fwp/blob/master/algorithmic/layers.py#L86C1-L146C1
 
 
+def _gated_delta_kernel_dtype(device: torch.device) -> torch.dtype:
+    if device.type != "cuda":
+        return torch.float32
+    major, _ = torch.cuda.get_device_capability(device)
+    return torch.bfloat16 if major >= 8 else torch.float16
+
+
 class GatedDeltaNet(nn.Module):
     """
     The layer implementaion for [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464).  # noqa
@@ -241,13 +248,12 @@ class GatedDeltaNet(nn.Module):
             beta = beta.mul(attention_mask[:, -beta.shape[-2]:, None])
             g = g.mul(attention_mask[:, -g.shape[-2]:, None])
 
-        # breakpoint()
-        # convert everything to bf16 
-        q = q.to(torch.bfloat16)
-        k = k.to(torch.bfloat16)
-        v = v.to(torch.bfloat16)
-        beta = beta.to(torch.bfloat16)
-        g = g.to(torch.bfloat16)
+        kernel_dtype = _gated_delta_kernel_dtype(q.device)
+        q = q.to(kernel_dtype)
+        k = k.to(kernel_dtype)
+        v = v.to(kernel_dtype)
+        beta = beta.to(kernel_dtype)
+        g = g.to(kernel_dtype)
 
 
         recurrent_state = last_state['recurrent_state'] if last_state is not None else None
@@ -302,4 +308,3 @@ class GatedDeltaNet(nn.Module):
             self.num_heads * self.head_k_dim * self.head_v_dim
         )
         return state_size 
-
