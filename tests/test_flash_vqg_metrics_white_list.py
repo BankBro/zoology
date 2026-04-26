@@ -31,6 +31,7 @@ def test_derive_flash_metric_controls_respects_white_list_scope():
         [
             "attn/gd_residual_debug_event_count",
             "valid/attn/gd_residual_debug_l_state_max",
+            "valid/attn/gd_residual_debug_l_state_p95",
             "layer_*/attn/gd_residual_debug_avg_events_per_group",
         ]
     )
