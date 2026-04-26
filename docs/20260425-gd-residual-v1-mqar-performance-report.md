@@ -9,6 +9,7 @@
 - 当前首要瓶颈是 `grouped_chunk_torch_ref` / event pack 的 PyTorch reference 实现, profiler 中 `gd_residual/grouped_chunk` 和 `gd_residual/event_pack` 合计占 B8/T128 细粒度 profile 的约 97% self CUDA time.
 - `phase2_residual_read` 当前在 read_topk=2 主配置下不是主要耗时, 但 dense read 在 T=256,B=16 时把 reserved memory 从 5.58GB 拉到 10.46GB, 说明大张量 materialization 是明确显存风险.
 - metrics gating 已修复: `enable_layer_metrics=False` 或 `fox_phase2_metrics_mode="off"` 时 gd residual metrics 不再扫描大状态.
+- 2026-04-26 追加实现 opt-in diagnostics: `PROFILE_ENABLE_GD_DIAGNOSTICS=1` 时输出同步 wall-time phase timer, event 统计和 `L_state` 有效性统计. 默认关闭, 不增加常规训练扫描开销.
 - 短 MQAR signal 有弱正向信号: all-segment short run loss `11.006 -> 10.975`, `inject_ratio=0.034`, `lambda_mean≈0.05`, `m_norm_max≈0.21`, 未出现 NaN/Inf. 但 valid accuracy 仍为 0, `mu_valid_ratio=0`, 不足以做正式质量结论.
 
 建议:
@@ -16,13 +17,14 @@
 - 继续小规模验证: 是, 但只做更长一点的短跑, 不进入大规模训练.
 - 优先 Triton fused residual read: 暂不作为第一优先级. read_topk 已显著降低显存, phase2 read 时间不是当前主耗时. 若后续质量信号确认, 再做 fused residual read.
 - 优先 grouped_chunk/event pack 优化: 是. 当前证据最强, 且 GPU 利用率粗采样平均约 22.7%, 符合 Python/event loop + 小 kernel 调度瓶颈.
+- 下一步先补 phase wall-time 和 event_count scaling, 再进入 PyTorch 侧 event_pack / grouped_chunk 原型优化.
 
 ## 2. 环境和读过文件
 
 仓库状态:
 
-- Flash-VQG: branch `20260425-gd-residual-v1-codex`, commit `fb44ce2e5e1f983b597ed02fad5f357d0badb3ae`.
-- zoology: branch `flash-vqg`, commit `361f1830c02da903a9a6cd71becc653707747dc2`.
+- Flash-VQG: branch `20260425-gd-residual-v1-codex`, commit `f4603bf92793005b4ad5dc8e8e062b6657824104`.
+- zoology: branch `flash-vqg`, commit `667efbf2fc7e7f7fb76daa182c2fe80e45f979f4`.
 - 两个仓库都有本轮未提交改动.
 
 环境:
@@ -52,6 +54,7 @@
   - `collect_metrics = enable_layer_metrics and fox_phase2_metrics_mode != "off"`.
   - `collect_metrics=False` 时不计算 `lambda_mean`, `inject_ratio`, `write_strength`, `m_norm`, `mu_valid_ratio`.
   - 增加 profiler markers: `gd_residual/event_pack`, `gd_residual/grouped_chunk`, `gd_residual/build_metrics`, `gd_residual/phase2_residual_read`, `gd_residual/phase2_metrics`.
+  - 追加 opt-in debug metrics: `event_pack` / `grouped_chunk` / `phase2_residual_read` 同步 wall-time, event/group 计数, `L_state` 有效性分布. 仅 `FOX_GD_RESIDUAL_PROFILE_DIAGNOSTICS=1` 时启用.
   - `FlashVQGAttention.__init__` 内按 config 初始化 beta/lambda projection, 并标记 `_flashvqg_custom_init`.
 
 - zoology:
@@ -59,6 +62,7 @@
   - MQAR gd residual scripts 增加 `FOX_REMOTE_READ_TOPK`, 默认 `2`, 支持 `dense`.
   - run id 增加 read_topk/rank/write_topk/batch suffix.
   - 新增 `run_profile.sh` 和 `profile_gd_residual_v1.py`, 默认不连 SwanLab, 不保存 checkpoint.
+  - `profile_gd_residual_v1.py` 将误导性的 `logged_step_sec` 改为 `metrics_collect_sec`, 并支持 `PROFILE_ENABLE_GD_DIAGNOSTICS`.
   - profiler 表现在输出 `self_cuda_time_total`, `cpu_time_total`, `cuda_memory_usage` 等排序.
 
 关键代码位置:
@@ -69,11 +73,10 @@
 - zoology init skip: `zoology/model.py:139`, `:149`.
 - profile runner timing/memory/profiler sort: `zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/profile_gd_residual_v1.py:133`, `:180`, `:192`, `:230`.
 
-Diff 摘要:
+追加诊断 diff 摘要:
 
-- Flash-VQG: 3 files, `197 insertions`, `97 deletions`.
-- zoology tracked diff: 10 files, `129 insertions`, `5 deletions`.
-- zoology untracked additions: report, `profile_gd_residual_v1.py`, `run_profile.sh`.
+- Flash-VQG: 2 files, `220 insertions`, `58 deletions`.
+- zoology: 7 files, 主要是 profile runner, metrics whitelist, README, tests 和本报告.
 
 ## 4. 运行命令和测试结果
 
@@ -81,9 +84,9 @@ Diff 摘要:
 
 | 命令 | 结果 |
 | --- | --- |
-| `pytest tests/test_fox_gd_residual_v1.py -q` | `10 passed in 0.23s` |
-| `pytest tests/test_fox_guards.py tests/test_fox_dense_write.py tests/test_fox_clr_delta_v1.py tests/test_fox_phase2_metrics.py -q` | `66 passed in 19.12s` |
-| `pytest tests/test_flash_vqg_wrapper.py tests/test_flash_vqg_scripts.py tests/test_flash_vqg_metrics_white_list.py tests/test_train_logging_steps.py tests/test_train_batch_order.py -q` | `76 passed, 1 warning in 7.30s` |
+| `pytest tests/test_fox_gd_residual_v1.py -q` | `11 passed in 0.34s` |
+| `pytest tests/test_fox_guards.py tests/test_fox_dense_write.py tests/test_fox_clr_delta_v1.py tests/test_fox_phase2_metrics.py -q` | `66 passed in 19.11s` |
+| `pytest tests/test_flash_vqg_wrapper.py tests/test_flash_vqg_scripts.py tests/test_flash_vqg_metrics_white_list.py tests/test_train_logging_steps.py tests/test_train_batch_order.py -q` | `77 passed, 1 warning in 11.59s` |
 
 主要 profile 命令模板:
 
@@ -95,6 +98,7 @@ TRAIN_BATCH_SIZE=16 \
 PROFILE_SEQ_LEN=128 \
 PROFILE_MICROBATCHES=8 \
 PROFILE_ENABLE_TORCH_PROFILER=0 \
+PROFILE_ENABLE_GD_DIAGNOSTICS=0 \
 PROFILE_OUTPUT_DIR=tmp/20260425-gd-residual-v1-profile-final/A-baseline-r16-wk4-read2-b16 \
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
 ```
@@ -109,7 +113,23 @@ TRAIN_BATCH_SIZE=8 \
 PROFILE_SEQ_LEN=128 \
 PROFILE_MICROBATCHES=1 \
 PROFILE_ENABLE_TORCH_PROFILER=1 \
+PROFILE_ENABLE_GD_DIAGNOSTICS=0 \
 PROFILE_OUTPUT_DIR=tmp/20260425-gd-residual-v1-profile-final/B8-profiler-rread-2-r16-wk4-b8 \
+bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
+```
+
+轻量 phase timer / event 诊断:
+
+```bash
+PROFILE_ENABLE_GD_DIAGNOSTICS=1 \
+PROFILE_ENABLE_TORCH_PROFILER=0 \
+PROFILE_SEQ_LEN=64 \
+PROFILE_MICROBATCHES=1 \
+TRAIN_BATCH_SIZE=1 \
+FOX_REMOTE_READ_TOPK=2 \
+FOX_GD_RESIDUAL_RANK=4 \
+FOX_GD_RESIDUAL_WRITE_TOPK=1 \
+PROFILE_OUTPUT_DIR=tmp/20260426-gd-residual-diagnostics-smoke \
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
 ```
 
@@ -202,6 +222,27 @@ GPU 粗采样:
 - `nvidia-smi dmon` baseline B16/T128/read2: SM utilization min/max/avg `0% / 84% / 22.7%`, memory utilization avg `15.4%`.
 - 这与大量小 kernel 和 CPU 调度开销相符.
 
+### Opt-in diagnostics smoke, 2026-04-26
+
+`PROFILE_ENABLE_GD_DIAGNOSTICS=1` 的最小运行确认 summary 字段和模型 debug metrics 可以正常落盘:
+
+| 项 | 数值 |
+| --- | ---: |
+| config | `T=64, B=1, rank=4, write_topk=1, read_topk=2` |
+| microbatch_s | `4.52` |
+| forward_s / backward_s / optimizer_s | `2.74 / 1.75 / 0.03` |
+| metrics_collect_s | `0.0012` |
+| peak_reserved_GB | `0.53` |
+| event_pack_wall_s | `0.0461` |
+| grouped_chunk_wall_s | `0.0220` |
+| phase2_residual_read_wall_s | `0.00058` |
+| event_count / group_count | `128 / 100` |
+| max / mean events per group | `4.0 / 1.28` |
+| L_state mean / max | `0.0677 / 0.1509` |
+| L_state frac >= 0.1 / 0.5 / 1.0 | `0.50 / 0.0 / 0.0` |
+
+说明: 这里使用的是同步 wall-time 计时, 不是 CUDA Event. 该诊断默认关闭, 只用于低开销复核 profiler 归因和 `mu_valid_ratio=0` 的原因.
+
 ## 6. MQAR 短周期训练信号
 
 本地 MQAR short-signal 使用相同 config builder, 但限制样本数和 batch 数, 不连接 SwanLab, 不保存 checkpoint. first-segment sweep 只覆盖 64-token segment, all-segment baseline 覆盖原 smoke 的多个 segment 但每段样本极少. 这些数据只用于信号判断, 不是正式质量结论.
@@ -292,10 +333,17 @@ All-segment baseline short run:
 
 ## 10. 下一步最小实验计划
 
-1. 不做 Triton/CUDA/custom backward, 先跑 2-3 个更长的 all-segment MQAR short run:
+1. 先用 `PROFILE_ENABLE_GD_DIAGNOSTICS=1` 复核 phase wall-time:
+   - `read_topk=2, rank=16, write_topk=4, batch=8, T=128`.
+   - 记录 `event_pack`, `grouped_chunk`, `phase2_residual_read`, `forward`, `backward`, `optimizer`, `metrics_collect`.
+2. 做 event_count scaling:
+   - 固定 `read_topk=2, rank=16, batch=8, T=128`.
+   - 扫 `write_topk=1,2,4`, 记录 event/group 计数和 microbatch time 是否近似线性变化.
+3. 不做 Triton/CUDA/custom backward, 跑 2-3 个更长的 all-segment MQAR short run:
    - `read_topk=2, rank=16, write_topk=4, batch=8`.
    - `read_topk=2, rank=16, write_topk=2, batch=8`.
    - `read_topk=2, rank=8, write_topk=4, batch=8`.
-2. 每个 run 至少记录 20-50 个 train batch, 观察 loss 是否连续下降, `inject_ratio` 是否非零稳定, `mu_valid_ratio` 是否开始增长.
-3. 若训练信号成立, 优先做 grouped_chunk/event pack 的低级优化或向量化原型.
-4. 只有当质量信号成立且 read_topk/dense 显存继续限制实验规模时, 再投入 fused residual read.
+4. 每个 run 至少记录 20-50 个 train batch, 观察 loss 是否连续下降, `inject_ratio` 是否非零稳定, `mu_valid_ratio` 是否开始增长.
+5. 补同 token budget baseline: local-only/no remote, legacy 或 `clr_delta_v1`, gd_residual_v1 主配置.
+6. 若训练信号成立, 优先做 grouped_chunk/event pack 的 PyTorch 向量化或 padded grouped chunk 原型.
+7. 只有当质量信号成立且 read_topk/dense 显存继续限制实验规模时, 再投入 fused residual read.

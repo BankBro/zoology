@@ -1,6 +1,11 @@
 import importlib.util
+import json
+import sys
 from argparse import Namespace
 from pathlib import Path
+
+import pytest
+import torch
 
 from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import fetch_local_run
 from zoology.experiments.flash_vqg.scripts.compare_remat_training import _build_config as build_remat_config
@@ -75,6 +80,18 @@ def _load_gd_residual_builder_module():
     spec = importlib.util.spec_from_file_location("flash_vqg_gd_residual_builder", script_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_gd_residual_short_run_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/short_run_gd_residual_v1.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gd_residual_short_run", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -372,6 +389,59 @@ def test_gd_residual_builder_supports_dense_read_topk():
     assert flash_kwargs["fox_remote_read_topk"] is None
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="gd_residual short-run smoke needs CUDA")
+def test_gd_residual_short_run_runner_writes_summary_and_records(tmp_path):
+    module = _load_gd_residual_short_run_module()
+    args = Namespace(
+        train_batches=1,
+        seeds="123",
+        variant="gd_r8_wk4",
+        output_dir=str(tmp_path / "out"),
+        enable_gd_diagnostics=True,
+        append=False,
+        batch_size=1,
+        eval_batch_size=1,
+        test_examples_per_segment=1,
+        eval_batches=1,
+        d_model=64,
+        num_codebook_vectors=8,
+        block_len=32,
+        local_num_blocks=2,
+        learning_rate=1e-3,
+        weight_decay=0.1,
+        data_seed=123,
+        remote_read_topk="2",
+        builder="grouped_chunk_torch_ref",
+        pack_mode="semivec_ref",
+        chunk_size=64,
+        cache_dir=str(tmp_path / "cache"),
+        train_batch_order="sequential",
+        device="cuda",
+    )
+
+    summary = module.run_short_run(args)
+    records_path = Path(summary["records_path"])
+    records = [
+        json.loads(line)
+        for line in records_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    train_record = next(record for record in records if record["record_type"] == "train")
+    valid_record = next(record for record in records if record["record_type"] == "valid")
+
+    assert summary["runs"][0]["status"] == "completed"
+    assert summary["runs"][0]["init_check"]["checked"] is True
+    assert "metrics_collect_sec" in train_record
+    assert "peak_allocated_bytes" in train_record["memory"]
+    assert train_record["gd_residual_metrics"]
+    assert train_record["layer_metrics"]
+    assert train_record["event_diagnostics"]
+    assert train_record["l_state_diagnostics"]
+    assert "attn/gd_residual_debug_avg_events_per_group" in train_record["metrics"]
+    assert valid_record["valid_loss"] is not None
+    assert valid_record["valid_accuracy"] is not None
+
+
 def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_results():
     base_dir = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar"
@@ -381,6 +451,9 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     smoke = (base_dir / "run_smoke.sh").read_text(encoding="utf-8")
     train = (base_dir / "run_train.sh").read_text(encoding="utf-8")
     profile = (base_dir / "run_profile.sh").read_text(encoding="utf-8")
+    short_run = (base_dir / "run_short_run.sh").read_text(encoding="utf-8")
+    profile_py = (base_dir / "profile_gd_residual_v1.py").read_text(encoding="utf-8")
+    short_run_py = (base_dir / "short_run_gd_residual_v1.py").read_text(encoding="utf-8")
     metrics_yaml = (base_dir / "metrics.yaml").read_text(encoding="utf-8")
     generated_gitignore = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/.gitignore"
@@ -402,13 +475,30 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in smoke
     assert "--fox-gd-residual-lambda-init \"${FOX_GD_RESIDUAL_LAMBDA_INIT}\"" in train
     assert "PROFILE_ENABLE_TORCH_PROFILER" in profile
+    assert "PROFILE_ENABLE_GD_DIAGNOSTICS" in profile
     assert "profile_gd_residual_v1.py" in profile
+    assert "SHORT_RUN_TRAIN_BATCHES" in short_run
+    assert "SHORT_RUN_SEEDS" in short_run
+    assert "SHORT_RUN_VARIANT" in short_run
+    assert "SHORT_RUN_OUTPUT_DIR" in short_run
+    assert "short_run_gd_residual_v1.py" in short_run
+    assert "metrics_collect_sec" in profile_py
+    assert "logged_step_sec" not in profile_py
+    assert "metrics_collect_sec" in short_run_py
+    assert "records.jsonl" in short_run_py
+    assert "peak_allocated_bytes" in short_run_py
+    assert "gd_residual_debug_avg_events_per_group" in short_run_py
     assert "run_smoke.sh" in readme
     assert "run_train.sh" in readme
     assert "run_profile.sh" in readme
+    assert "run_short_run.sh" in readme
+    assert "PROFILE_ENABLE_GD_DIAGNOSTICS=1" in readme
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
+    assert "attn/gd_residual_debug_avg_events_per_group" in metrics_yaml
+    assert "layer_*/attn/gd_residual_mu_valid_ratio" in metrics_yaml
     assert "valid/attn/gd_residual_mu_valid_ratio" in metrics_yaml
+    assert "valid/layer_*/attn/gd_residual_inject_ratio" in metrics_yaml
     assert "debug/gd_token_chunk_max_diff" not in metrics_yaml
 
     for content in (generated_gitignore, results_gitignore):

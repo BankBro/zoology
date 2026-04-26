@@ -27,6 +27,13 @@ def test_derive_flash_metric_controls_respects_white_list_scope():
     gd_residual_metrics = derive_flash_metric_controls(
         ["attn/gd_residual_lambda_mean", "valid/attn/gd_residual_mu_valid_ratio"]
     )
+    gd_residual_debug_metrics = derive_flash_metric_controls(
+        [
+            "attn/gd_residual_debug_event_count",
+            "valid/attn/gd_residual_debug_l_state_max",
+            "layer_*/attn/gd_residual_debug_avg_events_per_group",
+        ]
+    )
 
     assert no_model_metrics == {
         "enable_layer_metrics": False,
@@ -45,6 +52,10 @@ def test_derive_flash_metric_controls_respects_white_list_scope():
         "fox_phase2_metrics_mode": "off",
     }
     assert gd_residual_metrics == {
+        "enable_layer_metrics": True,
+        "fox_phase2_metrics_mode": "lite",
+    }
+    assert gd_residual_debug_metrics == {
         "enable_layer_metrics": True,
         "fox_phase2_metrics_mode": "lite",
     }

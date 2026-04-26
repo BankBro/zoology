@@ -41,6 +41,7 @@
 - `run_smoke.sh` 用于 1 epoch 冒烟
 - `run_train.sh` 用于正式训练
 - `run_profile.sh` 用于短周期 profiling, 默认 `logger=none`, 不连接 SwanLab, 不保存 checkpoint
+- `run_short_run.sh` 用于真实 MQAR readiness 短跑, 默认 `20` train batches x seeds `123,124`, 不连接 SwanLab, 不保存 checkpoint
 
 启动:
 
@@ -48,6 +49,8 @@
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_smoke.sh
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_train.sh
 PROFILE_ENABLE_TORCH_PROFILER=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
+PROFILE_ENABLE_GD_DIAGNOSTICS=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
+SHORT_RUN_VARIANT=all PROFILE_ENABLE_GD_DIAGNOSTICS=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_short_run.sh
 ```
 
 默认 launch 前缀:
@@ -63,3 +66,14 @@ PROFILE_ENABLE_TORCH_PROFILER=1 bash zoology/experiments/flash_vqg/scripts/20260
 - local analysis: `zoology/analysis/flash_vqg/results/<launch_id>/launch_analysis/run_summary.csv`
 - checkpoint: `checkpoints/<launch_id>/gd-residual-v1-*/`
 - profiling summary: `tmp/20260425-gd-residual-v1-profile/summary.json`
+- short-run summary: `tmp/20260425-gd-residual-v1-short-run/summary.json`
+- short-run records: `tmp/20260425-gd-residual-v1-short-run/records.jsonl`
+- `PROFILE_ENABLE_GD_DIAGNOSTICS=1` 会额外输出同步 wall-time phase timer, event 统计和 `L_state` 有效性诊断
+
+Short-run 参数:
+
+- `SHORT_RUN_TRAIN_BATCHES`: 默认 `20`
+- `SHORT_RUN_SEEDS`: 默认 `123,124`
+- `SHORT_RUN_VARIANT`: 默认 `gd_r16_wk4`, 可选 `gd_r16_wk4`, `gd_r16_wk2`, `gd_r8_wk4`, `local_only`, `legacy_fox`, `all`
+- `SHORT_RUN_OUTPUT_DIR`: 默认 `tmp/20260425-gd-residual-v1-short-run`
+- `PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `1`, 显式控制 gd residual debug metrics

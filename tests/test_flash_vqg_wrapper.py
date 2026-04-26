@@ -625,9 +625,17 @@ def test_language_model_preserves_gd_residual_custom_init():
     model = LanguageModel(configs[0].model)
     mixers = [module for module in model.modules() if module.__class__.__name__ == "FlashVQGMixer"]
     assert len(mixers) == 1
+    beta_bias = mixers[0].attn.fox_gd_residual_beta_proj.bias.detach()
     lambda_bias = mixers[0].attn.fox_gd_residual_lambda_proj.bias.detach()
+    beta_value = torch.sigmoid(beta_bias)
     lambda_value = torch.sigmoid(lambda_bias)
 
+    torch.testing.assert_close(
+        beta_value,
+        torch.full_like(beta_value, 0.5),
+        atol=1e-6,
+        rtol=1e-6,
+    )
     torch.testing.assert_close(
         lambda_value,
         torch.full_like(lambda_value, 0.05),
