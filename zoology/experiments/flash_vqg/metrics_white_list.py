@@ -27,6 +27,12 @@ DEFAULT_ATTN_METRICS = [
     "attn/k_rms_mean",
     "attn/k_hat_rms_mean",
     "attn/clr_h_norm_mean",
+    "attn/gd_residual_inject_ratio",
+    "attn/gd_residual_lambda_mean",
+    "attn/gd_residual_write_strength_mean",
+    "attn/gd_residual_m_norm_mean",
+    "attn/gd_residual_m_norm_max",
+    "attn/gd_residual_mu_valid_ratio",
 ]
 DEFAULT_VQ_METRICS = [
     "vq/c_sim_min",
@@ -74,6 +80,14 @@ REMOTE_FULL_ONLY_BASE_KEYS = {
     "attn/k_rms_mean",
     "attn/k_hat_rms_mean",
     "attn/clr_h_norm_mean",
+}
+GD_RESIDUAL_BASE_KEYS = {
+    "attn/gd_residual_inject_ratio",
+    "attn/gd_residual_lambda_mean",
+    "attn/gd_residual_write_strength_mean",
+    "attn/gd_residual_m_norm_mean",
+    "attn/gd_residual_m_norm_max",
+    "attn/gd_residual_mu_valid_ratio",
 }
 
 T = TypeVar("T")
@@ -214,10 +228,14 @@ def derive_flash_metric_controls(
 
     remote_lite_variants = _expand_metric_variants(REMOTE_LITE_BASE_KEYS, layer_count=layer_count)
     remote_full_only_variants = _expand_metric_variants(REMOTE_FULL_ONLY_BASE_KEYS, layer_count=layer_count)
+    gd_residual_variants = _expand_metric_variants(GD_RESIDUAL_BASE_KEYS, layer_count=layer_count)
 
     if filter_metric_names(remote_full_only_variants, normalized):
         phase2_mode = "full"
-    elif filter_metric_names(remote_lite_variants, normalized):
+    elif filter_metric_names(remote_lite_variants, normalized) or filter_metric_names(
+        gd_residual_variants,
+        normalized,
+    ):
         phase2_mode = "lite"
     else:
         phase2_mode = "off"

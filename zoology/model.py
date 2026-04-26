@@ -136,6 +136,8 @@ def _init_weights(
 ):
     if 'Mamba' in block_type:
         if isinstance(module, nn.Linear):
+            if getattr(module, "_flashvqg_custom_init", None) is not None:
+                return
             if module.bias is not None:
                 if not getattr(module.bias, "_no_reinit", False):
                     nn.init.zeros_(module.bias)
@@ -144,6 +146,8 @@ def _init_weights(
                 nn.init.normal_(module.weight, std=initializer_range)
     else:
         if isinstance(module, nn.Linear):
+            if getattr(module, "_flashvqg_custom_init", None) is not None:
+                return
             nn.init.normal_(module.weight, std=initializer_range)
             if module.bias is not None:
                 nn.init.zeros_(module.bias)

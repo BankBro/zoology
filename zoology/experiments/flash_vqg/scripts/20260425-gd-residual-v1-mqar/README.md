@@ -16,6 +16,7 @@
 - `data_seed=123`
 - `max_epochs=32`
 - `fox_remote_formula=gd_residual_v1`
+- `fox_remote_read_topk=2`, 可用 `FOX_REMOTE_READ_TOPK=dense` 切回 dense read
 - 其余 `fox_gd_residual_*` 默认值按蓝图:
   - `rank=16`
   - `write_topk=4`
@@ -39,18 +40,21 @@
 - analysis 默认走本地产物, 即 `--analysis local`
 - `run_smoke.sh` 用于 1 epoch 冒烟
 - `run_train.sh` 用于正式训练
+- `run_profile.sh` 用于短周期 profiling, 默认 `logger=none`, 不连接 SwanLab, 不保存 checkpoint
 
 启动:
 
 ```bash
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_smoke.sh
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_train.sh
+PROFILE_ENABLE_TORCH_PROFILER=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
 ```
 
 默认 launch 前缀:
 
 - smoke: `flash-vqg-20260425-gd-residual-v1-mqar-smoke`
 - train: `flash-vqg-20260425-gd-residual-v1-mqar-train`
+- profile: `flash-vqg-20260425-gd-residual-v1-mqar-profile`
 
 主要产物位置:
 
@@ -58,3 +62,4 @@ bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_trai
 - generated config: `zoology/experiments/flash_vqg/generated/<launch_id>/generated_config.py`
 - local analysis: `zoology/analysis/flash_vqg/results/<launch_id>/launch_analysis/run_summary.csv`
 - checkpoint: `checkpoints/<launch_id>/gd-residual-v1-*/`
+- profiling summary: `tmp/20260425-gd-residual-v1-profile/summary.json`
