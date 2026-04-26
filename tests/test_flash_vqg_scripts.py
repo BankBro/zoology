@@ -440,6 +440,8 @@ def test_gd_residual_short_run_valid_record_includes_phase_step_and_splits(tmp_p
                 "valid/attn/gd_residual_mu_valid_ratio": 0.25,
                 "valid/attn/gd_residual_debug_event_count": 2.0,
                 "valid/attn/gd_residual_debug_l_state_mean": 0.12,
+                "valid/attn/gd_residual_debug_l_state_p95": 0.2,
+                "valid/attn/gd_residual_debug_l_state_hist_0_1_0_15": 0.5,
                 "valid/layer_0/attn/gd_residual_mu_valid_ratio": 0.5,
             },
             1.25,
@@ -479,6 +481,8 @@ def test_gd_residual_short_run_valid_record_includes_phase_step_and_splits(tmp_p
     assert record["layer_metrics"]["valid/layer_0/attn/gd_residual_mu_valid_ratio"] == 0.5
     assert record["event_diagnostics"]["valid/attn/gd_residual_debug_event_count"] == 2.0
     assert record["l_state_diagnostics"]["valid/attn/gd_residual_debug_l_state_mean"] == 0.12
+    assert record["l_state_diagnostics"]["valid/attn/gd_residual_debug_l_state_p95"] == 0.2
+    assert record["l_state_diagnostics"]["valid/attn/gd_residual_debug_l_state_hist_0_1_0_15"] == 0.5
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="gd_residual short-run smoke needs CUDA")
@@ -564,6 +568,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "records.jsonl" in short_run_py
     assert "peak_allocated_bytes" in short_run_py
     assert "gd_residual_debug_avg_events_per_group" in short_run_py
+    assert "gd_residual_debug_l_state_p95" in short_run_py
     assert "run_smoke.sh" in readme
     assert "run_train.sh" in readme
     assert "run_profile.sh" in readme
@@ -575,6 +580,8 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
     assert "attn/gd_residual_debug_avg_events_per_group" in metrics_yaml
+    assert "attn/gd_residual_debug_l_state_p95" in metrics_yaml
+    assert "attn/gd_residual_debug_l_state_hist_0_1_0_15" in metrics_yaml
     assert "layer_*/attn/gd_residual_mu_valid_ratio" in metrics_yaml
     assert "valid/attn/gd_residual_mu_valid_ratio" in metrics_yaml
     assert "valid/layer_*/attn/gd_residual_inject_ratio" in metrics_yaml

@@ -68,7 +68,7 @@ SHORT_RUN_VARIANT=all SHORT_RUN_VALID_EVERY=10 PROFILE_ENABLE_GD_DIAGNOSTICS=1 b
 - profiling summary: `tmp/20260425-gd-residual-v1-profile/summary.json`
 - short-run summary: `tmp/20260425-gd-residual-v1-short-run/summary.json`
 - short-run records: `tmp/20260425-gd-residual-v1-short-run/records.jsonl`
-- `PROFILE_ENABLE_GD_DIAGNOSTICS=1` 会额外输出同步 wall-time phase timer, event 统计和 `L_state` 有效性诊断
+- `PROFILE_ENABLE_GD_DIAGNOSTICS=1` 会额外输出同步 wall-time phase timer, event 统计和 `L_state` 有效性/分布诊断
 
 Short-run 参数:
 

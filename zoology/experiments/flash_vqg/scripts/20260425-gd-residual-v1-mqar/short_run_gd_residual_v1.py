@@ -35,6 +35,19 @@ GD_DEBUG_METRICS = [
     "attn/gd_residual_debug_l_state_frac_ge_0_1",
     "attn/gd_residual_debug_l_state_frac_ge_0_5",
     "attn/gd_residual_debug_l_state_frac_ge_1_0",
+    "attn/gd_residual_debug_l_state_p50",
+    "attn/gd_residual_debug_l_state_p75",
+    "attn/gd_residual_debug_l_state_p90",
+    "attn/gd_residual_debug_l_state_p95",
+    "attn/gd_residual_debug_l_state_p99",
+    "attn/gd_residual_debug_l_state_hist_0_0_05",
+    "attn/gd_residual_debug_l_state_hist_0_05_0_1",
+    "attn/gd_residual_debug_l_state_hist_0_1_0_15",
+    "attn/gd_residual_debug_l_state_hist_0_15_0_2",
+    "attn/gd_residual_debug_l_state_hist_0_2_0_25",
+    "attn/gd_residual_debug_l_state_hist_0_25_0_5",
+    "attn/gd_residual_debug_l_state_hist_0_5_1_0",
+    "attn/gd_residual_debug_l_state_hist_ge_1_0",
 ]
 
 SHORT_RUN_METRICS = [
