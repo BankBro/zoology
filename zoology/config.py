@@ -153,6 +153,7 @@ class TrainConfig(BaseConfig):
     learning_rate: float = 1e-3
     weight_decay: float = 0.1
     gradient_accumulation_steps: int = 1
+    validations_per_epoch: int = 1
     seed: int = 123
 
     launch_id: Optional[str] = None
