@@ -1,6 +1,7 @@
 import argparse
 import random
 import json
+import signal
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +28,40 @@ from zoology.model import LanguageModel, ContinuousInputModel
 from zoology.logger import LoggerProtocol, build_logger
 from zoology.utils import set_determinism
 from zoology.metrics import compute_mse, compute_ce_with_embeddings
+
+
+class TrainingInterrupted(RuntimeError):
+    pass
+
+
+def _format_training_error(exc: BaseException) -> str:
+    message = str(exc).strip()
+    if message:
+        return f"{type(exc).__name__}: {message}"
+    return type(exc).__name__
+
+
+def _build_signal_interrupt_handler(signal_name: str):
+    def _handler(_signum, _frame):
+        raise TrainingInterrupted(f"收到 {signal_name} 信号, 终止训练.")
+
+    return _handler
+
+
+def _install_training_signal_handlers() -> dict[int, signal.Handlers]:
+    previous_handlers: dict[int, signal.Handlers] = {}
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        previous_handlers[signum] = signal.getsignal(signum)
+        signal.signal(
+            signum,
+            _build_signal_interrupt_handler(signal.Signals(signum).name),
+        )
+    return previous_handlers
+
+
+def _restore_training_signal_handlers(previous_handlers: dict[int, signal.Handlers]) -> None:
+    for signum, handler in previous_handlers.items():
+        signal.signal(signum, handler)
 
 
 class CheckpointManager:
@@ -441,6 +476,7 @@ def train(config: TrainConfig):
     import os
     set_determinism(config.seed, deterministic=os.environ.get("TORCH_DETERMINISTIC", "0") == "1")
     checkpoint_manager = CheckpointManager(config)
+    previous_signal_handlers = _install_training_signal_handlers()
     logger: LoggerProtocol | None = None
     try:
         logger = build_logger(config)
@@ -496,16 +532,17 @@ def train(config: TrainConfig):
             logger_summary=logger.get_summary(),
             status="completed",
         )
-    except Exception as exc:
+    except BaseException as exc:
         if logger is not None:
             update_manifest_for_run(
                 config=config,
                 logger_summary=logger.get_summary(),
                 status="failed",
-                error=str(exc),
+                error=_format_training_error(exc),
             )
         raise
     finally:
+        _restore_training_signal_handlers(previous_signal_handlers)
         if logger is not None:
             logger.finish()
 

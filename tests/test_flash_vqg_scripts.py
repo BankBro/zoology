@@ -371,7 +371,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     ).read_text(encoding="utf-8")
 
     assert "PROJECT=\"${PROJECT:-flash_vqg_gd_residual_v1_mqar}\"" in common_env
-    assert "SWANLAB_MODE=\"${SWANLAB_MODE:-offline}\"" in common_env
+    assert "SWANLAB_MODE=\"${SWANLAB_MODE:-cloud}\"" in common_env
     assert "LAUNCH_ID_PREFIX_SMOKE" in common_env
     assert "LAUNCH_ID_PREFIX_TRAIN" in common_env
     assert "--config-builder \"${BUILDER_SPEC}\"" in smoke

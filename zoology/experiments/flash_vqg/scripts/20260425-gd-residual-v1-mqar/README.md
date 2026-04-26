@@ -34,7 +34,8 @@
 统一约定:
 
 - SwanLab 项目名固定为 `flash_vqg_gd_residual_v1_mqar`
-- 新脚本默认 `SWANLAB_MODE=offline`, 先把日志落到本地 `swanlog/`, 需要时再手动 `swanlab sync`
+- 新脚本默认 `SWANLAB_MODE=cloud`, 直接走在线上报
+- 如需离线落本地, 可显式覆盖: `SWANLAB_MODE=offline bash .../run_train.sh`
 - analysis 默认走本地产物, 即 `--analysis local`
 - `run_smoke.sh` 用于 1 epoch 冒烟
 - `run_train.sh` 用于正式训练

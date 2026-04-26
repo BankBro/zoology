@@ -17,7 +17,7 @@ MAX_EPOCHS="${MAX_EPOCHS:-32}"
 CACHE_DIR="${CACHE_DIR:-./data/flash_vqg}"
 PROJECT="${PROJECT:-flash_vqg_gd_residual_v1_mqar}"
 ENTITY="${ENTITY:-scu-mclab}"
-SWANLAB_MODE="${SWANLAB_MODE:-offline}"
+SWANLAB_MODE="${SWANLAB_MODE:-cloud}"
 export SWANLAB_MODE
 
 TRAIN_BATCH_ORDER="${TRAIN_BATCH_ORDER:-global_shuffle}"
