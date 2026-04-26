@@ -23,6 +23,7 @@ cd "${ROOT_DIR}"
   --data-seed "${DATA_SEED}" \
   --num-codebook-vectors "${NUM_CODEBOOK_VECTORS}" \
   --fox-remote-path-backend "${REMOTE_PATH_BACKEND}" \
+  --fox-remote-read-topk-values "${FOX_REMOTE_READ_TOPK}" \
   --fox-remote-formula "${FOX_REMOTE_FORMULA}" \
   --fox-gd-residual-rank "${FOX_GD_RESIDUAL_RANK}" \
   --fox-gd-residual-write-topk "${FOX_GD_RESIDUAL_WRITE_TOPK}" \

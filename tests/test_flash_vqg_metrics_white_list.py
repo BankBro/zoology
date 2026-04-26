@@ -24,6 +24,9 @@ def test_derive_flash_metric_controls_respects_white_list_scope():
     lite_remote_metrics = derive_flash_metric_controls(["attn/o_remote_energy_ratio", "valid/attn/clr_alpha_norm_mean"])
     full_remote_metrics = derive_flash_metric_controls(["valid/attn/remote_topk_den_capture_ratio"])
     vq_metrics_only = derive_flash_metric_controls(["vq/c_entropy", "valid/vq/relative_err_mean"])
+    gd_residual_metrics = derive_flash_metric_controls(
+        ["attn/gd_residual_lambda_mean", "valid/attn/gd_residual_mu_valid_ratio"]
+    )
 
     assert no_model_metrics == {
         "enable_layer_metrics": False,
@@ -40,6 +43,10 @@ def test_derive_flash_metric_controls_respects_white_list_scope():
     assert vq_metrics_only == {
         "enable_layer_metrics": True,
         "fox_phase2_metrics_mode": "off",
+    }
+    assert gd_residual_metrics == {
+        "enable_layer_metrics": True,
+        "fox_phase2_metrics_mode": "lite",
     }
 
 

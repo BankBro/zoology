@@ -4,6 +4,7 @@ from zoology.experiments.flash_vqg.flash_vqg_suite import build_configs
 from zoology.experiments.flash_vqg.run_flash_vqg_suite import (
     _parse_csv_floats,
     _parse_csv_ints,
+    _parse_remote_read_topk_values,
     _parse_seed_values,
     _resolve_metrics_white_list,
 )
@@ -82,6 +83,17 @@ def _parse_bool_arg(value, *, field_name: str) -> bool:
     raise ValueError(f"{field_name} 必须是 bool 或 true/false, 当前收到: {value!r}")
 
 
+def _read_topk_tag(value: int | None) -> str:
+    return "dense" if value is None else f"top{int(value)}"
+
+
+def _resolve_remote_read_topk_values(args) -> list[int | None]:
+    raw = getattr(args, "fox_remote_read_topk_values", None)
+    if raw is None:
+        return [2]
+    return _parse_remote_read_topk_values(str(raw))
+
+
 def _common_builder_kwargs(args, *, experiment_mode: str):
     dmodels = _parse_csv_ints(args.dmodels)
     learning_rates = _parse_csv_floats(args.learning_rates)
@@ -104,6 +116,7 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
         metrics_white_list_raw=args.metrics_white_list,
         metrics_white_list_file=args.metrics_white_list_file,
     )
+    remote_read_topk_values = _resolve_remote_read_topk_values(args)
 
     remote_formula = str(getattr(args, "fox_remote_formula", "gd_residual_v1"))
     if remote_formula != "gd_residual_v1":
@@ -128,6 +141,7 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             data_seed=int(args.data_seed),
             num_codebook_vectors_values=[num_codebook_vectors],
             fox_remote_path_backend=str(getattr(args, "fox_remote_path_backend", "torch") or "torch"),
+            fox_remote_read_topk_values=remote_read_topk_values,
             fox_remote_formula=remote_formula,
             fox_gd_residual_rank=int(getattr(args, "fox_gd_residual_rank", 16)),
             fox_gd_residual_write_topk=int(getattr(args, "fox_gd_residual_write_topk", 4)),
@@ -172,18 +186,27 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
         ),
         seed_value,
         int(args.data_seed),
+        remote_read_topk_values,
     )
 
 
 def _build_single(args, *, experiment_mode: str):
-    kwargs, seed_value, data_seed = _common_builder_kwargs(
+    kwargs, seed_value, data_seed, remote_read_topk_values = _common_builder_kwargs(
         args,
         experiment_mode=experiment_mode,
     )
     configs = build_configs(**kwargs)
     if len(configs) != 1:
         raise RuntimeError(f"Expected exactly 1 config for {experiment_mode}, got {len(configs)}")
-    run_id = f"gd-residual-v1-{experiment_mode}-s{seed_value}-d{data_seed}"
+    read_topk = _require_single(remote_read_topk_values, field_name="fox_remote_read_topk_values")
+    train_batch_size = int(args.train_batch_size) if args.train_batch_size is not None else 256
+    run_id = (
+        f"gd-residual-v1-{experiment_mode}-s{seed_value}-d{data_seed}"
+        f"-rread-{_read_topk_tag(read_topk)}"
+        f"-r{int(getattr(args, 'fox_gd_residual_rank', 16))}"
+        f"-wk{int(getattr(args, 'fox_gd_residual_write_topk', 4))}"
+        f"-b{train_batch_size}"
+    )
     return _rewrite_run_id(configs[0], run_id=run_id)
 
 

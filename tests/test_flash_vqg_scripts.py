@@ -154,6 +154,7 @@ def _build_gd_residual_args() -> Namespace:
         data_seed=123,
         num_codebook_vectors="128",
         fox_remote_path_backend="torch",
+        fox_remote_read_topk_values="2",
         fox_remote_formula="gd_residual_v1",
         fox_gd_residual_rank=16,
         fox_gd_residual_write_topk=4,
@@ -324,13 +325,18 @@ def test_gd_residual_builder_returns_expected_smoke_and_train_configs():
     smoke_configs = module.build_gd_residual_v1_smoke_configs(args)
     train_configs = module.build_gd_residual_v1_train_configs(args)
 
-    assert [config.run_id for config in smoke_configs] == ["gd-residual-v1-smoke-s123-d123"]
-    assert [config.run_id for config in train_configs] == ["gd-residual-v1-train-s123-d123"]
+    assert [config.run_id for config in smoke_configs] == [
+        "gd-residual-v1-smoke-s123-d123-rread-top2-r16-wk4-b16"
+    ]
+    assert [config.run_id for config in train_configs] == [
+        "gd-residual-v1-train-s123-d123-rread-top2-r16-wk4-b16"
+    ]
 
     smoke_kwargs = _extract_flash_kwargs(smoke_configs[0])
     train_kwargs = _extract_flash_kwargs(train_configs[0])
 
     assert smoke_kwargs["fox_remote_formula"] == "gd_residual_v1"
+    assert smoke_kwargs["fox_remote_read_topk"] == 2
     assert smoke_kwargs["fox_gd_residual_rank"] == 16
     assert smoke_kwargs["fox_gd_residual_builder"] == "grouped_chunk_torch_ref"
     assert smoke_kwargs["fox_gd_residual_pack_mode"] == "semivec_ref"
@@ -354,6 +360,18 @@ def test_gd_residual_builder_returns_expected_smoke_and_train_configs():
     assert train_configs[0].data.batch_size == (16, 8)
 
 
+def test_gd_residual_builder_supports_dense_read_topk():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.fox_remote_read_topk_values = "dense"
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == "gd-residual-v1-train-s123-d123-rread-dense-r16-wk4-b16"
+    assert flash_kwargs["fox_remote_read_topk"] is None
+
+
 def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_results():
     base_dir = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar"
@@ -362,6 +380,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     common_env = (base_dir / "common_env.sh").read_text(encoding="utf-8")
     smoke = (base_dir / "run_smoke.sh").read_text(encoding="utf-8")
     train = (base_dir / "run_train.sh").read_text(encoding="utf-8")
+    profile = (base_dir / "run_profile.sh").read_text(encoding="utf-8")
     metrics_yaml = (base_dir / "metrics.yaml").read_text(encoding="utf-8")
     generated_gitignore = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/.gitignore"
@@ -372,14 +391,21 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
 
     assert "PROJECT=\"${PROJECT:-flash_vqg_gd_residual_v1_mqar}\"" in common_env
     assert "SWANLAB_MODE=\"${SWANLAB_MODE:-cloud}\"" in common_env
+    assert "FOX_REMOTE_READ_TOPK=\"${FOX_REMOTE_READ_TOPK:-2}\"" in common_env
     assert "LAUNCH_ID_PREFIX_SMOKE" in common_env
     assert "LAUNCH_ID_PREFIX_TRAIN" in common_env
+    assert "LAUNCH_ID_PREFIX_PROFILE" in common_env
     assert "--config-builder \"${BUILDER_SPEC}\"" in smoke
     assert "--config-builder \"${BUILDER_SPEC}\"" in train
+    assert "--fox-remote-read-topk-values \"${FOX_REMOTE_READ_TOPK}\"" in smoke
+    assert "--fox-remote-read-topk-values \"${FOX_REMOTE_READ_TOPK}\"" in train
     assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in smoke
     assert "--fox-gd-residual-lambda-init \"${FOX_GD_RESIDUAL_LAMBDA_INIT}\"" in train
+    assert "PROFILE_ENABLE_TORCH_PROFILER" in profile
+    assert "profile_gd_residual_v1.py" in profile
     assert "run_smoke.sh" in readme
     assert "run_train.sh" in readme
+    assert "run_profile.sh" in readme
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
     assert "valid/attn/gd_residual_mu_valid_ratio" in metrics_yaml

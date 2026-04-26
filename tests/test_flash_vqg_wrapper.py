@@ -6,7 +6,9 @@ from argparse import Namespace
 from pathlib import Path
 
 import pytest
+import torch
 
+from zoology.model import LanguageModel
 from zoology.experiments.flash_vqg.flash_vqg_suite import build_configs
 import zoology.experiments.flash_vqg.run_flash_vqg_suite as suite
 from zoology.experiments.flash_vqg.run_flash_vqg_suite import (
@@ -597,6 +599,41 @@ def test_build_configs_supports_gd_residual_v1_formula_suffix():
     assert flash_kwargs["fox_gd_residual_rank"] == 16
     assert flash_kwargs["fox_gd_residual_pack_mode"] == "semivec_ref"
     assert "-rformula-gdr1-r16-wk4-gctref-semivec" in configs[0].run_id
+
+
+def test_language_model_preserves_gd_residual_custom_init():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[64],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[16],
+        fox_remote_path_backend="torch",
+        fox_remote_formula="gd_residual_v1",
+        fox_gd_residual_rank=4,
+        fox_gd_residual_write_topk=2,
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    model = LanguageModel(configs[0].model)
+    mixers = [module for module in model.modules() if module.__class__.__name__ == "FlashVQGMixer"]
+    assert len(mixers) == 1
+    lambda_bias = mixers[0].attn.fox_gd_residual_lambda_proj.bias.detach()
+    lambda_value = torch.sigmoid(lambda_bias)
+
+    torch.testing.assert_close(
+        lambda_value,
+        torch.full_like(lambda_value, 0.05),
+        atol=1e-6,
+        rtol=1e-6,
+    )
 
 
 def test_build_configs_rejects_invalid_gd_residual_vq_combo():
