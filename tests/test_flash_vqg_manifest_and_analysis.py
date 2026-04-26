@@ -176,16 +176,15 @@ def test_initialize_and_update_manifest(tmp_path):
 def test_config_summary_from_config_extracts_e2_fields():
     summary = config_summary_from_config(_build_flash_config())
 
-    assert summary == {
-        "experiment_part": "e2_main",
-        "experiment_mode": "2c",
-        "fox_remote_read_topk": 2,
-        "fox_clr_selector_mode": "score_only",
-        "fox_clr_merge_mode": "residual_add",
-        "fox_clr_gate_mode": "shared_query_linear",
-        "fox_clr_lambda_remote": 0.5,
-        "fox_clr_gate_init_bias": -2.0,
-    }
+    assert summary["experiment_part"] == "e2_main"
+    assert summary["experiment_mode"] == "2c"
+    assert summary["fox_remote_read_topk"] == 2
+    assert summary["fox_clr_selector_mode"] == "score_only"
+    assert summary["fox_clr_merge_mode"] == "residual_add"
+    assert summary["fox_clr_gate_mode"] == "shared_query_linear"
+    assert summary["fox_clr_lambda_remote"] == 0.5
+    assert summary["fox_clr_gate_init_bias"] == -2.0
+    assert "fox_remote_formula" in summary
 
 
 def test_update_manifest_writes_config_summary(tmp_path):

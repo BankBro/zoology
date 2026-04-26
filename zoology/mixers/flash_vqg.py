@@ -22,6 +22,19 @@ class FlashVQGMixer(nn.Module):
         fox_clr_rank: int = 4,
         fox_clr_use_den_residual: bool = True,
         fox_clr_remat_mode: str = "off",
+        fox_gd_residual_rank: int = 16,
+        fox_gd_residual_write_topk: int = 4,
+        fox_gd_residual_builder: str = "grouped_chunk_torch_ref",
+        fox_gd_residual_pack_mode: str = "semivec_ref",
+        fox_gd_residual_chunk_size: int = 64,
+        fox_gd_residual_mu_min_count: float = 1.0,
+        fox_gd_residual_addr_eps: float = 1e-6,
+        fox_gd_residual_den_eps: float = 1e-6,
+        fox_gd_residual_rho_eps: float = 1e-12,
+        fox_gd_residual_beta_init: float = 0.5,
+        fox_gd_residual_lambda_init: float = 0.05,
+        fox_gd_residual_norm_with_gain: bool = False,
+        fox_gd_residual_use_separate_addr_codebook: bool = False,
         attn_backend: str = "flash",
         attn_cfg: dict | None = None,
         use_time_mixing: str | None = "kv_shift",
@@ -60,6 +73,21 @@ class FlashVQGMixer(nn.Module):
         self.fox_clr_rank = int(fox_clr_rank)
         self.fox_clr_use_den_residual = bool(fox_clr_use_den_residual)
         self.fox_clr_remat_mode = str(fox_clr_remat_mode)
+        self.fox_gd_residual_rank = int(fox_gd_residual_rank)
+        self.fox_gd_residual_write_topk = int(fox_gd_residual_write_topk)
+        self.fox_gd_residual_builder = str(fox_gd_residual_builder)
+        self.fox_gd_residual_pack_mode = str(fox_gd_residual_pack_mode)
+        self.fox_gd_residual_chunk_size = int(fox_gd_residual_chunk_size)
+        self.fox_gd_residual_mu_min_count = float(fox_gd_residual_mu_min_count)
+        self.fox_gd_residual_addr_eps = float(fox_gd_residual_addr_eps)
+        self.fox_gd_residual_den_eps = float(fox_gd_residual_den_eps)
+        self.fox_gd_residual_rho_eps = float(fox_gd_residual_rho_eps)
+        self.fox_gd_residual_beta_init = float(fox_gd_residual_beta_init)
+        self.fox_gd_residual_lambda_init = float(fox_gd_residual_lambda_init)
+        self.fox_gd_residual_norm_with_gain = bool(fox_gd_residual_norm_with_gain)
+        self.fox_gd_residual_use_separate_addr_codebook = bool(
+            fox_gd_residual_use_separate_addr_codebook
+        )
         self.codebook_beta = float(codebook_beta)
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
@@ -79,6 +107,21 @@ class FlashVQGMixer(nn.Module):
             fox_clr_rank=self.fox_clr_rank,
             fox_clr_use_den_residual=self.fox_clr_use_den_residual,
             fox_clr_remat_mode=self.fox_clr_remat_mode,
+            fox_gd_residual_rank=self.fox_gd_residual_rank,
+            fox_gd_residual_write_topk=self.fox_gd_residual_write_topk,
+            fox_gd_residual_builder=self.fox_gd_residual_builder,
+            fox_gd_residual_pack_mode=self.fox_gd_residual_pack_mode,
+            fox_gd_residual_chunk_size=self.fox_gd_residual_chunk_size,
+            fox_gd_residual_mu_min_count=self.fox_gd_residual_mu_min_count,
+            fox_gd_residual_addr_eps=self.fox_gd_residual_addr_eps,
+            fox_gd_residual_den_eps=self.fox_gd_residual_den_eps,
+            fox_gd_residual_rho_eps=self.fox_gd_residual_rho_eps,
+            fox_gd_residual_beta_init=self.fox_gd_residual_beta_init,
+            fox_gd_residual_lambda_init=self.fox_gd_residual_lambda_init,
+            fox_gd_residual_norm_with_gain=self.fox_gd_residual_norm_with_gain,
+            fox_gd_residual_use_separate_addr_codebook=(
+                self.fox_gd_residual_use_separate_addr_codebook
+            ),
             attn_backend=attn_backend,
             attn_cfg={} if attn_cfg is None else attn_cfg,
             use_time_mixing=use_time_mixing,
@@ -178,6 +221,12 @@ class FlashVQGMixer(nn.Module):
                 + self.value_dim * self.fox_clr_rank
                 + 1
                 + self.fox_clr_rank
+            )
+        elif self.fox_remote_formula == "gd_residual_v1":
+            remote_state_size = self.num_heads * self.num_codebook_vectors * (
+                self.value_dim
+                + 1
+                + self.value_dim * self.fox_gd_residual_rank
             )
         else:
             remote_state_size = self.num_heads * self.num_codebook_vectors * (self.value_dim + 1)

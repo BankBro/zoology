@@ -1,0 +1,74 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46",
+  "sweep_id": "flash-vqg-20260425-gd-residual-v1-mqar-train",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_gd_residual_v1_mqar",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-04-25T20:51:46.366597+00:00",
+  "updated_at_utc": "2026-04-25T20:51:52.807177+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "gd-residual-v1-train-s123-d123",
+      "eval_task": null,
+      "status": "running",
+      "error": null,
+      "updated_at_utc": "2026-04-25T20:51:52.806829+00:00",
+      "swanlab": {
+        "project": "flash_vqg_gd_residual_v1_mqar",
+        "entity": "scu-mclab",
+        "experiment_id": "fmmiapdvclq6df2a6uj41",
+        "run_url": null
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260425_205149-fmmiapdvclq6df2a6uj41",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260425_205149-fmmiapdvclq6df2a6uj41/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260425_205149-fmmiapdvclq6df2a6uj41/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260425_205149-fmmiapdvclq6df2a6uj41/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46/gd-residual-v1-train-s123-d123",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46/gd-residual-v1-train-s123-d123/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46/gd-residual-v1-train-s123-d123/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260425-gd-residual-v1-mqar-train-2026-04-25-20-51-46/gd-residual-v1-train-s123-d123/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": "gd_residual_v1_mqar",
+        "experiment_mode": "train",
+        "fox_remote_formula": "gd_residual_v1",
+        "fox_remote_read_topk": null,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0,
+        "fox_clr_residual_update_mode": "additive",
+        "fox_clr_residual_forget_mode": "global",
+        "fox_clr_state_write_topk": 4,
+        "fox_clr_delta_target_mode": "residual_to_coarse",
+        "fox_gd_residual_rank": 16,
+        "fox_gd_residual_write_topk": 4,
+        "fox_gd_residual_builder": "grouped_chunk_torch_ref",
+        "fox_gd_residual_pack_mode": "semivec_ref",
+        "fox_gd_residual_chunk_size": 64,
+        "fox_gd_residual_lambda_init": 0.05,
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    }
+  ]
+}

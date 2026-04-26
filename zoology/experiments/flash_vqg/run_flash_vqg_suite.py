@@ -263,10 +263,23 @@ def _render_generated_config(
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
     fox_clr_remat_mode: str,
-    fox_clr_residual_update_mode: str,
-    fox_clr_residual_forget_mode: str,
-    fox_clr_state_write_topk: int,
-    fox_clr_delta_target_mode: str,
+    fox_clr_residual_update_mode: str = "additive",
+    fox_clr_residual_forget_mode: str = "global",
+    fox_clr_state_write_topk: int = 4,
+    fox_clr_delta_target_mode: str = "residual_to_coarse",
+    fox_gd_residual_rank: int = 16,
+    fox_gd_residual_write_topk: int = 4,
+    fox_gd_residual_builder: str = "grouped_chunk_torch_ref",
+    fox_gd_residual_pack_mode: str = "semivec_ref",
+    fox_gd_residual_chunk_size: int = 64,
+    fox_gd_residual_mu_min_count: float = 1.0,
+    fox_gd_residual_addr_eps: float = 1e-6,
+    fox_gd_residual_den_eps: float = 1e-6,
+    fox_gd_residual_rho_eps: float = 1e-12,
+    fox_gd_residual_beta_init: float = 0.5,
+    fox_gd_residual_lambda_init: float = 0.05,
+    fox_gd_residual_norm_with_gain: bool = False,
+    fox_gd_residual_use_separate_addr_codebook: bool = False,
     vq_score_mode: str = "l2",
     vq_weight_mode: str = "one-hot",
     vq_update_mode: str = "ema",
@@ -323,6 +336,20 @@ def _render_generated_config(
         f"    fox_clr_residual_forget_mode={fox_clr_residual_forget_mode!r},",
         f"    fox_clr_state_write_topk={fox_clr_state_write_topk!r},",
         f"    fox_clr_delta_target_mode={fox_clr_delta_target_mode!r},",
+        f"    fox_gd_residual_rank={fox_gd_residual_rank!r},",
+        f"    fox_gd_residual_write_topk={fox_gd_residual_write_topk!r},",
+        f"    fox_gd_residual_builder={fox_gd_residual_builder!r},",
+        f"    fox_gd_residual_pack_mode={fox_gd_residual_pack_mode!r},",
+        f"    fox_gd_residual_chunk_size={fox_gd_residual_chunk_size!r},",
+        f"    fox_gd_residual_mu_min_count={fox_gd_residual_mu_min_count!r},",
+        f"    fox_gd_residual_addr_eps={fox_gd_residual_addr_eps!r},",
+        f"    fox_gd_residual_den_eps={fox_gd_residual_den_eps!r},",
+        f"    fox_gd_residual_rho_eps={fox_gd_residual_rho_eps!r},",
+        f"    fox_gd_residual_beta_init={fox_gd_residual_beta_init!r},",
+        f"    fox_gd_residual_lambda_init={fox_gd_residual_lambda_init!r},",
+        f"    fox_gd_residual_norm_with_gain={fox_gd_residual_norm_with_gain!r},",
+        "    fox_gd_residual_use_separate_addr_codebook="
+        f"{fox_gd_residual_use_separate_addr_codebook!r},",
         f"    vq_score_mode={vq_score_mode!r},",
         f"    vq_weight_mode={vq_weight_mode!r},",
         f"    vq_update_mode={vq_update_mode!r},",
@@ -428,10 +455,23 @@ def _build_manifest_run_ids(
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
     fox_clr_remat_mode: str,
-    fox_clr_residual_update_mode: str,
-    fox_clr_residual_forget_mode: str,
-    fox_clr_state_write_topk: int,
-    fox_clr_delta_target_mode: str,
+    fox_clr_residual_update_mode: str = "additive",
+    fox_clr_residual_forget_mode: str = "global",
+    fox_clr_state_write_topk: int = 4,
+    fox_clr_delta_target_mode: str = "residual_to_coarse",
+    fox_gd_residual_rank: int = 16,
+    fox_gd_residual_write_topk: int = 4,
+    fox_gd_residual_builder: str = "grouped_chunk_torch_ref",
+    fox_gd_residual_pack_mode: str = "semivec_ref",
+    fox_gd_residual_chunk_size: int = 64,
+    fox_gd_residual_mu_min_count: float = 1.0,
+    fox_gd_residual_addr_eps: float = 1e-6,
+    fox_gd_residual_den_eps: float = 1e-6,
+    fox_gd_residual_rho_eps: float = 1e-12,
+    fox_gd_residual_beta_init: float = 0.5,
+    fox_gd_residual_lambda_init: float = 0.05,
+    fox_gd_residual_norm_with_gain: bool = False,
+    fox_gd_residual_use_separate_addr_codebook: bool = False,
     vq_score_mode: str = "l2",
     vq_weight_mode: str = "one-hot",
     vq_update_mode: str = "ema",
@@ -477,6 +517,21 @@ def _build_manifest_run_ids(
         fox_clr_residual_forget_mode=fox_clr_residual_forget_mode,
         fox_clr_state_write_topk=fox_clr_state_write_topk,
         fox_clr_delta_target_mode=fox_clr_delta_target_mode,
+        fox_gd_residual_rank=fox_gd_residual_rank,
+        fox_gd_residual_write_topk=fox_gd_residual_write_topk,
+        fox_gd_residual_builder=fox_gd_residual_builder,
+        fox_gd_residual_pack_mode=fox_gd_residual_pack_mode,
+        fox_gd_residual_chunk_size=fox_gd_residual_chunk_size,
+        fox_gd_residual_mu_min_count=fox_gd_residual_mu_min_count,
+        fox_gd_residual_addr_eps=fox_gd_residual_addr_eps,
+        fox_gd_residual_den_eps=fox_gd_residual_den_eps,
+        fox_gd_residual_rho_eps=fox_gd_residual_rho_eps,
+        fox_gd_residual_beta_init=fox_gd_residual_beta_init,
+        fox_gd_residual_lambda_init=fox_gd_residual_lambda_init,
+        fox_gd_residual_norm_with_gain=fox_gd_residual_norm_with_gain,
+        fox_gd_residual_use_separate_addr_codebook=(
+            fox_gd_residual_use_separate_addr_codebook
+        ),
         vq_score_mode=vq_score_mode,
         vq_weight_mode=vq_weight_mode,
         vq_update_mode=vq_update_mode,
@@ -651,9 +706,9 @@ def main():
     )
     parser.add_argument(
         "--fox-remote-formula",
-        choices=["legacy", "clr_v1", "clr_delta_v1"],
+        choices=["legacy", "clr_v1", "clr_delta_v1", "gd_residual_v1"],
         default="legacy",
-        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似, clr_delta_v1 为 Delta memory residual.",
+        help="remote 分支读出公式. legacy 为当前 U/L 方案, clr_v1 为 softmax-like CLR 一阶近似, clr_delta_v1 为 Delta memory residual, gd_residual_v1 为 gated residual reference.",
     )
     parser.add_argument(
         "--fox-clr-rank",
@@ -697,6 +752,35 @@ def main():
         choices=["residual_to_coarse"],
         default="residual_to_coarse",
         help="delta residual 写入目标定义.",
+    )
+    parser.add_argument("--fox-gd-residual-rank", type=int, default=16)
+    parser.add_argument("--fox-gd-residual-write-topk", type=int, default=4)
+    parser.add_argument(
+        "--fox-gd-residual-builder",
+        choices=["token_step_ref", "grouped_chunk_torch_ref"],
+        default="grouped_chunk_torch_ref",
+    )
+    parser.add_argument(
+        "--fox-gd-residual-pack-mode",
+        choices=["loop_ref", "semivec_ref"],
+        default="semivec_ref",
+    )
+    parser.add_argument("--fox-gd-residual-chunk-size", type=int, default=64)
+    parser.add_argument("--fox-gd-residual-mu-min-count", type=float, default=1.0)
+    parser.add_argument("--fox-gd-residual-addr-eps", type=float, default=1e-6)
+    parser.add_argument("--fox-gd-residual-den-eps", type=float, default=1e-6)
+    parser.add_argument("--fox-gd-residual-rho-eps", type=float, default=1e-12)
+    parser.add_argument("--fox-gd-residual-beta-init", type=float, default=0.5)
+    parser.add_argument("--fox-gd-residual-lambda-init", type=float, default=0.05)
+    parser.add_argument(
+        "--fox-gd-residual-norm-with-gain",
+        choices=["true", "false"],
+        default="false",
+    )
+    parser.add_argument(
+        "--fox-gd-residual-use-separate-addr-codebook",
+        choices=["true", "false"],
+        default="false",
     )
     parser.add_argument(
         "--vq-score-mode",
@@ -959,6 +1043,21 @@ def main():
             fox_clr_residual_forget_mode=args.fox_clr_residual_forget_mode,
             fox_clr_state_write_topk=args.fox_clr_state_write_topk,
             fox_clr_delta_target_mode=args.fox_clr_delta_target_mode,
+            fox_gd_residual_rank=args.fox_gd_residual_rank,
+            fox_gd_residual_write_topk=args.fox_gd_residual_write_topk,
+            fox_gd_residual_builder=args.fox_gd_residual_builder,
+            fox_gd_residual_pack_mode=args.fox_gd_residual_pack_mode,
+            fox_gd_residual_chunk_size=args.fox_gd_residual_chunk_size,
+            fox_gd_residual_mu_min_count=args.fox_gd_residual_mu_min_count,
+            fox_gd_residual_addr_eps=args.fox_gd_residual_addr_eps,
+            fox_gd_residual_den_eps=args.fox_gd_residual_den_eps,
+            fox_gd_residual_rho_eps=args.fox_gd_residual_rho_eps,
+            fox_gd_residual_beta_init=args.fox_gd_residual_beta_init,
+            fox_gd_residual_lambda_init=args.fox_gd_residual_lambda_init,
+            fox_gd_residual_norm_with_gain=(args.fox_gd_residual_norm_with_gain == "true"),
+            fox_gd_residual_use_separate_addr_codebook=(
+                args.fox_gd_residual_use_separate_addr_codebook == "true"
+            ),
             vq_score_mode=args.vq_score_mode,
             vq_weight_mode=args.vq_weight_mode,
             vq_update_mode=args.vq_update_mode,
@@ -1000,6 +1099,21 @@ def main():
                 fox_clr_residual_forget_mode=args.fox_clr_residual_forget_mode,
                 fox_clr_state_write_topk=args.fox_clr_state_write_topk,
                 fox_clr_delta_target_mode=args.fox_clr_delta_target_mode,
+                fox_gd_residual_rank=args.fox_gd_residual_rank,
+                fox_gd_residual_write_topk=args.fox_gd_residual_write_topk,
+                fox_gd_residual_builder=args.fox_gd_residual_builder,
+                fox_gd_residual_pack_mode=args.fox_gd_residual_pack_mode,
+                fox_gd_residual_chunk_size=args.fox_gd_residual_chunk_size,
+                fox_gd_residual_mu_min_count=args.fox_gd_residual_mu_min_count,
+                fox_gd_residual_addr_eps=args.fox_gd_residual_addr_eps,
+                fox_gd_residual_den_eps=args.fox_gd_residual_den_eps,
+                fox_gd_residual_rho_eps=args.fox_gd_residual_rho_eps,
+                fox_gd_residual_beta_init=args.fox_gd_residual_beta_init,
+                fox_gd_residual_lambda_init=args.fox_gd_residual_lambda_init,
+                fox_gd_residual_norm_with_gain=(args.fox_gd_residual_norm_with_gain == "true"),
+                fox_gd_residual_use_separate_addr_codebook=(
+                    args.fox_gd_residual_use_separate_addr_codebook == "true"
+                ),
                 vq_score_mode=args.vq_score_mode,
                 vq_weight_mode=args.vq_weight_mode,
                 vq_update_mode=args.vq_update_mode,
