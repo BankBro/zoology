@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash-VQG Baseline 组会汇报</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <style>
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           Include this ENTIRE file in every presentation.
+           These styles ensure slides fit exactly in the viewport.
+           =========================================== */
+
+        /* 1. Lock html/body to viewport */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        /* 2. Each slide = exact viewport height */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 3. Content container with flex for centering */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden; /* Double-protection against overflow */
+            padding: var(--slide-padding);
+        }
+
+        /* 4. ALL typography uses clamp() for responsive scaling */
+        :root {
+            /* Titles scale from mobile to desktop */
+            --title-size: clamp(1.5rem, 5vw, 4rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+            /* Body text */
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+
+            /* Spacing scales with viewport */
+            --slide-padding: clamp(1rem, 4vw, 4rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+        }
+
+        /* 5. Cards/containers use viewport-relative max sizes */
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        /* 6. Lists auto-scale with viewport */
+        .feature-list, .bullet-list {
+            gap: clamp(0.4rem, 1vh, 1rem);
+        }
+
+        .feature-list li, .bullet-list li {
+            font-size: var(--body-size);
+            line-height: 1.4;
+        }
+
+        /* 7. Grids adapt to available space */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        /* 8. Images constrained to viewport */
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           Aggressive scaling for smaller viewports
+           =========================================== */
+
+        /* Short viewports (< 700px height) */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+
+        /* Very short viewports (< 600px height) */
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+
+            /* Hide non-essential elements */
+            .nav-dots, .keyboard-hint, .decorative {
+                display: none;
+            }
+        }
+
+        /* Extremely short (landscape phones, < 500px height) */
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+
+        /* Narrow viewports (< 600px width) */
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.25rem, 7vw, 2.5rem);
+            }
+
+            /* Stack grids vertically */
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===========================================
+           REDUCED MOTION
+           Respect user preferences
+           =========================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ===========================================
+           === THEME: NOTION-INSPIRED WARM MINIMALISM ===
+           风格参考: awesome-design-md / notion
+           Warm minimalism, serif headings, soft surfaces.
+           =========================================== */
+        :root {
+            --bg-primary: #f7f3ee;
+            --bg-secondary: #f0e9e1;
+            --bg-tertiary: #fbf8f4;
+            --paper: rgba(255, 252, 247, 0.92);
+            --paper-strong: rgba(255, 253, 250, 0.98);
+            --ink: #2e2722;
+            --ink-soft: #6f655d;
+            --ink-faint: #978b80;
+            --line: rgba(115, 96, 81, 0.16);
+            --line-strong: rgba(115, 96, 81, 0.24);
+            --accent: #7b5d46;
+            --accent-soft: rgba(123, 93, 70, 0.12);
+            --accent-green: #65785f;
+            --accent-red: #a65d4e;
+            --accent-amber: #b07d34;
+            --accent-blue: #55718d;
+            --shadow-soft: 0 18px 40px rgba(84, 62, 44, 0.08);
+            --shadow-card: 0 10px 24px rgba(84, 62, 44, 0.06);
+            --radius-lg: clamp(1rem, 1.8vw, 1.6rem);
+            --radius-md: clamp(0.75rem, 1.2vw, 1.1rem);
+            --radius-sm: clamp(0.45rem, 0.8vw, 0.7rem);
+            --font-display: "Newsreader", serif;
+            --font-body: "Manrope", sans-serif;
+            --body-size: clamp(0.84rem, 1.15vw, 1.05rem);
+            --lead-size: clamp(0.98rem, 1.45vw, 1.25rem);
+            --meta-size: clamp(0.68rem, 0.88vw, 0.82rem);
+            --title-size: clamp(2.2rem, 5.6vw, 4.9rem);
+            --h2-size: clamp(1.7rem, 3vw, 2.8rem);
+            --h3-size: clamp(1rem, 1.5vw, 1.35rem);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.7s;
+            --duration-fast: 0.35s;
+        }
+
+        /* ===========================================
+           === BASE PAGE STYLES ===
+           =========================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(137, 112, 87, 0.06), transparent 26%),
+                radial-gradient(circle at 85% 10%, rgba(101, 120, 95, 0.08), transparent 24%),
+                linear-gradient(180deg, #faf7f2 0%, #f4efe8 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.4;
+            background-image:
+                linear-gradient(rgba(114, 98, 83, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(114, 98, 83, 0.045) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at center, black 56%, transparent 100%);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #b79674);
+            z-index: 1000;
+            transition: width 0.25s ease;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.8rem, 1.8vw, 1.6rem);
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.7rem 0.45rem;
+            border: 1px solid var(--line);
+            background: rgba(255, 251, 246, 0.7);
+            border-radius: 999px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .nav-dot {
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 999px;
+            border: none;
+            background: rgba(123, 93, 70, 0.25);
+            cursor: pointer;
+            transition: transform var(--duration-fast) ease, background var(--duration-fast) ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent);
+            transform: scale(1.3);
+        }
+
+        .slide {
+            padding: clamp(1rem, 1.5vw, 1.6rem);
+        }
+
+        .slide::before {
+            content: "";
+            position: absolute;
+            inset: clamp(0.5rem, 1.4vw, 1rem);
+            border: 1px solid rgba(115, 96, 81, 0.12);
+            border-radius: calc(var(--radius-lg) + 0.4rem);
+            pointer-events: none;
+        }
+
+        .slide-content {
+            position: relative;
+            gap: clamp(0.85rem, 1.4vw, 1.35rem);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(255, 254, 251, 0.88), rgba(252, 247, 242, 0.96));
+            border: 1px solid rgba(115, 96, 81, 0.14);
+            box-shadow: var(--shadow-soft);
+            padding: clamp(1.4rem, 2.2vw, 2.1rem);
+        }
+
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chapter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255, 248, 240, 0.9);
+            border: 1px solid var(--line);
+            color: var(--ink-soft);
+            font-size: var(--meta-size);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .chapter-pill::before {
+            content: "";
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 0 4px rgba(123, 93, 70, 0.12);
+        }
+
+        .slide-index {
+            color: var(--ink-faint);
+            font-size: var(--meta-size);
+            letter-spacing: 0.1em;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            color: var(--ink);
+        }
+
+        h1 {
+            font-size: var(--title-size);
+            line-height: 0.95;
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            line-height: 1.02;
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            line-height: 1.15;
+        }
+
+        p, li, td, th, span, small, div {
+            font-family: var(--font-body);
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.65;
+            color: var(--ink-soft);
+        }
+
+        strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .lead {
+            font-size: var(--lead-size);
+            line-height: 1.65;
+            color: #534941;
+            max-width: 60ch;
+        }
+
+        .muted {
+            color: var(--ink-faint);
+        }
+
+        .hero-grid,
+        .two-col,
+        .compare-grid,
+        .summary-grid,
+        .experiment-grid {
+            display: grid;
+            gap: clamp(0.9rem, 1.25vw, 1.15rem);
+        }
+
+        .hero-grid {
+            grid-template-columns: 1.35fr 0.95fr;
+            align-items: stretch;
+        }
+
+        .two-col {
+            grid-template-columns: 1.18fr 0.82fr;
+        }
+
+        .compare-grid {
+            grid-template-columns: 1.06fr 0.94fr;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr 0.95fr;
+            align-items: stretch;
+        }
+
+        .experiment-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.75rem, 1.2vw, 1rem);
+            min-height: 0;
+        }
+
+        .paper,
+        .metric-card,
+        .mini-card,
+        .matrix-card,
+        .route-card,
+        .quote-box,
+        .table-card,
+        .diagram-card,
+        .formula-card {
+            background: var(--paper-strong);
+            border: 1px solid rgba(115, 96, 81, 0.13);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+        }
+
+        .paper,
+        .diagram-card,
+        .quote-box,
+        .table-card,
+        .formula-card {
+            padding: clamp(0.95rem, 1.35vw, 1.15rem);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .metric-card {
+            padding: 0.85rem 0.9rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 5.4rem;
+        }
+
+        .metric-label {
+            font-size: var(--meta-size);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+        }
+
+        .metric-value {
+            font-size: clamp(1.35rem, 2.5vw, 2rem);
+            font-weight: 800;
+            color: var(--ink);
+        }
+
+        .chip-row,
+        .tag-row,
+        .metrics-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+        }
+
+        .chip,
+        .tag,
+        .metric-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 249, 242, 0.9);
+            font-size: var(--small-size);
+            color: #5d5249;
+            white-space: nowrap;
+        }
+
+        .tag::before,
+        .metric-chip::before {
+            content: "•";
+            color: var(--accent);
+        }
+
+        .eyebrow {
+            font-size: var(--meta-size);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 0.45rem;
+        }
+
+        .bullet-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .bullet-list li {
+            position: relative;
+            padding-left: 1.1rem;
+        }
+
+        .bullet-list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.7em;
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .soft-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.72rem, 0.95vw, 0.88rem);
+        }
+
+        .soft-table th,
+        .soft-table td {
+            padding: 0.55rem 0.5rem;
+            border-bottom: 1px solid rgba(115, 96, 81, 0.1);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .soft-table th {
+            font-size: var(--meta-size);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+        }
+
+        .soft-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .delta-up {
+            color: #4d6e57;
+            font-weight: 700;
+        }
+
+        .delta-down {
+            color: #9a5b4a;
+            font-weight: 700;
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(123, 93, 70, 0.08);
+            color: var(--accent);
+            font-size: var(--meta-size);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .kicker::before {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .highlight-box {
+            padding: 0.9rem 1rem;
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, rgba(255, 248, 239, 0.98), rgba(250, 243, 235, 0.96));
+            border: 1px solid rgba(123, 93, 70, 0.12);
+        }
+
+        .highlight-box p {
+            color: #54483f;
+        }
+
+        .note {
+            font-size: var(--small-size);
+            line-height: 1.55;
+            color: var(--ink-faint);
+        }
+
+        .footer-note {
+            margin-top: auto;
+            padding-top: 0.55rem;
+            border-top: 1px dashed rgba(115, 96, 81, 0.16);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition:
+                opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.06s; }
+        .reveal:nth-child(2) { transition-delay: 0.12s; }
+        .reveal:nth-child(3) { transition-delay: 0.18s; }
+        .reveal:nth-child(4) { transition-delay: 0.24s; }
+        .reveal:nth-child(5) { transition-delay: 0.3s; }
+        .reveal:nth-child(6) { transition-delay: 0.36s; }
+
+        /* ===========================================
+           === SLIDE 1: TITLE / BASELINE ===
+           =========================================== */
+        .hero-title {
+            max-width: 12ch;
+        }
+
+        .hero-subtitle {
+            max-width: 58ch;
+        }
+
+        .hero-side {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .outline-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .outline-card {
+            padding: 0.9rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 249, 242, 0.84);
+            border: 1px solid rgba(115, 96, 81, 0.12);
+        }
+
+        .outline-card .num {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 1.45rem;
+            height: 1.45rem;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.76rem;
+            font-weight: 800;
+            margin-bottom: 0.35rem;
+        }
+
+        /* ===========================================
+           === SLIDE 2: MQAR ===
+           =========================================== */
+        .mqar-board {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 0.95rem;
+            align-items: stretch;
+        }
+
+        .sequence-board {
+            padding: 0.9rem 1rem;
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(249, 244, 238, 0.98));
+            border: 1px solid rgba(115, 96, 81, 0.13);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .sequence-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: var(--meta-size);
+            color: var(--ink-faint);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .sequence-row,
+        .answer-row {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            gap: 0.38rem;
+            align-items: center;
+        }
+
+        .pair,
+        .query-pair {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.42rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(115, 96, 81, 0.12);
+            background: rgba(255, 250, 244, 0.96);
+            min-width: 0;
+        }
+
+        .pair-key,
+        .pair-value,
+        .query-mark,
+        .answer {
+            min-width: 2.05rem;
+            padding: 0.48rem 0.55rem;
+            border-radius: 0.72rem;
+            text-align: center;
+            font-size: clamp(0.76rem, 0.95vw, 0.92rem);
+            font-weight: 700;
+        }
+
+        .pair-key {
+            background: rgba(101, 120, 95, 0.15);
+            color: #485544;
+        }
+
+        .pair-value,
+        .answer {
+            background: rgba(123, 93, 70, 0.14);
+            color: #6f4f38;
+        }
+
+        .query-mark {
+            background: rgba(85, 113, 141, 0.12);
+            color: #48637e;
+        }
+
+        .query-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .query-line {
+            width: 1px;
+            height: 1.2rem;
+            background: linear-gradient(180deg, rgba(123, 93, 70, 0.14), rgba(123, 93, 70, 0.42));
+        }
+
+        .mqar-side {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .callout {
+            padding: 0.9rem 1rem;
+            border-left: 3px solid var(--accent);
+            background: rgba(255, 249, 241, 0.72);
+            border-radius: 0 0.9rem 0.9rem 0;
+        }
+
+        /* ===========================================
+           === SLIDE 3: ARCHITECTURE ===
+           =========================================== */
+        .arch-board {
+            display: grid;
+            grid-template-columns: 0.9fr 1.25fr;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .path-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .path-card {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(115, 96, 81, 0.13);
+            background: rgba(255, 252, 247, 0.95);
+        }
+
+        .path-card.local {
+            box-shadow: inset 0 0 0 1px rgba(85, 113, 141, 0.08);
+        }
+
+        .path-card.remote {
+            box-shadow: inset 0 0 0 1px rgba(101, 120, 95, 0.08);
+        }
+
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: 1fr 0.42fr 1fr;
+            gap: 0.8rem;
+            align-items: center;
+            height: 100%;
+        }
+
+        .token-river,
+        .memory-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .diagram-chip {
+            padding: 0.7rem 0.8rem;
+            border-radius: 0.95rem;
+            border: 1px solid rgba(115, 96, 81, 0.12);
+            background: rgba(255, 250, 244, 0.95);
+            font-size: var(--small-size);
+            color: #584d44;
+        }
+
+        .memory-slot {
+            padding: 0.75rem 0.8rem;
+            border-radius: 0.95rem;
+            border: 1px solid rgba(101, 120, 95, 0.15);
+            background: rgba(244, 248, 240, 0.88);
+        }
+
+        .memory-slot strong {
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .arrow-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .arrow-node {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            border: 1px solid rgba(115, 96, 81, 0.14);
+            background: rgba(255, 250, 244, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        .fuse-box {
+            margin-top: auto;
+            padding: 0.95rem 1rem;
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, rgba(255, 248, 238, 0.96), rgba(247, 240, 231, 0.98));
+            border: 1px solid rgba(123, 93, 70, 0.16);
+        }
+
+        /* ===========================================
+           === SLIDE 4: MATH PRINCIPLE ===
+           =========================================== */
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+
+        .formula-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            min-height: 0;
+        }
+
+        .formula {
+            padding: 0.7rem 0.75rem;
+            border-radius: 0.8rem;
+            background: rgba(245, 239, 232, 0.74);
+            color: #433932;
+            font-size: clamp(0.95rem, 1.25vw, 1.1rem);
+            line-height: 1.35;
+        }
+
+        .katex {
+            font-size: 1em;
+        }
+
+        .formula .katex-display {
+            margin: 0.12em 0;
+        }
+
+        .formula .katex-display > .katex {
+            display: block;
+            text-align: left;
+        }
+
+        .formula .katex-display,
+        .highlight-box .katex-display {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 0.05rem;
+        }
+
+        .math-line {
+            display: block;
+            min-height: 1.45em;
+        }
+
+        .formula .math-line + .math-line {
+            margin-top: 0.18rem;
+        }
+
+        .math-line[data-rendered="1"] {
+            min-height: 0;
+        }
+
+        .diagram-chip .katex,
+        .bullet-list .katex,
+        .mini-card .katex,
+        .matrix-card .katex,
+        .note .katex,
+        .formula-note .katex,
+        .evidence-card .katex {
+            font-size: 1em;
+        }
+
+        .formula-note {
+            font-size: var(--small-size);
+            line-height: 1.55;
+            color: #6a6058;
+        }
+
+        /* ===========================================
+           === SLIDE 5: COMPARISON ===
+           =========================================== */
+        .evidence-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .evidence-card {
+            padding: 0.85rem 0.95rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 251, 246, 0.97);
+            border: 1px solid rgba(115, 96, 81, 0.14);
+        }
+
+        .evidence-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.8rem;
+            align-items: baseline;
+            margin-bottom: 0.45rem;
+        }
+
+        .evidence-title strong {
+            font-size: 0.95rem;
+        }
+
+        .evidence-title span {
+            font-size: var(--meta-size);
+            color: var(--ink-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .evidence-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-top: 0.55rem;
+        }
+
+        .mini-pill {
+            padding: 0.32rem 0.56rem;
+            border-radius: 999px;
+            background: rgba(123, 93, 70, 0.08);
+            font-size: var(--small-size);
+            color: #5a4d44;
+        }
+
+        .routes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .route-card {
+            padding: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .route-card.baseline {
+            background: linear-gradient(180deg, rgba(246, 250, 244, 0.95), rgba(240, 247, 238, 0.95));
+        }
+
+        .route-card.future {
+            background: linear-gradient(180deg, rgba(250, 246, 240, 0.96), rgba(247, 240, 233, 0.96));
+        }
+
+        .route-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.42rem;
+        }
+
+        .route-card li {
+            font-size: var(--small-size);
+            color: #5c534b;
+            padding-left: 0.95rem;
+            position: relative;
+        }
+
+        .route-card li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.65em;
+            width: 0.35rem;
+            height: 0.35rem;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .caution {
+            padding: 0.8rem 0.9rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 247, 238, 0.96);
+            border: 1px dashed rgba(166, 93, 78, 0.32);
+        }
+
+        /* ===========================================
+           === SLIDE 6: SUMMARY ===
+           =========================================== */
+        .decision-table td:last-child {
+            text-align: right;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .cb-chart-frame {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            padding-top: 0.25rem;
+        }
+
+        .cb-chart-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .cb-chart-title {
+            font-size: clamp(0.95rem, 1.2vw, 1.08rem);
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+        }
+
+        .cb-legend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            font-size: var(--meta-size);
+            color: var(--ink-faint);
+        }
+
+        .cb-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.38rem;
+        }
+
+        .cb-legend-dot {
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(123, 93, 70, 0.75), rgba(123, 93, 70, 0.35));
+        }
+
+        .cb-legend-dot.seed2 {
+            background: linear-gradient(180deg, rgba(85, 113, 141, 0.7), rgba(85, 113, 141, 0.34));
+        }
+
+        .cb-chart-shell {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.55rem;
+            align-items: stretch;
+        }
+
+        .cb-axis {
+            display: grid;
+            grid-template-rows: repeat(5, 1fr);
+            align-items: end;
+            justify-items: end;
+            min-height: 12.5rem;
+            padding: 0.15rem 0 1.55rem;
+        }
+
+        .cb-tick {
+            font-size: var(--meta-size);
+            color: var(--ink-faint);
+            line-height: 1;
+        }
+
+        .cb-plot {
+            position: relative;
+            min-height: 12.5rem;
+            padding: 0.45rem 0.55rem 0.1rem;
+            border-radius: 1rem;
+            background: rgba(245, 239, 232, 0.42);
+            border: 1px solid rgba(115, 96, 81, 0.08);
+            overflow: hidden;
+        }
+
+        .cb-gridline {
+            position: absolute;
+            left: 0.5rem;
+            right: 0.5rem;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(115, 96, 81, 0.12), rgba(115, 96, 81, 0.04));
+            border-top: 1px dashed rgba(115, 96, 81, 0.12);
+        }
+
+        .cb-gridline.g1 { top: 10%; }
+        .cb-gridline.g2 { top: 30%; }
+        .cb-gridline.g3 { top: 50%; }
+        .cb-gridline.g4 { top: 70%; }
+        .cb-gridline.g5 { top: 90%; }
+
+        .cb-chart {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            align-items: end;
+            min-height: 12rem;
+            padding: 0.25rem 0.2rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cb-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            align-items: center;
+        }
+
+        .cb-bars {
+            width: 100%;
+            height: clamp(7.8rem, 16vh, 10.4rem);
+            min-height: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.45rem 0;
+        }
+
+        .cb-bar {
+            width: 34%;
+            flex: 0 0 34%;
+            border-radius: 999px 999px 0 0;
+            background: linear-gradient(180deg, rgba(123, 93, 70, 0.75), rgba(123, 93, 70, 0.35));
+            position: relative;
+            min-height: 1rem;
+        }
+
+        .cb-bar.seed2 {
+            background: linear-gradient(180deg, rgba(85, 113, 141, 0.7), rgba(85, 113, 141, 0.34));
+        }
+
+        .cb-value {
+            position: absolute;
+            top: calc(-1 * clamp(1.25rem, 1.8vw, 1.5rem));
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: var(--meta-size);
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .cb-label {
+            font-weight: 700;
+            color: var(--ink);
+            font-size: var(--small-size);
+        }
+
+        .cb-chart-caption {
+            font-size: var(--small-size);
+            line-height: 1.5;
+            color: #675b52;
+            margin-top: 0.05rem;
+        }
+
+        /* ===========================================
+           === SLIDE 7: NEXT EXPERIMENT ===
+           =========================================== */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .mini-card,
+        .matrix-card {
+            padding: 0.85rem 0.95rem;
+        }
+
+        .mini-card h3,
+        .matrix-card h3 {
+            margin-bottom: 0.4rem;
+        }
+
+        .mini-card ul,
+        .matrix-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.42rem;
+        }
+
+        .mini-card li,
+        .matrix-card li {
+            font-size: var(--small-size);
+            color: #5f554c;
+            padding-left: 0.9rem;
+            position: relative;
+        }
+
+        .mini-card li::before,
+        .matrix-card li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.65em;
+            width: 0.34rem;
+            height: 0.34rem;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .matrix-card {
+            background: rgba(255, 251, 247, 0.96);
+            border: 1px solid rgba(115, 96, 81, 0.12);
+            border-radius: var(--radius-md);
+        }
+
+        .matrix-card strong {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .matrix-card strong::before {
+            content: "";
+            width: 0.46rem;
+            height: 0.46rem;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .experiment-note {
+            margin-top: auto;
+            padding: 0.75rem 0.9rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 248, 238, 0.9);
+            border: 1px dashed rgba(123, 93, 70, 0.26);
+        }
+
+        /* ===========================================
+           === RESPONSIVE ADJUSTMENTS ===
+           =========================================== */
+        @media (max-width: 1100px) {
+            .hero-grid,
+            .two-col,
+            .compare-grid,
+            .summary-grid,
+            .experiment-grid,
+            .mqar-board,
+            .arch-board {
+                grid-template-columns: 1fr;
+            }
+
+            .arch-diagram,
+            .routes-grid,
+            .formula-grid,
+            .matrix-grid,
+            .outline-list,
+            .metric-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .arch-diagram,
+            .routes-grid,
+            .formula-grid,
+            .matrix-grid,
+            .outline-list,
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sequence-row,
+            .answer-row {
+                gap: 0.22rem;
+            }
+
+            .pair-key,
+            .pair-value,
+            .query-mark,
+            .answer {
+                min-width: 1.65rem;
+                padding: 0.4rem 0.42rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar"></div>
+    <nav class="nav-dots" aria-label="Slides navigation"></nav>
+
+    <!-- ===========================================
+         === SLIDE 1: TITLE / BASELINE ===
+         =========================================== -->
+    <section class="slide" id="slide-1">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 1 章 / 任务背景与汇报目标</div>
+                <div class="slide-index">01 / 07</div>
+            </div>
+
+            <div class="hero-grid">
+                <div class="stack">
+                    <div class="kicker reveal">Current Baseline</div>
+                    <h1 class="hero-title reveal">Flash-VQG 当前 baseline</h1>
+                    <p class="lead hero-subtitle reveal">
+                        稠密软写入, 远端只读两个候选槽, 选槽时兼顾匹配分和有效内容量, 最后与局部精确注意力统一融合。
+                    </p>
+
+                    <div class="highlight-box reveal">
+                        <p>
+                            <strong>一句话版本:</strong>
+                            近处的信息精确看, 远处的信息压缩存; 写入更平滑, 读出更集中, 最后统一融合。
+                        </p>
+                    </div>
+
+                    <div class="tag-row reveal">
+                        <span class="tag">dense-t025</span>
+                        <span class="tag">top2 read</span>
+                        <span class="tag">den_aware</span>
+                        <span class="tag">shared_den</span>
+                    </div>
+                </div>
+
+                <div class="hero-side">
+                    <div class="paper reveal">
+                        <div class="eyebrow">这次汇报讲什么</div>
+                        <div class="outline-list">
+                            <div class="outline-card">
+                                <div class="num">1</div>
+                                <p><strong>任务是什么</strong><br>为什么 MQAR 适合看长程记忆与检索</p>
+                            </div>
+                            <div class="outline-card">
+                                <div class="num">2</div>
+                                <p><strong>baseline 怎么工作</strong><br>局部精确路径 + 远程压缩记忆</p>
+                            </div>
+                            <div class="outline-card">
+                                <div class="num">3</div>
+                                <p><strong>为什么留这条线</strong><br>用 MQAR 证据解释当前裁决</p>
+                            </div>
+                            <div class="outline-card">
+                                <div class="num">4</div>
+                                <p><strong>下一步往哪改</strong><br>转向 Gated-Delta Remote Memory</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="paper reveal">
+                        <div class="eyebrow">当前 anchor 结果</div>
+                        <div class="metric-grid">
+                            <div class="metric-card">
+                                <span class="metric-label">Valid Accuracy</span>
+                                <span class="metric-value">98.12%</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Valid Loss</span>
+                                <span class="metric-value">0.0816</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Acc@512</span>
+                                <span class="metric-value">99.10%</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Acc@1024</span>
+                                <span class="metric-value">87.49%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note reveal">
+                <p class="note">当前默认工作点: <strong>dense-t025 + top2 read + den_aware + shared_den</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 2: MQAR TASK ===
+         =========================================== -->
+    <section class="slide" id="slide-2">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 1 章 / MQAR</div>
+                <div class="slide-index">02 / 07</div>
+            </div>
+
+            <h2 class="reveal">MQAR: 为什么它适合分析长程记忆与检索</h2>
+
+            <div class="mqar-board">
+                <div class="sequence-board reveal">
+                    <div class="sequence-meta">
+                        <span>已写入的键值配对</span>
+                        <span>后续多个查询</span>
+                    </div>
+
+                    <div class="sequence-row">
+                        <div class="pair"><span class="pair-key">A</span><span class="pair-value">4</span></div>
+                        <div class="pair"><span class="pair-key">B</span><span class="pair-value">3</span></div>
+                        <div class="pair"><span class="pair-key">C</span><span class="pair-value">6</span></div>
+                        <div class="pair"><span class="pair-key">F</span><span class="pair-value">1</span></div>
+                        <div class="pair"><span class="pair-key">E</span><span class="pair-value">2</span></div>
+                        <div class="query-stack">
+                            <div class="query-pair"><span class="pair-key">A</span><span class="query-mark">?</span></div>
+                            <div class="query-line"></div>
+                            <div class="answer">4</div>
+                        </div>
+                        <div class="query-stack">
+                            <div class="query-pair"><span class="pair-key">C</span><span class="query-mark">?</span></div>
+                            <div class="query-line"></div>
+                            <div class="answer">6</div>
+                        </div>
+                        <div class="query-stack">
+                            <div class="query-pair"><span class="pair-key">F</span><span class="query-mark">?</span></div>
+                            <div class="query-line"></div>
+                            <div class="answer">1</div>
+                        </div>
+                        <div class="query-stack">
+                            <div class="query-pair"><span class="pair-key">E</span><span class="query-mark">?</span></div>
+                            <div class="query-line"></div>
+                            <div class="answer">2</div>
+                        </div>
+                        <div class="query-stack">
+                            <div class="query-pair"><span class="pair-key">B</span><span class="query-mark">?</span></div>
+                            <div class="query-line"></div>
+                            <div class="answer">3</div>
+                        </div>
+                    </div>
+
+                    <div class="callout">
+                        <p>
+                            <strong>最朴素的理解:</strong>
+                            模型需要记住前面写入的键值配对, 并在后面的多个查询位置正确取回对应的值。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mqar-side">
+                    <div class="paper reveal">
+                        <div class="eyebrow">任务本质</div>
+                        <ul class="bullet-list">
+                            <li>一次前向里要做多次召回, 不是单一 query。</li>
+                            <li>查询位置可变, 距离可变, 需要内容相关的取回。</li>
+                            <li>它测的不是普通短程建模, 而是“会不会记住并正确取回”。</li>
+                        </ul>
+                    </div>
+
+                    <div class="paper reveal">
+                        <div class="eyebrow">为什么适合 Flash-VQG</div>
+                        <ul class="bullet-list">
+                            <li>既能看 local path 的近距离精确交互。</li>
+                            <li>也能看 remote path 的压缩存储与检索能力。</li>
+                            <li>非常适合判断长程瓶颈是在 reader, 还是在 memory mechanics。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 3: BASELINE ARCHITECTURE ===
+         =========================================== -->
+    <section class="slide" id="slide-3">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 2 章 / baseline 的结构</div>
+                <div class="slide-index">03 / 07</div>
+            </div>
+
+            <h2 class="reveal">Flash-VQG 当前 baseline: 局部精确注意力 + 远程压缩记忆</h2>
+
+            <div class="arch-board">
+                <div class="path-column">
+                    <div class="path-card local reveal">
+                        <div class="eyebrow">Local Path</div>
+                        <h3>局部窗口精确注意力</h3>
+                        <ul class="bullet-list">
+                            <li>直接对最近窗口做精确注意力。</li>
+                            <li>负责短程, 细粒度, token-level 交互。</li>
+                            <li>当前窗口大小约为 \( \texttt{local\_num\_blocks} \times \texttt{block\_len} = 64 \) tokens。</li>
+                        </ul>
+                    </div>
+
+                    <div class="path-card remote reveal">
+                        <div class="eyebrow">Remote Path</div>
+                        <h3>码本槽级压缩记忆</h3>
+                        <ul class="bullet-list">
+                            <li>历史内容不会逐 token 全保留, 而是被压到若干记忆槽。</li>
+                            <li>每个槽同时保存 prototype 和 residual correction。</li>
+                            <li>读出时只保留最相关的 2 个槽。</li>
+                        </ul>
+                    </div>
+
+                    <div class="fuse-box reveal">
+                        <p><strong>一句话:</strong> 近处的信息精确看, 远处的信息压缩存。</p>
+                    </div>
+                </div>
+
+                <div class="diagram-card reveal">
+                    <div class="eyebrow">结构流图</div>
+                    <div class="arch-diagram">
+                        <div class="token-river">
+                            <div class="diagram-chip"><strong>输入序列</strong><br>x₁, x₂, ..., x_T</div>
+                            <div class="diagram-chip"><strong>线性投影</strong><br>得到 \( q_t / k_t / v_t \)</div>
+                            <div class="diagram-chip"><strong>稠密软写入</strong><br>对所有 code 槽产生 soft 权重</div>
+                            <div class="diagram-chip"><strong>残差表征</strong><br>\( r_t = k_t - \hat{k}_t \)</div>
+                        </div>
+
+                        <div class="arrow-column">
+                            <div class="arrow-node">→</div>
+                            <div class="arrow-node">→</div>
+                            <div class="arrow-node">↘</div>
+                            <div class="arrow-node">↗</div>
+                            <div class="arrow-node">→</div>
+                        </div>
+
+                        <div class="memory-stack">
+                            <div class="memory-slot">
+                                <strong>Code Slot 1</strong>
+                                <p>prototype memory + residual memory</p>
+                            </div>
+                            <div class="memory-slot">
+                                <strong>Code Slot 2</strong>
+                                <p>prototype memory + residual memory</p>
+                            </div>
+                            <div class="memory-slot">
+                                <strong>Top-2 remote read</strong>
+                                <p>query 只从最相关的两个槽读出远程信息</p>
+                            </div>
+                            <div class="memory-slot">
+                                <strong>统一融合</strong>
+                                <p>local exact attention + remote memory readout</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 4: MATHEMATICAL PRINCIPLE ===
+         =========================================== -->
+    <section class="slide" id="slide-4">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 2 章 / 数学原理</div>
+                <div class="slide-index">04 / 07</div>
+            </div>
+
+            <h2 class="reveal">Flash-VQG 当前 baseline: 远程记忆的写入, 读出与融合</h2>
+
+            <div class="formula-grid">
+                <div class="formula-card reveal">
+                    <div class="eyebrow">1. 残差表征</div>
+                    <div class="formula">
+                        <span class="math-line" data-tex="\hat{k}_t = \operatorname{VQ}(k_t)">k̂<sub>t</sub> = VQ(k<sub>t</sub>)</span>
+                        <span class="math-line" data-tex="r_t = k_t - \hat{k}_t">r<sub>t</sub> = k<sub>t</sub> - k̂<sub>t</sub></span>
+                        <span class="math-line" data-tex="h_{t,s} = B_s^\top r_t">h<sub>t,s</sub> = B<sub>s</sub><sup>⊤</sup> r<sub>t</sub></span>
+                    </div>
+                    <p class="formula-note">先把 key 量化到码本中心, 再把残差投影到每个槽自己的局部坐标系中。</p>
+                </div>
+
+                <div class="formula-card reveal">
+                    <div class="eyebrow">2. 写入远程 memory</div>
+                    <div class="formula">
+                        <span class="math-line" data-tex="g_s \leftarrow \gamma g_s + \sum_t w_{t,s} v_t">g<sub>s</sub> ← γg<sub>s</sub> + Σ<sub>t</sub>w<sub>t,s</sub>v<sub>t</sub></span>
+                        <span class="math-line" data-tex="R_s \leftarrow \gamma R_s + \sum_t w_{t,s} v_t h_{t,s}^\top">R<sub>s</sub> ← γR<sub>s</sub> + Σ<sub>t</sub>w<sub>t,s</sub>v<sub>t</sub>h<sub>t,s</sub><sup>⊤</sup></span>
+                    </div>
+                    <p class="formula-note">当前 baseline 的写法是 weighted additive accumulation: 同时累积平均内容和细节修正。</p>
+                </div>
+
+                <div class="formula-card reveal">
+                    <div class="eyebrow">3. 读出远程信息</div>
+                    <div class="formula">
+                        <span class="math-line" data-tex="\mathrm{Num}_s(q_t) = g_s + R_s \alpha_s(q_t)">Num<sub>s</sub>(q<sub>t</sub>) = g<sub>s</sub> + R<sub>s</sub>α<sub>s</sub>(q<sub>t</sub>)</span>
+                    </div>
+                    <p class="formula-note">给定当前 query, 槽内 residual correction 会提供 query-conditioned 的细粒度修正。</p>
+                </div>
+
+                <div class="formula-card reveal">
+                    <div class="eyebrow">4. 槽选择与融合</div>
+                    <div class="formula">
+                        <span class="math-line" data-tex="\operatorname{selector}_s(q_t) = \operatorname{score}_s(q_t) + \log \mathrm{Den}_s(q_t)">selector<sub>s</sub>(q<sub>t</sub>) = score<sub>s</sub>(q<sub>t</sub>) + log Den<sub>s</sub>(q<sub>t</sub>)</span>
+                        <span class="math-line" data-tex="o_t = \operatorname{Fuse}\!\big(o_t^{\mathrm{local}}, o_t^{\mathrm{remote}}\big)">o<sub>t</sub> = Fuse(o<sub>t</sub><sup>local</sup>, o<sub>t</sub><sup>remote</sup>)</span>
+                    </div>
+                    <p class="formula-note">选槽时既看匹配分, 也看槽内是否真的有足够内容; 最后 local 与 remote 在同一归一化体系里融合。</p>
+                </div>
+            </div>
+
+            <div class="highlight-box reveal">
+                <p>
+                    <strong>高层理解:</strong>
+                    先把长程历史压到若干记忆槽, 每个槽同时存“平均原型”和“残差修正”, 再按当前 query 从 top-2 槽中读出, 最后与局部精确注意力统一融合。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 5: MQAR COMPARISON ===
+         =========================================== -->
+    <section class="slide" id="slide-5">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 3 章 / MQAR 视角下的比较</div>
+                <div class="slide-index">05 / 07</div>
+            </div>
+
+            <h2 class="reveal">MQAR 视角下: Flash-VQG baseline 与 Gated DeltaNet 的对比分析</h2>
+
+            <div class="compare-grid">
+                <div class="evidence-stack">
+                    <div class="evidence-card reveal">
+                        <div class="evidence-title">
+                            <strong>内部证据 A: `dense-t025` 稳定优于 `dense-t050`</strong>
+                            <span>5 / 5 matched validations</span>
+                        </div>
+                        <p>平均 `valid/accuracy` 提升约 <strong class="delta-up">+1.08pp</strong>, 平均 `acc@1024` 提升约 <strong class="delta-up">+7.52pp</strong>.</p>
+                        <div class="evidence-metrics">
+                            <span class="mini-pill">reference: +1.44pp / +9.86pp</span>
+                            <span class="mini-pill">seed-axis: +1.33pp / +8.25pp</span>
+                            <span class="mini-pill">data-axis: +0.62pp / +4.47pp</span>
+                        </div>
+                    </div>
+
+                    <div class="evidence-card reveal">
+                        <div class="evidence-title">
+                            <strong>内部证据 B: `top2 read` 明显优于 dense read</strong>
+                            <span>reader 并没有被推翻</span>
+                        </div>
+                        <p>`dense-t025 + dense read` 相比当前 baseline:</p>
+                        <div class="evidence-metrics">
+                            <span class="mini-pill">accuracy <strong class="delta-down">-1.58pp</strong></span>
+                            <span class="mini-pill">loss <strong class="delta-down">+0.0765</strong></span>
+                            <span class="mini-pill">acc@1024 <strong class="delta-down">-10.94pp</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="evidence-card reveal">
+                        <div class="evidence-title">
+                            <strong>内部证据 C: E5A audit 不支持“只换 top2 code set 就会更好”</strong>
+                            <span>selector 不是当前主嫌疑</span>
+                        </div>
+                        <p>`ref` 模式在两个正式 run 上都明显低于 `student`:</p>
+                        <div class="evidence-metrics">
+                            <span class="mini-pill">run-001: <strong class="delta-down">-14.33pp</strong></span>
+                            <span class="mini-pill">run-002: <strong class="delta-down">-17.85pp</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <div class="routes-grid reveal">
+                        <div class="route-card baseline">
+                            <div class="eyebrow">Flash-VQG Baseline</div>
+                            <h3>压缩存储 + 内容检索</h3>
+                            <ul>
+                                <li>远处内容先压缩到 code slots。</li>
+                                <li>query 再从 top-2 槽中恢复远程信息。</li>
+                                <li>重点是 compressed memory + targeted readout。</li>
+                            </ul>
+                        </div>
+
+                        <div class="route-card future">
+                            <div class="eyebrow">Gated DeltaNet</div>
+                            <h3>可遗忘 + 可重写的状态更新</h3>
+                            <ul>
+                                <li>核心焦点是 stale memory 与 collision。</li>
+                                <li>gate 负责忘多少, delta 负责怎么改。</li>
+                                <li>重点是 memory hygiene + rewrite ability。</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="paper reveal">
+                        <div class="eyebrow">公开 retrieval 结果参照</div>
+                        <table class="soft-table">
+                            <thead>
+                                <tr>
+                                    <th>任务</th>
+                                    <th>Gated DeltaNet</th>
+                                    <th>Mamba2</th>
+                                    <th>DeltaNet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>S-NIAH-2 @ 4K</td>
+                                    <td>92.2</td>
+                                    <td>56.2</td>
+                                    <td>18.6</td>
+                                </tr>
+                                <tr>
+                                    <td>S-NIAH-2 @ 8K</td>
+                                    <td>29.6</td>
+                                    <td>17.0</td>
+                                    <td>14.4</td>
+                                </tr>
+                                <tr>
+                                    <td>S-NIAH-3 @ 2K</td>
+                                    <td>84.2</td>
+                                    <td>47.6</td>
+                                    <td>47.0</td>
+                                </tr>
+                                <tr>
+                                    <td>S-NIAH-3 @ 4K</td>
+                                    <td>27.6</td>
+                                    <td>4.6</td>
+                                    <td>22.4</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="caution reveal">
+                        <p class="note">
+                            注意: 这一页不是同一套 MQAR 脚本下的 apples-to-apples 榜单。它表达的是
+                            <strong>MQAR 视角下的机制对比 + 外部 retrieval 参照</strong>。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 6: SUMMARY / DECISION ===
+         =========================================== -->
+    <section class="slide" id="slide-6">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 3 章 / 一句话总结</div>
+                <div class="slide-index">06 / 07</div>
+            </div>
+
+            <h2 class="reveal">一句话记住当前 baseline, 以及它为什么被留下来</h2>
+
+            <div class="summary-grid">
+                <div class="stack">
+                    <div class="quote-box reveal">
+                        <div class="eyebrow">一句话结构</div>
+                        <p class="lead">
+                            <strong>Flash-VQG 当前 baseline = 局部精确注意力 + 远程压缩记忆</strong>
+                        </p>
+                        <p>
+                            更准确地说: 近处信息直接精确看, 远处信息压缩存; 写入更平滑, 读出更集中, 最后统一归一化。
+                        </p>
+                    </div>
+
+                    <div class="table-card reveal">
+                        <div class="eyebrow">三条关键裁决</div>
+                        <table class="soft-table decision-table">
+                            <tbody>
+                                <tr>
+                                    <td>写入温度</td>
+                                    <td><strong>`t025 > t050`</strong></td>
+                                    <td>保留 `t025`</td>
+                                </tr>
+                                <tr>
+                                    <td>读出方式</td>
+                                    <td><strong>`top2 > dense`</strong></td>
+                                    <td>保留 `top2`</td>
+                                </tr>
+                                <tr>
+                                    <td>codebook 容量</td>
+                                    <td><strong>`128` 最稳</strong></td>
+                                    <td>保留 `cb128`</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <div class="paper reveal">
+                        <div class="eyebrow">`cb128` 为什么是当前甜点</div>
+                        <div class="cb-chart-frame">
+                            <div class="cb-chart-head">
+                                <div class="cb-chart-title">Codebook sweep on MQAR: `acc@1024` (纵轴 0.50 - 0.90)</div>
+                                <div class="cb-legend" aria-label="图例">
+                                    <span class="cb-legend-item">
+                                        <span class="cb-legend-dot"></span>
+                                        <span>seed123</span>
+                                    </span>
+                                    <span class="cb-legend-item">
+                                        <span class="cb-legend-dot seed2"></span>
+                                        <span>seed124</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="cb-chart-shell">
+                                <div class="cb-axis" aria-hidden="true">
+                                    <span class="cb-tick">0.90</span>
+                                    <span class="cb-tick">0.80</span>
+                                    <span class="cb-tick">0.70</span>
+                                    <span class="cb-tick">0.60</span>
+                                    <span class="cb-tick">0.50</span>
+                                </div>
+
+                                <div class="cb-plot">
+                                    <span class="cb-gridline g1"></span>
+                                    <span class="cb-gridline g2"></span>
+                                    <span class="cb-gridline g3"></span>
+                                    <span class="cb-gridline g4"></span>
+                                    <span class="cb-gridline g5"></span>
+
+                                    <div class="cb-chart">
+                                        <div class="cb-col">
+                                            <div class="cb-bars">
+                                                <div class="cb-bar" style="height: 20.0%;">
+                                                    <span class="cb-value">0.580</span>
+                                                </div>
+                                                <div class="cb-bar seed2" style="height: 62.4%;">
+                                                    <span class="cb-value">0.750</span>
+                                                </div>
+                                            </div>
+                                            <div class="cb-label">cb64</div>
+                                        </div>
+
+                                        <div class="cb-col">
+                                            <div class="cb-bars">
+                                                <div class="cb-bar" style="height: 93.7%;">
+                                                    <span class="cb-value">0.875</span>
+                                                </div>
+                                                <div class="cb-bar seed2" style="height: 90.1%;">
+                                                    <span class="cb-value">0.860</span>
+                                                </div>
+                                            </div>
+                                            <div class="cb-label">cb128</div>
+                                        </div>
+
+                                        <div class="cb-col">
+                                            <div class="cb-bars">
+                                                <div class="cb-bar" style="height: 92.9%;">
+                                                    <span class="cb-value">0.872</span>
+                                                </div>
+                                                <div class="cb-bar seed2" style="height: 31.9%;">
+                                                    <span class="cb-value">0.628</span>
+                                                </div>
+                                            </div>
+                                            <div class="cb-label">cb256</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="cb-chart-caption">柱高按纵轴区间 `0.50 - 0.90` 映射到 `acc@1024`. 因而 `64` 明显不够, `256` 不稳定, `128` 在两个 seed 上都最稳, 成为当前 baseline 的 codebook 容量甜点。</p>
+                    </div>
+
+                    <div class="highlight-box reveal">
+                        <p>
+                            <strong>这套 baseline 被留下来, 不是因为它“看起来顺眼”</strong>,
+                            而是因为在温度, 读出方式和容量三个关键维度上, 它都是当前最稳的工作点。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         === SLIDE 7: NEXT EXPERIMENT ===
+         =========================================== -->
+    <section class="slide" id="slide-7">
+        <div class="slide-content">
+            <div class="slide-header reveal">
+                <div class="chapter-pill">第 4 章 / 下一步实验</div>
+                <div class="slide-index">07 / 07</div>
+            </div>
+
+            <h2 class="reveal">Flash-VQG: Gated-Delta Remote Memory</h2>
+
+            <div class="experiment-grid">
+                <div class="stack">
+                    <div class="mini-card reveal">
+                        <div class="eyebrow">Before</div>
+                        <h3>现有 residual memory 更像“加法累计器”</h3>
+                        <ul>
+                            <li>residual 来源合理: \( r_t = k_t - \hat{k}_t \)</li>
+                            <li>但后续更新主要是 additive accumulation。</li>
+                            <li>旧内容主要只能靠统一衰减变弱, 很难定向清除。</li>
+                            <li>同一 code 被反复写入时, 容易出现旧信息残留和内容冲突。</li>
+                        </ul>
+                    </div>
+
+                    <div class="mini-card reveal">
+                        <div class="eyebrow">After</div>
+                        <h3>让 memory 从“累加器”变成“可编辑状态”</h3>
+                        <ul>
+                            <li>只更新真正命中的 code。</li>
+                            <li>先减去 coarse baseline, 只学习修正量。</li>
+                            <li>Gate 决定忘多少, Delta 决定怎么改。</li>
+                            <li>目标是把已经写旧, 写脏, 写错的 memory 改干净。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <div class="paper reveal">
+                        <div class="eyebrow">首轮实验矩阵</div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card">
+                                <strong>additive</strong>
+                                <ul>
+                                    <li>update = additive</li>
+                                    <li>forget = global</li>
+                                    <li>作为当前 writer 对照组</li>
+                                </ul>
+                            </div>
+                            <div class="matrix-card">
+                                <strong>gated-only</strong>
+                                <ul>
+                                    <li>update = additive</li>
+                                    <li>forget = code-aware</li>
+                                    <li>单独看 forget 是否有益</li>
+                                </ul>
+                            </div>
+                            <div class="matrix-card">
+                                <strong>delta-only</strong>
+                                <ul>
+                                    <li>update = delta</li>
+                                    <li>forget = global</li>
+                                    <li>单独看 delta update 是否有益</li>
+                                </ul>
+                            </div>
+                            <div class="matrix-card">
+                                <strong>gated-delta</strong>
+                                <ul>
+                                    <li>update = delta</li>
+                                    <li>forget = code-aware</li>
+                                    <li>看两者是否可叠加</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="experiment-note reveal">
+                        <div class="eyebrow">主看指标</div>
+                        <div class="metrics-row">
+                            <span class="metric-chip">valid/accuracy</span>
+                            <span class="metric-chip">acc@1024</span>
+                            <span class="metric-chip">valid/loss</span>
+                            <span class="metric-chip">valid/attn/den_min</span>
+                            <span class="metric-chip">valid/attn/nan_inf_count</span>
+                            <span class="metric-chip">valid/vq/relative_err_mean</span>
+                        </div>
+                        <p class="note" style="margin-top: 0.65rem;">
+                            这一步不是推翻现有 reader, 而是先验证 remote memory 的写法, 存法和遗忘法是不是更值得优先改。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script>
+        /* ===========================================
+           === SLIDE PRESENTATION CONTROLLER ===
+           键盘, 滚轮, 触控, 进度条, 导航点
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = Array.from(document.querySelectorAll('.slide'));
+                this.progressBar = document.querySelector('.progress-bar');
+                this.navDots = document.querySelector('.nav-dots');
+                this.currentSlide = 0;
+                this.touchStartY = 0;
+                this.touchEndY = 0;
+                this.isScrolling = false;
+
+                this.setupIntersectionObserver();
+                this.setupNavDots();
+                this.setupKeyboardNav();
+                this.setupWheelNav();
+                this.setupTouchNav();
+                this.updateProgress();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                                this.currentSlide = this.slides.indexOf(entry.target);
+                                this.updateProgress();
+                                this.updateNavDots();
+                            }
+                        });
+                    },
+                    {
+                        threshold: 0.58
+                    }
+                );
+
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupNavDots() {
+                this.navDots.innerHTML = '';
+                this.slides.forEach((slide, index) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot';
+                    dot.setAttribute('aria-label', `跳转到第 ${index + 1} 页`);
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    this.navDots.appendChild(dot);
+                });
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                const dots = this.navDots.querySelectorAll('.nav-dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === this.currentSlide);
+                });
+            }
+
+            setupKeyboardNav() {
+                window.addEventListener('keydown', (event) => {
+                    const nextKeys = ['ArrowDown', 'ArrowRight', 'PageDown', ' '];
+                    const prevKeys = ['ArrowUp', 'ArrowLeft', 'PageUp'];
+
+                    if (nextKeys.includes(event.key)) {
+                        event.preventDefault();
+                        this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                    } else if (prevKeys.includes(event.key)) {
+                        event.preventDefault();
+                        this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    } else if (event.key === 'Home') {
+                        event.preventDefault();
+                        this.goToSlide(0);
+                    } else if (event.key === 'End') {
+                        event.preventDefault();
+                        this.goToSlide(this.slides.length - 1);
+                    }
+                });
+            }
+
+            setupWheelNav() {
+                window.addEventListener('wheel', (event) => {
+                    if (this.isScrolling) {
+                        return;
+                    }
+                    if (Math.abs(event.deltaY) < 24) {
+                        return;
+                    }
+
+                    this.isScrolling = true;
+                    const direction = event.deltaY > 0 ? 1 : -1;
+                    this.goToSlide(Math.max(0, Math.min(this.currentSlide + direction, this.slides.length - 1)));
+
+                    window.setTimeout(() => {
+                        this.isScrolling = false;
+                    }, 550);
+                }, { passive: true });
+            }
+
+            setupTouchNav() {
+                window.addEventListener('touchstart', (event) => {
+                    this.touchStartY = event.changedTouches[0].screenY;
+                }, { passive: true });
+
+                window.addEventListener('touchend', (event) => {
+                    this.touchEndY = event.changedTouches[0].screenY;
+                    const deltaY = this.touchStartY - this.touchEndY;
+                    if (Math.abs(deltaY) < 40) {
+                        return;
+                    }
+                    if (deltaY > 0) {
+                        this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                    } else {
+                        this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    }
+                }, { passive: true });
+            }
+
+            goToSlide(index) {
+                const target = this.slides[index];
+                if (!target) {
+                    return;
+                }
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            updateProgress() {
+                const total = Math.max(this.slides.length - 1, 1);
+                const progress = (this.currentSlide / total) * 100;
+                this.progressBar.style.width = `${progress}%`;
+            }
+        }
+
+        function renderExplicitMath() {
+            if (!window.katex) {
+                return false;
+            }
+
+            document.querySelectorAll('[data-tex]').forEach((node) => {
+                if (node.dataset.rendered === '1') {
+                    return;
+                }
+
+                window.katex.render(node.dataset.tex, node, {
+                    displayMode: true,
+                    throwOnError: false,
+                    strict: 'ignore'
+                });
+                node.dataset.rendered = '1';
+            });
+
+            return true;
+        }
+
+        function renderAllMath(attempt = 0) {
+            if (window.renderMathInElement) {
+                window.renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false,
+                    strict: 'ignore',
+                    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoredClasses: ['math-line']
+                });
+            }
+
+            const rendered = renderExplicitMath();
+            if (!rendered && attempt < 20) {
+                window.setTimeout(() => renderAllMath(attempt + 1), 100);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            renderAllMath();
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>
