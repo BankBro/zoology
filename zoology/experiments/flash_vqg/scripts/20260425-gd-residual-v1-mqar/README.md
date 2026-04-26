@@ -50,7 +50,7 @@ bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_smok
 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_train.sh
 PROFILE_ENABLE_TORCH_PROFILER=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
 PROFILE_ENABLE_GD_DIAGNOSTICS=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_profile.sh
-SHORT_RUN_VARIANT=all PROFILE_ENABLE_GD_DIAGNOSTICS=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_short_run.sh
+SHORT_RUN_VARIANT=all SHORT_RUN_VALID_EVERY=10 PROFILE_ENABLE_GD_DIAGNOSTICS=1 bash zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/run_short_run.sh
 ```
 
 默认 launch 前缀:
@@ -75,5 +75,7 @@ Short-run 参数:
 - `SHORT_RUN_TRAIN_BATCHES`: 默认 `20`
 - `SHORT_RUN_SEEDS`: 默认 `123,124`
 - `SHORT_RUN_VARIANT`: 默认 `gd_r16_wk4`, 可选 `gd_r16_wk4`, `gd_r16_wk2`, `gd_r8_wk4`, `local_only`, `legacy_fox`, `all`
+- `SHORT_RUN_VALID_EVERY`: 默认 `0`, 设为 `10` 时额外写 step10/step20 validation records
 - `SHORT_RUN_OUTPUT_DIR`: 默认 `tmp/20260425-gd-residual-v1-short-run`
-- `PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `1`, 显式控制 gd residual debug metrics
+- `FOX_GD_RESIDUAL_MU_MIN_COUNT`: 默认 `1.0`, 控制 `gd_residual_v1` 的 `mu_min_count`
+- `PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `0`, 显式 `=1` 时输出 gd residual debug metrics
