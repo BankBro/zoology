@@ -389,6 +389,21 @@ def test_gd_residual_builder_supports_dense_read_topk():
     assert flash_kwargs["fox_remote_read_topk"] is None
 
 
+def test_gd_residual_builder_supports_run_id_mode_and_validation_overrides():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.run_id = "gd-r16-wk4-mu015-t025-cb256-s123-d123"
+    args.experiment_mode = "candidate_mu015"
+    args.validations_per_epoch = 2
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == "gd-r16-wk4-mu015-t025-cb256-s123-d123"
+    assert configs[0].validations_per_epoch == 2
+    assert flash_kwargs["experiment_mode"] == "candidate_mu015"
+
+
 def _build_short_run_args(tmp_path):
     return Namespace(
         train_batches=1,

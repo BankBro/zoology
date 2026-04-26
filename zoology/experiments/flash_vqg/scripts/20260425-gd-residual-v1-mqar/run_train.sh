@@ -46,10 +46,13 @@ cd "${ROOT_DIR}"
   --train-batch-size "${TRAIN_BATCH_SIZE}" \
   --eval-batch-size "${EVAL_BATCH_SIZE}" \
   --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS}" \
+  --validations-per-epoch "${VALIDATIONS_PER_EPOCH}" \
   --cache-dir "${CACHE_DIR}" \
   --metrics-white-list-file "${METRICS_WHITE_LIST_FILE}" \
   --project "${PROJECT}" \
   --entity "${ENTITY}" \
   --launch-id-prefix "${LAUNCH_ID_PREFIX_TRAIN}" \
+  --run-id "${RUN_ID_OVERRIDE}" \
+  --experiment-mode "${EXPERIMENT_MODE_OVERRIDE}" \
   --config-builder "${BUILDER_SPEC}" \
   --gpus "${GPU_ID}"

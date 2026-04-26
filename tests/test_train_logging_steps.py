@@ -91,6 +91,33 @@ def test_trainer_logs_train_and_valid_metrics_on_shared_global_step_axis():
     assert valid_steps == [2, 5]
 
 
+def test_trainer_can_validate_mid_epoch_without_checkpoint_semantics():
+    logger = _CaptureLogger()
+    trainer = Trainer(
+        model=_ToyModel(),
+        train_dataloader=[
+            _make_batch(0, "2x1-a"),
+            _make_batch(2, "2x1-b"),
+            _make_batch(4, "2x1-c"),
+            _make_batch(6, "2x1-d"),
+        ],
+        test_dataloader=[_make_batch(0, "2x1-valid")],
+        max_epochs=1,
+        learning_rate=1e-2,
+        validations_per_epoch=2,
+        device="cpu",
+        logger=logger,
+    )
+
+    trainer.fit()
+
+    train_steps = [step for metrics, step in logger.records if "train/loss" in metrics]
+    valid_steps = [step for metrics, step in logger.records if "valid/accuracy" in metrics]
+
+    assert train_steps == [0, 1, 3, 4]
+    assert valid_steps == [2, 5]
+
+
 def test_train_marks_manifest_failed_on_keyboard_interrupt(monkeypatch):
     statuses = []
     logger = _InterruptingLogger()

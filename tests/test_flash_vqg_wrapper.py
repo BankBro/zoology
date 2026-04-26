@@ -782,6 +782,30 @@ def test_build_configs_keeps_default_run_id_when_batch_and_gradient_accumulation
     assert "-tbs256-ebs32-ga1" not in configs[0].run_id
 
 
+def test_build_configs_supports_validations_per_epoch_override():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_formula="clr_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        validations_per_epoch=2,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert configs[0].validations_per_epoch == 2
+    assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off-tbs256-ebs32-ga1-vpe2")
+
+
 def test_build_configs_rejects_non_positive_batch_or_gradient_accumulation():
     with pytest.raises(ValueError, match="train_batch_size"):
         build_configs(

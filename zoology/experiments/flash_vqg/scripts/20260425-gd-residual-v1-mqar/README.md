@@ -5,16 +5,21 @@
 固定口径:
 
 - `d_model=128`
-- `num_codebook_vectors=128`
+- `num_codebook_vectors=256`
 - `block_len=32`
 - `local_num_blocks=2`
 - `vq_score_mode=codebook_dot`
 - `vq_weight_mode=dense_softmax`
 - `vq_update_mode=grad`
+- `vq_softmax_tau=0.25`
 - `vq_topk=4`
 - `seed=123`
 - `data_seed=123`
-- `max_epochs=32`
+- `train_batch_size=64`
+- `eval_batch_size=16`
+- `gradient_accumulation_steps=4`
+- `validations_per_epoch=2`
+- `max_epochs=4`
 - `fox_remote_formula=gd_residual_v1`
 - `fox_remote_read_topk=2`, 可用 `FOX_REMOTE_READ_TOPK=dense` 切回 dense read
 - 其余 `fox_gd_residual_*` 默认值按蓝图:
@@ -79,3 +84,6 @@ Short-run 参数:
 - `SHORT_RUN_OUTPUT_DIR`: 默认 `tmp/20260425-gd-residual-v1-short-run`
 - `FOX_GD_RESIDUAL_MU_MIN_COUNT`: 默认 `1.0`, 控制 `gd_residual_v1` 的 `mu_min_count`
 - `PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `0`, 显式 `=1` 时输出 gd residual debug metrics
+- `RUN_ID_OVERRIDE`: 默认空, 设定后覆盖 builder 生成的 `run_id`
+- `EXPERIMENT_MODE_OVERRIDE`: 默认空, 设定后覆盖写入 Flash-VQG config 的 `experiment_mode`
+- `VALIDATIONS_PER_EPOCH`: 默认 `2`, 本轮候选用于每 0.5 epoch valid 一次

@@ -27,6 +27,7 @@ DEFAULT_DATA_SEED = 123
 DEFAULT_TRAIN_BATCH_SIZE = 256
 DEFAULT_EVAL_BATCH_SIZE = 32
 DEFAULT_GRADIENT_ACCUMULATION_STEPS = 1
+DEFAULT_VALIDATIONS_PER_EPOCH = 1
 DEFAULT_VQ_SCORE_MODE = "l2"
 DEFAULT_VQ_WEIGHT_MODE = "one-hot"
 DEFAULT_VQ_UPDATE_MODE = "ema"
@@ -236,6 +237,19 @@ def _normalize_vq_topk(vq_topk: int) -> int:
     parsed = int(vq_topk)
     if parsed <= 0:
         raise ValueError(f"vq_topk 必须是正整数, 当前收到: {vq_topk}")
+    return parsed
+
+
+def _normalize_validations_per_epoch(validations_per_epoch: int | None) -> int:
+    parsed = (
+        DEFAULT_VALIDATIONS_PER_EPOCH
+        if validations_per_epoch is None
+        else int(validations_per_epoch)
+    )
+    if parsed <= 0:
+        raise ValueError(
+            f"validations_per_epoch 必须是正整数, 当前收到: {validations_per_epoch}"
+        )
     return parsed
 
 
@@ -751,6 +765,7 @@ def build_configs(
     vq_softmax_tau: float = DEFAULT_VQ_SOFTMAX_TAU,
     vq_topk: int = DEFAULT_VQ_TOPK,
     gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+    validations_per_epoch: int = DEFAULT_VALIDATIONS_PER_EPOCH,
     train_batch_size: int | None = None,
     eval_batch_size: int | None = None,
     cache_dir: str = DEFAULT_CACHE_DIR,
@@ -871,6 +886,9 @@ def build_configs(
         gradient_accumulation_steps,
         field_name="gradient_accumulation_steps",
     ) or DEFAULT_GRADIENT_ACCUMULATION_STEPS
+    resolved_validations_per_epoch = _normalize_validations_per_epoch(
+        validations_per_epoch
+    )
     resolved_train_batch_size = _normalize_positive_int(
         train_batch_size,
         field_name="train_batch_size",
@@ -1134,6 +1152,7 @@ def build_configs(
             effective_train_batch_size != DEFAULT_TRAIN_BATCH_SIZE,
             effective_eval_batch_size != DEFAULT_EVAL_BATCH_SIZE,
             resolved_gradient_accumulation_steps != DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+            resolved_validations_per_epoch != DEFAULT_VALIDATIONS_PER_EPOCH,
         )
     )
     for order in train_batch_orders_list:
@@ -1204,6 +1223,8 @@ def build_configs(
                                             f"{run_id}-tbs{int(train_bs)}-ebs{int(eval_bs)}-"
                                             f"ga{resolved_gradient_accumulation_steps}"
                                         )
+                                        if resolved_validations_per_epoch != DEFAULT_VALIDATIONS_PER_EPOCH:
+                                            run_id = f"{run_id}-vpe{resolved_validations_per_epoch}"
                                     configs.append(
                                         TrainConfig(
                                             model=model,
@@ -1211,6 +1232,7 @@ def build_configs(
                                             learning_rate=lr,
                                             max_epochs=max_epochs,
                                             gradient_accumulation_steps=resolved_gradient_accumulation_steps,
+                                            validations_per_epoch=resolved_validations_per_epoch,
                                             logger=logger,
                                             metrics_white_list=normalized_metrics_white_list,
                                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
@@ -1232,6 +1254,8 @@ def build_configs(
                             f"{run_id}-tbs{int(train_bs)}-ebs{int(eval_bs)}-"
                             f"ga{resolved_gradient_accumulation_steps}"
                         )
+                        if resolved_validations_per_epoch != DEFAULT_VALIDATIONS_PER_EPOCH:
+                            run_id = f"{run_id}-vpe{resolved_validations_per_epoch}"
                     configs.append(
                         TrainConfig(
                             model=model,
@@ -1239,6 +1263,7 @@ def build_configs(
                             learning_rate=lr,
                             max_epochs=max_epochs,
                             gradient_accumulation_steps=resolved_gradient_accumulation_steps,
+                            validations_per_epoch=resolved_validations_per_epoch,
                             logger=logger,
                             metrics_white_list=normalized_metrics_white_list,
                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],

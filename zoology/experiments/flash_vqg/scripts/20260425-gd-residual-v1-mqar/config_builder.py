@@ -95,6 +95,7 @@ def _resolve_remote_read_topk_values(args) -> list[int | None]:
 
 
 def _common_builder_kwargs(args, *, experiment_mode: str):
+    resolved_experiment_mode = getattr(args, "experiment_mode", None) or experiment_mode
     dmodels = _parse_csv_ints(args.dmodels)
     learning_rates = _parse_csv_floats(args.learning_rates)
     seed_values = _parse_seed_values(args.seed_values) if args.seed_values is not None else [123]
@@ -182,7 +183,8 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             max_epochs=int(args.max_epochs),
             metrics_white_list=metrics_white_list,
             experiment_part="gd_residual_v1_mqar",
-            experiment_mode=experiment_mode,
+            experiment_mode=resolved_experiment_mode,
+            validations_per_epoch=int(getattr(args, "validations_per_epoch", 1)),
         ),
         seed_value,
         int(args.data_seed),
@@ -207,6 +209,7 @@ def _build_single(args, *, experiment_mode: str):
         f"-wk{int(getattr(args, 'fox_gd_residual_write_topk', 4))}"
         f"-b{train_batch_size}"
     )
+    run_id = str(getattr(args, "run_id", None) or run_id)
     return _rewrite_run_id(configs[0], run_id=run_id)
 
 

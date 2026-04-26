@@ -5,7 +5,7 @@ import signal
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union
+from typing import Callable, List, Union
 import pandas as pd
 
 import torch
@@ -158,6 +158,7 @@ class Trainer:
         learning_rate: float = 1e-3,
         weight_decay: float = 0.1,
         gradient_accumulation_steps: int = 1,
+        validations_per_epoch: int = 1,
         early_stopping_metric: str = None,
         early_stopping_threshold: float = None,
         loss_type: str = "ce",
@@ -180,6 +181,9 @@ class Trainer:
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         self.gradient_accumulation_steps = gradient_accumulation_steps
+        self.validations_per_epoch = int(validations_per_epoch)
+        if self.validations_per_epoch <= 0:
+            raise ValueError("validations_per_epoch must be a positive integer.")
         self.slice_keys = slice_keys
         self.loss_type = loss_type
         self.global_step = 0
@@ -297,7 +301,20 @@ class Trainer:
         self.logger.log(metrics, step=self.global_step)
         self.global_step += 1
 
-    def train_epoch(self, epoch_idx: int):
+    def _validation_boundaries(self, num_optimizer_steps: int) -> set[int]:
+        if self.validations_per_epoch <= 1:
+            return set()
+        boundaries = {
+            max(1, round(num_optimizer_steps * validation_idx / self.validations_per_epoch))
+            for validation_idx in range(1, self.validations_per_epoch)
+        }
+        return {boundary for boundary in boundaries if boundary < num_optimizer_steps}
+
+    def train_epoch(
+        self,
+        epoch_idx: int,
+        validation_callback: Callable[[int], None] | None = None,
+    ):
         self.model.train()
         sampler = getattr(self.train_dataloader, "sampler", None)
         if sampler is not None and hasattr(sampler, "set_epoch"):
@@ -306,6 +323,8 @@ class Trainer:
         accum_steps = self.gradient_accumulation_steps
         num_batches = len(self.train_dataloader)
         remainder = num_batches % accum_steps
+        num_optimizer_steps = (num_batches + accum_steps - 1) // accum_steps
+        validation_boundaries = self._validation_boundaries(num_optimizer_steps)
         # Index where the last (possibly partial) accumulation window begins
         partial_start = num_batches - remainder if remainder > 0 else num_batches
 
@@ -317,6 +336,7 @@ class Trainer:
 
         self.optimizer.zero_grad()
         accum_loss = 0.0
+        optimizer_step_idx = 0
 
         for step_idx, (inputs, targets, slices) in enumerate(iterator):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -359,6 +379,14 @@ class Trainer:
                 metrics.update(self._collect_model_scalar_metrics())
                 self._log_metrics(metrics)
                 accum_loss = 0.0
+                optimizer_step_idx += 1
+
+                if (
+                    validation_callback is not None
+                    and optimizer_step_idx in validation_boundaries
+                ):
+                    validation_callback(optimizer_step_idx)
+                    self.model.train()
 
     def test(self, epoch_idx: int):
         self.model.eval()
@@ -426,7 +454,10 @@ class Trainer:
         last_metrics = None
         last_epoch = None
         for epoch_idx in range(self.max_epochs):
-            self.train_epoch(epoch_idx)
+            self.train_epoch(
+                epoch_idx,
+                validation_callback=lambda _optimizer_step_idx, epoch_idx=epoch_idx: self.test(epoch_idx),
+            )
             metrics = self.test(epoch_idx)
             last_metrics = metrics
             last_epoch = epoch_idx
@@ -518,6 +549,7 @@ def train(config: TrainConfig):
             learning_rate=config.learning_rate,
             weight_decay=config.weight_decay,
             gradient_accumulation_steps=config.gradient_accumulation_steps,
+            validations_per_epoch=config.validations_per_epoch,
             early_stopping_metric=config.early_stopping_metric,
             early_stopping_threshold=config.early_stopping_threshold,
             slice_keys=config.slice_keys,

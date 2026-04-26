@@ -293,6 +293,7 @@ def _render_generated_config(
     wandb_entity: str,
     max_epochs: int,
     metrics_white_list: list[str],
+    validations_per_epoch: int = 1,
 ) -> str:
     lines = [
         "# -*- coding: utf-8 -*-",
@@ -356,6 +357,7 @@ def _render_generated_config(
         f"    vq_softmax_tau={vq_softmax_tau!r},",
         f"    vq_topk={vq_topk!r},",
         f"    gradient_accumulation_steps={gradient_accumulation_steps!r},",
+        f"    validations_per_epoch={validations_per_epoch!r},",
         f"    train_batch_size={train_batch_size!r},",
         f"    eval_batch_size={eval_batch_size!r},",
         f"    cache_dir={cache_dir!r},",
@@ -485,6 +487,7 @@ def _build_manifest_run_ids(
     entity: str,
     max_epochs: int,
     metrics_white_list: list[str],
+    validations_per_epoch: int = 1,
 ) -> list[str]:
     configs = build_configs(
         sweep_id=sweep_id,
@@ -538,6 +541,7 @@ def _build_manifest_run_ids(
         vq_softmax_tau=vq_softmax_tau,
         vq_topk=vq_topk,
         gradient_accumulation_steps=gradient_accumulation_steps,
+        validations_per_epoch=validations_per_epoch,
         train_batch_size=train_batch_size,
         eval_batch_size=eval_batch_size,
         cache_dir=cache_dir,
@@ -819,6 +823,12 @@ def main():
         help="每多少个 train micro-batches 做一次 optimizer step.",
     )
     parser.add_argument(
+        "--validations-per-epoch",
+        type=int,
+        default=1,
+        help="每个 epoch 内执行多少次 validation. 默认 1, 即 epoch 末验证一次.",
+    )
+    parser.add_argument(
         "--train-batch-size",
         type=int,
         default=None,
@@ -846,6 +856,8 @@ def main():
     parser.add_argument("--entity", type=str, default="scu-mclab")
     parser.add_argument("--max-epochs", type=int, default=32)
     parser.add_argument("--launch-id-prefix", type=str, default="flash-vqg-suite")
+    parser.add_argument("--run-id", type=str, default=None, help="实验专用 builder 可用的显式 run_id 覆盖.")
+    parser.add_argument("--experiment-mode", type=str, default=None, help="实验专用 builder 可用的 experiment_mode 覆盖.")
     parser.add_argument(
         "--config-builder",
         type=str,
@@ -1064,6 +1076,7 @@ def main():
             vq_softmax_tau=args.vq_softmax_tau,
             vq_topk=args.vq_topk,
             gradient_accumulation_steps=args.gradient_accumulation_steps,
+            validations_per_epoch=args.validations_per_epoch,
             train_batch_size=args.train_batch_size,
             eval_batch_size=args.eval_batch_size,
             cache_dir=args.cache_dir,
@@ -1120,6 +1133,7 @@ def main():
                 vq_softmax_tau=args.vq_softmax_tau,
                 vq_topk=args.vq_topk,
                 gradient_accumulation_steps=args.gradient_accumulation_steps,
+                validations_per_epoch=args.validations_per_epoch,
                 train_batch_size=args.train_batch_size,
                 eval_batch_size=args.eval_batch_size,
                 cache_dir=args.cache_dir,
