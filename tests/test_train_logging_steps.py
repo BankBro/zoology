@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
+import pytest
 
+import zoology.train as train_module
+from zoology.config import DataConfig, DataSegmentConfig, LoggerConfig, ModelConfig, TrainConfig
 from zoology.train import Trainer
 
 
@@ -33,6 +36,30 @@ class _CaptureLogger:
         return {}
 
 
+class _InterruptingLogger(_CaptureLogger):
+    def log_model(self, model, config):
+        return None
+
+    def log_config(self, config):
+        return None
+
+
+def _build_interrupt_config() -> TrainConfig:
+    data_segment = DataSegmentConfig(input_seq_len=16, num_examples=4)
+    return TrainConfig(
+        model=ModelConfig(name="toy"),
+        data=DataConfig(train_configs=[data_segment], test_configs=[data_segment]),
+        logger=LoggerConfig(
+            backend="swanlab",
+            project_name="demo-project",
+            entity="demo-entity",
+        ),
+        launch_id="demo-launch",
+        sweep_id="demo-sweep",
+        run_id="demo-run",
+    )
+
+
 def _make_batch(token: int, case: str):
     inputs = torch.tensor([[token, token + 1]], dtype=torch.long)
     targets = inputs.clone()
@@ -62,3 +89,33 @@ def test_trainer_logs_train_and_valid_metrics_on_shared_global_step_axis():
 
     assert train_steps == [0, 1, 3, 4]
     assert valid_steps == [2, 5]
+
+
+def test_train_marks_manifest_failed_on_keyboard_interrupt(monkeypatch):
+    statuses = []
+    logger = _InterruptingLogger()
+
+    class _InterruptingTrainer:
+        def __init__(self, **_kwargs):
+            return None
+
+        def fit(self):
+            raise KeyboardInterrupt()
+
+    monkeypatch.setattr(train_module, "build_logger", lambda _config: logger)
+    monkeypatch.setattr(train_module, "LanguageModel", lambda _model_cfg: object())
+    monkeypatch.setattr(train_module, "prepare_data", lambda _data_cfg: ([], []))
+    monkeypatch.setattr(train_module, "Trainer", _InterruptingTrainer)
+    monkeypatch.setattr(
+        train_module,
+        "update_manifest_for_run",
+        lambda *, status, error=None, **_kwargs: statuses.append((status, error)),
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        train_module.train(_build_interrupt_config())
+
+    assert statuses == [
+        ("running", None),
+        ("failed", "KeyboardInterrupt"),
+    ]

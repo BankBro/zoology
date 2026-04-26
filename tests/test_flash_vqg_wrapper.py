@@ -513,6 +513,110 @@ def test_build_configs_supports_clr_formula_suffix():
     assert configs[0].run_id.endswith("-rformula-clr1-r4-den1-rremat-off")
 
 
+def test_render_generated_config_writes_gd_residual_v1_overrides():
+    rendered = _render_generated_config(
+        sweep_id="flash-vqg-gd",
+        backend="torch",
+        logger_backend="none",
+        include_gdn=False,
+        block_lens=[32],
+        paired_block_local_values=None,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled_values=[True],
+        local_num_blocks_values=[2],
+        train_batch_orders=["global_shuffle"],
+        seed_values=[123],
+        data_seed=123,
+        num_codebook_vectors_values=[128],
+        num_codebook_vectors_map=None,
+        fox_remote_path_backend="torch",
+        fox_remote_read_topk_values=None,
+        fox_remote_formula="gd_residual_v1",
+        fox_clr_rank=4,
+        fox_clr_use_den_residual=True,
+        fox_clr_remat_mode="off",
+        fox_gd_residual_rank=16,
+        fox_gd_residual_write_topk=4,
+        fox_gd_residual_builder="grouped_chunk_torch_ref",
+        fox_gd_residual_pack_mode="semivec_ref",
+        fox_gd_residual_chunk_size=64,
+        fox_gd_residual_mu_min_count=1.0,
+        fox_gd_residual_addr_eps=1e-6,
+        fox_gd_residual_den_eps=1e-6,
+        fox_gd_residual_rho_eps=1e-12,
+        fox_gd_residual_beta_init=0.5,
+        fox_gd_residual_lambda_init=0.05,
+        fox_gd_residual_norm_with_gain=False,
+        fox_gd_residual_use_separate_addr_codebook=False,
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        gradient_accumulation_steps=1,
+        train_batch_size=None,
+        eval_batch_size=None,
+        cache_dir="./data/flash_vqg",
+        wandb_project="flash_vqg_gd_residual_v1_mqar",
+        wandb_entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert "fox_remote_formula='gd_residual_v1'" in rendered
+    assert "fox_gd_residual_rank=16" in rendered
+    assert "fox_gd_residual_builder='grouped_chunk_torch_ref'" in rendered
+    assert "fox_gd_residual_lambda_init=0.05" in rendered
+
+
+def test_build_configs_supports_gd_residual_v1_formula_suffix():
+    configs = build_configs(
+        include_gdn=False,
+        flash_backend="torch",
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        num_codebook_vectors_values=[128],
+        fox_remote_path_backend="torch",
+        fox_remote_formula="gd_residual_v1",
+        fox_gd_residual_rank=16,
+        fox_gd_residual_write_topk=4,
+        fox_gd_residual_builder="grouped_chunk_torch_ref",
+        fox_gd_residual_pack_mode="semivec_ref",
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    flash_kwargs = configs[0].model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
+    assert flash_kwargs["fox_remote_formula"] == "gd_residual_v1"
+    assert flash_kwargs["fox_gd_residual_rank"] == 16
+    assert flash_kwargs["fox_gd_residual_pack_mode"] == "semivec_ref"
+    assert "-rformula-gdr1-r16-wk4-gctref-semivec" in configs[0].run_id
+
+
+def test_build_configs_rejects_invalid_gd_residual_vq_combo():
+    with pytest.raises(ValueError, match="requires routing VQ"):
+        build_configs(
+            include_gdn=False,
+            flash_backend="torch",
+            block_len=32,
+            dmodels=[128],
+            learning_rates=[1e-3],
+            if_remote_enabled=True,
+            local_num_blocks=2,
+            train_batch_order="global_shuffle",
+            num_codebook_vectors_values=[128],
+            fox_remote_path_backend="torch",
+            fox_remote_formula="gd_residual_v1",
+            metrics_white_list=["valid/accuracy"],
+        )
+
+
 def test_build_configs_supports_clr_v1_remote_read_topk_suffixes():
     configs = build_configs(
         include_gdn=False,

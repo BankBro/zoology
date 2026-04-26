@@ -32,6 +32,19 @@ DEFAULT_VQ_WEIGHT_MODE = "one-hot"
 DEFAULT_VQ_UPDATE_MODE = "ema"
 DEFAULT_VQ_SOFTMAX_TAU = 1.0
 DEFAULT_VQ_TOPK = 4
+DEFAULT_FOX_GD_RESIDUAL_RANK = 16
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK = 4
+DEFAULT_FOX_GD_RESIDUAL_BUILDER = "grouped_chunk_torch_ref"
+DEFAULT_FOX_GD_RESIDUAL_PACK_MODE = "semivec_ref"
+DEFAULT_FOX_GD_RESIDUAL_CHUNK_SIZE = 64
+DEFAULT_FOX_GD_RESIDUAL_MU_MIN_COUNT = 1.0
+DEFAULT_FOX_GD_RESIDUAL_ADDR_EPS = 1e-6
+DEFAULT_FOX_GD_RESIDUAL_DEN_EPS = 1e-6
+DEFAULT_FOX_GD_RESIDUAL_RHO_EPS = 1e-12
+DEFAULT_FOX_GD_RESIDUAL_BETA_INIT = 0.5
+DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT = 0.05
+DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN = False
+DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK = False
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -353,9 +366,11 @@ def _normalize_fox_remote_read_topk_values(
 
 def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
     normalized = "legacy" if fox_remote_formula is None else str(fox_remote_formula).lower()
-    if normalized not in {"legacy", "clr_v1", "clr_delta_v1"}:
+    if normalized not in {"legacy", "clr_v1", "clr_delta_v1", "gd_residual_v1"}:
         raise ValueError(
-            f"fox_remote_formula 只能是 ['legacy', 'clr_v1', 'clr_delta_v1'], 当前收到: {fox_remote_formula}"
+            "fox_remote_formula 只能是 "
+            "['legacy', 'clr_v1', 'clr_delta_v1', 'gd_residual_v1'], "
+            f"当前收到: {fox_remote_formula}"
         )
     return normalized
 
@@ -444,6 +459,111 @@ def _normalize_fox_clr_delta_target_mode(fox_clr_delta_target_mode: str | None) 
     return mode
 
 
+def _normalize_fox_gd_residual_rank(fox_gd_residual_rank: int | None) -> int:
+    rank = (
+        DEFAULT_FOX_GD_RESIDUAL_RANK
+        if fox_gd_residual_rank is None
+        else int(fox_gd_residual_rank)
+    )
+    if rank <= 0:
+        raise ValueError(f"fox_gd_residual_rank 必须是正整数, 当前收到: {fox_gd_residual_rank}")
+    return rank
+
+
+def _normalize_fox_gd_residual_write_topk(fox_gd_residual_write_topk: int | None) -> int:
+    topk = (
+        DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK
+        if fox_gd_residual_write_topk is None
+        else int(fox_gd_residual_write_topk)
+    )
+    if topk <= 0:
+        raise ValueError(
+            f"fox_gd_residual_write_topk 必须是正整数, 当前收到: {fox_gd_residual_write_topk}"
+        )
+    return topk
+
+
+def _normalize_fox_gd_residual_builder(fox_gd_residual_builder: str | None) -> str:
+    builder = (
+        DEFAULT_FOX_GD_RESIDUAL_BUILDER
+        if fox_gd_residual_builder is None
+        else str(fox_gd_residual_builder).lower()
+    )
+    if builder not in {"token_step_ref", "grouped_chunk_torch_ref"}:
+        raise ValueError(
+            "fox_gd_residual_builder 只能是 ['token_step_ref', 'grouped_chunk_torch_ref'], "
+            f"当前收到: {fox_gd_residual_builder}"
+        )
+    return builder
+
+
+def _normalize_fox_gd_residual_pack_mode(fox_gd_residual_pack_mode: str | None) -> str:
+    pack_mode = (
+        DEFAULT_FOX_GD_RESIDUAL_PACK_MODE
+        if fox_gd_residual_pack_mode is None
+        else str(fox_gd_residual_pack_mode).lower()
+    )
+    if pack_mode not in {"loop_ref", "semivec_ref"}:
+        raise ValueError(
+            "fox_gd_residual_pack_mode 只能是 ['loop_ref', 'semivec_ref'], "
+            f"当前收到: {fox_gd_residual_pack_mode}"
+        )
+    return pack_mode
+
+
+def _normalize_fox_gd_residual_chunk_size(fox_gd_residual_chunk_size: int | None) -> int:
+    chunk_size = (
+        DEFAULT_FOX_GD_RESIDUAL_CHUNK_SIZE
+        if fox_gd_residual_chunk_size is None
+        else int(fox_gd_residual_chunk_size)
+    )
+    if chunk_size <= 0:
+        raise ValueError(
+            f"fox_gd_residual_chunk_size 必须是正整数, 当前收到: {fox_gd_residual_chunk_size}"
+        )
+    return chunk_size
+
+
+def _normalize_fox_gd_residual_mu_min_count(
+    fox_gd_residual_mu_min_count: float | None,
+) -> float:
+    value = (
+        DEFAULT_FOX_GD_RESIDUAL_MU_MIN_COUNT
+        if fox_gd_residual_mu_min_count is None
+        else float(fox_gd_residual_mu_min_count)
+    )
+    if value < 0.0:
+        raise ValueError(
+            "fox_gd_residual_mu_min_count 必须是非负数, "
+            f"当前收到: {fox_gd_residual_mu_min_count}"
+        )
+    return value
+
+
+def _normalize_fox_gd_residual_positive_float(
+    value: float | None,
+    *,
+    field_name: str,
+    default: float,
+) -> float:
+    resolved = default if value is None else float(value)
+    if resolved <= 0.0:
+        raise ValueError(f"{field_name} 必须是正数, 当前收到: {value}")
+    return resolved
+
+
+def _normalize_fox_gd_residual_prob(
+    value: float | None,
+    *,
+    field_name: str,
+    default: float,
+) -> float:
+    resolved = default if value is None else float(value)
+    if not (0.0 < resolved < 1.0):
+        raise ValueError(f"{field_name} 必须在 (0, 1) 内, 当前收到: {value}")
+    return resolved
+
+
 def _sampler_run_tag(train_batch_order: str) -> str:
     return {
         "sequential": "seq",
@@ -465,11 +585,23 @@ def _remote_formula_run_tag(
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
+    fox_gd_residual_rank: int = DEFAULT_FOX_GD_RESIDUAL_RANK,
+    fox_gd_residual_write_topk: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK,
+    fox_gd_residual_builder: str = DEFAULT_FOX_GD_RESIDUAL_BUILDER,
+    fox_gd_residual_pack_mode: str = DEFAULT_FOX_GD_RESIDUAL_PACK_MODE,
 ) -> str:
     if fox_remote_formula == "legacy":
         return "legacy"
     if fox_remote_formula == "clr_delta_v1":
         return f"clrdelta1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
+    if fox_remote_formula == "gd_residual_v1":
+        builder_tag = "gctref" if fox_gd_residual_builder == "grouped_chunk_torch_ref" else "tsref"
+        pack_tag = "semivec" if fox_gd_residual_pack_mode == "semivec_ref" else "loop"
+        return (
+            f"gdr1-r{int(fox_gd_residual_rank)}-"
+            f"wk{int(fox_gd_residual_write_topk)}-"
+            f"{builder_tag}-{pack_tag}"
+        )
     return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
 
 
@@ -598,6 +730,19 @@ def build_configs(
     fox_clr_residual_forget_mode: str = "global",
     fox_clr_state_write_topk: int = 4,
     fox_clr_delta_target_mode: str = "residual_to_coarse",
+    fox_gd_residual_rank: int = DEFAULT_FOX_GD_RESIDUAL_RANK,
+    fox_gd_residual_write_topk: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK,
+    fox_gd_residual_builder: str = DEFAULT_FOX_GD_RESIDUAL_BUILDER,
+    fox_gd_residual_pack_mode: str = DEFAULT_FOX_GD_RESIDUAL_PACK_MODE,
+    fox_gd_residual_chunk_size: int = DEFAULT_FOX_GD_RESIDUAL_CHUNK_SIZE,
+    fox_gd_residual_mu_min_count: float = DEFAULT_FOX_GD_RESIDUAL_MU_MIN_COUNT,
+    fox_gd_residual_addr_eps: float = DEFAULT_FOX_GD_RESIDUAL_ADDR_EPS,
+    fox_gd_residual_den_eps: float = DEFAULT_FOX_GD_RESIDUAL_DEN_EPS,
+    fox_gd_residual_rho_eps: float = DEFAULT_FOX_GD_RESIDUAL_RHO_EPS,
+    fox_gd_residual_beta_init: float = DEFAULT_FOX_GD_RESIDUAL_BETA_INIT,
+    fox_gd_residual_lambda_init: float = DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT,
+    fox_gd_residual_norm_with_gain: bool = DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN,
+    fox_gd_residual_use_separate_addr_codebook: bool = DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK,
     experiment_part: str | None = None,
     experiment_mode: str | None = None,
     vq_score_mode: str = DEFAULT_VQ_SCORE_MODE,
@@ -682,6 +827,41 @@ def build_configs(
     resolved_clr_residual_forget_mode = _normalize_fox_clr_residual_forget_mode(fox_clr_residual_forget_mode)
     resolved_clr_state_write_topk = _normalize_fox_clr_state_write_topk(fox_clr_state_write_topk)
     resolved_clr_delta_target_mode = _normalize_fox_clr_delta_target_mode(fox_clr_delta_target_mode)
+    resolved_gd_residual_rank = _normalize_fox_gd_residual_rank(fox_gd_residual_rank)
+    resolved_gd_residual_write_topk = _normalize_fox_gd_residual_write_topk(fox_gd_residual_write_topk)
+    resolved_gd_residual_builder = _normalize_fox_gd_residual_builder(fox_gd_residual_builder)
+    resolved_gd_residual_pack_mode = _normalize_fox_gd_residual_pack_mode(fox_gd_residual_pack_mode)
+    resolved_gd_residual_chunk_size = _normalize_fox_gd_residual_chunk_size(fox_gd_residual_chunk_size)
+    resolved_gd_residual_mu_min_count = _normalize_fox_gd_residual_mu_min_count(fox_gd_residual_mu_min_count)
+    resolved_gd_residual_addr_eps = _normalize_fox_gd_residual_positive_float(
+        fox_gd_residual_addr_eps,
+        field_name="fox_gd_residual_addr_eps",
+        default=DEFAULT_FOX_GD_RESIDUAL_ADDR_EPS,
+    )
+    resolved_gd_residual_den_eps = _normalize_fox_gd_residual_positive_float(
+        fox_gd_residual_den_eps,
+        field_name="fox_gd_residual_den_eps",
+        default=DEFAULT_FOX_GD_RESIDUAL_DEN_EPS,
+    )
+    resolved_gd_residual_rho_eps = _normalize_fox_gd_residual_positive_float(
+        fox_gd_residual_rho_eps,
+        field_name="fox_gd_residual_rho_eps",
+        default=DEFAULT_FOX_GD_RESIDUAL_RHO_EPS,
+    )
+    resolved_gd_residual_beta_init = _normalize_fox_gd_residual_prob(
+        fox_gd_residual_beta_init,
+        field_name="fox_gd_residual_beta_init",
+        default=DEFAULT_FOX_GD_RESIDUAL_BETA_INIT,
+    )
+    resolved_gd_residual_lambda_init = _normalize_fox_gd_residual_prob(
+        fox_gd_residual_lambda_init,
+        field_name="fox_gd_residual_lambda_init",
+        default=DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT,
+    )
+    resolved_gd_residual_norm_with_gain = bool(fox_gd_residual_norm_with_gain)
+    resolved_gd_residual_use_separate_addr_codebook = bool(
+        fox_gd_residual_use_separate_addr_codebook
+    )
     resolved_vq_score_mode = str(vq_score_mode).lower()
     resolved_vq_weight_mode = str(vq_weight_mode).lower()
     resolved_vq_update_mode = str(vq_update_mode).lower()
@@ -740,10 +920,42 @@ def build_configs(
                 raise ValueError(
                     "fox_clr_residual_* 开关当前只支持 fox_remote_formula='clr_v1' 的 weighted write 路径."
                 )
+    elif resolved_remote_formula == "gd_residual_v1":
+        if flash_backend != "torch":
+            raise ValueError("fox_remote_formula='gd_residual_v1' 目前只支持 flash_backend='torch'.")
+        if resolved_remote_path_backend != "torch":
+            raise ValueError(
+                "fox_remote_formula='gd_residual_v1' 目前只支持 fox_remote_path_backend='torch'."
+            )
+        if resolved_gd_residual_write_topk > resolved_vq_topk and resolved_vq_weight_mode == "topk_softmax":
+            raise ValueError(
+                "当 gd_residual_v1 使用 vq_weight_mode='topk_softmax' 时, "
+                "fox_gd_residual_write_topk 必须 <= vq_topk."
+            )
+        if resolved_gd_residual_use_separate_addr_codebook:
+            raise ValueError(
+                "fox_gd_residual_use_separate_addr_codebook 当前不支持, "
+                "gd_residual_v1 reference 版本只能保持 False."
+            )
+        if resolved_vq_score_mode not in {"codebook_dot", "attn_dot", "mlp"}:
+            raise ValueError(
+                "gd_residual_v1 requires routing VQ. "
+                "vq_score_mode 必须是 ['codebook_dot', 'attn_dot', 'mlp'] 之一."
+            )
+        if resolved_vq_weight_mode not in {"dense_softmax", "topk_softmax"}:
+            raise ValueError(
+                "gd_residual_v1 requires soft routing weights. "
+                "vq_weight_mode 必须是 ['dense_softmax', 'topk_softmax'] 之一."
+            )
+        if resolved_vq_update_mode != "grad":
+            raise ValueError(
+                "gd_residual_v1 requires trainable routing codebook. "
+                "vq_update_mode 必须是 'grad'."
+            )
     elif resolved_clr_remat_mode != "off":
         raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1' 或 'clr_delta_v1'.")
-    if weighted_routing_write and resolved_remote_formula != "clr_v1":
-        raise ValueError("weighted routing write 当前只支持 fox_remote_formula='clr_v1'.")
+    if weighted_routing_write and resolved_remote_formula not in {"clr_v1", "gd_residual_v1"}:
+        raise ValueError("weighted routing write 当前只支持 fox_remote_formula='clr_v1' 或 'gd_residual_v1'.")
     if weighted_routing_write and resolved_clr_remat_mode != "off":
         raise ValueError("weighted routing write 当前只支持 fox_clr_remat_mode='off'.")
     if not weighted_routing_write and (
@@ -790,6 +1002,16 @@ def build_configs(
                 "num_codebook_vectors": resolved_num_codebook_vectors_map,
             }
         ]
+    if resolved_remote_formula == "gd_residual_v1":
+        candidate_codebook_sizes: list[int] = []
+        for variant in codebook_variants:
+            num_codes = variant["num_codebook_vectors"]
+            if isinstance(num_codes, dict):
+                candidate_codebook_sizes.extend(int(value) for value in num_codes.values())
+            else:
+                candidate_codebook_sizes.append(int(num_codes))
+        if any(resolved_gd_residual_write_topk > num_codes for num_codes in candidate_codebook_sizes):
+            raise ValueError("fox_gd_residual_write_topk 不能超过 num_codebook_vectors.")
 
     data_configs: dict[str, DataConfig] = {}
     input_seq_len = None
@@ -848,6 +1070,21 @@ def build_configs(
                         fox_clr_residual_forget_mode=resolved_clr_residual_forget_mode,
                         fox_clr_state_write_topk=resolved_clr_state_write_topk,
                         fox_clr_delta_target_mode=resolved_clr_delta_target_mode,
+                        fox_gd_residual_rank=resolved_gd_residual_rank,
+                        fox_gd_residual_write_topk=resolved_gd_residual_write_topk,
+                        fox_gd_residual_builder=resolved_gd_residual_builder,
+                        fox_gd_residual_pack_mode=resolved_gd_residual_pack_mode,
+                        fox_gd_residual_chunk_size=resolved_gd_residual_chunk_size,
+                        fox_gd_residual_mu_min_count=resolved_gd_residual_mu_min_count,
+                        fox_gd_residual_addr_eps=resolved_gd_residual_addr_eps,
+                        fox_gd_residual_den_eps=resolved_gd_residual_den_eps,
+                        fox_gd_residual_rho_eps=resolved_gd_residual_rho_eps,
+                        fox_gd_residual_beta_init=resolved_gd_residual_beta_init,
+                        fox_gd_residual_lambda_init=resolved_gd_residual_lambda_init,
+                        fox_gd_residual_norm_with_gain=resolved_gd_residual_norm_with_gain,
+                        fox_gd_residual_use_separate_addr_codebook=(
+                            resolved_gd_residual_use_separate_addr_codebook
+                        ),
                         experiment_part=experiment_part,
                         experiment_mode=experiment_mode,
                         local_num_blocks=current_local_num_blocks,
@@ -937,6 +1174,10 @@ def build_configs(
                                             fox_remote_formula=resolved_remote_formula,
                                             fox_clr_rank=resolved_clr_rank,
                                             fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                                            fox_gd_residual_rank=resolved_gd_residual_rank,
+                                            fox_gd_residual_write_topk=resolved_gd_residual_write_topk,
+                                            fox_gd_residual_builder=resolved_gd_residual_builder,
+                                            fox_gd_residual_pack_mode=resolved_gd_residual_pack_mode,
                                         )}"
                                     )
                                     if resolved_remote_formula in ("clr_v1", "clr_delta_v1"):

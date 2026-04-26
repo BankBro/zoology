@@ -68,6 +68,17 @@ def _load_e3_builder_module():
     return module
 
 
+def _load_gd_residual_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gd_residual_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _build_e2_args() -> Namespace:
     return Namespace(
         launch_id_prefix="flash-vqg-e2-test",
@@ -126,6 +137,53 @@ def _build_e3_args() -> Namespace:
         metrics_white_list_file=str(
             Path(
                 "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260402-clr-v1-mainline/e3-dense-routing/metrics.yaml"
+            )
+        ),
+    )
+
+
+def _build_gd_residual_args() -> Namespace:
+    return Namespace(
+        launch_id_prefix="flash-vqg-gdr1-test",
+        backend="torch",
+        logger_backend="none",
+        dmodels="128",
+        learning_rates="1e-3",
+        train_batch_order="global_shuffle",
+        seed_values="123",
+        data_seed=123,
+        num_codebook_vectors="128",
+        fox_remote_path_backend="torch",
+        fox_remote_formula="gd_residual_v1",
+        fox_gd_residual_rank=16,
+        fox_gd_residual_write_topk=4,
+        fox_gd_residual_builder="grouped_chunk_torch_ref",
+        fox_gd_residual_pack_mode="semivec_ref",
+        fox_gd_residual_chunk_size=64,
+        fox_gd_residual_mu_min_count=1.0,
+        fox_gd_residual_addr_eps=1e-6,
+        fox_gd_residual_den_eps=1e-6,
+        fox_gd_residual_rho_eps=1e-12,
+        fox_gd_residual_beta_init=0.5,
+        fox_gd_residual_lambda_init=0.05,
+        fox_gd_residual_norm_with_gain="false",
+        fox_gd_residual_use_separate_addr_codebook="false",
+        vq_score_mode="codebook_dot",
+        vq_weight_mode="dense_softmax",
+        vq_update_mode="grad",
+        vq_softmax_tau=1.0,
+        vq_topk=4,
+        gradient_accumulation_steps=8,
+        train_batch_size=16,
+        eval_batch_size=8,
+        cache_dir="./data/flash_vqg",
+        project="flash_vqg_gd_residual_v1_mqar",
+        entity="scu-mclab",
+        max_epochs=32,
+        metrics_white_list=None,
+        metrics_white_list_file=str(
+            Path(
+                "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/metrics.yaml"
             )
         ),
     )
@@ -257,6 +315,80 @@ def test_e3_builder_returns_expected_smoke_and_train_matrix():
     assert dense_kwargs["vq_softmax_tau"] == 0.5
     assert dense_kwargs["vq_topk"] == 8
     assert dense_kwargs["experiment_part"] == "e3_dense"
+
+
+def test_gd_residual_builder_returns_expected_smoke_and_train_configs():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+
+    smoke_configs = module.build_gd_residual_v1_smoke_configs(args)
+    train_configs = module.build_gd_residual_v1_train_configs(args)
+
+    assert [config.run_id for config in smoke_configs] == ["gd-residual-v1-smoke-s123-d123"]
+    assert [config.run_id for config in train_configs] == ["gd-residual-v1-train-s123-d123"]
+
+    smoke_kwargs = _extract_flash_kwargs(smoke_configs[0])
+    train_kwargs = _extract_flash_kwargs(train_configs[0])
+
+    assert smoke_kwargs["fox_remote_formula"] == "gd_residual_v1"
+    assert smoke_kwargs["fox_gd_residual_rank"] == 16
+    assert smoke_kwargs["fox_gd_residual_builder"] == "grouped_chunk_torch_ref"
+    assert smoke_kwargs["fox_gd_residual_pack_mode"] == "semivec_ref"
+    assert smoke_kwargs["vq_score_mode"] == "codebook_dot"
+    assert smoke_kwargs["vq_weight_mode"] == "dense_softmax"
+    assert smoke_kwargs["vq_update_mode"] == "grad"
+    assert smoke_kwargs["experiment_part"] == "gd_residual_v1_mqar"
+    assert smoke_kwargs["experiment_mode"] == "smoke"
+    assert train_kwargs["experiment_mode"] == "train"
+
+    smoke_train_examples = [segment.num_examples for segment in smoke_configs[0].data.train_configs]
+    train_train_examples = [segment.num_examples for segment in train_configs[0].data.train_configs]
+    smoke_test_examples = [segment.num_examples for segment in smoke_configs[0].data.test_configs]
+    train_test_examples = [segment.num_examples for segment in train_configs[0].data.test_configs]
+
+    assert smoke_train_examples == [128, 64, 64, 64, 64]
+    assert train_train_examples == [100000, 20000, 20000, 20000, 20000]
+    assert smoke_test_examples == [4, 4, 4, 4, 4, 4, 4, 4]
+    assert train_test_examples == [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
+    assert smoke_configs[0].data.batch_size == (16, 1)
+    assert train_configs[0].data.batch_size == (16, 8)
+
+
+def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_results():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar"
+    )
+    readme = (base_dir / "README.md").read_text(encoding="utf-8")
+    common_env = (base_dir / "common_env.sh").read_text(encoding="utf-8")
+    smoke = (base_dir / "run_smoke.sh").read_text(encoding="utf-8")
+    train = (base_dir / "run_train.sh").read_text(encoding="utf-8")
+    metrics_yaml = (base_dir / "metrics.yaml").read_text(encoding="utf-8")
+    generated_gitignore = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/.gitignore"
+    ).read_text(encoding="utf-8")
+    results_gitignore = Path(
+        "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/.gitignore"
+    ).read_text(encoding="utf-8")
+
+    assert "PROJECT=\"${PROJECT:-flash_vqg_gd_residual_v1_mqar}\"" in common_env
+    assert "SWANLAB_MODE=\"${SWANLAB_MODE:-cloud}\"" in common_env
+    assert "LAUNCH_ID_PREFIX_SMOKE" in common_env
+    assert "LAUNCH_ID_PREFIX_TRAIN" in common_env
+    assert "--config-builder \"${BUILDER_SPEC}\"" in smoke
+    assert "--config-builder \"${BUILDER_SPEC}\"" in train
+    assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in smoke
+    assert "--fox-gd-residual-lambda-init \"${FOX_GD_RESIDUAL_LAMBDA_INIT}\"" in train
+    assert "run_smoke.sh" in readme
+    assert "run_train.sh" in readme
+    assert "flash_vqg_gd_residual_v1_mqar" in readme
+    assert "attn/gd_residual_lambda_mean" in metrics_yaml
+    assert "valid/attn/gd_residual_mu_valid_ratio" in metrics_yaml
+    assert "debug/gd_token_chunk_max_diff" not in metrics_yaml
+
+    for content in (generated_gitignore, results_gitignore):
+        assert "!flash-vqg-20260425-gd-residual-v1-mqar*/" in content
+        assert "flash-vqg-20260425-gd-residual-v1-mqar*/**/*.png" in content
+        assert "flash-vqg-20260425-gd-residual-v1-mqar*/**/*.log" in content
 
 
 def test_e1_train_script_uses_local_analysis_and_dense_top1_top2_top4_modes():

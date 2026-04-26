@@ -604,6 +604,7 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
             "num_heads": flash_kwargs.get("num_heads"),
             "use_time_mixing": flash_kwargs.get("use_time_mixing"),
             "fox_remote_path_backend": flash_kwargs.get("fox_remote_path_backend"),
+            "fox_remote_formula": config_summary.get("fox_remote_formula", flash_kwargs.get("fox_remote_formula")),
             "fox_remote_read_topk": fox_remote_read_topk,
             "read_mode": "dense" if fox_remote_read_topk is None else f"top{int(fox_remote_read_topk)}",
             "experiment_part": config_summary.get("experiment_part", flash_kwargs.get("experiment_part")),
@@ -617,6 +618,12 @@ def _build_run_summary_row(summary: dict[str, Any], metadata: dict[str, Any]) ->
             "fox_clr_residual_forget_mode": config_summary.get("fox_clr_residual_forget_mode", flash_kwargs.get("fox_clr_residual_forget_mode")),
             "fox_clr_state_write_topk": config_summary.get("fox_clr_state_write_topk", flash_kwargs.get("fox_clr_state_write_topk")),
             "fox_clr_delta_target_mode": config_summary.get("fox_clr_delta_target_mode", flash_kwargs.get("fox_clr_delta_target_mode")),
+            "fox_gd_residual_rank": config_summary.get("fox_gd_residual_rank", flash_kwargs.get("fox_gd_residual_rank")),
+            "fox_gd_residual_write_topk": config_summary.get("fox_gd_residual_write_topk", flash_kwargs.get("fox_gd_residual_write_topk")),
+            "fox_gd_residual_builder": config_summary.get("fox_gd_residual_builder", flash_kwargs.get("fox_gd_residual_builder")),
+            "fox_gd_residual_pack_mode": config_summary.get("fox_gd_residual_pack_mode", flash_kwargs.get("fox_gd_residual_pack_mode")),
+            "fox_gd_residual_chunk_size": config_summary.get("fox_gd_residual_chunk_size", flash_kwargs.get("fox_gd_residual_chunk_size")),
+            "fox_gd_residual_lambda_init": config_summary.get("fox_gd_residual_lambda_init", flash_kwargs.get("fox_gd_residual_lambda_init")),
         }
     )
     return row

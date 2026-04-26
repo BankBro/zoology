@@ -349,6 +349,19 @@ def add_flash_vqg(
     fox_clr_residual_forget_mode="global",
     fox_clr_state_write_topk=4,
     fox_clr_delta_target_mode="residual_to_coarse",
+    fox_gd_residual_rank=16,
+    fox_gd_residual_write_topk=4,
+    fox_gd_residual_builder="grouped_chunk_torch_ref",
+    fox_gd_residual_pack_mode="semivec_ref",
+    fox_gd_residual_chunk_size=64,
+    fox_gd_residual_mu_min_count=1.0,
+    fox_gd_residual_addr_eps=1e-6,
+    fox_gd_residual_den_eps=1e-6,
+    fox_gd_residual_rho_eps=1e-12,
+    fox_gd_residual_beta_init=0.5,
+    fox_gd_residual_lambda_init=0.05,
+    fox_gd_residual_norm_with_gain=False,
+    fox_gd_residual_use_separate_addr_codebook=False,
     experiment_part=None,
     experiment_mode=None,
     local_num_blocks=1,
@@ -390,7 +403,8 @@ def add_flash_vqg(
             {"torch", "triton"}.
         fox_remote_read_topk: Optional read-side top-k for remote reduction.
             None keeps dense readout.
-        fox_remote_formula: Remote read formula. One of {"legacy", "clr_v1"}.
+        fox_remote_formula: Remote read formula. One of
+            {"legacy", "clr_v1", "clr_delta_v1", "gd_residual_v1"}.
         fox_clr_rank: CLR residual coordinate rank.
         fox_clr_use_den_residual: Whether CLR enables the denominator residual correction.
         fox_clr_remat_mode: CLR materialize remat mode. One of {"off", "post_phase1"}.
@@ -450,6 +464,21 @@ def add_flash_vqg(
                 "fox_clr_residual_forget_mode": str(fox_clr_residual_forget_mode),
                 "fox_clr_state_write_topk": int(fox_clr_state_write_topk),
                 "fox_clr_delta_target_mode": str(fox_clr_delta_target_mode),
+                "fox_gd_residual_rank": int(fox_gd_residual_rank),
+                "fox_gd_residual_write_topk": int(fox_gd_residual_write_topk),
+                "fox_gd_residual_builder": str(fox_gd_residual_builder),
+                "fox_gd_residual_pack_mode": str(fox_gd_residual_pack_mode),
+                "fox_gd_residual_chunk_size": int(fox_gd_residual_chunk_size),
+                "fox_gd_residual_mu_min_count": float(fox_gd_residual_mu_min_count),
+                "fox_gd_residual_addr_eps": float(fox_gd_residual_addr_eps),
+                "fox_gd_residual_den_eps": float(fox_gd_residual_den_eps),
+                "fox_gd_residual_rho_eps": float(fox_gd_residual_rho_eps),
+                "fox_gd_residual_beta_init": float(fox_gd_residual_beta_init),
+                "fox_gd_residual_lambda_init": float(fox_gd_residual_lambda_init),
+                "fox_gd_residual_norm_with_gain": bool(fox_gd_residual_norm_with_gain),
+                "fox_gd_residual_use_separate_addr_codebook": bool(
+                    fox_gd_residual_use_separate_addr_codebook
+                ),
                 "experiment_part": experiment_part,
                 "experiment_mode": experiment_mode,
                 "use_time_mixing": use_time_mixing,
