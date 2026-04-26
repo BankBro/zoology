@@ -164,6 +164,7 @@ def build_short_run_config(args: argparse.Namespace, variant: VariantSpec, seed:
             fox_gd_residual_builder=str(args.builder),
             fox_gd_residual_pack_mode=str(args.pack_mode),
             fox_gd_residual_chunk_size=int(args.chunk_size),
+            fox_gd_residual_mu_min_count=float(args.fox_gd_residual_mu_min_count),
             fox_gd_residual_beta_init=0.5,
             fox_gd_residual_lambda_init=0.05,
             vq_score_mode="codebook_dot",
@@ -396,6 +397,52 @@ def _evaluate(
     return metrics, valid_loss, valid_accuracy, elapsed
 
 
+def _append_valid_record(
+    *,
+    records_path: Path,
+    model: nn.Module,
+    dataloader,
+    loss_fn: nn.Module,
+    device: torch.device,
+    max_batches: int,
+    variant: VariantSpec,
+    seed: int,
+    run_id: str,
+    step: int,
+    phase: str,
+    last_train_loss: float | None,
+) -> tuple[dict[str, float], float, float, float, bool]:
+    valid_metrics, valid_loss, valid_accuracy, valid_sec = _evaluate(
+        model=model,
+        dataloader=dataloader,
+        loss_fn=loss_fn,
+        device=device,
+        max_batches=max_batches,
+    )
+    nan_or_inf = _has_nan_or_inf(valid_loss, valid_metrics)
+    record = {
+        "record_type": "valid",
+        "phase": phase,
+        "variant": variant.name,
+        "seed": int(seed),
+        "run_id": run_id,
+        "step": int(step),
+        "train_loss": last_train_loss,
+        "valid_loss": valid_loss,
+        "valid_accuracy": valid_accuracy,
+        "valid_sec": valid_sec,
+        "metrics_collect_sec": 0.0,
+        "microbatch_sec": None,
+        "step_sec": None,
+        "memory": _memory_snapshot(device),
+        "metrics": valid_metrics,
+        "has_nan_or_inf": nan_or_inf,
+        **_split_metrics(valid_metrics),
+    }
+    _append_record(records_path, record)
+    return valid_metrics, valid_loss, valid_accuracy, valid_sec, nan_or_inf
+
+
 def run_one(args: argparse.Namespace, variant: VariantSpec, seed: int, records_path: Path) -> dict[str, Any]:
     config = build_short_run_config(args, variant, seed)
     set_determinism(int(seed), deterministic=False)
@@ -419,7 +466,39 @@ def run_one(args: argparse.Namespace, variant: VariantSpec, seed: int, records_p
     last_train_loss: float | None = None
     last_metrics: dict[str, float] = {}
     train_records = 0
+    valid_metrics: dict[str, float] = {}
+    valid_loss = None
+    valid_accuracy = None
+    valid_sec = None
+
+    (
+        valid_metrics,
+        valid_loss,
+        valid_accuracy,
+        valid_sec,
+        nan_or_inf,
+    ) = _append_valid_record(
+        records_path=records_path,
+        model=model,
+        dataloader=test_dataloader,
+        loss_fn=loss_fn,
+        device=device,
+        max_batches=int(args.eval_batches),
+        variant=variant,
+        seed=seed,
+        run_id=config.run_id,
+        step=0,
+        phase="initial_valid",
+        last_train_loss=None,
+    )
+    if nan_or_inf:
+        status = "failed_nan_or_inf"
+    else:
+        model.train()
+
     for step_idx in range(int(args.train_batches)):
+        if status != "completed":
+            break
         try:
             inputs, targets, _slices = next(train_iter)
         except StopIteration:
@@ -488,41 +567,59 @@ def run_one(args: argparse.Namespace, variant: VariantSpec, seed: int, records_p
         train_records += 1
         if nan_or_inf:
             break
+        if (
+            int(args.valid_every) > 0
+            and train_records % int(args.valid_every) == 0
+            and train_records < int(args.train_batches)
+        ):
+            (
+                valid_metrics,
+                valid_loss,
+                valid_accuracy,
+                valid_sec,
+                nan_or_inf,
+            ) = _append_valid_record(
+                records_path=records_path,
+                model=model,
+                dataloader=test_dataloader,
+                loss_fn=loss_fn,
+                device=device,
+                max_batches=int(args.eval_batches),
+                variant=variant,
+                seed=seed,
+                run_id=config.run_id,
+                step=train_records,
+                phase="periodic_valid",
+                last_train_loss=last_train_loss,
+            )
+            model.train()
+            if nan_or_inf:
+                status = "failed_nan_or_inf"
+                break
 
-    valid_metrics: dict[str, float] = {}
-    valid_loss = None
-    valid_accuracy = None
-    valid_sec = None
     if status in {"completed", "stopped_no_more_train_batches"}:
-        valid_metrics, valid_loss, valid_accuracy, valid_sec = _evaluate(
+        (
+            valid_metrics,
+            valid_loss,
+            valid_accuracy,
+            valid_sec,
+            nan_or_inf,
+        ) = _append_valid_record(
+            records_path=records_path,
             model=model,
             dataloader=test_dataloader,
             loss_fn=loss_fn,
             device=device,
             max_batches=int(args.eval_batches),
+            variant=variant,
+            seed=seed,
+            run_id=config.run_id,
+            step=train_records,
+            phase="final_valid",
+            last_train_loss=last_train_loss,
         )
-        nan_or_inf = _has_nan_or_inf(valid_loss, valid_metrics)
         if nan_or_inf:
             status = "failed_nan_or_inf"
-        record = {
-            "record_type": "valid",
-            "variant": variant.name,
-            "seed": int(seed),
-            "run_id": config.run_id,
-            "step": train_records,
-            "train_loss": last_train_loss,
-            "valid_loss": valid_loss,
-            "valid_accuracy": valid_accuracy,
-            "valid_sec": valid_sec,
-            "metrics_collect_sec": 0.0,
-            "microbatch_sec": None,
-            "step_sec": None,
-            "memory": _memory_snapshot(device),
-            "metrics": valid_metrics,
-            "has_nan_or_inf": nan_or_inf,
-            **_split_metrics(valid_metrics),
-        }
-        _append_record(records_path, record)
 
     return {
         "variant": asdict(variant),
@@ -582,6 +679,8 @@ def run_short_run(args: argparse.Namespace) -> dict[str, Any]:
         "records_path": str(records_path),
         "diagnostics_enabled": diagnostics_enabled,
         "train_batches": int(args.train_batches),
+        "valid_every": int(args.valid_every),
+        "fox_gd_residual_mu_min_count": float(args.fox_gd_residual_mu_min_count),
         "seeds": seeds,
         "variants": [asdict(variant) for variant in variants],
         "runs": runs,
@@ -628,6 +727,7 @@ def parse_args() -> argparse.Namespace:
         default=int(os.environ.get("SHORT_RUN_TEST_EXAMPLES_PER_SEGMENT", os.environ.get("EVAL_BATCH_SIZE", "8"))),
     )
     parser.add_argument("--eval-batches", type=int, default=int(os.environ.get("SHORT_RUN_EVAL_BATCHES", "0")))
+    parser.add_argument("--valid-every", type=int, default=int(os.environ.get("SHORT_RUN_VALID_EVERY", "0")))
     parser.add_argument("--d-model", type=int, default=int(os.environ.get("DMODEL", "128")))
     parser.add_argument(
         "--num-codebook-vectors",
@@ -654,6 +754,11 @@ def parse_args() -> argparse.Namespace:
         "--chunk-size",
         type=int,
         default=int(os.environ.get("FOX_GD_RESIDUAL_CHUNK_SIZE", "64")),
+    )
+    parser.add_argument(
+        "--fox-gd-residual-mu-min-count",
+        type=float,
+        default=float(os.environ.get("FOX_GD_RESIDUAL_MU_MIN_COUNT", "1.0")),
     )
     parser.add_argument("--cache-dir", default=os.environ.get("CACHE_DIR", "./data/flash_vqg"))
     parser.add_argument("--train-batch-order", default=os.environ.get("TRAIN_BATCH_ORDER", "global_shuffle"))

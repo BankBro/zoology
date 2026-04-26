@@ -389,13 +389,12 @@ def test_gd_residual_builder_supports_dense_read_topk():
     assert flash_kwargs["fox_remote_read_topk"] is None
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(), reason="gd_residual short-run smoke needs CUDA")
-def test_gd_residual_short_run_runner_writes_summary_and_records(tmp_path):
-    module = _load_gd_residual_short_run_module()
-    args = Namespace(
+def _build_short_run_args(tmp_path):
+    return Namespace(
         train_batches=1,
         seeds="123",
         variant="gd_r8_wk4",
+        valid_every=0,
         output_dir=str(tmp_path / "out"),
         enable_gd_diagnostics=True,
         append=False,
@@ -414,10 +413,78 @@ def test_gd_residual_short_run_runner_writes_summary_and_records(tmp_path):
         builder="grouped_chunk_torch_ref",
         pack_mode="semivec_ref",
         chunk_size=64,
+        fox_gd_residual_mu_min_count=0.5,
         cache_dir=str(tmp_path / "cache"),
         train_batch_order="sequential",
         device="cuda",
     )
+
+
+def test_gd_residual_short_run_build_config_passes_mu_min_count(tmp_path):
+    module = _load_gd_residual_short_run_module()
+    args = _build_short_run_args(tmp_path)
+
+    config = module.build_short_run_config(args, module.VARIANTS["gd_r8_wk4"], seed=123)
+    flash_kwargs = _extract_flash_kwargs(config)
+
+    assert flash_kwargs["fox_gd_residual_mu_min_count"] == 0.5
+
+
+def test_gd_residual_short_run_valid_record_includes_phase_step_and_splits(tmp_path, monkeypatch):
+    module = _load_gd_residual_short_run_module()
+    records_path = tmp_path / "records.jsonl"
+
+    def fake_evaluate(**_kwargs):
+        return (
+            {
+                "valid/attn/gd_residual_mu_valid_ratio": 0.25,
+                "valid/attn/gd_residual_debug_event_count": 2.0,
+                "valid/attn/gd_residual_debug_l_state_mean": 0.12,
+                "valid/layer_0/attn/gd_residual_mu_valid_ratio": 0.5,
+            },
+            1.25,
+            0.75,
+            0.125,
+        )
+
+    monkeypatch.setattr(module, "_evaluate", fake_evaluate)
+    monkeypatch.setattr(
+        module,
+        "_memory_snapshot",
+        lambda _device: {"peak_allocated_bytes": None, "peak_reserved_bytes": None},
+    )
+
+    _, valid_loss, valid_accuracy, valid_sec, nan_or_inf = module._append_valid_record(
+        records_path=records_path,
+        model=object(),
+        dataloader=object(),
+        loss_fn=object(),
+        device=torch.device("cpu"),
+        max_batches=1,
+        variant=module.VARIANTS["gd_r16_wk4"],
+        seed=123,
+        run_id="short-run-test",
+        step=10,
+        phase="periodic_valid",
+        last_train_loss=2.0,
+    )
+
+    record = json.loads(records_path.read_text(encoding="utf-8"))
+    assert (valid_loss, valid_accuracy, valid_sec, nan_or_inf) == (1.25, 0.75, 0.125, False)
+    assert record["record_type"] == "valid"
+    assert record["phase"] == "periodic_valid"
+    assert record["step"] == 10
+    assert record["train_loss"] == 2.0
+    assert record["gd_residual_metrics"]["valid/attn/gd_residual_mu_valid_ratio"] == 0.25
+    assert record["layer_metrics"]["valid/layer_0/attn/gd_residual_mu_valid_ratio"] == 0.5
+    assert record["event_diagnostics"]["valid/attn/gd_residual_debug_event_count"] == 2.0
+    assert record["l_state_diagnostics"]["valid/attn/gd_residual_debug_l_state_mean"] == 0.12
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="gd_residual short-run smoke needs CUDA")
+def test_gd_residual_short_run_runner_writes_summary_and_records(tmp_path):
+    module = _load_gd_residual_short_run_module()
+    args = _build_short_run_args(tmp_path)
 
     summary = module.run_short_run(args)
     records_path = Path(summary["records_path"])
@@ -427,10 +494,14 @@ def test_gd_residual_short_run_runner_writes_summary_and_records(tmp_path):
         if line.strip()
     ]
     train_record = next(record for record in records if record["record_type"] == "train")
-    valid_record = next(record for record in records if record["record_type"] == "valid")
+    valid_records = [record for record in records if record["record_type"] == "valid"]
+    valid_record = valid_records[-1]
 
     assert summary["runs"][0]["status"] == "completed"
+    assert summary["fox_gd_residual_mu_min_count"] == 0.5
     assert summary["runs"][0]["init_check"]["checked"] is True
+    assert [record["phase"] for record in valid_records] == ["initial_valid", "final_valid"]
+    assert [record["step"] for record in valid_records] == [0, 1]
     assert "metrics_collect_sec" in train_record
     assert "peak_allocated_bytes" in train_record["memory"]
     assert train_record["gd_residual_metrics"]
@@ -480,11 +551,16 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "SHORT_RUN_TRAIN_BATCHES" in short_run
     assert "SHORT_RUN_SEEDS" in short_run
     assert "SHORT_RUN_VARIANT" in short_run
+    assert "SHORT_RUN_VALID_EVERY" in short_run
     assert "SHORT_RUN_OUTPUT_DIR" in short_run
+    assert "export FOX_GD_RESIDUAL_MU_MIN_COUNT" in short_run
     assert "short_run_gd_residual_v1.py" in short_run
     assert "metrics_collect_sec" in profile_py
     assert "logged_step_sec" not in profile_py
     assert "metrics_collect_sec" in short_run_py
+    assert "initial_valid" in short_run_py
+    assert "periodic_valid" in short_run_py
+    assert "final_valid" in short_run_py
     assert "records.jsonl" in short_run_py
     assert "peak_allocated_bytes" in short_run_py
     assert "gd_residual_debug_avg_events_per_group" in short_run_py
@@ -493,6 +569,9 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "run_profile.sh" in readme
     assert "run_short_run.sh" in readme
     assert "PROFILE_ENABLE_GD_DIAGNOSTICS=1" in readme
+    assert "`PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `0`" in readme
+    assert "SHORT_RUN_VALID_EVERY" in readme
+    assert "FOX_GD_RESIDUAL_MU_MIN_COUNT" in readme
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
     assert "attn/gd_residual_debug_avg_events_per_group" in metrics_yaml

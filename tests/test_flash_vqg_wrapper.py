@@ -587,6 +587,7 @@ def test_build_configs_supports_gd_residual_v1_formula_suffix():
         fox_gd_residual_write_topk=4,
         fox_gd_residual_builder="grouped_chunk_torch_ref",
         fox_gd_residual_pack_mode="semivec_ref",
+        fox_gd_residual_mu_min_count=0.5,
         vq_score_mode="codebook_dot",
         vq_weight_mode="dense_softmax",
         vq_update_mode="grad",
@@ -598,6 +599,7 @@ def test_build_configs_supports_gd_residual_v1_formula_suffix():
     assert flash_kwargs["fox_remote_formula"] == "gd_residual_v1"
     assert flash_kwargs["fox_gd_residual_rank"] == 16
     assert flash_kwargs["fox_gd_residual_pack_mode"] == "semivec_ref"
+    assert flash_kwargs["fox_gd_residual_mu_min_count"] == 0.5
     assert "-rformula-gdr1-r16-wk4-gctref-semivec" in configs[0].run_id
 
 
