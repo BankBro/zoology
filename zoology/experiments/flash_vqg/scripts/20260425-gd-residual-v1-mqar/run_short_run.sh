@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "${SCRIPT_DIR}/common_env.sh"
+
+SHORT_RUN_TRAIN_BATCHES="${SHORT_RUN_TRAIN_BATCHES:-20}"
+SHORT_RUN_SEEDS="${SHORT_RUN_SEEDS:-123,124}"
+SHORT_RUN_VARIANT="${SHORT_RUN_VARIANT:-gd_r16_wk4}"
+SHORT_RUN_OUTPUT_DIR="${SHORT_RUN_OUTPUT_DIR:-${ROOT_DIR}/tmp/20260425-gd-residual-v1-short-run}"
+PROFILE_ENABLE_GD_DIAGNOSTICS="${PROFILE_ENABLE_GD_DIAGNOSTICS:-1}"
+
+export CUDA_VISIBLE_DEVICES="${GPU_ID}"
+export SHORT_RUN_TRAIN_BATCHES
+export SHORT_RUN_SEEDS
+export SHORT_RUN_VARIANT
+export SHORT_RUN_OUTPUT_DIR
+export PROFILE_ENABLE_GD_DIAGNOSTICS
+
+cd "${ROOT_DIR}"
+
+"${PYTHON_BIN}" "${SCRIPT_DIR}/short_run_gd_residual_v1.py"

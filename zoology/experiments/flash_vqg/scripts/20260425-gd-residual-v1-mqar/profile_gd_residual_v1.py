@@ -29,7 +29,7 @@ GD_RESIDUAL_METRICS = [
 
 
 def _env_bool(name: str, default: str = "0") -> bool:
-    return str(os.environ.get(name, default)).strip().lower() in {"1", "true", "yes"}
+    return str(os.environ.get(name, default)).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _parse_read_topk(value: str) -> int | None:
@@ -158,6 +158,8 @@ def run_profile(args: argparse.Namespace) -> dict[str, Any]:
     block_len = int(args.block_len)
     if seq_len <= 0 or seq_len % block_len != 0:
         raise ValueError("PROFILE_SEQ_LEN must be positive and divisible by block_len.")
+    gd_diagnostics_enabled = bool(args.enable_gd_diagnostics)
+    os.environ["FOX_GD_RESIDUAL_PROFILE_DIAGNOSTICS"] = "1" if gd_diagnostics_enabled else "0"
 
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -216,7 +218,7 @@ def run_profile(args: argparse.Namespace) -> dict[str, Any]:
                 "forward_sec": forward_sec,
                 "backward_sec": backward_sec,
                 "optimizer_sec": optimizer_sec,
-                "logged_step_sec": metrics_sec,
+                "metrics_collect_sec": metrics_sec,
                 "microbatch_sec": total_sec,
                 "loss": float(loss.detach().cpu().item()),
                 "metrics": scalar_metrics,
@@ -248,6 +250,7 @@ def run_profile(args: argparse.Namespace) -> dict[str, Any]:
             "builder": str(args.builder),
             "pack_mode": str(args.pack_mode),
             "chunk_size": int(args.chunk_size),
+            "gd_diagnostics": gd_diagnostics_enabled,
         },
         "memory": memory,
         "records": records,
@@ -280,6 +283,11 @@ def parse_args() -> argparse.Namespace:
         "--enable-torch-profiler",
         action="store_true",
         default=_env_bool("PROFILE_ENABLE_TORCH_PROFILER", "0"),
+    )
+    parser.add_argument(
+        "--enable-gd-diagnostics",
+        action="store_true",
+        default=_env_bool("PROFILE_ENABLE_GD_DIAGNOSTICS", "0"),
     )
     parser.add_argument(
         "--output-dir",
