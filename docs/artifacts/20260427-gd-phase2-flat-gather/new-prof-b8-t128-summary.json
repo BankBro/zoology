@@ -1,0 +1,53 @@
+{
+  "run_id": "gd-residual-v1-profile-rread-top2-r16-wk4-b8-t128",
+  "device": "cuda",
+  "profile": {
+    "seq_len": 128,
+    "microbatches": 1,
+    "batch_size": 8,
+    "read_topk": 2,
+    "rank": 16,
+    "write_topk": 4,
+    "builder": "grouped_chunk_torch_ref",
+    "pack_mode": "semivec_ref",
+    "chunk_size": 64,
+    "gd_diagnostics": false
+  },
+  "memory": {
+    "peak_allocated_bytes": 591852032,
+    "peak_reserved_bytes": 763363328
+  },
+  "records": [
+    {
+      "microbatch": 0,
+      "forward_sec": 8.13122162502259,
+      "backward_sec": 15.145080411341041,
+      "optimizer_sec": 0.05372102931141853,
+      "metrics_collect_sec": 0.0016944780945777893,
+      "microbatch_sec": 23.33196823205799,
+      "loss": 9.033280372619629,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.125,
+        "attn/gd_residual_m_norm_mean": 0.015988631173968315,
+        "attn/gd_residual_m_norm_max": 0.1778409779071808,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "attn/gd_residual_inject_ratio": 0.006504143122583628,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.125,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.015988631173968315,
+        "layer_1/attn/gd_residual_m_norm_max": 0.1778409779071808,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "layer_1/attn/gd_residual_inject_ratio": 0.006504143122583628
+      }
+    }
+  ],
+  "profiler_tables": {
+    "cpu_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_cpu_time_total.txt",
+    "self_cpu_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_self_cpu_time_total.txt",
+    "self_cuda_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_self_cuda_time_total.txt",
+    "cuda_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_cuda_time_total.txt",
+    "cuda_memory_usage": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_cuda_memory_usage.txt",
+    "self_cuda_memory_usage": "/home/lyj/mnt/project/zoology/tmp/gd_phase2_flat_gather_ab/new-prof-b8-t128/profiler_self_cuda_memory_usage.txt"
+  }
+}

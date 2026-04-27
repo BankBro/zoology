@@ -1,0 +1,45 @@
+{
+  "run_id": "gd-residual-v1-profile-rread-top2-r16-wk4-b16-t256",
+  "device": "cuda",
+  "profile": {
+    "seq_len": 256,
+    "microbatches": 1,
+    "batch_size": 16,
+    "read_topk": 2,
+    "rank": 16,
+    "write_topk": 4,
+    "builder": "grouped_chunk_torch_ref",
+    "pack_mode": "semivec_ref",
+    "chunk_size": 64
+  },
+  "memory": {
+    "peak_allocated_bytes": 5470674944,
+    "peak_reserved_bytes": 5995757568
+  },
+  "records": [
+    {
+      "microbatch": 0,
+      "forward_sec": 12.464064113330096,
+      "backward_sec": 24.649285094812512,
+      "optimizer_sec": 0.06864738138392568,
+      "logged_step_sec": 0.00090031698346138,
+      "microbatch_sec": 37.18307858798653,
+      "loss": 9.0366849899292,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.125,
+        "attn/gd_residual_m_norm_mean": 0.033727578818798065,
+        "attn/gd_residual_m_norm_max": 0.2138679176568985,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "attn/gd_residual_inject_ratio": 0.03477748855948448,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.125,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.033727578818798065,
+        "layer_1/attn/gd_residual_m_norm_max": 0.2138679176568985,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "layer_1/attn/gd_residual_inject_ratio": 0.03477748855948448
+      }
+    }
+  ],
+  "profiler_tables": {}
+}
