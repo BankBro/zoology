@@ -1,0 +1,53 @@
+{
+  "run_id": "gd-residual-v1-profile-rread-top2-r16-wk4-b8-t128",
+  "device": "cuda",
+  "profile": {
+    "seq_len": 128,
+    "microbatches": 1,
+    "batch_size": 8,
+    "read_topk": 2,
+    "rank": 16,
+    "write_topk": 4,
+    "builder": "grouped_chunk_torch_ref",
+    "pack_mode": "semivec_ref",
+    "chunk_size": 64,
+    "gd_diagnostics": false
+  },
+  "memory": {
+    "peak_allocated_bytes": 589709312,
+    "peak_reserved_bytes": 761266176
+  },
+  "records": [
+    {
+      "microbatch": 0,
+      "forward_sec": 5.694158958271146,
+      "backward_sec": 8.037872147746384,
+      "optimizer_sec": 0.046646698378026485,
+      "metrics_collect_sec": 0.001752696931362152,
+      "microbatch_sec": 13.780667355284095,
+      "loss": 9.033280372619629,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.125,
+        "attn/gd_residual_m_norm_mean": 0.015988631173968315,
+        "attn/gd_residual_m_norm_max": 0.1778409779071808,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "attn/gd_residual_inject_ratio": 0.006504143122583628,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.125,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.015988631173968315,
+        "layer_1/attn/gd_residual_m_norm_max": 0.1778409779071808,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05000000074505806,
+        "layer_1/attn/gd_residual_inject_ratio": 0.006504143122583628
+      }
+    }
+  ],
+  "profiler_tables": {
+    "cpu_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_cpu_time_total.txt",
+    "self_cpu_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_self_cpu_time_total.txt",
+    "self_cuda_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_self_cuda_time_total.txt",
+    "cuda_time_total": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_cuda_time_total.txt",
+    "cuda_memory_usage": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_cuda_memory_usage.txt",
+    "self_cuda_memory_usage": "/home/lyj/mnt/project/zoology/tmp/gd_event_grouped_opt/eventpack-v1-prof-b8-t128/profiler_self_cuda_memory_usage.txt"
+  }
+}
