@@ -567,6 +567,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "PROFILE_ENABLE_TORCH_PROFILER" in profile
     assert "PROFILE_ENABLE_GD_DIAGNOSTICS" in profile
     assert "profile_gd_residual_v1.py" in profile
+    assert "--vq-softmax-tau \"${VQ_SOFTMAX_TAU}\"" in profile
     assert "SHORT_RUN_TRAIN_BATCHES" in short_run
     assert "SHORT_RUN_SEEDS" in short_run
     assert "SHORT_RUN_VARIANT" in short_run
@@ -575,6 +576,10 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "export FOX_GD_RESIDUAL_MU_MIN_COUNT" in short_run
     assert "short_run_gd_residual_v1.py" in short_run
     assert "metrics_collect_sec" in profile_py
+    assert "--vq-softmax-tau" in profile_py
+    assert "default=float(os.environ.get(\"VQ_SOFTMAX_TAU\", \"0.25\"))" in profile_py
+    assert "vq_softmax_tau=float(args.vq_softmax_tau)" in profile_py
+    assert "\"vq_softmax_tau\": float(args.vq_softmax_tau)" in profile_py
     assert "logged_step_sec" not in profile_py
     assert "metrics_collect_sec" in short_run_py
     assert "initial_valid" in short_run_py

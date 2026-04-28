@@ -93,6 +93,7 @@ def _build_config(args: argparse.Namespace, read_topk: int | None):
         vq_score_mode="codebook_dot",
         vq_weight_mode="dense_softmax",
         vq_update_mode="grad",
+        vq_softmax_tau=float(args.vq_softmax_tau),
         vq_topk=max(int(args.write_topk), 4),
         gradient_accumulation_steps=1,
         train_batch_size=int(args.batch_size),
@@ -247,6 +248,7 @@ def run_profile(args: argparse.Namespace) -> dict[str, Any]:
             "read_topk": read_topk,
             "rank": int(args.rank),
             "write_topk": int(args.write_topk),
+            "vq_softmax_tau": float(args.vq_softmax_tau),
             "builder": str(args.builder),
             "pack_mode": str(args.pack_mode),
             "chunk_size": int(args.chunk_size),
@@ -301,6 +303,11 @@ def parse_args() -> argparse.Namespace:
         "--num-codebook-vectors",
         type=int,
         default=int(os.environ.get("NUM_CODEBOOK_VECTORS", "128")),
+    )
+    parser.add_argument(
+        "--vq-softmax-tau",
+        type=float,
+        default=float(os.environ.get("VQ_SOFTMAX_TAU", "0.25")),
     )
     parser.add_argument("--block-len", type=int, default=int(os.environ.get("BLOCK_LEN", "32")))
     parser.add_argument(
