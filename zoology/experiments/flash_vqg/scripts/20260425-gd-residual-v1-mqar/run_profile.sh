@@ -30,6 +30,7 @@ cd "${ROOT_DIR}"
   --output-dir "${PROFILE_OUTPUT_DIR}" \
   --d-model "${DMODEL}" \
   --num-codebook-vectors "${NUM_CODEBOOK_VECTORS}" \
+  --vq-softmax-tau "${VQ_SOFTMAX_TAU}" \
   --block-len 32 \
   --builder "${FOX_GD_RESIDUAL_BUILDER}" \
   --pack-mode "${FOX_GD_RESIDUAL_PACK_MODE}" \
