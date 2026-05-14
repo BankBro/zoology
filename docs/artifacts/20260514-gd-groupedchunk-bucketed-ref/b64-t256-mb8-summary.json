@@ -1,0 +1,208 @@
+{
+  "run_id": "gd-residual-v1-profile-rread-top2-r16-wk4-b64-t256",
+  "device": "cuda",
+  "profile": {
+    "seq_len": 256,
+    "microbatches": 8,
+    "batch_size": 64,
+    "read_topk": 2,
+    "rank": 16,
+    "write_topk": 4,
+    "vq_softmax_tau": 0.25,
+    "builder": "grouped_chunk_torch_ref",
+    "pack_mode": "semivec_ref",
+    "chunk_size": 64,
+    "gd_diagnostics": false
+  },
+  "memory": {
+    "peak_allocated_bytes": 7097348608,
+    "peak_reserved_bytes": 9053405184
+  },
+  "records": [
+    {
+      "microbatch": 0,
+      "forward_sec": 3.566143677569926,
+      "backward_sec": 2.1400351226329803,
+      "optimizer_sec": 0.03922813758254051,
+      "metrics_collect_sec": 0.0011195167899131775,
+      "microbatch_sec": 5.746792306192219,
+      "loss": 9.039223670959473,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.125,
+        "attn/gd_residual_m_norm_mean": 0.019331708550453186,
+        "attn/gd_residual_m_norm_max": 0.2240198254585266,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05000000819563866,
+        "attn/gd_residual_inject_ratio": 0.01506531611084938,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.125,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.019331708550453186,
+        "layer_1/attn/gd_residual_m_norm_max": 0.2240198254585266,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05000000819563866,
+        "layer_1/attn/gd_residual_inject_ratio": 0.01506531611084938
+      }
+    },
+    {
+      "microbatch": 1,
+      "forward_sec": 0.16523494850844145,
+      "backward_sec": 0.36432098876684904,
+      "optimizer_sec": 0.0020422711968421936,
+      "metrics_collect_sec": 0.0017513921484351158,
+      "microbatch_sec": 0.5334941986948252,
+      "loss": 8.949969291687012,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12505987286567688,
+        "attn/gd_residual_m_norm_mean": 0.01937362179160118,
+        "attn/gd_residual_m_norm_max": 0.21710491180419922,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.050051916390657425,
+        "attn/gd_residual_inject_ratio": 0.014996306039392948,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12505987286567688,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.01937362179160118,
+        "layer_1/attn/gd_residual_m_norm_max": 0.21710491180419922,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.050051916390657425,
+        "layer_1/attn/gd_residual_inject_ratio": 0.014996306039392948
+      }
+    },
+    {
+      "microbatch": 2,
+      "forward_sec": 0.1680045835673809,
+      "backward_sec": 0.3733727252110839,
+      "optimizer_sec": 0.002340552397072315,
+      "metrics_collect_sec": 0.0020993640646338463,
+      "microbatch_sec": 0.5461786510422826,
+      "loss": 8.86325454711914,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12509241700172424,
+        "attn/gd_residual_m_norm_mean": 0.019396446645259857,
+        "attn/gd_residual_m_norm_max": 0.21416977047920227,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05008835345506668,
+        "attn/gd_residual_inject_ratio": 0.015168123878538609,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12509241700172424,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.019396446645259857,
+        "layer_1/attn/gd_residual_m_norm_max": 0.21416977047920227,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05008835345506668,
+        "layer_1/attn/gd_residual_inject_ratio": 0.015168123878538609
+      }
+    },
+    {
+      "microbatch": 3,
+      "forward_sec": 0.17470079846680164,
+      "backward_sec": 0.372663302347064,
+      "optimizer_sec": 0.002226555719971657,
+      "metrics_collect_sec": 0.002326641231775284,
+      "microbatch_sec": 0.552259961143136,
+      "loss": 8.774924278259277,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.1251019537448883,
+        "attn/gd_residual_m_norm_mean": 0.01943361945450306,
+        "attn/gd_residual_m_norm_max": 0.25262928009033203,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05011693760752678,
+        "attn/gd_residual_inject_ratio": 0.015007366426289082,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.1251019537448883,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.01943361945450306,
+        "layer_1/attn/gd_residual_m_norm_max": 0.25262928009033203,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05011693760752678,
+        "layer_1/attn/gd_residual_inject_ratio": 0.015007366426289082
+      }
+    },
+    {
+      "microbatch": 4,
+      "forward_sec": 0.15981991961598396,
+      "backward_sec": 0.36701862793415785,
+      "optimizer_sec": 0.0015754681080579758,
+      "metrics_collect_sec": 0.00203013326972723,
+      "microbatch_sec": 0.5307149160653353,
+      "loss": 8.688933372497559,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12510253489017487,
+        "attn/gd_residual_m_norm_mean": 0.0194931048899889,
+        "attn/gd_residual_m_norm_max": 0.26462286710739136,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.050142552703619,
+        "attn/gd_residual_inject_ratio": 0.015107485465705395,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12510253489017487,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.0194931048899889,
+        "layer_1/attn/gd_residual_m_norm_max": 0.26462286710739136,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.050142552703619,
+        "layer_1/attn/gd_residual_inject_ratio": 0.015107485465705395
+      }
+    },
+    {
+      "microbatch": 5,
+      "forward_sec": 0.1734751658514142,
+      "backward_sec": 0.387353140860796,
+      "optimizer_sec": 0.0011726487427949905,
+      "metrics_collect_sec": 0.001564309000968933,
+      "microbatch_sec": 0.5638290988281369,
+      "loss": 8.603721618652344,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12511564791202545,
+        "attn/gd_residual_m_norm_mean": 0.019588308408856392,
+        "attn/gd_residual_m_norm_max": 0.26372769474983215,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.050177186727523804,
+        "attn/gd_residual_inject_ratio": 0.015072235837578773,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12511564791202545,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.019588308408856392,
+        "layer_1/attn/gd_residual_m_norm_max": 0.26372769474983215,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.050177186727523804,
+        "layer_1/attn/gd_residual_inject_ratio": 0.015072235837578773
+      }
+    },
+    {
+      "microbatch": 6,
+      "forward_sec": 0.16135409753769636,
+      "backward_sec": 0.37354979664087296,
+      "optimizer_sec": 0.0018683690577745438,
+      "metrics_collect_sec": 0.002009715884923935,
+      "microbatch_sec": 0.5390118975192308,
+      "loss": 8.519914627075195,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12510669231414795,
+        "attn/gd_residual_m_norm_mean": 0.019668079912662506,
+        "attn/gd_residual_m_norm_max": 0.24442152678966522,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05020446330308914,
+        "attn/gd_residual_inject_ratio": 0.014966506510972977,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12510669231414795,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.019668079912662506,
+        "layer_1/attn/gd_residual_m_norm_max": 0.24442152678966522,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05020446330308914,
+        "layer_1/attn/gd_residual_inject_ratio": 0.014966506510972977
+      }
+    },
+    {
+      "microbatch": 7,
+      "forward_sec": 0.17381595354527235,
+      "backward_sec": 0.37592092622071505,
+      "optimizer_sec": 0.0012879809364676476,
+      "metrics_collect_sec": 0.0011760089546442032,
+      "microbatch_sec": 0.5524783786386251,
+      "loss": 8.437822341918945,
+      "metrics": {
+        "attn/gd_residual_write_strength_mean": 0.12509866058826447,
+        "attn/gd_residual_m_norm_mean": 0.01974906399846077,
+        "attn/gd_residual_m_norm_max": 0.23967115581035614,
+        "attn/gd_residual_mu_valid_ratio": 0.0,
+        "attn/gd_residual_lambda_mean": 0.05022464692592621,
+        "attn/gd_residual_inject_ratio": 0.014813422225415707,
+        "layer_1/attn/gd_residual_write_strength_mean": 0.12509866058826447,
+        "layer_1/attn/gd_residual_m_norm_mean": 0.01974906399846077,
+        "layer_1/attn/gd_residual_m_norm_max": 0.23967115581035614,
+        "layer_1/attn/gd_residual_mu_valid_ratio": 0.0,
+        "layer_1/attn/gd_residual_lambda_mean": 0.05022464692592621,
+        "layer_1/attn/gd_residual_inject_ratio": 0.014813422225415707
+      }
+    }
+  ],
+  "profiler_tables": {}
+}
