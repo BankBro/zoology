@@ -1,0 +1,7 @@
+run,checkpoint,valid/loss,valid/accuracy,valid/mqar_case/accuracy-64x4,valid/mqar_case/accuracy-1024x256,valid/vq/relative_err_mean,notes
+dense-t025-cb256-s123-d123,epoch4,0.2378615438938141,0.9614228515625,0.99975,0.77484375,0.0792770114623838,dense baseline at epoch 4
+dense-t025-cb256-s123-d123,final_epoch32,0.08411125093698502,0.98107080078125,0.99975,0.87153515625,0.015897361729811463,dense baseline final completed checkpoint
+gated_delta_net-default-s123-d123,epoch4,0.26879751682281494,0.97283154296875,1.0,0.78838671875,,gated delta net baseline at epoch 4; no VQ metrics
+gated_delta_net-default-s123-d123,final_epoch32,0.07257544249296188,0.986255859375,1.0,0.89103125,,gated delta net baseline final completed checkpoint; no VQ metrics
+gd-r16-wk4-mu01-t025-cb256-s123-d123,epoch1_end_early_stop,0.16520987451076508,0.99161279296875,0.99975,0.96133203125,0.14255237035335055,gd_residual_v1 mu01 early stopped after epoch 1 end
+gd-r16-wk4-mu015-t025-cb256-s123-d123,epoch4_end,0.16307280957698822,0.98499609375,0.99975,0.8983984375,0.08177587691517103,gd_residual_v1 mu015 completed 4 epochs

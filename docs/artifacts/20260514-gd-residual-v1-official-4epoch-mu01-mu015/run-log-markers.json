@@ -1,0 +1,18 @@
+[
+  {
+    "run": "mu01",
+    "run_id": "gd-r16-wk4-mu01-t025-cb256-s123-d123",
+    "train_completed_marker": true,
+    "early_stopping_marker": "Early stopping triggered at epoch 0 with valid/accuracy 0.99161279296875 > 0.99",
+    "analysis_dir": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260514-gd-r16-wk4-mu01-t025-cb256-s123-d123-official-2026-05-14-15-35-32",
+    "last_view_run_line": "swanlab: 🚀 View run at https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/p86rgd8uc5mug3t5sazku"
+  },
+  {
+    "run": "mu015",
+    "run_id": "gd-r16-wk4-mu015-t025-cb256-s123-d123",
+    "train_completed_marker": true,
+    "early_stopping_marker": "",
+    "analysis_dir": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260514-gd-r16-wk4-mu015-t025-cb256-s123-d123-official-2026-05-14-15-35-42",
+    "last_view_run_line": "swanlab: 🚀 View run at https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/sa9nuwu76b3pzckiek89v"
+  }
+]

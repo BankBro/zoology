@@ -1,0 +1,594 @@
+{
+  "mu01": {
+    "run": "mu01",
+    "run_id": "gd-r16-wk4-mu01-t025-cb256-s123-d123",
+    "launch_id": "flash-vqg-20260514-gd-r16-wk4-mu01-t025-cb256-s123-d123-official-2026-05-14-15-35-32",
+    "status": "completed",
+    "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/p86rgd8uc5mug3t5sazku",
+    "mu_min_count": 0.1,
+    "history_first_timestamp": "2026-05-14T15:35:54.424830+00:00",
+    "history_last_timestamp": "2026-05-14T16:50:59.311299+00:00",
+    "wall_clock_history_seconds": 4504.886469,
+    "wall_clock_history_hms": "01:15:05",
+    "train_loss_records": 704,
+    "valid_checkpoints": 2,
+    "validations_per_epoch": 2,
+    "completed_epoch_end_validations": 1,
+    "early_stopped": true,
+    "early_stopping_log": "Early stopping triggered at epoch 0 with valid/accuracy 0.99161279296875 > 0.99",
+    "train_completed_log_marker": true,
+    "analysis_dir": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260514-gd-r16-wk4-mu01-t025-cb256-s123-d123-official-2026-05-14-15-35-32",
+    "config": {
+      "max_epochs": 4,
+      "train_batch_size": 64,
+      "eval_batch_size": 16,
+      "gradient_accumulation_steps": 4,
+      "learning_rate": 0.001,
+      "early_stopping_metric": "valid/accuracy",
+      "early_stopping_threshold": 0.99,
+      "config_summary": {
+        "experiment_part": "gd_residual_v1_mqar",
+        "experiment_mode": "train_mu01_bucketed_official_4epoch",
+        "fox_remote_formula": "gd_residual_v1",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0,
+        "fox_clr_residual_update_mode": "additive",
+        "fox_clr_residual_forget_mode": "global",
+        "fox_clr_state_write_topk": 4,
+        "fox_clr_delta_target_mode": "residual_to_coarse",
+        "fox_gd_residual_rank": 16,
+        "fox_gd_residual_write_topk": 4,
+        "fox_gd_residual_builder": "grouped_chunk_torch_ref",
+        "fox_gd_residual_pack_mode": "semivec_ref",
+        "fox_gd_residual_chunk_size": 64,
+        "fox_gd_residual_lambda_init": 0.05,
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    },
+    "final_metrics": {
+      "train/loss": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 0.14272661010424295,
+        "timestamp": "2026-05-14T16:45:05.639491+00:00"
+      },
+      "valid/loss": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.16520987451076508,
+        "timestamp": "2026-05-14T16:50:59.306098+00:00"
+      },
+      "valid/accuracy": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.99161279296875,
+        "timestamp": "2026-05-14T16:50:59.306247+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-4": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.99975,
+        "timestamp": "2026-05-14T16:50:59.306466+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-8": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.999875,
+        "timestamp": "2026-05-14T16:50:59.306662+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-16": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9998125,
+        "timestamp": "2026-05-14T16:50:59.306824+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-32": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9961875,
+        "timestamp": "2026-05-14T16:50:59.306970+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-64": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.992921875,
+        "timestamp": "2026-05-14T16:50:59.307143+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-128": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9901015625,
+        "timestamp": "2026-05-14T16:50:59.307282+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-256": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.96133203125,
+        "timestamp": "2026-05-14T16:50:59.307418+00:00"
+      },
+      "valid/input_seq_len/accuracy-64": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9998125,
+        "timestamp": "2026-05-14T16:50:59.307540+00:00"
+      },
+      "valid/input_seq_len/accuracy-128": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9961875,
+        "timestamp": "2026-05-14T16:50:59.307660+00:00"
+      },
+      "valid/input_seq_len/accuracy-256": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.995484375,
+        "timestamp": "2026-05-14T16:50:59.307778+00:00"
+      },
+      "valid/input_seq_len/accuracy-512": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.99023046875,
+        "timestamp": "2026-05-14T16:50:59.307894+00:00"
+      },
+      "valid/input_seq_len/accuracy-1024": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.96133203125,
+        "timestamp": "2026-05-14T16:50:59.308076+00:00"
+      },
+      "valid/mqar_case/accuracy-64x4": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.99975,
+        "timestamp": "2026-05-14T16:50:59.308898+00:00"
+      },
+      "valid/mqar_case/accuracy-64x8": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.999875,
+        "timestamp": "2026-05-14T16:50:59.309017+00:00"
+      },
+      "valid/mqar_case/accuracy-64x16": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9998125,
+        "timestamp": "2026-05-14T16:50:59.308782+00:00"
+      },
+      "valid/mqar_case/accuracy-128x32": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9961875,
+        "timestamp": "2026-05-14T16:50:59.308314+00:00"
+      },
+      "valid/mqar_case/accuracy-256x64": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.995484375,
+        "timestamp": "2026-05-14T16:50:59.308433+00:00"
+      },
+      "valid/mqar_case/accuracy-512x64": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.990359375,
+        "timestamp": "2026-05-14T16:50:59.308666+00:00"
+      },
+      "valid/mqar_case/accuracy-512x128": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.9901015625,
+        "timestamp": "2026-05-14T16:50:59.308549+00:00"
+      },
+      "valid/mqar_case/accuracy-1024x256": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.96133203125,
+        "timestamp": "2026-05-14T16:50:59.308196+00:00"
+      },
+      "valid/attn/gd_residual_write_strength_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.05073317875789981,
+        "timestamp": "2026-05-14T16:50:59.309171+00:00"
+      },
+      "valid/attn/gd_residual_m_norm_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.021094856147159127,
+        "timestamp": "2026-05-14T16:50:59.309292+00:00"
+      },
+      "valid/attn/gd_residual_m_norm_max": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 3.9973158623491014,
+        "timestamp": "2026-05-14T16:50:59.309412+00:00"
+      },
+      "valid/attn/gd_residual_mu_valid_ratio": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.4108916161552308,
+        "timestamp": "2026-05-14T16:50:59.309563+00:00"
+      },
+      "valid/attn/gd_residual_lambda_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.18953875209840518,
+        "timestamp": "2026-05-14T16:50:59.309743+00:00"
+      },
+      "valid/attn/gd_residual_inject_ratio": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.38534292123383945,
+        "timestamp": "2026-05-14T16:50:59.309879+00:00"
+      },
+      "valid/vq/relative_err_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.14255237035335055,
+        "timestamp": "2026-05-14T16:50:59.310781+00:00"
+      },
+      "valid/vq/c_usage_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 20.337301510667043,
+        "timestamp": "2026-05-14T16:50:59.310900+00:00"
+      },
+      "valid/vq/c_entropy": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 3.672039395759976,
+        "timestamp": "2026-05-14T16:50:59.311047+00:00"
+      },
+      "valid/vq/write_entropy_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 3.4525964463513996,
+        "timestamp": "2026-05-14T16:50:59.311181+00:00"
+      },
+      "valid/vq/write_top1_mass_mean": {
+        "step": 705,
+        "epoch": 2.0,
+        "value": 0.28574082420931923,
+        "timestamp": "2026-05-14T16:50:59.311299+00:00"
+      },
+      "vq/relative_err_mean": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 0.12109018862247467,
+        "timestamp": "2026-05-14T16:45:05.641457+00:00"
+      },
+      "vq/c_usage_mean": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 32.0,
+        "timestamp": "2026-05-14T16:45:05.641582+00:00"
+      },
+      "vq/c_entropy": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 3.533572196960449,
+        "timestamp": "2026-05-14T16:45:05.641677+00:00"
+      },
+      "vq/write_entropy_mean": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 3.377807378768921,
+        "timestamp": "2026-05-14T16:45:05.641775+00:00"
+      },
+      "vq/write_top1_mass_mean": {
+        "step": 704,
+        "epoch": 704.0,
+        "value": 0.2925335764884949,
+        "timestamp": "2026-05-14T16:45:05.641901+00:00"
+      }
+    }
+  },
+  "mu015": {
+    "run": "mu015",
+    "run_id": "gd-r16-wk4-mu015-t025-cb256-s123-d123",
+    "launch_id": "flash-vqg-20260514-gd-r16-wk4-mu015-t025-cb256-s123-d123-official-2026-05-14-15-35-42",
+    "status": "completed",
+    "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/sa9nuwu76b3pzckiek89v",
+    "mu_min_count": 0.15,
+    "history_first_timestamp": "2026-05-14T15:35:58.815220+00:00",
+    "history_last_timestamp": "2026-05-14T20:57:37.453906+00:00",
+    "wall_clock_history_seconds": 19298.638686,
+    "wall_clock_history_hms": "05:21:39",
+    "train_loss_records": 2816,
+    "valid_checkpoints": 8,
+    "validations_per_epoch": 2,
+    "completed_epoch_end_validations": 4,
+    "early_stopped": false,
+    "early_stopping_log": "",
+    "train_completed_log_marker": true,
+    "analysis_dir": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260514-gd-r16-wk4-mu015-t025-cb256-s123-d123-official-2026-05-14-15-35-42",
+    "config": {
+      "max_epochs": 4,
+      "train_batch_size": 64,
+      "eval_batch_size": 16,
+      "gradient_accumulation_steps": 4,
+      "learning_rate": 0.001,
+      "early_stopping_metric": "valid/accuracy",
+      "early_stopping_threshold": 0.99,
+      "config_summary": {
+        "experiment_part": "gd_residual_v1_mqar",
+        "experiment_mode": "train_mu015_bucketed_official_4epoch",
+        "fox_remote_formula": "gd_residual_v1",
+        "fox_remote_read_topk": 2,
+        "fox_clr_selector_mode": "den_aware",
+        "fox_clr_merge_mode": "shared_den",
+        "fox_clr_gate_mode": "off",
+        "fox_clr_lambda_remote": 1.0,
+        "fox_clr_gate_init_bias": -2.0,
+        "fox_clr_residual_update_mode": "additive",
+        "fox_clr_residual_forget_mode": "global",
+        "fox_clr_state_write_topk": 4,
+        "fox_clr_delta_target_mode": "residual_to_coarse",
+        "fox_gd_residual_rank": 16,
+        "fox_gd_residual_write_topk": 4,
+        "fox_gd_residual_builder": "grouped_chunk_torch_ref",
+        "fox_gd_residual_pack_mode": "semivec_ref",
+        "fox_gd_residual_chunk_size": 64,
+        "fox_gd_residual_lambda_init": 0.05,
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    },
+    "final_metrics": {
+      "train/loss": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 0.0430696594218413,
+        "timestamp": "2026-05-14T20:51:07.114651+00:00"
+      },
+      "valid/loss": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.16307280957698822,
+        "timestamp": "2026-05-14T20:57:37.449624+00:00"
+      },
+      "valid/accuracy": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.98499609375,
+        "timestamp": "2026-05-14T20:57:37.449764+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-4": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.99975,
+        "timestamp": "2026-05-14T20:57:37.449874+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-8": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 1.0,
+        "timestamp": "2026-05-14T20:57:37.450163+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-16": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9999375,
+        "timestamp": "2026-05-14T20:57:37.450248+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-32": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9943125,
+        "timestamp": "2026-05-14T20:57:37.450424+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-64": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9965078125,
+        "timestamp": "2026-05-14T20:57:37.450571+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-128": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9945546875,
+        "timestamp": "2026-05-14T20:57:37.450677+00:00"
+      },
+      "valid/num_kv_pairs/accuracy-256": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.8983984375,
+        "timestamp": "2026-05-14T20:57:37.450781+00:00"
+      },
+      "valid/input_seq_len/accuracy-64": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9998958333333333,
+        "timestamp": "2026-05-14T20:57:37.450877+00:00"
+      },
+      "valid/input_seq_len/accuracy-128": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9943125,
+        "timestamp": "2026-05-14T20:57:37.450975+00:00"
+      },
+      "valid/input_seq_len/accuracy-256": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.998578125,
+        "timestamp": "2026-05-14T20:57:37.451093+00:00"
+      },
+      "valid/input_seq_len/accuracy-512": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.99449609375,
+        "timestamp": "2026-05-14T20:57:37.451213+00:00"
+      },
+      "valid/input_seq_len/accuracy-1024": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.8983984375,
+        "timestamp": "2026-05-14T20:57:37.451304+00:00"
+      },
+      "valid/mqar_case/accuracy-64x4": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.99975,
+        "timestamp": "2026-05-14T20:57:37.451943+00:00"
+      },
+      "valid/mqar_case/accuracy-64x8": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 1.0,
+        "timestamp": "2026-05-14T20:57:37.452118+00:00"
+      },
+      "valid/mqar_case/accuracy-64x16": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9999375,
+        "timestamp": "2026-05-14T20:57:37.451867+00:00"
+      },
+      "valid/mqar_case/accuracy-128x32": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9943125,
+        "timestamp": "2026-05-14T20:57:37.451484+00:00"
+      },
+      "valid/mqar_case/accuracy-256x64": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.998578125,
+        "timestamp": "2026-05-14T20:57:37.451576+00:00"
+      },
+      "valid/mqar_case/accuracy-512x64": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9944375,
+        "timestamp": "2026-05-14T20:57:37.451760+00:00"
+      },
+      "valid/mqar_case/accuracy-512x128": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.9945546875,
+        "timestamp": "2026-05-14T20:57:37.451668+00:00"
+      },
+      "valid/mqar_case/accuracy-1024x256": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.8983984375,
+        "timestamp": "2026-05-14T20:57:37.451394+00:00"
+      },
+      "valid/attn/gd_residual_write_strength_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.06620146529305548,
+        "timestamp": "2026-05-14T20:57:37.452213+00:00"
+      },
+      "valid/attn/gd_residual_m_norm_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.08889857613082443,
+        "timestamp": "2026-05-14T20:57:37.452294+00:00"
+      },
+      "valid/attn/gd_residual_m_norm_max": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 5.2700321319557375,
+        "timestamp": "2026-05-14T20:57:37.452521+00:00"
+      },
+      "valid/attn/gd_residual_mu_valid_ratio": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.21595324410332573,
+        "timestamp": "2026-05-14T20:57:37.452621+00:00"
+      },
+      "valid/attn/gd_residual_lambda_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.06478993038809489,
+        "timestamp": "2026-05-14T20:57:37.452718+00:00"
+      },
+      "valid/attn/gd_residual_inject_ratio": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.295928162951318,
+        "timestamp": "2026-05-14T20:57:37.452814+00:00"
+      },
+      "valid/vq/relative_err_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.08177587691517103,
+        "timestamp": "2026-05-14T20:57:37.453521+00:00"
+      },
+      "valid/vq/c_usage_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 20.337301527696944,
+        "timestamp": "2026-05-14T20:57:37.453616+00:00"
+      },
+      "valid/vq/c_entropy": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 3.3310480756419047,
+        "timestamp": "2026-05-14T20:57:37.453710+00:00"
+      },
+      "valid/vq/write_entropy_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 3.1439588959254916,
+        "timestamp": "2026-05-14T20:57:37.453803+00:00"
+      },
+      "valid/vq/write_top1_mass_mean": {
+        "step": 2823,
+        "epoch": 8.0,
+        "value": 0.20247559817064376,
+        "timestamp": "2026-05-14T20:57:37.453906+00:00"
+      },
+      "vq/relative_err_mean": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 0.06477299332618713,
+        "timestamp": "2026-05-14T20:51:07.116472+00:00"
+      },
+      "vq/c_usage_mean": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 64.0,
+        "timestamp": "2026-05-14T20:51:07.116571+00:00"
+      },
+      "vq/c_entropy": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 3.257236957550049,
+        "timestamp": "2026-05-14T20:51:07.116677+00:00"
+      },
+      "vq/write_entropy_mean": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 3.1490659713745117,
+        "timestamp": "2026-05-14T20:51:07.116775+00:00"
+      },
+      "vq/write_top1_mass_mean": {
+        "step": 2822,
+        "epoch": 2816.0,
+        "value": 0.18019896745681763,
+        "timestamp": "2026-05-14T20:51:07.116875+00:00"
+      }
+    }
+  }
+}
