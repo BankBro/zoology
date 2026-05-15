@@ -1,0 +1,4 @@
+model,trainable_params,dynamic_state_capacity,capacity_formula,notes
+gd_residual_v1_mu01,1184966,524288,2 layers * 256 codebook slots * 64 value dim * rank 16,residual matrix capacity only; remote+local total approx 573952
+gdn_use_gate_false,1167878,16384,2 layers * 64 state size * 128 value dim,GDN baseline without output gate
+gdn_use_gate_true,1200646,16384,2 layers * 64 state size * 128 value dim,adds output gate params but not KV state capacity

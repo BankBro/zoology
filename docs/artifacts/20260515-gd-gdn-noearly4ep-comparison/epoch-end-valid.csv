@@ -1,0 +1,13 @@
+run_id,model,epoch,valid_loss,valid_accuracy,valid_mqar_case_accuracy_1024x256,notes
+gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep,gd_residual_v1_mu01,1,0.231,0.987,0.931,epoch-end terminal metric
+gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep,gd_residual_v1_mu01,2,0.109,0.994,0.964,epoch-end terminal metric
+gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep,gd_residual_v1_mu01,3,0.0773,0.995,0.975,epoch-end terminal metric
+gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep,gd_residual_v1_mu01,4,0.06721608340740204,0.9962060546875,0.9803125,final metric from completed noearly4ep run
+gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,1,0.694,0.931,0.516,epoch-end terminal metric
+gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,2,0.424,0.955,0.66,epoch-end terminal metric
+gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,3,0.365,0.96,0.699,epoch-end terminal metric
+gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,4,0.345,0.962,0.711,final terminal metric
+gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,1,1.4,0.814,0.19,epoch-end terminal metric
+gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,2,0.873,0.869,0.292,epoch-end terminal metric
+gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,3,0.766,0.88,0.322,epoch-end terminal metric
+gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,4,0.729,0.884,0.334,final terminal metric

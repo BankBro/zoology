@@ -1,0 +1,63 @@
+{
+  "date": "2026-05-15",
+  "zoology": {
+    "repo": "BankBro/zoology",
+    "branch": "flash-vqg",
+    "base_commit_before_this_report": "66b1a9b131caec6c1a4dccd217906f1ef6787d9b"
+  },
+  "flash_vqg": {
+    "repo": "BankBro/Flash-VQG",
+    "branch": "20260428-gd-residual-v1-sync",
+    "commit": "811e1ce5f140e97d93ad6f1adae07b95b4219143"
+  },
+  "runs": [
+    {
+      "run_id": "gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep",
+      "launch_id": "flash-vqg-20260515-gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly-official-2026-05-15-04-56-09",
+      "project": "flash_vqg_gd_residual_v1_mqar",
+      "status": "completed",
+      "gpu": 0,
+      "wall_clock_approx": "05:17:00",
+      "max_epochs": 4,
+      "validations_per_epoch": 2,
+      "early_stopping": "disabled",
+      "local_log": "tmp/20260515-gd-official-noearly-logs/mu01-noearly-gpu0.log",
+      "local_log_committed": false
+    },
+    {
+      "run_id": "gated_delta_net-usegate0-s123-d123-noearly4ep",
+      "launch_id": "flash-vqg-20260515-gdn-usegate0-s123-d123-noearly4ep-official-2026-05-15-16-40-27",
+      "project": "flash_vqg_gd_residual_v1_mqar",
+      "status": "completed",
+      "gpu": 0,
+      "wall_clock_approx": "00:06:23",
+      "max_epochs": 4,
+      "validations_per_epoch": 2,
+      "early_stopping": "disabled",
+      "use_gate": false,
+      "local_log": "tmp/20260515-gdn-baseline-logs/gdn-usegate0-gpu0.log",
+      "local_log_committed": false
+    },
+    {
+      "run_id": "gated_delta_net-usegate1-s123-d123-noearly4ep",
+      "launch_id": "flash-vqg-20260515-gdn-usegate1-s123-d123-noearly4ep-official-2026-05-15-16-40-27",
+      "project": "flash_vqg_gd_residual_v1_mqar",
+      "status": "completed",
+      "gpu": 1,
+      "wall_clock_approx": "00:05:27",
+      "max_epochs": 4,
+      "validations_per_epoch": 2,
+      "early_stopping": "disabled",
+      "use_gate": true,
+      "local_log": "tmp/20260515-gdn-baseline-logs/gdn-usegate1-gpu1.log",
+      "local_log_committed": false
+    }
+  ],
+  "not_committed": [
+    "tmp logs",
+    "checkpoints",
+    "swanlog local run directories",
+    "data cache",
+    "temporary config-builder wrappers"
+  ]
+}
