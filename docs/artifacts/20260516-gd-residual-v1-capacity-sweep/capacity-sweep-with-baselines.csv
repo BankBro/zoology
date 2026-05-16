@@ -1,0 +1,12 @@
+run_id,model_or_config,comparison_group,cb,rank,dynamic_capacity,relative_to_gdn,trainable_params,valid_loss,valid_accuracy,valid_mqar_case_accuracy_1024x256,notes
+gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep,cb256-r16,gd_residual_capacity_sweep,256,16,524288,32x,1184966,0.0672,0.996,0.98,previous_anchor_not_rerun
+gd-r8-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity16x,cb256-r8,gd_residual_capacity_sweep,256,8,262144,16x,1183942,0.28,0.957,0.737,new_capacity_sweep
+gd-r4-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity8x,cb256-r4,gd_residual_capacity_sweep,256,4,131072,8x,1183430,0.0961,0.986,0.938,new_capacity_sweep
+gd-r2-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity4x,cb256-r2,gd_residual_capacity_sweep,256,2,65536,4x,1183174,0.265,0.946,0.776,new_capacity_sweep
+gd-r1-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity2x,cb256-r1,gd_residual_capacity_sweep,256,1,32768,2x,1183046,0.637,0.864,0.492,new_capacity_sweep
+gd-r2-wk4-mu01-t025-cb128-s123-d123-noearly4ep-capacity2x,cb128-r2,gd_residual_capacity_sweep,128,2,32768,2x,1166790,0.37,0.925,0.71,new_capacity_sweep
+gd-r2-wk4-mu01-t025-cb64-s123-d123-noearly4ep-capacity1x,cb64-r2,gd_residual_capacity_sweep,64,2,16384,1x,1158598,0.681,0.869,0.464,new_capacity_sweep
+gd-r1-wk4-mu01-t025-cb128-s123-d123-noearly4ep-capacity1x,cb128-r1,gd_residual_capacity_sweep,128,1,16384,1x,1166662,1,0.787,0.3,new_capacity_sweep
+gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,new_gdn_baseline,,,16384,1x,1167878,0.345,0.962,0.711,same project noearly4ep baseline; strongest new GDN baseline
+gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,new_gdn_baseline,,,16384,1x,1200646,0.729,0.884,0.334,same project noearly4ep baseline; output gate enabled
+gated_delta_net-default-s123-d123,gdn_default_old_baseline_epoch32,old_gdn_baseline_not_rerun,,,16384,1x,,0.072575,0.986255859375,0.891031,old project final32; not rerun

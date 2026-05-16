@@ -1,0 +1,9 @@
+config,cb,rank,dynamic_capacity,relative_to_gdn,dynamic_capacity_formula,trainable_params,zoology_state_size_metric_seq1024,notes
+cb256-r16,256,16,524288,32x,2 layers * 256 codebook slots * 64 value dim * rank 16,1184966,2297344,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb256-r8,256,8,262144,16x,2 layers * 256 codebook slots * 64 value dim * rank 8,1183942,1248768,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb256-r4,256,4,131072,8x,2 layers * 256 codebook slots * 64 value dim * rank 4,1183430,724480,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb256-r2,256,2,65536,4x,2 layers * 256 codebook slots * 64 value dim * rank 2,1183174,462336,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb256-r1,256,1,32768,2x,2 layers * 256 codebook slots * 64 value dim * rank 1,1183046,331264,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb128-r2,128,2,32768,2x,2 layers * 128 codebook slots * 64 value dim * rank 2,1166790,264704,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb64-r2,64,2,16384,1x,2 layers * 64 codebook slots * 64 value dim * rank 2,1158598,165888,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
+cb128-r1,128,1,16384,1x,2 layers * 128 codebook slots * 64 value dim * rank 1,1166662,199168,gd_residual_v1 residual matrix capacity only; state_size_metric is repo logger metric and includes other state accounting
