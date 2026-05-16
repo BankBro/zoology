@@ -11,11 +11,12 @@
 阶段结论:
 
 - 7 个新 capacity run 全部 completed, 加上已完成的 `cb256-r16` anchor, 形成 8 点容量曲线.
-- `cb256-r16` 仍是最强结果: final `valid/accuracy=0.996`, `1024x256=0.980`.
-- `cb256-r4` 是本轮新跑配置中最强: final `valid/accuracy=0.986`, `1024x256=0.938`.
+- 本轮 capacity sweep 支持 high-capacity `gd_residual_v1` 很强. `cb256-r16` 仍是当前最强 high-capacity practical configuration: final `valid/accuracy=0.996`, `1024x256=0.980`.
+- `cb256-r4` 是本轮新跑配置中最强: final `valid/accuracy=0.986`, `1024x256=0.938`. 但它仍只是当前单 seed 下本轮新跑配置最强, 不能直接称为稳定最优 rank.
 - 等 GDN dynamic capacity 的两个配置都没有超过新 GDN `use_gate=False` baseline. `cb64-r2` final `valid/accuracy=0.869`, `1024x256=0.464`; `cb128-r1` final `valid/accuracy=0.787`, `1024x256=0.300`.
 - 2x GDN capacity 下, `cb128-r2` 的 hard case `1024x256=0.710` 接近 GDN `use_gate=False` 的 `0.711`, 但 overall `valid/accuracy=0.925` 低于 GDN 的 `0.962`.
-- 因此, 当前更严谨的解释是: 高容量 `gd_residual_v1` 的质量优势成立, 但等动态容量下还不能说 `gd_residual_v1` 优于 GDN.
+- 本轮结果将前一轮 `gd_residual_v1` 优于 GDN 的结论收紧为: high-capacity `gd_residual_v1` 是当前 MQAR 4 epoch 中最强 practical configuration; 但在与 GDN `use_gate=False` 相同的 1x dynamic capacity 下, `gd_residual_v1` 当前配置尚未超过 GDN. 因此, 当前结果不能表述为等动态容量下 `gd_residual_v1` 优于 GDN.
+- 当前优势应解释为 VQ-indexed high-capacity residual memory 的实用效果, 不能单独归因于 recurrence rule 本身.
 
 ## 2. 仓库状态
 
@@ -138,11 +139,13 @@ dynamic capacity 使用本轮讨论口径:
 | `cb128-r2` | `0.925` | `0.710` |
 | `GDN use_gate=False` | `0.962` | `0.711` |
 
-`cb128-r2` 的 hard case 几乎追平 GDN `use_gate=False`, 但 overall accuracy 仍低. 这提示 `rank=2` 的 residual update 比 `rank=1` 更关键, 同时 codebook/routing 分解方式会显著影响结果.
+`cb128-r2` 是 2x GDN dynamic capacity. 它的 hard case `1024x256=0.710`, 几乎追平 GDN `use_gate=False` 的 `0.711`. 但它的 overall `valid/accuracy=0.925`, 仍低于 GDN `use_gate=False` 的 `0.962`.
+
+这说明低容量 `gd_residual_v1` 已经有一定 hard-case long-context recall 潜力, 但整体 slice-level 稳定性仍不足. Hard-case 接近不等于 overall 追平. 后续需要补完整 slice-level analysis, 尤其是 `input_seq_len/*`, `num_kv_pairs/*`, `mqar_case/*`, 判断到底是哪类 slice 拉低 overall accuracy.
 
 ### 6.3 8x capacity 的 cb256-r4 已明显强于新 GDN baseline
 
-`cb256-r4` final `valid/accuracy=0.986`, `1024x256=0.938`, 已明显强于新 GDN `use_gate=False` 的 `0.962 / 0.711`. 这说明 `gd_residual_v1` 不一定需要 32x capacity 才能取得强结果, 但至少本轮 1x/2x 还不足以稳定超过 GDN.
+`cb256-r4` final `valid/accuracy=0.986`, `1024x256=0.938`, 已明显强于新 GDN `use_gate=False` 的 `0.962 / 0.711`. 这说明 `gd_residual_v1` 不一定需要 32x capacity 才能取得强结果, 但至少本轮 1x/2x 还不足以稳定超过 GDN. 当前应将 `cb256-r4` 称为本轮单 seed 下最强新跑配置, 不能称为稳定最优 rank.
 
 ### 6.4 cb256 rank sweep 非单调
 
@@ -156,25 +159,78 @@ dynamic capacity 使用本轮讨论口径:
 | `cb256-r2` | `2` | `0.946` | `0.776` |
 | `cb256-r1` | `1` | `0.864` | `0.492` |
 
-`r4 > r8` 不符合简单容量单调预期. 这可能来自单 seed 波动, 优化稳定性, rank 与 routing/codebook 交互, 或某些 gd metrics 的训练动态差异. 在正式结论前建议复查 SwanLab 曲线, 并至少复跑 `cb256-r4` 和 `cb256-r8` 的一个额外 seed 或复现实验.
+单 seed 下 `cb256-r4` 明显强于 `cb256-r8`. 但在复跑或多 seed 前, 不能直接得出 `rank=4` 稳定优于 `rank=8`.
+
+该非单调可能来自 seed 波动, 优化动态, rank 与 routing/codebook 交互, residual branch 使用强度差异, 或某些 gd metrics 的训练动态差异. 在正式结论前建议复查 SwanLab 曲线, 并至少复跑 `cb256-r4` 和 `cb256-r8` 的一个额外 seed 或复现实验.
+
+### 6.5 两类 ablation 要分开解释
+
+A. 固定 `cb=256` 的 rank sweep:
+
+- 主要看 residual matrix rank/capacity 对质量的影响.
+- 但当前 `r4 > r8` 非单调, 需要复跑或多 seed 后才能判断是否稳定.
+
+B. 固定 dynamic capacity 的 `cb/rank` 分解对照:
+
+- 这不是纯容量实验.
+- `cb` 改变 VQ codebook/routing 粒度.
+- `rank` 改变每个 code slot 的 residual correction 表达能力.
+- 当前低容量下 `rank=2` 明显强于 `rank=1`.
+
+| dynamic capacity | rank=2 config | result | rank=1 config | result |
+|---:|---|---|---|---|
+| `32,768` | `cb128-r2` | `0.925 / 0.710` | `cb256-r1` | `0.864 / 0.492` |
+| `16,384` | `cb64-r2` | `0.869 / 0.464` | `cb128-r1` | `0.787 / 0.300` |
+
+这提示低容量 `gd_residual_v1` 的瓶颈不只是 codebook slots, rank 表达能力也很关键.
 
 ## 7. Fairness 结论更新
 
-前一轮可以说:
+### 7.1 Practical result
 
-> 在相近 trainable parameter 数量, 相同训练预算和同一任务下, 高容量 `gd_residual_v1 cb256-r16` 明显优于新补跑 GDN baselines.
+- `cb256-r16` / `cb256-r4` 等较高容量 `gd_residual_v1` 配置在 MQAR 上显著强于 GDN baseline.
+- `cb256-r16` 是当前最强结果: `valid/accuracy=0.996`, `1024x256=0.980`.
+- `cb256-r4` 在 8x GDN capacity 下已经明显超过 GDN `use_gate=False`: `valid/accuracy=0.986` vs `0.962`, `1024x256=0.938` vs `0.711`.
 
-本轮之后应补充:
+因此, 前一轮可以收紧为:
 
-> 该优势依赖更大的 dynamic residual matrix capacity. 当 dynamic capacity 降到 GDN 1x 时, `gd_residual_v1` 没有超过 GDN `use_gate=False`; 当 capacity 提升到 8x 时, `cb256-r4` 已明显超过新 GDN baseline.
+> 在相近 trainable parameter 数量, 相同训练预算和同一任务下, high-capacity `gd_residual_v1` practical configurations 明显优于新补跑 GDN baselines.
+
+### 7.2 Equal-capacity result
+
+- 在 1x GDN dynamic capacity 下, `cb64-r2` 和 `cb128-r1` 均没有超过 GDN `use_gate=False`.
+- `cb64-r2`: `valid/accuracy=0.869`, `1024x256=0.464`.
+- `cb128-r1`: `valid/accuracy=0.787`, `1024x256=0.300`.
+- GDN `use_gate=False`: `valid/accuracy=0.962`, `1024x256=0.711`.
+
+因此, 本轮不支持把结果解释成:
+
+> 在相同 1x dynamic capacity budget 下, `gd_residual_v1` 已经胜过 GDN.
+
+更严谨的 caveat 是:
+
+> 当前优势依赖更大的 dynamic residual matrix capacity. 当 dynamic capacity 降到 GDN 1x 时, `gd_residual_v1` 没有超过 GDN `use_gate=False`; 当 capacity 提升到 8x 时, `cb256-r4` 已明显超过新 GDN baseline.
 
 不应表述为:
 
-> `gd_residual_v1` 在等动态容量下已经优于 GDN.
+- 在 equal dynamic capacity budget 下, `gd_residual_v1` 已经胜过 GDN.
+- 优势可以单独归因到 recurrence update rule.
+- dynamic capacity caveat 不影响当前结论.
 
 更严谨的当前结论:
 
 > `gd_residual_v1` 的 high-capacity variant 是当前 MQAR official 4 epoch 中最强模型; 但结构优势与动态容量优势尚未完全解耦. 本轮 capacity sweep 强化了 dynamic capacity caveat, 同时显示 `rank` 和 `codebook slots` 的分解方式本身也会影响质量.
+
+### 7.3 cb128-r2 的 fairness 含义
+
+`cb128-r2` 是 2x GDN dynamic capacity. 它在 hard case 上几乎追平 GDN `use_gate=False`, 但 overall accuracy 仍低:
+
+| model/config | dynamic capacity | valid/accuracy | 1024x256 acc |
+|---|---:|---:|---:|
+| `cb128-r2` | `32,768` | `0.925` | `0.710` |
+| `GDN use_gate=False` | `16,384` | `0.962` | `0.711` |
+
+这说明低容量 `gd_residual_v1` 可能已经具备 long-context hard-case recall 潜力, 但 slice-level 稳定性仍不足. 不能把 hard-case 接近解释成 overall 追平, 更不能解释成等容量下已经优于 GDN.
 
 ## 8. Artifacts
 
@@ -199,10 +255,15 @@ dynamic capacity 使用本轮讨论口径:
 
 建议优先级:
 
-1. 复查 `cb256-r8` 为什么明显弱于 `cb256-r4`. 最小动作是复跑 `cb256-r4` 与 `cb256-r8` 各一个新 seed, 或复跑同 seed 确认稳定性.
-2. 若目标是公平对比 GDN, 重点比较 `GDN use_gate=False` vs `cb64-r2`, `cb128-r1`, `cb128-r2`, `cb256-r2`. 当前看 1x GDN 更强, 2x gd 接近 hard case, 4x gd hard case 超过 GDN.
-3. 若目标是寻找高质量低容量 gd_residual_v1, 可以围绕 `cb256-r4` 做局部搜索: `rank=3/4/5/6`, 或固定 `rank=4` 改 `cb=128/192/256`.
-4. 若目标是机制归因, 建议区分两条线:
-   - 固定 `cb=256`, 改 `rank`, 观察 residual matrix rank/capacity.
-   - 固定 dynamic capacity, 对比不同 `cb/rank` 分解, 观察 VQ routing/codebook slots 与 rank 的交互.
+1. 第一优先: 复跑 `cb256-r4` 和 `cb256-r8`, 至少加一个新 seed, 判断 `r4 > r8` 是否稳定. 推荐先用 `seed/data_seed=124/124`; 如果时间允许, 再加 `125/125`.
+2. 第二优先: 补完整 slice-level artifact / table:
+   - `input_seq_len/*`
+   - `num_kv_pairs/*`
+   - `mqar_case/*`
+   重点解释 `cb128-r2` 为什么 hard case 接近 GDN, 但 overall accuracy 仍低.
+3. 第三优先: 如果 `r4` 稳定强, 再围绕 `cb256` 做 `rank=3/4/5/6` 局部搜索.
+4. 第四优先: 如果要继续 fairness, 再做 GDN capacity-up ablation. `event_pack` runtime 优化暂不优先, 因为当前主要问题是质量归因和公平性, 不是 runtime.
 
+## 10. 可引用最终结论
+
+本轮 capacity sweep 表明, high-capacity `gd_residual_v1` 是当前最强 practical configuration: `cb256-r16` 在 official 4 epoch noearly MQAR 口径下达到 `valid/accuracy=0.996`, hard case `1024x256=0.980`. 与此同时, sweep 也强化了 dynamic capacity caveat: 当 `gd_residual_v1` 的 dynamic residual matrix capacity 降到与 GDN `use_gate=False` 相同的 1x 水平时, `cb64-r2` 和 `cb128-r1` 均未超过 GDN. 因此, 当前结果应解释为 VQ-indexed high-capacity residual memory 的实用优势, 而不能表述为 `gd_residual_v1` 在等动态容量下已经优于 GDN. 2x capacity 的 `cb128-r2` 在 hard case 上几乎追平 GDN, 但 overall accuracy 仍低, 说明低容量 `gd_residual_v1` 具有 hard-case recall 潜力但整体 slice-level 稳定性不足. 后续应优先复跑 `cb256-r4/r8` 并补充 slice-level 分析, 再考虑 rank 局部搜索和 GDN capacity-up fairness 实验.
