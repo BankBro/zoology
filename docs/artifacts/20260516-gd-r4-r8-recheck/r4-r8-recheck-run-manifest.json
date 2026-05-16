@@ -1,0 +1,98 @@
+{
+  "experiment": "20260516-gd-r4-r8-recheck",
+  "purpose": "Re-run cb256-r4 and cb256-r8 with SEED_VALUES=124, DATA_SEED=123 to test whether r4 > r8 non-monotonicity is stable.",
+  "git": {
+    "zoology_branch": "flash-vqg",
+    "zoology_commit": "c9741c307709fb17c90b2e59e5736380d2f1e072",
+    "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+    "flash_vqg_commit": "811e1ce5f140e97d93ad6f1adae07b95b4219143"
+  },
+  "correctness": {
+    "flash_vqg_pytest_tests_test_fox_gd_residual_v1": "17 passed",
+    "flash_vqg_pytest_tests_test_attn_fox_compat": "5 passed"
+  },
+  "common_config": {
+    "max_epochs": 4,
+    "train_batch_size": 64,
+    "eval_batch_size": 16,
+    "gradient_accumulation_steps": 4,
+    "seed_values": 124,
+    "data_seed": 123,
+    "dmodel": 128,
+    "lr": 0.001,
+    "validations_per_epoch": 2,
+    "early_stopping": "disabled",
+    "fox_remote_formula": "gd_residual_v1",
+    "fox_remote_read_topk": 2,
+    "fox_gd_residual_write_topk": 4,
+    "fox_gd_residual_builder": "grouped_chunk_torch_ref",
+    "fox_gd_residual_pack_mode": "semivec_ref",
+    "fox_gd_residual_chunk_size": 64,
+    "fox_gd_residual_mu_min_count": 0.1,
+    "num_codebook_vectors": 256,
+    "vq_score_mode": "codebook_dot",
+    "vq_weight_mode": "dense_softmax",
+    "vq_update_mode": "grad",
+    "vq_softmax_tau": 0.25,
+    "vq_topk": 4
+  },
+  "runs": [
+    {
+      "config": "cb256-r4-s124",
+      "run_id": "gd-r4-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r4r8-recheck",
+      "rank": 4,
+      "gpu": 0,
+      "status": "completed",
+      "validation_count": 8,
+      "elapsed_sec": 17675,
+      "wall_clock": "04:54:35",
+      "swanlab_run_id": "gkfh5gwq52kkjvncyhunj",
+      "swanlab_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/gkfh5gwq52kkjvncyhunj",
+      "swanlab_run_dir": "swanlog/run-20260516_165704-gkfh5gwq52kkjvncyhunj",
+      "local_log": "/home/lyj/mnt/project/zoology/tmp/20260516-gd-r4-r8-recheck-logs/r4-s124-gpu0.log",
+      "started_utc": "2026-05-16T16:56:56Z",
+      "ended_utc": "2026-05-16T21:51:31Z",
+      "exit_code": "0",
+      "early_stopping_metric": null,
+      "early_stopping_threshold": null,
+      "seed": 124,
+      "data_seed": 123,
+      "metadata_git_info": [
+        "flash-vqg",
+        "c9741c307709fb17c90b2e59e5736380d2f1e072"
+      ]
+    },
+    {
+      "config": "cb256-r8-s124",
+      "run_id": "gd-r8-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r4r8-recheck",
+      "rank": 8,
+      "gpu": 1,
+      "status": "completed",
+      "validation_count": 8,
+      "elapsed_sec": 18185,
+      "wall_clock": "05:03:05",
+      "swanlab_run_id": "pa3wpsjh1x65ah502qwn0",
+      "swanlab_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gd_residual_v1_mqar/runs/pa3wpsjh1x65ah502qwn0",
+      "swanlab_run_dir": "swanlog/run-20260516_165704-pa3wpsjh1x65ah502qwn0",
+      "local_log": "/home/lyj/mnt/project/zoology/tmp/20260516-gd-r4-r8-recheck-logs/r8-s124-gpu1.log",
+      "started_utc": "2026-05-16T16:56:56Z",
+      "ended_utc": "2026-05-16T22:00:01Z",
+      "exit_code": "0",
+      "early_stopping_metric": null,
+      "early_stopping_threshold": null,
+      "seed": 124,
+      "data_seed": 123,
+      "metadata_git_info": [
+        "flash-vqg",
+        "c9741c307709fb17c90b2e59e5736380d2f1e072"
+      ]
+    }
+  ],
+  "artifacts": [
+    "r4-r8-recheck-final.csv",
+    "r4-r8-recheck-epoch-end-valid.csv",
+    "r4-r8-recheck-validation-history.csv",
+    "r4-r8-recheck-slice-level.csv",
+    "r4-r8-recheck-run-manifest.json"
+  ]
+}
