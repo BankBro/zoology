@@ -18,8 +18,9 @@
 - seed124 final:
   - `cb256-r4`: `valid/loss=0.341568`, `valid/accuracy=0.949452`, `1024x256=0.687289`
   - `cb256-r8`: `valid/loss=0.0773385`, `valid/accuracy=0.992765`, `1024x256=0.965027`
-- 这次复核不支持把 `cb256-r4` 作为稳定强于 `cb256-r8` 的低容量高性价比主线.
-- 更严谨的当前判断是: seed123 的 `r4 > r8` 很可能包含 seed/优化动态波动. 至少在当前两个 seed 证据下, `rank=4` 和 `rank=8` 的相对优劣不稳定, 不能称为稳定 rank optimum.
+- 这次复核足以否定 “`cb256-r4` 稳定优于 `cb256-r8`” 的说法, 但还不足以反过来证明 “`cb256-r8` 稳定优于 `cb256-r4`”.
+- 更严谨的当前判断是: `cb256` rank sweep 存在明显 seed / optimization dynamic 波动. 至少在当前两个 seed 证据下, `rank=4` 和 `rank=8` 的相对优劣不稳定, 不能称为稳定 rank optimum.
+- 当前不能把 `cb256-r4` 单独作为低容量高性价比主线, 也不能马上把 `cb256-r8` 定为新主线. 下一步应优先补第三个 paired seed.
 - slice-level 上, seed124 的 r8 优势与 overall accuracy 一致. r8 不只是 hard case 更强, 在 `1024x256`, `512x128`, `512x64`, `num_kv_pairs=128/256`, `input_seq_len=512/1024` 等较难 slice 上都明显优于 r4.
 
 ## 2. 仓库状态与测试
@@ -133,6 +134,8 @@ seed124 下, `cb256-r8` 在 overall, hard case 和 loss 上都明显优于 `cb25
 - 当前最合理解释是 `cb256-r4 > cb256-r8` 属于单 seed 非单调现象, 可能来自 seed 波动, 优化动态, rank 与 routing/codebook 的交互, 或 residual branch 使用强度差异.
 - 不能根据 seed123 单点把 r4 称为稳定最优 rank; 也不能仅根据 seed124 单点把 r8 称为稳定最优 rank. 但这次复核已经足以否定 “r4 稳定强于 r8” 的表述.
 
+更具体地说, 本次固定 `DATA_SEED=123`, 只把 `SEED_VALUES` 从 `123` 换到 `124`. 因此, r4/r8 方向反转更像是模型初始化 seed 和 optimization path 的敏感性, 而不是数据采样差异. 这也提示 rank 与 VQ routing/codebook 以及 residual branch 使用强度之间存在交互, 不能把 seed123 的非单调现象直接当成稳定规律.
+
 ## 7. Slice-Level 差异
 
 ### 7.1 mqar_case
@@ -232,19 +235,37 @@ Final validation:
 
 4. 当前应如何调整主线?
    - `cb256-r16` 仍是当前最强 high-capacity practical anchor.
-   - `cb256-r4` 不能单独作为稳定低容量高性价比主线.
-   - `cb256-r8` 在 seed124 下表现非常强, 值得与 r4 一起继续复核.
+   - `cb256-r4` 是 seed123 下表现很强、值得继续复核的低容量候选, 但 seed124 未复现该优势, 暂不能作为稳定 low-capacity main candidate.
+   - `cb256-r8` 在 seed124 下表现非常强, 是值得重点复核的中高容量候选, 但还不能定为稳定新主线.
+
+当前主线定位:
+
+| config | 当前定位 |
+|---|---|
+| `cb256-r16` | 当前最强 high-capacity practical anchor, 用于展示 `gd_residual_v1` 的最佳实用性能. |
+| `cb256-r8` | seed124 下非常强的中高容量候选, 但还需要 seed125 验证. |
+| `cb256-r4` | seed123 下强、seed124 下未复现的低容量候选, 暂不能称为稳定高性价比主线. |
+
+必须保留的 caveats:
+
+1. 两个 seed 还不够. seed123 和 seed124 方向相反, 当前只能否定 “r4 稳定强于 r8”, 不能证明 “r8 稳定强于 r4”.
+2. `DATA_SEED` 仍固定为 `123`. 本次主要说明 model seed / initialization / optimization path 敏感, 还没有覆盖数据采样变化.
+3. r8 的 dynamic capacity 是 r4 的 2 倍. r8 在 seed124 更强, 可能部分来自更大 dynamic capacity, 不能解释成 rank 结构本身稳定更优.
+4. 这次 recheck 不能改变 fairness 结论. r4/r8 分别是 8x 和 16x GDN dynamic capacity, 不能用来证明 equal-capacity 下优于 GDN.
+5. gd residual metrics 和 VQ metrics 只是支持性证据. r8 的指标更健康, 但还不能单独证明 rank=8 的机制稳定更好.
 
 建议下一步:
 
-1. 优先再补 `seed/data_seed=125/123` 或 `125/125` 的 `cb256-r4` 与 `cb256-r8` paired recheck, 让 r4/r8 至少有 3 个 seed 方向.
-2. 如果资源有限, 先跑 `seed=125, data_seed=123`, 因为本次已经固定 data_seed=123, 可以更聚焦看 model seed/optimization 波动.
-3. 在有 3 seed 前, 不启动 rank=3/4/5/6 局部搜索作为主线; 否则容易围绕一个不稳定局部现象过拟合实验设计.
-4. 保留本次 slice-level artifacts, 后续把 seed123/124/125 的 slice-level 差异合并, 判断 r4/r8 分歧是否集中在 `1024x256` 与 `512x128`.
+1. 第一优先: 继续保持 `DATA_SEED=123`, 补 `SEED_VALUES=125` 的 `cb256-r4` 与 `cb256-r8` paired recheck.
+2. 如果 seed125 中 r8 再次明显强于 r4, r8 才更可能成为稳定强候选, 后续可以考虑 r6/r8/r10 或多 seed.
+3. 如果 seed125 中 r4 再次明显强于 r8, 说明 r4/r8 高度 seed-sensitive, 应报告 mean/std, 不做单点主线.
+4. 如果 seed125 中 r4/r8 接近, 再进入 `rank=3/4/5/6` 局部搜索并做多 seed.
+5. 在第三个 paired seed 前, 不启动 `rank=3/4/5/6` 局部搜索作为主线, 不急于改 `cb`, 不优先 event_pack, 也不优先扩 GDN. 当前最需要的是把 r4/r8 seed 敏感性确认清楚.
+6. 保留本次 slice-level artifacts, 后续把 seed123/124/125 的 slice-level 差异合并, 判断 r4/r8 分歧是否集中在 `1024x256` 与 `512x128`.
 
 可引用结论:
 
-> 本次 `cb256-r4` vs `cb256-r8` seed124 paired recheck 表明, 前一轮 seed123 中的 `r4 > r8` 非单调现象不稳定. 在相同 official noearly4ep 配置, 相同 `DATA_SEED=123`, 仅改变 `SEED_VALUES=124` 的复核中, `cb256-r8` final `valid/accuracy=0.992765`, `1024x256=0.965027`, 明显优于 `cb256-r4` 的 `0.949452 / 0.687289`. 因此当前不能把 `rank=4` 称为稳定最优 rank, 也不能把 `cb256-r4` 单独作为低容量高性价比主线. 更合理的结论是 `cb256` rank sweep 存在明显 seed/优化动态波动, 后续应补第三个 paired seed 后再决定是否围绕 r4/r8 或 rank=3/4/5/6 做局部搜索.
+> 本次 `cb256-r4` vs `cb256-r8` seed124 paired recheck 足以否定 “`cb256-r4` 稳定优于 `cb256-r8`” 的说法, 但还不足以反过来证明 “`cb256-r8` 稳定优于 `cb256-r4`”. 在相同 official noearly4ep 配置, 相同 `DATA_SEED=123`, 仅改变 `SEED_VALUES=124` 的复核中, `cb256-r8` final `valid/accuracy=0.992765`, `1024x256=0.965027`, 明显优于 `cb256-r4` 的 `0.949452 / 0.687289`, 且优势主要来自 hard long-context slices. 更合理的结论是 `cb256` rank sweep 存在明显 seed / optimization dynamic 波动. 当前不能把 `rank=4` 称为稳定最优 rank, 也不能把 `cb256-r8` 立即定为稳定新主线; 后续应先补第三个 paired seed, 再决定是否围绕 r4/r8 或 rank=3/4/5/6 做局部搜索.
 
 ## 11. Artifacts
 

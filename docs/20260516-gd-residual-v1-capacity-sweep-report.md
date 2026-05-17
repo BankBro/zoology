@@ -253,17 +253,24 @@ B. 固定 dynamic capacity 的 `cb/rank` 分解对照:
 
 ## 9. 下一步建议
 
+2026-05-16 追加状态:
+
+- 已完成 `cb256-r4` vs `cb256-r8` 的 seed124 paired recheck, 见 `docs/20260516-gd-residual-v1-r4-r8-recheck-report.md`.
+- 复核结果方向与 seed123 相反: seed124 下 `cb256-r8` final `valid/accuracy=0.992765`, `1024x256=0.965027`, 明显强于 `cb256-r4` 的 `0.949452 / 0.687289`.
+- 因此, seed124 recheck 足以否定 “`cb256-r4` 稳定优于 `cb256-r8`”, 但还不足以证明 “`cb256-r8` 稳定优于 `cb256-r4`”.
+- 下面的下一步建议应更新为: 先补第三个 paired seed, 再决定是否做 rank 局部搜索.
+
 建议优先级:
 
-1. 第一优先: 复跑 `cb256-r4` 和 `cb256-r8`, 至少加一个新 seed, 判断 `r4 > r8` 是否稳定. 推荐先用 `seed/data_seed=124/124`; 如果时间允许, 再加 `125/125`.
+1. 第一优先: 继续保持 `DATA_SEED=123`, 补 `SEED_VALUES=125` 的 `cb256-r4` 与 `cb256-r8` paired recheck. 目标不是证明 r8 稳定最优, 而是判断 r4/r8 相对优劣是否高度 seed-sensitive.
 2. 第二优先: 补完整 slice-level artifact / table:
    - `input_seq_len/*`
    - `num_kv_pairs/*`
    - `mqar_case/*`
    重点解释 `cb128-r2` 为什么 hard case 接近 GDN, 但 overall accuracy 仍低.
-3. 第三优先: 如果 `r4` 稳定强, 再围绕 `cb256` 做 `rank=3/4/5/6` 局部搜索.
+3. 第三优先: 如果 seed125 后 r4/r8 仍有稳定方向或二者接近, 再围绕 `cb256` 做 `rank=3/4/5/6` 局部搜索. 在第三个 paired seed 前, 不建议先铺 rank search.
 4. 第四优先: 如果要继续 fairness, 再做 GDN capacity-up ablation. `event_pack` runtime 优化暂不优先, 因为当前主要问题是质量归因和公平性, 不是 runtime.
 
 ## 10. 可引用最终结论
 
-本轮 capacity sweep 表明, high-capacity `gd_residual_v1` 是当前最强 practical configuration: `cb256-r16` 在 official 4 epoch noearly MQAR 口径下达到 `valid/accuracy=0.996`, hard case `1024x256=0.980`. 与此同时, sweep 也强化了 dynamic capacity caveat: 当 `gd_residual_v1` 的 dynamic residual matrix capacity 降到与 GDN `use_gate=False` 相同的 1x 水平时, `cb64-r2` 和 `cb128-r1` 均未超过 GDN. 因此, 当前结果应解释为 VQ-indexed high-capacity residual memory 的实用优势, 而不能表述为 `gd_residual_v1` 在等动态容量下已经优于 GDN. 2x capacity 的 `cb128-r2` 在 hard case 上几乎追平 GDN, 但 overall accuracy 仍低, 说明低容量 `gd_residual_v1` 具有 hard-case recall 潜力但整体 slice-level 稳定性不足. 后续应优先复跑 `cb256-r4/r8` 并补充 slice-level 分析, 再考虑 rank 局部搜索和 GDN capacity-up fairness 实验.
+本轮 capacity sweep 表明, high-capacity `gd_residual_v1` 是当前最强 practical configuration: `cb256-r16` 在 official 4 epoch noearly MQAR 口径下达到 `valid/accuracy=0.996`, hard case `1024x256=0.980`. 与此同时, sweep 也强化了 dynamic capacity caveat: 当 `gd_residual_v1` 的 dynamic residual matrix capacity 降到与 GDN `use_gate=False` 相同的 1x 水平时, `cb64-r2` 和 `cb128-r1` 均未超过 GDN. 因此, 当前结果应解释为 VQ-indexed high-capacity residual memory 的实用优势, 而不能表述为 `gd_residual_v1` 在等动态容量下已经优于 GDN. 2x capacity 的 `cb128-r2` 在 hard case 上几乎追平 GDN, 但 overall accuracy 仍低, 说明低容量 `gd_residual_v1` 具有 hard-case recall 潜力但整体 slice-level 稳定性不足. 后续 seed124 paired recheck 已经否定 “`cb256-r4` 稳定优于 `cb256-r8`”, 但尚未证明 “`cb256-r8` 稳定优于 `cb256-r4`”. 因此, rank 方向应先补第三个 paired seed, 再考虑 rank 局部搜索和 GDN capacity-up fairness 实验.
