@@ -286,3 +286,36 @@ Final validation:
 - data cache
 - profiler trace
 - `__pycache__`
+
+## 12. 下一步修正: GPU assignment confound check
+
+本节修正 `## 10. 结论与下一步` 中的实验顺序. 在继续 seed125 paired recheck 前, 应先补 seed124 的 cross-GPU check.
+
+原因是 seed124 paired recheck 中存在潜在 GPU assignment confound:
+
+- `cb256-r4-s124` 跑在 GPU0.
+- `cb256-r8-s124` 跑在 GPU1.
+
+结合 seed123 capacity sweep 中强配置也曾跑在 GPU1 的现象, 当前不能完全排除 GPU assignment, runtime nondeterminism, 或环境差异对 r4/r8 结果的影响. 因此, 在继续 seed125 paired recheck 或 `rank=3/4/5/6` 局部搜索前, 下一步应先做 seed124 cross-GPU check:
+
+- 在 GPU1 上补跑 `cb256-r4-s124-d123`.
+- 在 GPU0 上补跑 `cb256-r8-s124-d123`.
+
+形成 2x2 对照:
+
+| config | GPU0 | GPU1 |
+|---|---|---|
+| `cb256-r4-s124` | 已完成 | 待补跑 |
+| `cb256-r8-s124` | 待补跑 | 已完成 |
+
+判断标准:
+
+- 如果 r8 在 GPU0 仍强, 且 r4 在 GPU1 仍弱, 则 seed124 下 r8 的优势基本不是 GPU assignment 导致, 可以继续 seed125 paired recheck.
+- 如果结果随 GPU 改变明显, 则应先排查 GPU / 环境 / 非确定性, 暂停 rank 局部搜索.
+
+因此, 当前更新后的下一步优先级是:
+
+1. 第一优先: seed124 cross-GPU check, 即 `r4 -> GPU1`, `r8 -> GPU0`.
+2. 第二优先: 若 cross-GPU check 排除 GPU assignment confound, 再跑 seed125 paired recheck.
+3. 第三优先: 等第三个 paired seed 后, 再决定是否做 `rank=3/4/5/6` 局部搜索.
+4. 暂不优先 event_pack 优化, `rank=3/4/5/6` 搜索, 或 GDN capacity-up. 当前主要问题是 r4/r8 质量归因和 confound 排除, 不是 runtime 或新的 fairness ablation.
