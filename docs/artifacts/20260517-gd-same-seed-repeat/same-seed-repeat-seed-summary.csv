@@ -1,0 +1,4 @@
+seed,data_seed,r4_loss,r4_accuracy,r4_1024x256,r4_source,r8_loss,r8_accuracy,r8_1024x256,r8_source,r8_repeat_loss,r8_repeat_accuracy,r8_repeat_1024x256,r8_repeat_source,r16_loss,r16_accuracy,r16_1024x256,r16_source,r16_repeat_loss,r16_repeat_accuracy,r16_repeat_1024x256,r16_repeat_source,summary
+123,123,0.0961,0.986,0.938,capacity_sweep,0.280,0.957,0.737,capacity_sweep,,,,,0.067216,0.996206,0.980313,noearly4ep_anchor,,,,,r4_over_r8_in_capacity_sweep_r16_strong
+124,123,0.341568,0.949452,0.687289,r4_r8_recheck_gpu0,0.0773385,0.992765,0.965027,r4_r8_recheck_gpu1,,,,,0.167113,0.980533,0.876508,r16_robustness_gpu0,0.196372,0.975897,0.846438,same_gpu_repeat_gpu0,r8_over_r4_r16_hard_slice_weak_repeat_remains_weak
+125,123,0.285444,0.950878,0.739074,r4_r8_seed125_gpu0,0.046001,0.996053,0.982844,r4_r8_seed125_gpu1,0.047221,0.995818,0.981223,same_gpu_repeat_gpu1,0.049594,0.996914,0.985176,r16_robustness_gpu1,,,,r8_over_r4_r8_repeat_stable_r16_strong

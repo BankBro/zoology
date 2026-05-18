@@ -14,6 +14,7 @@ Artifacts:
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-validation-history.csv`
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-slice-level.csv`
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-run-manifest.json`
+- `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-seed-summary.csv`
 
 ## 1. Scope and gate
 
@@ -61,7 +62,24 @@ Drift rule:
 - moderate: overall difference in 0.005-0.015 or 1024x256 difference in 0.03-0.08.
 - high: overall difference > 0.015 or 1024x256 difference > 0.08.
 
-## 5. Final key slices
+## 5. Seed 123/124/125 summary
+
+Each cell is `valid/loss / valid/accuracy / 1024x256`.
+
+| seed | r4 original | r8 original | r8 repeat | r16 original | r16 repeat | summary |
+| --- | --- | --- | --- | --- | --- | --- |
+| 123 | 0.0961 / 0.986 / 0.938 | 0.280 / 0.957 / 0.737 | - | 0.067216 / 0.996206 / 0.980313 | - | capacity sweep 中 r4 > r8, r16 是强 anchor |
+| 124 | 0.341568 / 0.949452 / 0.687289 | 0.0773385 / 0.992765 / 0.965027 | - | 0.167113 / 0.980533 / 0.876508 | 0.196372 / 0.975897 / 0.846438 | r8 > r4, r16 hard slice 弱且 repeat 仍弱 |
+| 125 | 0.285444 / 0.950878 / 0.739074 | 0.046001 / 0.996053 / 0.982844 | 0.047221 / 0.995818 / 0.981223 | 0.049594 / 0.996914 / 0.985176 | - | r8 > r4, r8 repeat 稳定, r16 强 |
+
+Notes:
+
+- seed123 r4/r8 values come from the capacity sweep artifact, where these values are recorded at report precision.
+- seed124 main row uses the original paired GPU assignment. The separate cross-GPU check also kept `r8 > r4`: r4 GPU1 `0.955799 / 0.730594`, r8 GPU0 `0.982824 / 0.898813`.
+- r8 is supported by seed124/125 and the seed125 same-GPU repeat, but seed123 still prevents claiming a fully seed-invariant rank law.
+- r16 remains the high-capacity practical anchor, with an explicit seed124 hard-slice caveat.
+
+## 6. Final key slices
 
 | config | slice | accuracy |
 | --- | --- | --- |
@@ -82,7 +100,7 @@ Drift rule:
 | cb256-r16-s124-d123-repeat | 64x8 | 0.999875 |
 | cb256-r16-s124-d123-repeat | 64x4 | 0.999750 |
 
-## 6. Interpretation
+## 7. Interpretation
 
 - `cb256-r8-s125` original final: `valid/loss=0.046001`, `valid/accuracy=0.996053`, `1024x256=0.982844`.
 - `cb256-r8-s125` repeat final: `valid/loss=0.047221`, `valid/accuracy=0.995818`, `1024x256=0.981223`.
