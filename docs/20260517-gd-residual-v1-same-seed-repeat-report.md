@@ -15,6 +15,7 @@ Artifacts:
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-slice-level.csv`
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-run-manifest.json`
 - `docs/artifacts/20260517-gd-same-seed-repeat/same-seed-repeat-seed-summary.csv`
+- `docs/artifacts/20260517-gd-same-seed-repeat/rank-seed-effect-summary.csv`
 
 ## 1. Scope and gate
 
@@ -78,6 +79,7 @@ Notes:
 - seed124 main row uses the original paired GPU assignment. The separate cross-GPU check also kept `r8 > r4`: r4 GPU1 `0.955799 / 0.730594`, r8 GPU0 `0.982824 / 0.898813`.
 - r8 is supported by seed124/125 and the seed125 same-GPU repeat, but seed123 still prevents claiming a fully seed-invariant rank law.
 - r16 remains the high-capacity practical anchor, with an explicit seed124 hard-slice caveat.
+- The run-level record table is `rank-seed-effect-summary.csv`. It is epoch4-final-only, one complete training run per row, and keeps `num_codebook_vectors`, `replicate_id`, `run_type`, `gpu`, `run_id`, `configured_max_epochs`, and `checkpoint_label` so future repeats or epoch32 runs can be appended without overwriting earlier rows.
 
 ## 6. Final key slices
 
