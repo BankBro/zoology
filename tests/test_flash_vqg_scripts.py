@@ -118,6 +118,7 @@ def _build_e2_args() -> Namespace:
         project="flash_vqg_clr_v1_mainline",
         entity="scu-mclab",
         max_epochs=32,
+        disable_early_stopping="false",
         metrics_white_list=None,
         metrics_white_list_file=str(
             Path(
@@ -363,6 +364,8 @@ def test_gd_residual_builder_returns_expected_smoke_and_train_configs():
     assert smoke_kwargs["experiment_part"] == "gd_residual_v1_mqar"
     assert smoke_kwargs["experiment_mode"] == "smoke"
     assert train_kwargs["experiment_mode"] == "train"
+    assert train_configs[0].early_stopping_metric == "valid/accuracy"
+    assert train_configs[0].early_stopping_threshold == 0.99
 
     smoke_train_examples = [segment.num_examples for segment in smoke_configs[0].data.train_configs]
     train_train_examples = [segment.num_examples for segment in train_configs[0].data.train_configs]
@@ -375,6 +378,17 @@ def test_gd_residual_builder_returns_expected_smoke_and_train_configs():
     assert train_test_examples == [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
     assert smoke_configs[0].data.batch_size == (16, 1)
     assert train_configs[0].data.batch_size == (16, 8)
+
+
+def test_gd_residual_builder_can_disable_early_stopping():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.disable_early_stopping = "true"
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+
+    assert configs[0].early_stopping_metric is None
+    assert configs[0].early_stopping_threshold is None
 
 
 def test_gd_residual_builder_supports_dense_read_topk():
@@ -555,6 +569,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "PROJECT=\"${PROJECT:-flash_vqg_gd_residual_v1_mqar}\"" in common_env
     assert "SWANLAB_MODE=\"${SWANLAB_MODE:-cloud}\"" in common_env
     assert "FOX_REMOTE_READ_TOPK=\"${FOX_REMOTE_READ_TOPK:-2}\"" in common_env
+    assert "DISABLE_EARLY_STOPPING=\"${DISABLE_EARLY_STOPPING:-false}\"" in common_env
     assert "LAUNCH_ID_PREFIX_SMOKE" in common_env
     assert "LAUNCH_ID_PREFIX_TRAIN" in common_env
     assert "LAUNCH_ID_PREFIX_PROFILE" in common_env
@@ -562,6 +577,8 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "--config-builder \"${BUILDER_SPEC}\"" in train
     assert "--fox-remote-read-topk-values \"${FOX_REMOTE_READ_TOPK}\"" in smoke
     assert "--fox-remote-read-topk-values \"${FOX_REMOTE_READ_TOPK}\"" in train
+    assert "--disable-early-stopping \"${DISABLE_EARLY_STOPPING}\"" in smoke
+    assert "--disable-early-stopping \"${DISABLE_EARLY_STOPPING}\"" in train
     assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in smoke
     assert "--fox-gd-residual-lambda-init \"${FOX_GD_RESIDUAL_LAMBDA_INIT}\"" in train
     assert "PROFILE_ENABLE_TORCH_PROFILER" in profile
@@ -597,6 +614,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "`PROFILE_ENABLE_GD_DIAGNOSTICS`: 默认 `0`" in readme
     assert "SHORT_RUN_VALID_EVERY" in readme
     assert "FOX_GD_RESIDUAL_MU_MIN_COUNT" in readme
+    assert "DISABLE_EARLY_STOPPING" in readme
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
     assert "attn/gd_residual_debug_avg_events_per_group" in metrics_yaml

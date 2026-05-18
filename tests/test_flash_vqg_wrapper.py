@@ -17,6 +17,7 @@ from zoology.experiments.flash_vqg.run_flash_vqg_suite import (
     _build_eval_run_id,
     _builder_args_dict,
     _load_config_builder,
+    _parse_bool_flag,
     _parse_codebook_vectors_map,
     _parse_csv_ints,
     _parse_paired_block_local,
@@ -54,6 +55,11 @@ def test_parse_paired_block_local_supports_zip_scan_values():
 
 def test_parse_remote_read_topk_values_supports_dense_and_sparse_modes():
     assert _parse_remote_read_topk_values("dense,2,4") == [None, 2, 4]
+
+
+def test_parse_bool_flag_accepts_common_boolean_values():
+    assert _parse_bool_flag("true", field_name="demo") is True
+    assert _parse_bool_flag("0", field_name="demo") is False
 
 
 def test_build_eval_run_id_prefixes_checkpoint_run_id():
@@ -165,6 +171,8 @@ def test_render_generated_config_writes_block_len_values_scan():
     assert "metrics_white_list=['valid/accuracy', 'valid/mqar_case/*']" in rendered
     assert "fox_remote_formula='legacy'" in rendered
     assert "fox_clr_remat_mode='off'" in rendered
+    assert "early_stopping_metric='valid/accuracy'" in rendered
+    assert "early_stopping_threshold=0.99" in rendered
 
 
 def test_render_generated_config_writes_paired_block_local_scan():
@@ -414,6 +422,25 @@ def test_build_configs_sweeps_num_codebook_vectors_values():
         "flash_vqg_h2_accel-block32-dmodel128-cb256-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
         "flash_vqg_h2_accel-block32-dmodel128-cb512-lr1.0e-03-local2-remote1-sampler-gshuffle-rformula-legacy",
     ]
+
+
+def test_build_configs_can_disable_early_stopping():
+    configs = build_configs(
+        include_gdn=False,
+        block_len=32,
+        dmodels=[128],
+        learning_rates=[1e-3],
+        if_remote_enabled=True,
+        local_num_blocks=2,
+        train_batch_order="global_shuffle",
+        early_stopping_metric=None,
+        early_stopping_threshold=None,
+        metrics_white_list=["valid/accuracy"],
+    )
+
+    assert len(configs) == 1
+    assert configs[0].early_stopping_metric is None
+    assert configs[0].early_stopping_threshold is None
 
 
 def test_build_configs_applies_num_codebook_vectors_map_for_selected_dmodels():
@@ -1328,6 +1355,8 @@ def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
             "24",
             "--gradient-accumulation-steps",
             "8",
+            "--disable-early-stopping",
+            "true",
             "--launch-id-prefix",
             "flash-vqg-e7-train",
         ],
@@ -1350,5 +1379,7 @@ def test_main_training_writes_e7_train_sweep(monkeypatch, tmp_path):
     assert "train_batch_size=16" in generated_config
     assert "eval_batch_size=24" in generated_config
     assert "gradient_accumulation_steps=8" in generated_config
+    assert "early_stopping_metric=None" in generated_config
+    assert "early_stopping_threshold=None" in generated_config
     assert len(subprocess_calls) == 1
     assert subprocess_calls[0]["manifest_env"] == str((generated_dir / "manifest.json").resolve())

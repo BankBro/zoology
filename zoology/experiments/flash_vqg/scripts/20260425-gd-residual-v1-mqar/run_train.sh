@@ -47,6 +47,7 @@ cd "${ROOT_DIR}"
   --eval-batch-size "${EVAL_BATCH_SIZE}" \
   --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS}" \
   --validations-per-epoch "${VALIDATIONS_PER_EPOCH}" \
+  --disable-early-stopping "${DISABLE_EARLY_STOPPING}" \
   --cache-dir "${CACHE_DIR}" \
   --metrics-white-list-file "${METRICS_WHITE_LIST_FILE}" \
   --project "${PROJECT}" \

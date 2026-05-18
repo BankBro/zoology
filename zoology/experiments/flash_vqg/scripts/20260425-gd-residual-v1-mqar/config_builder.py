@@ -125,6 +125,10 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             "20260425-gd-residual-v1-mqar builder 只支持 "
             "fox_remote_formula='gd_residual_v1'."
         )
+    disable_early_stopping = _parse_bool_arg(
+        getattr(args, "disable_early_stopping", "false"),
+        field_name="disable_early_stopping",
+    )
 
     return (
         dict(
@@ -185,6 +189,8 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             experiment_part="gd_residual_v1_mqar",
             experiment_mode=resolved_experiment_mode,
             validations_per_epoch=int(getattr(args, "validations_per_epoch", 1)),
+            early_stopping_metric=None if disable_early_stopping else "valid/accuracy",
+            early_stopping_threshold=None if disable_early_stopping else 0.99,
         ),
         seed_value,
         int(args.data_seed),

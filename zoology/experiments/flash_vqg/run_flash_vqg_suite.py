@@ -103,6 +103,21 @@ def _parse_csv_bools(raw: str) -> list[bool]:
     return normalized
 
 
+def _parse_bool_flag(raw: str, *, field_name: str) -> bool:
+    normalized = raw.strip().lower()
+    mapping = {
+        "1": True,
+        "0": False,
+        "true": True,
+        "false": False,
+        "yes": True,
+        "no": False,
+    }
+    if normalized not in mapping:
+        raise ValueError(f"{field_name} 只能是 true/false 或 1/0, 当前收到: {raw}")
+    return mapping[normalized]
+
+
 def _parse_paired_block_local(raw: str) -> list[tuple[int, int]]:
     values = [part.strip() for part in raw.split(",") if part.strip()]
     if not values:
@@ -294,6 +309,8 @@ def _render_generated_config(
     max_epochs: int,
     metrics_white_list: list[str],
     validations_per_epoch: int = 1,
+    early_stopping_metric: str | None = "valid/accuracy",
+    early_stopping_threshold: float | None = 0.99,
 ) -> str:
     lines = [
         "# -*- coding: utf-8 -*-",
@@ -365,6 +382,8 @@ def _render_generated_config(
         f"    wandb_entity={wandb_entity!r},",
         f"    max_epochs={max_epochs!r},",
         f"    metrics_white_list={metrics_white_list!r},",
+        f"    early_stopping_metric={early_stopping_metric!r},",
+        f"    early_stopping_threshold={early_stopping_threshold!r},",
         ")",
         "",
         ]
@@ -488,6 +507,8 @@ def _build_manifest_run_ids(
     max_epochs: int,
     metrics_white_list: list[str],
     validations_per_epoch: int = 1,
+    early_stopping_metric: str | None = "valid/accuracy",
+    early_stopping_threshold: float | None = 0.99,
 ) -> list[str]:
     configs = build_configs(
         sweep_id=sweep_id,
@@ -549,6 +570,8 @@ def _build_manifest_run_ids(
         wandb_entity=entity,
         max_epochs=max_epochs,
         metrics_white_list=metrics_white_list,
+        early_stopping_metric=early_stopping_metric,
+        early_stopping_threshold=early_stopping_threshold,
     )
     return [config.run_id for config in configs]
 
@@ -829,6 +852,12 @@ def main():
         help="每个 epoch 内执行多少次 validation. 默认 1, 即 epoch 末验证一次.",
     )
     parser.add_argument(
+        "--disable-early-stopping",
+        type=str,
+        default="false",
+        help="设为 true 时将 early_stopping_metric/threshold 置为 None.",
+    )
+    parser.add_argument(
         "--train-batch-size",
         type=int,
         default=None,
@@ -1010,6 +1039,12 @@ def main():
         if args.fox_remote_read_topk_values is not None
         else None
     )
+    disable_early_stopping = _parse_bool_flag(
+        args.disable_early_stopping,
+        field_name="disable_early_stopping",
+    )
+    early_stopping_metric = None if disable_early_stopping else "valid/accuracy"
+    early_stopping_threshold = None if disable_early_stopping else 0.99
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
 
@@ -1084,6 +1119,8 @@ def main():
             entity=args.entity,
             max_epochs=args.max_epochs,
             metrics_white_list=metrics_white_list,
+            early_stopping_metric=early_stopping_metric,
+            early_stopping_threshold=early_stopping_threshold,
         )
         generated_path.write_text(
             _render_generated_config(
@@ -1141,6 +1178,8 @@ def main():
                 wandb_entity=args.entity,
                 max_epochs=args.max_epochs,
                 metrics_white_list=metrics_white_list,
+                early_stopping_metric=early_stopping_metric,
+                early_stopping_threshold=early_stopping_threshold,
             ),
             encoding="utf-8",
         )

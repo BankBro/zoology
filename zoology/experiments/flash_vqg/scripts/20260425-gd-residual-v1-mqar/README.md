@@ -87,3 +87,4 @@ Short-run 参数:
 - `RUN_ID_OVERRIDE`: 默认空, 设定后覆盖 builder 生成的 `run_id`
 - `EXPERIMENT_MODE_OVERRIDE`: 默认空, 设定后覆盖写入 Flash-VQG config 的 `experiment_mode`
 - `VALIDATIONS_PER_EPOCH`: 默认 `2`, 本轮候选用于每 0.5 epoch valid 一次
+- `DISABLE_EARLY_STOPPING`: 默认 `false`, 设为 `true` 时将 early stopping metric/threshold 置空并完整跑完 `MAX_EPOCHS`

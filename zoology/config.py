@@ -146,8 +146,8 @@ class TrainConfig(BaseConfig):
 
     # stop training once this metric reaches the threshold
     # set metric to None to disable early stopping
-    early_stopping_metric: str = "valid/accuracy"
-    early_stopping_threshold: float = 0.99
+    early_stopping_metric: Optional[str] = "valid/accuracy"
+    early_stopping_threshold: Optional[float] = 0.99
     slice_keys: List[str] = []
 
     learning_rate: float = 1e-3
