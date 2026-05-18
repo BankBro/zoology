@@ -38,7 +38,22 @@ Correctness before training:
 - `pytest tests/test_fox_gd_residual_v1.py -q`: 17 passed.
 - `pytest tests/test_attn_fox_compat.py -q`: 5 passed.
 
-## 2. Run status
+## 2. Executive conclusion
+
+本轮结果将 `cb256` rank 主线从 `r4` 转向 `r8/r16`:
+
+- `cb256-r16` 仍是 high-capacity practical anchor. seed123 和 seed125 均达到约 `0.996` overall accuracy 和 `0.98+` hard-case 1024x256 accuracy.
+- `cb256-r8` 在 seed124 和 seed125 中均显著强于 `cb256-r4`, 尤其在 1024x256 hard slice 上优势明显.
+- `cb256-r4` 不再适合作为稳定低容量高性价比主线. 它应被降级为 seed123 下出现过强表现、但 seed124/125 未复现的非稳定候选.
+- 由于 seed123 曾出现 `r4 > r8`, 当前仍不能说 `rank=8` 是稳定最优 rank. 更严谨的说法是: `r8` 是当前更值得继续跟进的中容量 follow-up candidate.
+
+需要同时保留三个 caveat:
+
+- GPU/runtime: 前置 cross-GPU check 已基本排除 “r8 强只是因为跑在 GPU1” 的解释, 但同 config 跨 GPU 仍有 hard-slice 差异. 本报告中的 seed/rank 结论应理解为 optimization trajectory 层面的经验结果, 不应解释为严格确定性训练规律.
+- Fairness: `cb256-r8` 和 `cb256-r16` 分别是高于 GDN use_gate=False 的 16x 和 32x dynamic capacity 配置, 不能用于证明 gd_residual_v1 在等动态容量下优于 GDN.
+- Seed count: 目前仍只有少数 seed. 本报告可以调整主线优先级, 但不能给出稳定 rank law.
+
+## 3. Run status
 
 | config | run_id | GPU | status | wall-clock |
 |---|---|---:|---|---:|
@@ -47,7 +62,7 @@ Correctness before training:
 | `cb256-r16-s124` | `gd-r16-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r16-robustness` | 0 | completed | 05:18:23 |
 | `cb256-r16-s125` | `gd-r16-wk4-mu01-t025-cb256-s125-d123-noearly4ep-r16-robustness` | 1 | completed | 04:26:06 |
 
-## 3. Final metrics
+## 4. Final metrics
 
 | config | valid/loss | valid/accuracy | 1024x256 | input_len=512 | input_len=1024 | kv=128 | kv=256 |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -56,7 +71,23 @@ Correctness before training:
 | `cb256-r16-s124` | 0.167113 | 0.980533 | 0.876508 | 0.989223 | 0.876508 | 0.986383 | 0.876508 |
 | `cb256-r16-s125` | 0.049594 | 0.996914 | 0.985176 | 0.996379 | 0.985176 | 0.998539 | 0.985176 |
 
-## 4. Epoch-end validation
+## 5. Cross-seed rank summary
+
+每个单元是 `valid/accuracy / 1024x256`.
+
+| rank | seed123 | seed124 best/cross | seed125 | current positioning |
+|---|---:|---:|---:|---|
+| r4 | 0.986 / 0.938 | 0.956 / 0.731 | 0.951 / 0.739 | 不稳定, 不作为主线 |
+| r8 | 0.957 / 0.737 | 0.993 / 0.965 | 0.996 / 0.983 | 中容量 follow-up candidate |
+| r16 | 0.996 / 0.980 | 0.981 / 0.877 | 0.997 / 0.985 | high-capacity practical anchor, with hard-slice caveat |
+
+这个总表是当前最简洁的主线判断:
+
+- r4 的 seed123 强表现没有在 seed124/125 复现.
+- r8 在 seed124/125 连续强于 r4, 因此更值得继续跟进.
+- r16 在 seed123/125 是最强 high-capacity anchor, 但 seed124 的 hard slice 降幅必须保留为 caveat.
+
+## 6. Epoch-end validation
 
 | config | epoch | valid/loss | valid/accuracy | 1024x256 |
 |---|---:|---:|---:|---:|
@@ -77,7 +108,7 @@ Correctness before training:
 | `cb256-r16-s125` | 3 | 0.058065 | 0.996292 | 0.981137 |
 | `cb256-r16-s125` | 4 | 0.049594 | 0.996914 | 0.985176 |
 
-## 5. A. r4/r8 seed125 paired recheck
+## 7. A. r4/r8 seed125 paired recheck
 
 Seed125 下方向非常明确:
 
@@ -115,9 +146,10 @@ Final slice-level:
 - 不能再把 `cb256-r4` 作为稳定低容量高性价比主线. seed123 很强, 但 seed124 和 seed125 都没有复现.
 - `cb256-r8` 现在是更强的 follow-up candidate: seed124 和 seed125 都强, seed125 已接近 r16 anchor.
 - 但仍不应写成 “r8 稳定最优 rank”. 现有结果显示 rank/capacity 与 seed/optimization dynamic 仍有交互, 且 seed123 曾反向.
-- 不建议马上做 `rank=3/4/5/6` 局部搜索. 该搜索是围绕 r4 非单调现象展开的, 而 seed124/125 已经削弱了 r4 主线地位. 若要做 rank 局部搜索, 更合理的是先围绕 `r8` 做 `r6/r8/r10` 或补一个同口径 seed, 而不是立刻转向 `r3/4/5/6`.
+- 因此, 后续不再建议围绕 r4 做 `r3/r4/r5/r6` 搜索. 原始 r4 低容量主线已被 seed124/125 削弱.
+- 若继续 rank search, 应优先围绕 `r8` 做 `r6/r8/r10` 或补 r8 多 seed, 而不是立刻回到 `r3/r4/r5/r6`.
 
-## 6. B. r16 robustness check
+## 8. B. r16 robustness check
 
 已有 seed123 anchor:
 
@@ -131,7 +163,9 @@ Final slice-level:
 结论需要分两层:
 
 1. Practical anchor 仍成立. `cb256-r16` 在 seed123 和 seed125 都达到约 `0.996` overall, hard 1024x256 约 `0.98+`. seed124 虽然明显弱于 seed123/125, 但仍有 `valid/accuracy=0.980533`, `1024x256=0.876508`, 仍高于此前 GDN use_gate=False baseline 的 overall `0.962`, 1024x256 `0.711`.
-2. 但不能说 r16 每个 seed 都稳定在 0.996 水平. seed124 表明 high-capacity r16 也存在 optimization/seed sensitivity, 主要体现在 1024x256 hard slice.
+2. 但不能说 r16 每个 seed 都稳定在 0.996 水平. seed124 的 1024x256 从 seed123/125 的约 `0.98` 降到 `0.876508`, 表明 high-capacity 配置也存在 hard-slice optimization sensitivity.
+
+后续报告应写 “`r16` is a strong practical anchor with hard-slice seed sensitivity”, 而不是 “`r16` is fully robust”.
 
 Final slice-level:
 
@@ -148,7 +182,7 @@ Final slice-level:
 
 The r16 variance is concentrated on the hardest slice. Easy and medium slices are near saturated in both seeds.
 
-## 7. GD residual and VQ metrics
+## 9. GD residual and VQ metrics
 
 Final GD residual metrics:
 
@@ -175,7 +209,29 @@ Interpretation:
 - r16-s124 的 residual state 很强, 但 hard slice 仍弱于 r16-s125, 说明单看 state norm 不能完成机制归因.
 - r16-s125 的 VQ relative error 最低, 并且整体/hard accuracy 最强, 是本轮最健康的 high-capacity run.
 
-## 8. Updated conclusion
+## 10. Caveats
+
+### GPU/runtime nondeterminism
+
+前置 cross-GPU check 已基本排除 “seed124 下 r8 强只是因为跑在 GPU1, r4 弱只是因为跑在 GPU0” 的解释: r8 换到 GPU0 仍强, r4 换到 GPU1 仍弱.
+
+但同 config 跨 GPU 仍有可见差异, 尤其在 hard slices 上. 因此本报告中的 seed/rank 结论应理解为 optimization trajectory 层面的经验结果, 不应解释为严格确定性训练规律.
+
+### Dynamic capacity fairness
+
+本报告不改变 dynamic capacity fairness caveat:
+
+- `cb256-r8` 是 16x GDN use_gate=False dynamic capacity.
+- `cb256-r16` 是 32x GDN use_gate=False dynamic capacity.
+- 因此本报告不能用于证明 gd_residual_v1 在等动态容量下优于 GDN.
+
+等容量结论仍以 capacity sweep 中 `cb64-r2` / `cb128-r1` 未超过 GDN use_gate=False 为准.
+
+### Seed count
+
+目前 r4/r8/r16 仍只有少数 seeds. 本轮可以调整实验主线优先级, 但不能给出 “rank=8 稳定最优” 或 “rank=16 完全稳定” 这类强结论.
+
+## 11. Updated conclusion
 
 本轮新增 4 个 noearly4ep run 均 completed.
 
@@ -184,24 +240,24 @@ For r4/r8:
 - seed125 继续支持 `cb256-r8 > cb256-r4`.
 - 结合 seed124 paired recheck 和 cross-GPU check, `r8 > r4` 已经不太像 GPU assignment artifact.
 - 但 seed123 曾出现 `r4 > r8`, 因此当前严谨说法不是 “r8 稳定最优”, 而是: `cb256-r4/r8` 的相对优劣存在 seed/optimization dynamic 敏感性, 但后续证据明显转向 `r8` 是更值得跟进的 candidate.
-- `rank=3/4/5/6` 局部搜索暂不优先. 若继续 rank search, 应重心转到 `r6/r8/r10` 或先补一个同口径 seed.
+- `rank=3/4/5/6` 局部搜索不再是优先项. 若继续 rank search, 应重心转到 `r8`-centered search, 如 `r6/r8/r10`, 或先补 r8/r16 多 seed.
 
 For r16:
 
 - `cb256-r16` 仍是 practical high-capacity anchor, 因为 seed123 和 seed125 都达到约 `0.996` overall 和约 `0.98+` hard 1024x256, seed124 虽弱但仍显著强于 GDN use_gate=False baseline.
-- 但 r16 也不是完全 seed-invariant. seed124 的 1024x256 降到 `0.876508`, 说明 hard-case performance 仍受 optimization path 影响.
+- 但 r16 也不是 fully robust 或完全 seed-invariant. seed124 的 1024x256 降到 `0.876508`, 说明 hard-case performance 仍受 optimization path 影响.
 - 本轮结果支持 high-capacity gd_residual_v1 很强, 但不改变 dynamic capacity fairness caveat: 这些 cb256-r8/r16 都是 16x/32x GDN dynamic capacity, 不能用来证明等动态容量下 gd_residual_v1 优于 GDN.
 
 One-sentence conclusion:
 
 `cb256-r8-s125` and `cb256-r16-s125` both reached near-anchor quality, while `cb256-r4-s125` did not; this makes r8 the stronger follow-up candidate than r4, but seed123/124/125 together still indicate rank/seed optimization sensitivity rather than a fully settled stable-rank law. `cb256-r16` remains the high-capacity practical anchor, with a real seed124 hard-slice robustness caveat.
 
-## 9. Recommended next steps
+## 12. Recommended next steps
 
 1. Do not run `rank=3/4/5/6` as the immediate next search. The original motivation, stable r4 superiority, is no longer supported.
-2. If continuing rank stability, either:
-   - add one more paired seed for `cb256-r4`/`cb256-r8`, or
-   - shift local search around r8: `r6/r8/r10`, under the same noearly4ep setting.
+2. Prioritize r8-centered follow-up:
+   - run `r6/r8/r10` under the same noearly4ep setting, or
+   - add r8 multi-seed confirmation if compute is limited.
 3. For r16, keep `cb256-r16` as the practical high-capacity anchor, but report seed124 hard-slice variance explicitly.
 4. Do not prioritize event_pack runtime optimization yet. The current uncertainty is quality/stability/fairness, not grouped_chunk runtime.
 5. Baseline was not rerun in this task. Any baseline comparison here references earlier committed reports/artifacts.
