@@ -10,6 +10,7 @@ import torch
 from zoology.analysis.flash_vqg.flash_vqg_analysis_suite import fetch_local_run
 from zoology.experiments.flash_vqg.scripts.compare_remat_training import _build_config as build_remat_config
 from zoology.experiments.flash_vqg.scripts.smoke_clr_oom_grid import _build_one_config as build_smoke_config
+from zoology.model import LanguageModel
 
 
 def test_compare_remat_training_build_config_supports_batch_and_gradient_accumulation():
@@ -78,6 +79,17 @@ def _load_gd_residual_builder_module():
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/config_builder.py"
     )
     spec = importlib.util.spec_from_file_location("flash_vqg_gd_residual_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_gdn_capacity_up_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260519-gdn-capacity-up/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gdn_capacity_up_builder", script_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -208,8 +220,45 @@ def _build_gd_residual_args() -> Namespace:
     )
 
 
+def _build_gdn_capacity_up_args() -> Namespace:
+    return Namespace(
+        launch_id_prefix="flash-vqg-gdn-capacity-up-test",
+        backend="torch",
+        logger_backend="none",
+        dmodels="128",
+        learning_rates="1e-3",
+        train_batch_order="global_shuffle",
+        seed_values="123",
+        data_seed=123,
+        gradient_accumulation_steps=2,
+        train_batch_size=128,
+        eval_batch_size=32,
+        cache_dir="./data/flash_vqg",
+        project="flash_vqg_gdn_capacity_up",
+        entity="scu-mclab",
+        max_epochs=4,
+        validations_per_epoch=2,
+        disable_early_stopping="true",
+        metrics_white_list=None,
+        metrics_white_list_file=str(
+            Path(
+                "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260519-gdn-capacity-up/metrics.yaml"
+            )
+        ),
+        run_id=None,
+        experiment_mode="gdn_capacity_up",
+    )
+
+
 def _extract_flash_kwargs(config):
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
+
+
+def _extract_gdn_kwargs(config):
+    for mixer in config.model.sequence_mixer.kwargs["configs"]:
+        if mixer["name"] == "zoology.mixers.gated_delta_net.GatedDeltaNet":
+            return mixer["kwargs"]
+    raise AssertionError("GDN mixer not found")
 
 
 def test_e1_smoke_build_config_supports_top4_and_batch_overrides():
@@ -416,6 +465,59 @@ def test_gd_residual_builder_supports_run_id_mode_and_validation_overrides():
     assert configs[0].run_id == "gd-r16-wk4-mu015-t025-cb256-s123-d123"
     assert configs[0].validations_per_epoch == 2
     assert flash_kwargs["experiment_mode"] == "candidate_mu015"
+
+
+def test_gdn_capacity_up_builder_applies_env_hparams(monkeypatch):
+    module = _load_gdn_capacity_up_builder_module()
+    args = _build_gdn_capacity_up_args()
+    monkeypatch.setenv("GDN_NUM_HEADS", "1")
+    monkeypatch.setenv("GDN_EXPAND_V", "4")
+    monkeypatch.setenv("GDN_USE_GATE", "false")
+    monkeypatch.setenv("GDN_USE_SHORT_CONV", "true")
+    monkeypatch.setenv("GDN_CONV_SIZE", "4")
+
+    configs = module.build_gdn_capacity_up_config(args)
+    gdn_kwargs = _extract_gdn_kwargs(configs[0])
+
+    assert configs[0].run_id == "gdn-usegate0-h1-ev4-s123-d123"
+    assert configs[0].data.batch_size == (128, 32)
+    assert configs[0].gradient_accumulation_steps == 2
+    assert configs[0].validations_per_epoch == 2
+    assert configs[0].early_stopping_metric is None
+    assert configs[0].early_stopping_threshold is None
+    assert gdn_kwargs["num_heads"] == 1
+    assert gdn_kwargs["expand_v"] == 4
+    assert gdn_kwargs["use_gate"] is False
+    assert gdn_kwargs["use_short_conv"] is True
+    assert gdn_kwargs["conv_size"] == 4
+
+
+def test_gdn_capacity_up_builder_supports_run_id_override(monkeypatch):
+    module = _load_gdn_capacity_up_builder_module()
+    args = _build_gdn_capacity_up_args()
+    args.run_id = "custom-gdn-run"
+    monkeypatch.setenv("GDN_NUM_HEADS", "2")
+    monkeypatch.setenv("GDN_EXPAND_V", "8")
+
+    configs = module.build_gdn_capacity_up_config(args)
+    gdn_kwargs = _extract_gdn_kwargs(configs[0])
+
+    assert configs[0].run_id == "custom-gdn-run"
+    assert gdn_kwargs["num_heads"] == 2
+    assert gdn_kwargs["expand_v"] == 8
+
+
+def test_gdn_capacity_up_builder_integer_expand_v_instantiates(monkeypatch):
+    module = _load_gdn_capacity_up_builder_module()
+    args = _build_gdn_capacity_up_args()
+    monkeypatch.setenv("GDN_NUM_HEADS", "2")
+    monkeypatch.setenv("GDN_EXPAND_V", "2")
+    monkeypatch.setenv("GDN_USE_GATE", "false")
+
+    configs = module.build_gdn_capacity_up_config(args)
+    model = LanguageModel(configs[0].model)
+
+    assert sum(p.numel() for p in model.parameters() if p.requires_grad) > 0
 
 
 def _build_short_run_args(tmp_path):

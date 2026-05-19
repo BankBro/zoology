@@ -1,0 +1,12 @@
+model_family,config,run_id,trainable_params,flash_dynamic_capacity,gdn_dynamic_state_capacity,rank,num_heads,expand_v,batch_accum_profile,dtype_policy,status
+flash,cb256-r10-s125-d123,gd-r10-wk4-mu01-t025-cb256-s125-d123-noearly4ep,1184198,327680,,10,,,128x2,default_float32_on_2080ti,completed
+flash,cb256-r6-s125-d123,gd-r6-wk4-mu01-t025-cb256-s125-d123-noearly4ep,1183686,196608,,6,,,128x2,default_float32_on_2080ti,completed
+flash,cb256-r8-s126-d123,gd-r8-wk4-mu01-t025-cb256-s126-d123-noearly4ep,1183942,262144,,8,,,128x2,default_float32_on_2080ti,completed
+gdn,gdn-h2-ev2-usegate0-s123-d123,gdn-usegate0-h2-ev2-s123-d123-noearly4ep,1167878,,16384,,2,2,128x2,GDN_KERNEL_DTYPE=float32,completed
+gdn,gdn-h2-ev2-usegate0-s125-d123,gdn-usegate0-h2-ev2-s125-d123-noearly4ep,1167878,,16384,,2,2,128x2,GDN_KERNEL_DTYPE=float32,completed
+gdn,gdn-h2-ev4-usegate0-s123-d123,gdn-usegate0-h2-ev4-s123-d123-noearly4ep,1234566,,32768,,2,4,128x2,GDN_KERNEL_DTYPE=float32,completed
+gdn,gdn-h2-ev8-usegate0-s123-d123,gdn-usegate0-h2-ev8-s123-d123-noearly4ep,1367942,,65536,,2,8,128x2,GDN_KERNEL_DTYPE=float32,completed
+flash,cb256-r16-s126-d123,gd-r16-wk4-mu01-t025-cb256-s126-d123-noearly4ep,1184966,524288,,16,,,64x4,default_float32_on_2080ti,completed
+gdn,gdn-h2-ev2-usegate0-s124-d123,gdn-usegate0-h2-ev2-s124-d123-noearly4ep,1167878,,16384,,2,2,128x2,GDN_KERNEL_DTYPE=float32,completed
+gdn,gdn-h1-ev2-usegate0-s123-d123,gdn-usegate0-h1-ev2-s123-d123-noearly4ep,1167747,,32768,,1,2,128x2,GDN_KERNEL_DTYPE=float32,completed
+gdn,gdn-h1-ev4-usegate0-s123-d123,gdn-usegate0-h1-ev4-s123-d123-noearly4ep,1234563,,65536,,1,4,128x2,GDN_KERNEL_DTYPE=float32,completed
