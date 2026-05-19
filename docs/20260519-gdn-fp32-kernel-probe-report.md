@@ -80,7 +80,7 @@ Do not treat `gated_delta_net-default-s123-d123` as the current noearly4ep basel
 
 ## Conclusion
 
-Keep the current default `GDN_KERNEL_DTYPE=auto` behavior for ordinary GDN experiments. On RTX 2080 Ti, forcing `float32` does not recover the legacy stronger GDN result and costs extra cold compile/runtime. Use `GDN_KERNEL_DTYPE=float32` only for targeted dtype diagnostics.
+Forcing `float32` does not recover the legacy stronger GDN result and costs extra cold compile/runtime. However, because the project dtype policy now requires RTX 2080 Ti/sm75 official MQAR runs to prefer float32, this completed run is promoted to the current GDN 2080 Ti float32 baseline despite not improving over the auto/fp16-kernel repeat. It is recorded in `docs/artifacts/gdn/gdn-hparam-effect-summary.csv` with `baseline_role=current_float32_2080ti_baseline`, and should only be directly compared with rows in the same `float32_only` dtype scope.
 
 ## Artifacts
 

@@ -37,6 +37,7 @@
 - 后续完整 MQAR official 实验的 dtype 口径按项目规则执行: RTX 2080 Ti/sm75 默认优先 float32, 支持 bf16 的 GPU 默认优先 bfloat16. 当前 GDN 代码的 `GDN_KERNEL_DTYPE=auto` 历史行为在 sm75 上会走 fp16, 因此 2080 Ti 上的 official GDN 可比实验需要显式设置 `GDN_KERNEL_DTYPE=float32`, 除非后续运行时默认已改为 float32.
 - 只有相同 dtype policy 和实际 kernel dtype 的结果可以作为 direct quality comparison. `auto`, `float32`, `float16`, `bfloat16`, `input` 等不同 dtype 口径只能作为 dtype probe / hardware profile / ablation 解释, 不要混入同一 official baseline 或 hparam 表作为同口径结果.
 - 非 official dtype 或 dtype 诊断实验必须写入 artifact/report/summary, 至少记录 `GDN_KERNEL_DTYPE`, outer model dtype, FLA kernel input dtype, GPU 型号和 compute capability.
+- GDN canonical ledger: `docs/artifacts/gdn/gdn-hparam-effect-summary.csv`. 当前 2080 Ti float32 baseline 是 `gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-gdnkernel-fp32`.
 
 默认 run_id:
 
