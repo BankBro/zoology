@@ -16,6 +16,7 @@
 - `gd_residual_v1 mu01 noearly4ep` 是当前最强结果: final `valid/accuracy=0.9962060546875`, hard case `1024x256=0.9803125`, final `valid/loss=0.06721608340740204`.
 - GDN 新补跑的两个同口径 baseline 中, `use_gate=False` 明显强于 `use_gate=True`: final `valid/accuracy=0.962` vs `0.884`, `1024x256=0.711` vs `0.334`.
 - 在近似 trainable parameter 数量口径下, `gd_residual_v1 mu01 noearly4ep` 明显优于 GDN `use_gate=False`. 但这不是等动态容量比较, 因为 `gd_residual_v1` 的 residual matrix dynamic state capacity 约为 GDN KV state 的 `32x`.
+- 当前 GDN noearly4ep 的同口径 baseline 应使用 `gated_delta_net-usegate0-s123-d123-noearly4ep`, 或 2026-05-19 的 `64x4` same-seed repeat. 不要把 legacy `gated_delta_net-default-s123-d123` 当作当前 noearly4ep 同口径 baseline.
 
 ## 2. 仓库状态
 
@@ -95,6 +96,7 @@ GDN 两个新 baseline 只改变单个注意力模块里的 output gate 设置:
 - 三个 run 都完整执行 4 epoch, 没有 early stopping.
 - 两个 GDN run 都在 `flash_vqg_gd_residual_v1_mqar` project 下补跑, 便于和 `gd_residual_v1` 在同一 project 中比较.
 - 这次没有重跑 dense baseline 或旧 `gated_delta_net-default-s123-d123` baseline.
+- 当前可直接比较的 GDN baseline 是 `gated_delta_net-usegate0-s123-d123-noearly4ep`; 旧 `gated_delta_net-default-s123-d123` 只作为 legacy reference 保留.
 
 ## 5. Epoch-end 质量曲线
 
@@ -120,8 +122,8 @@ GDN 两个新 baseline 只改变单个注意力模块里的 output gate 设置:
 |---|---:|---:|---:|---|
 | dense baseline epoch4 | `0.237862` | `0.961423` | `0.774844` | old project, not rerun |
 | dense baseline epoch32 final | `0.084111` | `0.981071` | `0.871535` | old project, not rerun |
-| old GDN default epoch4 | `0.268798` | `0.972832` | `0.788387` | old project, not rerun |
-| old GDN default epoch32 final | `0.072575` | `0.986256` | `0.891031` | old project, not rerun |
+| old GDN default epoch4 | `0.268798` | `0.972832` | `0.788387` | legacy old project, not current noearly4ep comparison scope |
+| old GDN default epoch32 final | `0.072575` | `0.986256` | `0.891031` | legacy old project, not current noearly4ep comparison scope |
 | new GDN use_gate=False epoch4 | `0.345` | `0.962` | `0.711` | same new project, noearly4ep |
 | new GDN use_gate=True epoch4 | `0.729` | `0.884` | `0.334` | same new project, noearly4ep |
 | `gd_residual_v1_mu01` noearly epoch4 | `0.067216` | `0.996206` | `0.980313` | same new project, noearly4ep |
@@ -131,7 +133,7 @@ GDN 两个新 baseline 只改变单个注意力模块里的 output gate 设置:
 - 对比新补跑的同 project GDN baseline, `gd_residual_v1_mu01` 明显更强.
 - 对比旧 32 epoch GDN default final, `gd_residual_v1_mu01` 在 4 epoch 内仍取得更高 `valid/accuracy` 和更高 hard case accuracy.
 - 如果只看 final `valid/loss`, `gd_residual_v1_mu01` 也低于旧 GDN default final 的 `0.072575`, 达到 `0.067216`.
-- 新 GDN `use_gate=False` 低于旧 `gated_delta_net-default-s123-d123` 的 epoch4 和 final32, 这提示旧 baseline 与新同 project baseline 的实现或配置口径仍需要网页 ChatGPT 进一步审阅.
+- 新 GDN `use_gate=False` 低于旧 `gated_delta_net-default-s123-d123` 的 epoch4 和 final32. 后续 2026-05-19 的 `64x4` same-seed repeat 已复现 `use_gate=False` noearly4ep, 没有复现 legacy default. 因此旧 default 不应作为当前 noearly4ep 同口径 baseline 使用.
 
 ## 7. 参数量和动态容量 caveat
 

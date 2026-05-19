@@ -1,0 +1,33 @@
+{
+  "batch_accum_profile": "64x4",
+  "data_seed": 123,
+  "early_stopping_disabled": true,
+  "effective_train_batch_size": 256,
+  "entity": "scu-mclab",
+  "eval_batch_size": 16,
+  "experiment_id": "i5fjwrcmnjuoispifq1ha",
+  "gradient_accumulation_steps": 4,
+  "launch_id": "flash-vqg-20260519-gdn-default-64x4-repeat-2026-05-19-03-29-43",
+  "max_epochs": 4,
+  "model": "gated_delta_net_use_gate_false",
+  "oom": false,
+  "peak_memory_total_mib": 11264,
+  "peak_memory_used_mib": 2869,
+  "project": "flash_vqg_vs_gdn",
+  "run_id": "gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat",
+  "run_type": "same_seed_repeat",
+  "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_vs_gdn/runs/i5fjwrcmnjuoispifq1ha",
+  "seed": 123,
+  "source_paths": {
+    "history_csv": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260519-gdn-default-64x4-repeat-2026-05-19-03-29-43/gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat/data/history.csv",
+    "manifest_json": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260519-gdn-default-64x4-repeat-2026-05-19-03-29-43/manifest.json",
+    "memory_raw": "/home/lyj/mnt/project/zoology/tmp/20260519-gdn-64x4-repeat-logs/gdn-default-s123-64x4-repeat-memory.raw",
+    "reference_final_comparison_csv": "/home/lyj/mnt/project/zoology/docs/artifacts/20260515-gd-gdn-noearly4ep-comparison/final-comparison.csv",
+    "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gdn-default-64x4-repeat-2026-05-19-03-29-43/gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat/train_config.json"
+  },
+  "status": "completed",
+  "train_batch_size": 64,
+  "use_gate": false,
+  "validations_per_epoch": 1,
+  "wall_clock_sec": 310.550296
+}

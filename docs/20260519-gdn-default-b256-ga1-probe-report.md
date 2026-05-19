@@ -4,7 +4,7 @@ Date: 2026-05-19
 
 ## Question
 
-This probe tests whether the original `gated_delta_net-default-s123-d123` baseline keeps comparable 4 epoch quality when the effective train batch stays at 256 but the training micro-batch changes to `256x1`.
+This probe tests whether the current GDN `use_gate=false` baseline keeps comparable 4 epoch quality when the effective train batch stays at 256 but the training micro-batch changes to `256x1`.
 
 The tested profile is:
 
@@ -19,7 +19,7 @@ The tested profile is:
 - effective_train_batch_size: `256`
 - eval_batch_size: `16`
 
-Reference is the old GDN default baseline row from `docs/artifacts/20260515-gd-gdn-noearly4ep-comparison/final-comparison.csv`:
+The direct same-scope references are the 20260515 `use_gate=false` noearly4ep row and the later `64x4` same-seed repeat. The old GDN default row from `docs/artifacts/20260515-gd-gdn-noearly4ep-comparison/final-comparison.csv` is retained only as a legacy reference:
 
 - run_id: `gated_delta_net-default-s123-d123`
 - checkpoint: `epoch4`
@@ -27,9 +27,11 @@ Reference is the old GDN default baseline row from `docs/artifacts/20260515-gd-g
 - valid/accuracy: `0.97283154296875`
 - valid/mqar_case/accuracy-1024x256: `0.788387`
 
+Follow-up note: a later same-seed `64x4` repeat of the current GDN default script reproduced the 20260515 `use_gate=false` noearly row, not the legacy `gated_delta_net-default-s123-d123` row. The legacy default row is therefore a historical reference, not a current noearly4ep comparison baseline.
+
 ## Result
 
-The `256x1` run completed without OOM, but quality dropped materially relative to the old GDN default epoch4 reference.
+The `256x1` run completed without OOM. It is weaker than the direct `64x4` same-scope reference, and also weaker than the legacy default epoch4 reference.
 
 | metric | old default epoch4 | 256x1 probe epoch4 | delta |
 |---|---:|---:|---:|
@@ -38,6 +40,14 @@ The `256x1` run completed without OOM, but quality dropped materially relative t
 | 1024x256 | 0.788387 | 0.610906 | -0.177481 |
 
 This is a large hard-slice regression. The result indicates that `256x1` changes the optimization/runtime behavior enough that it should not be used as the default GDN training profile without more repeat diagnostics.
+
+Against the later same-script `64x4` repeat, `256x1` is also clearly weaker:
+
+| metric | 64x4 repeat | 256x1 probe | delta 256x1 - 64x4 |
+|---|---:|---:|---:|
+| valid/loss | 0.343976 | 0.418216 | +0.074240 |
+| valid/accuracy | 0.962484 | 0.946996 | -0.015488 |
+| 1024x256 | 0.712516 | 0.610906 | -0.101609 |
 
 ## Epoch Metrics
 

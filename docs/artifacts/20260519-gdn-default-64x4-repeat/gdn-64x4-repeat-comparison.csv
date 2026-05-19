@@ -1,0 +1,10 @@
+comparison,metric,reference_run_id,reference_value,repeat_run_id,repeat_value,delta_repeat_minus_reference
+20260515_usegate0_noearly4ep,valid/loss,gated_delta_net-usegate0-s123-d123-noearly4ep,0.345,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.34397611021995544,-0.001023889780044529
+20260515_usegate0_noearly4ep,valid/accuracy,gated_delta_net-usegate0-s123-d123-noearly4ep,0.962,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.962484375,0.00048437499999998135
+20260515_usegate0_noearly4ep,valid/mqar_case/accuracy-1024x256,gated_delta_net-usegate0-s123-d123-noearly4ep,0.711,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.712515625,0.0015156250000000204
+legacy_default_epoch4,valid/loss,gated_delta_net-default-s123-d123,0.268798,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.34397611021995544,0.07517811021995546
+legacy_default_epoch4,valid/accuracy,gated_delta_net-default-s123-d123,0.97283154296875,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.962484375,-0.010347167968750015
+legacy_default_epoch4,valid/mqar_case/accuracy-1024x256,gated_delta_net-default-s123-d123,0.788387,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.712515625,-0.07587137499999996
+b256_ga1_probe,valid/loss,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.41821613907814026,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.34397611021995544,-0.07424002885818481
+b256_ga1_probe,valid/accuracy,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.94699609375,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.962484375,0.015488281249999902
+b256_ga1_probe,valid/mqar_case/accuracy-1024x256,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.61090625,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-repeat,0.712515625,0.101609375

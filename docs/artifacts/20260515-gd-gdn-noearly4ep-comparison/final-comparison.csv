@@ -5,5 +5,5 @@ gated_delta_net-usegate0-s123-d123-noearly4ep,gdn_use_gate_false,epoch4_noearly,
 gated_delta_net-usegate1-s123-d123-noearly4ep,gdn_use_gate_true,epoch4_noearly,0.729,0.884,0.334,n/a,flash_vqg_gd_residual_v1_mqar,weaker GDN baseline; output gate enabled
 dense-t025-cb256-s123-d123,dense_baseline,epoch4,0.237862,0.9614228515625,0.774844,0.079277,flash_vqg_clr_v1_mainline,old baseline; not rerun
 dense-t025-cb256-s123-d123,dense_baseline,epoch32_final,0.084111,0.98107080078125,0.871535,0.015897,flash_vqg_clr_v1_mainline,old baseline final; not rerun
-gated_delta_net-default-s123-d123,gdn_default_old_baseline,epoch4,0.268798,0.97283154296875,0.788387,n/a,flash_vqg_vs_gdn,old baseline; not rerun
-gated_delta_net-default-s123-d123,gdn_default_old_baseline,epoch32_final,0.072575,0.986255859375,0.891031,n/a,flash_vqg_vs_gdn,old baseline final; not rerun
+gated_delta_net-default-s123-d123,gdn_default_old_baseline,epoch4,0.268798,0.97283154296875,0.788387,n/a,flash_vqg_vs_gdn,legacy baseline; not current noearly4ep same-scope baseline
+gated_delta_net-default-s123-d123,gdn_default_old_baseline,epoch32_final,0.072575,0.986255859375,0.891031,n/a,flash_vqg_vs_gdn,legacy baseline final; not current noearly4ep same-scope baseline
