@@ -47,6 +47,8 @@
 - `run_train.sh` 用于正式训练
 - `run_profile.sh` 用于短周期 profiling, 默认 `logger=none`, 不连接 SwanLab, 不保存 checkpoint
 - `run_short_run.sh` 用于真实 MQAR readiness 短跑, 默认 `20` train batches x seeds `123,124`, 不连接 SwanLab, 不保存 checkpoint
+- 后续完整 MQAR official 实验的 dtype 口径按项目规则执行: RTX 2080 Ti/sm75 默认优先 float32, 支持 bf16 的 GPU 默认优先 bfloat16. artifact/report/summary 需要记录实际 dtype policy, outer model dtype, attention/mixer/kernel 输入 dtype, GPU 型号和 compute capability.
+- 只有相同 dtype 训练口径的结果可以作为 direct quality comparison. `float32`, `float16`, `bfloat16`, `auto`, `input` 等 dtype policy 或实际 kernel dtype 不同时, 结果只能作为 dtype probe / hardware profile / ablation 解释, 不要混入同一 official rank/seed 表作为同口径结果.
 
 启动:
 
