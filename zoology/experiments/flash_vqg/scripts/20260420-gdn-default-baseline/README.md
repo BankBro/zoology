@@ -18,9 +18,15 @@
 - `train_batch_size=64`
 - `eval_batch_size=16`
 - `gradient_accumulation_steps=4`
+- `validations_per_epoch=1`
 - `max_epochs=32`
 - `seed=123`
 - `data_seed=123`
+
+可覆盖项:
+
+- `DISABLE_EARLY_STOPPING`: 默认 `false`, 设为 `true` 时将 early stopping metric/threshold 置空.
+- `RUN_ID_OVERRIDE`: 默认空, 设定后覆盖默认 `run_id`, 用于 batch/accum 诊断等不应覆盖旧 baseline 名称的 run.
 
 统一约定:
 

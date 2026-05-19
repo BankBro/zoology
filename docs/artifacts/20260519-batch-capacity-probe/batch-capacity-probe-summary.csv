@@ -1,0 +1,10 @@
+probe_date,model_family,config,seed,data_seed,rank,num_codebook_vectors,probe_mode,train_batch_size,eval_batch_size,gradient_accumulation_steps,effective_train_batch_size,seq_len,status,peak_allocated_mib,peak_reserved_mib,elapsed_sec,note
+2026-05-19,gd_residual_v1,cb256-r16-s126,126,123,16,256,train_forward_backward,128,16,2,256,256,oom,,,,"OOM during gd_residual build metrics; r16-s126 should not use 128x2 on 2080 Ti"
+2026-05-19,gd_residual_v1,cb256-r16-s126,126,123,16,256,train_forward_backward,64,16,4,256,256,ok,6746,8624,4.894,"Fallback 64x4 train micro-batch passes"
+2026-05-19,gd_residual_v1,cb256-r16-s126,126,123,16,256,eval_forward,64,32,4,256,1024,ok,5675,6968,3.098,"Validation uses EVAL_BATCH_SIZE, not gradient accumulation"
+2026-05-19,gd_residual_v1,cb256-r16-s126,126,123,16,256,eval_forward,64,64,4,256,1024,oom,,,,"Eval batch 64 OOM at 1024-token hard slice"
+2026-05-19,gdn,gdn-dmodel128-s126,126,123,,256,train_forward_backward,128,32,2,256,256,ok,4428,4820,67.212,"GDN train 128x2 passes"
+2026-05-19,gdn,gdn-dmodel128-s126,126,123,,256,eval_forward,128,64,2,256,1024,ok,4109,4858,26.888,"GDN validation batch 64 passes"
+2026-05-19,gdn,gdn-dmodel128-s126,126,123,,256,eval_forward,128,128,2,256,1024,ok,8206,9566,27.295,"GDN validation batch 128 passes, but reserved memory is close to 2080 Ti limit"
+2026-05-19,gdn,gdn-h2-ev8-dmodel128-s123,123,123,,256,train_forward_backward,256,64,1,256,256,ok,9420,9876,113.881,"Worst planned GDN value expansion h2-ev8 train 256x1 passes, but memory margin is narrow"
+2026-05-19,gdn,gdn-h2-ev8-dmodel128-s123,123,123,,256,eval_forward,256,128,1,256,1024,ok,8207,10462,32.464,"h2-ev8 validation batch 128 passes; reserved memory is very close to 2080 Ti limit"

@@ -21,6 +21,18 @@ def _rewrite_run_id(config, *, run_id: str):
     return config
 
 
+def _parse_bool_arg(value, *, field_name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes"}:
+            return True
+        if normalized in {"false", "0", "no"}:
+            return False
+    raise ValueError(f"{field_name} 必须是 bool 或 true/false, 当前收到: {value!r}")
+
+
 def build_gdn_default_config(args):
     dmodels = _parse_csv_ints(args.dmodels)
     learning_rates = _parse_csv_floats(args.learning_rates)
@@ -33,6 +45,10 @@ def build_gdn_default_config(args):
     metrics_white_list = _resolve_metrics_white_list(
         metrics_white_list_raw=args.metrics_white_list,
         metrics_white_list_file=args.metrics_white_list_file,
+    )
+    disable_early_stopping = _parse_bool_arg(
+        getattr(args, "disable_early_stopping", "false"),
+        field_name="disable_early_stopping",
     )
 
     configs = build_configs(
@@ -54,6 +70,9 @@ def build_gdn_default_config(args):
         wandb_project=args.project,
         wandb_entity=args.entity,
         max_epochs=args.max_epochs,
+        validations_per_epoch=int(getattr(args, "validations_per_epoch", 1)),
+        early_stopping_metric=None if disable_early_stopping else "valid/accuracy",
+        early_stopping_threshold=None if disable_early_stopping else 0.99,
         metrics_white_list=metrics_white_list,
     )
 
@@ -61,5 +80,5 @@ def build_gdn_default_config(args):
     if len(gdn_configs) != 1:
         raise RuntimeError(f"Expected exactly 1 gated_delta_net config, got {len(gdn_configs)}")
 
-    run_id = f"gated_delta_net-default-s{seed_value}-d{data_seed}"
+    run_id = str(getattr(args, "run_id", None) or f"gated_delta_net-default-s{seed_value}-d{data_seed}")
     return [_rewrite_run_id(gdn_configs[0], run_id=run_id)]

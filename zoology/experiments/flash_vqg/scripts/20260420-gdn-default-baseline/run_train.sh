@@ -24,10 +24,13 @@ cd "${ROOT_DIR}"
   --train-batch-size "${TRAIN_BATCH_SIZE}" \
   --eval-batch-size "${EVAL_BATCH_SIZE}" \
   --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS}" \
+  --validations-per-epoch "${VALIDATIONS_PER_EPOCH}" \
+  --disable-early-stopping "${DISABLE_EARLY_STOPPING}" \
   --cache-dir "${CACHE_DIR}" \
   --metrics-white-list-file "${METRICS_WHITE_LIST_FILE}" \
   --project "${PROJECT}" \
   --entity "${ENTITY}" \
   --launch-id-prefix "${LAUNCH_ID_PREFIX}" \
+  --run-id "${RUN_ID_OVERRIDE}" \
   --config-builder "${BUILDER_SPEC}" \
   --gpus "${GPU_ID}"

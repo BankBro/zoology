@@ -1,0 +1,4 @@
+metric,reference_run_id,reference_value,probe_run_id,probe_value,delta_probe_minus_reference
+valid/loss,gated_delta_net-default-s123-d123,0.268798,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.41821613907814026,0.14941813907814028
+valid/accuracy,gated_delta_net-default-s123-d123,0.97283154296875,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.94699609375,-0.025835449218749917
+valid/mqar_case/accuracy-1024x256,gated_delta_net-default-s123-d123,0.788387,gated_delta_net-default-s123-d123-noearly4ep-b256-ga1-probe,0.61090625,-0.17748074999999996
