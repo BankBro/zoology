@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import math
+import os
 from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import torch
@@ -34,11 +35,38 @@ def sum_norm(x):
 # https://github.com/IDSIA/recurrent-fwp/blob/master/algorithmic/layers.py#L86C1-L146C1
 
 
-def _gated_delta_kernel_dtype(device: torch.device) -> torch.dtype:
-    if device.type != "cuda":
+_GDN_KERNEL_DTYPE_ENV = "GDN_KERNEL_DTYPE"
+_GDN_KERNEL_DTYPE_CHOICES = "auto|input|float32|float16|bfloat16"
+
+
+def _gated_delta_kernel_dtype(device: torch.device) -> torch.dtype | None:
+    policy = os.environ.get(_GDN_KERNEL_DTYPE_ENV, "auto").strip().lower()
+    policy = policy.replace("-", "").replace("_", "")
+    if policy in {"", "auto"}:
+        if device.type != "cuda":
+            return torch.float32
+        major, _ = torch.cuda.get_device_capability(device)
+        return torch.bfloat16 if major >= 8 else torch.float16
+    if policy in {"input", "keep"}:
+        return None
+    if policy in {"float32", "fp32"}:
         return torch.float32
-    major, _ = torch.cuda.get_device_capability(device)
-    return torch.bfloat16 if major >= 8 else torch.float16
+    if policy in {"float16", "fp16", "half"}:
+        return torch.float16
+    if policy in {"bfloat16", "bf16"}:
+        return torch.bfloat16
+    raise ValueError(
+        f"{_GDN_KERNEL_DTYPE_ENV} must be one of {_GDN_KERNEL_DTYPE_CHOICES}, got {policy!r}."
+    )
+
+
+def _maybe_cast_gated_delta_kernel_inputs(*tensors: torch.Tensor) -> tuple[torch.Tensor, ...]:
+    if not tensors:
+        return ()
+    kernel_dtype = _gated_delta_kernel_dtype(tensors[0].device)
+    if kernel_dtype is None:
+        return tensors
+    return tuple(tensor.to(kernel_dtype) for tensor in tensors)
 
 
 class GatedDeltaNet(nn.Module):
@@ -248,12 +276,7 @@ class GatedDeltaNet(nn.Module):
             beta = beta.mul(attention_mask[:, -beta.shape[-2]:, None])
             g = g.mul(attention_mask[:, -g.shape[-2]:, None])
 
-        kernel_dtype = _gated_delta_kernel_dtype(q.device)
-        q = q.to(kernel_dtype)
-        k = k.to(kernel_dtype)
-        v = v.to(kernel_dtype)
-        beta = beta.to(kernel_dtype)
-        g = g.to(kernel_dtype)
+        q, k, v, beta, g = _maybe_cast_gated_delta_kernel_inputs(q, k, v, beta, g)
 
 
         recurrent_state = last_state['recurrent_state'] if last_state is not None else None

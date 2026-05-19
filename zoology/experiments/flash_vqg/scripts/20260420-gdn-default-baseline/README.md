@@ -27,12 +27,14 @@
 
 - `DISABLE_EARLY_STOPPING`: 默认 `false`, 设为 `true` 时将 early stopping metric/threshold 置空.
 - `RUN_ID_OVERRIDE`: 默认空, 设定后覆盖默认 `run_id`, 用于 batch/accum 诊断等不应覆盖旧 baseline 名称的 run.
+- `GDN_KERNEL_DTYPE`: 默认 `auto`, 控制进入 FLA gated-delta kernel 的 `q/k/v/beta/g` dtype. 可选 `auto|input|float32|float16|bfloat16`. `auto` 在 CUDA sm80+ 使用 bf16, sm80 以下使用 fp16, CPU 使用 fp32; `input` 表示保持 GDN 内部当前输入 dtype, 不额外 cast.
 
 统一约定:
 
 - logger 使用 `SwanLab`
 - analysis 固定读本地产物, 即 `--analysis local`
 - 正式入口是 `run_train.sh`
+- 非默认 `GDN_KERNEL_DTYPE` 只用于 dtype 诊断或明确标注的新实验口径, 必须写入 artifact/report/summary, 不要与默认 `auto` baseline 混为同口径结果.
 
 默认 run_id:
 
