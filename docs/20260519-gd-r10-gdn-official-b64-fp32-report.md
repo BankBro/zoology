@@ -34,8 +34,8 @@
 | `gdn-h2-ev2-s125-d123-b64-ga4-fp32-noearly4ep` | completed | 00:05:58 | 0.384506 | 0.951634 | 0.644246 | 3469 | none |
 | `gdn-h2-ev8-s124-d123-b64-ga4-fp32-noearly4ep` | completed | 00:08:02 | 0.292128 | 0.977516 | 0.823707 | 3863 | none |
 | `gdn-h2-ev4-s123-d123-b64-ga4-fp32-noearly4ep` | completed | 00:07:17 | 0.470866 | 0.943018 | 0.587766 | 3453 | none |
-| `gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep` | failed | 00:00:10 |  |  |  | n/a | infrastructure failure: CUDA/NVML/Triton driver unavailable; no fallback attempted |
-| `gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep` | failed | 00:00:10 |  |  |  | n/a | infrastructure failure: CUDA/NVML/Triton driver unavailable; no fallback attempted |
+| `gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep` | completed | 00:08:59 | 0.328836 | 0.964806 | 0.736051 | 3933 | none |
+| `gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep` | completed | 00:13:54 | 0.408903 | 0.960377 | 0.704930 | 3859 | none |
 | `gdn-h2-ev2-s123-d123-b64-ga4-fp32-reference` | reference | 00:07:31 | 0.347751 | 0.962247 | 0.711828 | 3483 | none |
 
 ## Flash r10 Stability
@@ -56,12 +56,12 @@
 | `gdn-h2-ev2-usegate0-s123-d123` | reference | 1167878 | 16384 | 0.347751 | 0.962247 | 0.711828 |
 | `gdn-h2-ev2-usegate0-s124-d123` | completed | 1167878 | 16384 | 0.331054 | 0.964425 | 0.725734 |
 | `gdn-h2-ev2-usegate0-s125-d123` | completed | 1167878 | 16384 | 0.384506 | 0.951634 | 0.644246 |
-| `gdn-h1-ev4-usegate0-s123-d123` | failed | 1234563 | 65536 |  |  |  |
+| `gdn-h1-ev4-usegate0-s123-d123` | completed | 1234563 | 65536 | 0.328836 | 0.964806 | 0.736051 |
 | `gdn-h2-ev4-usegate0-s123-d123` | completed | 1234566 | 32768 | 0.470866 | 0.943018 | 0.587766 |
 | `gdn-h2-ev8-usegate0-s123-d123` | completed | 1367942 | 65536 | 0.289848 | 0.978623 | 0.831684 |
 | `gdn-h2-ev8-usegate0-s124-d123` | completed | 1367942 | 65536 | 0.292128 | 0.977516 | 0.823707 |
 | `gdn-h2-ev8-usegate0-s125-d123` | completed | 1367942 | 65536 | 0.283829 | 0.980528 | 0.847398 |
-| `gdn-h2-ev16-usegate0-s123-d123` | failed | 1634694 | 131072 |  |  |  |
+| `gdn-h2-ev16-usegate0-s123-d123` | completed | 1634694 | 131072 | 0.408903 | 0.960377 | 0.704930 |
 
 ## Flash vs GDN
 
@@ -75,12 +75,12 @@
 2. r10-s125 128x2 强结果是否复现: 在同 seed 下复现. r10-s125 旧 `128x2` hard slice=0.985121, 本轮 `64x4/fp32` hard slice=0.990730, delta=+0.005609. 旧 `128x2` overall acc=0.996467, 本轮=0.997251, delta=+0.000784. 这些旧值只用于复现性解释, 不混入 official comparison table.
 3. GDN h2-ev8 是否稳定: 相对稳定. seeds 123/124/125 的 1024x256 hard slice range=0.023691, overall acc range=0.003012, 最强 seed 125 为 0.847398, 最低 seed 124 为 0.823707.
 4. GDN h2-ev8 是否追近 Flash r10: 没有追近到同一质量水平. 最强 GDN h2-ev8 hard slice=0.847398, 最强 Flash r10 hard slice=0.990730, gap=0.143332. overall acc gap=0.016723. 1024x256 hard slice 是主要短板.
-5. GDN capacity-up 趋势: h2-ev8 明显好于 h2-ev2 低容量组, 但 h2-ev4-s123 低于 h2-ev2-s123 reference 和 h2-ev2-s124, 说明扩 `expand_v` 不是单调保证. h1-ev2-s123 也低于 h2-ev2 reference. h1-ev4 和 h2-ev16 未完成, 失败原因是 CUDA/NVML/Triton driver 不可用, 不是 OOM, 因此不能据此判断 ev4/h1 或 ev16 的质量趋势.
-6. 近参数量, 近动态容量, 双约束公平比较下一步: 当前 Flash r10 params=1,184,198, dynamic_capacity=327,680. GDN h2-ev8 params=1,367,942, dynamic_capacity=65,536. h2-ev16 dynamic_capacity=131,072 仍低于 Flash r10, 但 params 更高且本轮未完成. 当前没有一个 GDN row 同时满足近参数量和近动态容量. 下一步应等 CUDA/NVML 恢复后补跑 h1-ev4/h2-ev16, 再设计两个独立轴: 一组固定 params 接近 Flash, 一组固定 dynamic capacity 接近 Flash, 最后只在双约束交集内做 direct official comparison.
+5. GDN capacity-up 趋势: h2-ev8 明显好于 h2-ev2 低容量组, 但 capacity-up 不是单调保证. h2-ev4-s123 hard slice=0.587766, 低于 h2-ev2 reference/s124. h1-ev4-s123 hard slice=0.736051, 高于 h1-ev2-s123 的 0.632508, 也略高于 h2-ev2 reference 的 0.711828, 但仍低于 h2-ev8. h2-ev16-s123 完成且非 OOM, hard slice=0.704930, 低于 h2-ev8 和 h1-ev4, 说明简单增大 `expand_v` 到 16 没有带来质量提升.
+6. 近参数量, 近动态容量, 双约束公平比较下一步: 当前 Flash r10 params=1,184,198, dynamic_capacity=327,680. GDN h1-ev4 params=1,234,563, dynamic_capacity=65,536, 参数量较近但动态容量仍只有 Flash 的 20%. GDN h2-ev16 params=1,634,694, dynamic_capacity=131,072, 动态容量仍低于 Flash 且参数更多. 当前没有一个 GDN row 同时满足近参数量和近动态容量. 下一步应设计两个独立轴: 一组固定 params 接近 Flash, 一组固定 dynamic capacity 接近 Flash, 最后只在双约束交集内做 direct official comparison.
 7. Scope 声明: 本轮新 completed 结果只属于 `b64_ga4 + fp32` official comparison scope. 本报告不把 `128x2`, search, probe, auto-fp16 结果混入 official 质量结论. h2-ev2-s123 只是按要求引用的同 batch/dtype reference.
 
 ## Notes
 
 - New completed Flash rows: 4.
-- New completed GDN rows: 7. Reference rows: 1.
-- Failed/OOM rows保留在 `gdn-official-final.csv` 和 `run-manifest.json`, 但不追加到 canonical ledger.
+- New completed GDN rows: 9. Reference rows: 1.
+- Failed/OOM rows: 0. 两个 GPU-fix 补跑项均 completed, 非 OOM.

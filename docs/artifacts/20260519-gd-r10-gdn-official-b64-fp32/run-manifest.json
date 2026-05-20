@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-05-20T04:02:15.323482+00:00",
+  "created_at_utc": "2026-05-20T05:25:28.312696+00:00",
   "scope": "b64_ga4_fp32_official",
   "batch_accum_profile": "b64_ga4",
   "dtype_policy": "float32",
@@ -17,7 +17,7 @@
   "zoology_repo": {
     "path": "/home/lyj/mnt/project/zoology",
     "branch": "flash-vqg",
-    "commit": "b90027961e56f6bfb0c3d85268a19dea6b3d8d82"
+    "commit": "e0a52b445ae8c4a2a7f5bebd23fed642d154dadc"
   },
   "tests": {
     "zoology": "/home/lyj/miniconda3/envs/flash-vqg/bin/python -m pytest tests/test_flash_vqg_scripts.py tests/test_flash_vqg_wrapper.py tests/test_flash_vqg_metrics_white_list.py -q",
@@ -488,33 +488,33 @@
       "batch_accum_profile": "b64_ga4",
       "dtype_policy": "float32",
       "gdn_kernel_dtype": "float32",
-      "returncode": 1,
-      "status": "failed",
-      "completed": false,
+      "returncode": 0,
+      "status": "completed",
+      "completed": true,
       "oom": false,
-      "elapsed_sec": 9.944228164851665,
-      "observed_peak_memory_used_mib": null,
-      "peak_memory_total_mib": null,
+      "elapsed_sec": 539.1348682045937,
+      "observed_peak_memory_used_mib": 3933,
+      "peak_memory_total_mib": 11264,
       "log_path": "/home/lyj/mnt/project/zoology/tmp/20260519-gd-r10-gdn-official-b64-fp32-logs/gdn-h1-ev4-s123-gpu1.log",
       "gpu_memory_sample_path": "/home/lyj/mnt/project/zoology/tmp/20260519-gd-r10-gdn-official-b64-fp32-logs/gdn-h1-ev4-s123-gpu1-memory.csv",
-      "manifest_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46/manifest.json",
-      "launch_id": "flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46",
+      "manifest_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13/manifest.json",
+      "launch_id": "flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13",
       "swanlab": {
         "project": "flash_vqg_gdn_capacity_up",
         "entity": "scu-mclab",
-        "experiment_id": "ue4pgpz0b3vf4xgi2gwxf",
-        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_capacity_up/runs/ue4pgpz0b3vf4xgi2gwxf"
+        "experiment_id": "mxqmunftu4kpq8aaosu8y",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_capacity_up/runs/mxqmunftu4kpq8aaosu8y"
       },
       "local": {
-        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040051-ue4pgpz0b3vf4xgi2gwxf",
-        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040051-ue4pgpz0b3vf4xgi2gwxf/backup.swanlab",
-        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040051-ue4pgpz0b3vf4xgi2gwxf/files/config.yaml",
-        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040051-ue4pgpz0b3vf4xgi2gwxf/files/swanlab-metadata.json",
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_050217-mxqmunftu4kpq8aaosu8y",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_050217-mxqmunftu4kpq8aaosu8y/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_050217-mxqmunftu4kpq8aaosu8y/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_050217-mxqmunftu4kpq8aaosu8y/files/swanlab-metadata.json",
         "log_file": null,
-        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
-        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/best.pt",
-        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/last.pt",
-        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-04-00-46/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/train_config.json"
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h1-ev4-s123-2026-05-20-05-02-13/gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep/train_config.json"
       }
     },
     {
@@ -529,33 +529,33 @@
       "batch_accum_profile": "b64_ga4",
       "dtype_policy": "float32",
       "gdn_kernel_dtype": "float32",
-      "returncode": 1,
-      "status": "failed",
-      "completed": false,
+      "returncode": 0,
+      "status": "completed",
+      "completed": true,
       "oom": false,
-      "elapsed_sec": 9.758578393608332,
-      "observed_peak_memory_used_mib": null,
-      "peak_memory_total_mib": null,
+      "elapsed_sec": 833.909047242254,
+      "observed_peak_memory_used_mib": 3859,
+      "peak_memory_total_mib": 11264,
       "log_path": "/home/lyj/mnt/project/zoology/tmp/20260519-gd-r10-gdn-official-b64-fp32-logs/gdn-h2-ev16-s123-gpu1.log",
       "gpu_memory_sample_path": "/home/lyj/mnt/project/zoology/tmp/20260519-gd-r10-gdn-official-b64-fp32-logs/gdn-h2-ev16-s123-gpu1-memory.csv",
-      "manifest_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56/manifest.json",
-      "launch_id": "flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56",
+      "manifest_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12/manifest.json",
+      "launch_id": "flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12",
       "swanlab": {
         "project": "flash_vqg_gdn_capacity_up",
         "entity": "scu-mclab",
-        "experiment_id": "3yzp4flpv01fiwjmmin1w",
-        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_capacity_up/runs/3yzp4flpv01fiwjmmin1w"
+        "experiment_id": "1u3emjsjuja4v3v4zxulb",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_capacity_up/runs/1u3emjsjuja4v3v4zxulb"
       },
       "local": {
-        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040101-3yzp4flpv01fiwjmmin1w",
-        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040101-3yzp4flpv01fiwjmmin1w/backup.swanlab",
-        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040101-3yzp4flpv01fiwjmmin1w/files/config.yaml",
-        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_040101-3yzp4flpv01fiwjmmin1w/files/swanlab-metadata.json",
+        "run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_051117-1u3emjsjuja4v3v4zxulb",
+        "backup_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_051117-1u3emjsjuja4v3v4zxulb/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_051117-1u3emjsjuja4v3v4zxulb/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/zoology/swanlog/run-20260520_051117-1u3emjsjuja4v3v4zxulb/files/swanlab-metadata.json",
         "log_file": null,
-        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep",
-        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/best.pt",
-        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/last.pt",
-        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-04-00-56/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/train_config.json"
+        "checkpoint_run_dir": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep",
+        "best_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/zoology/checkpoints/flash-vqg-20260519-gd-r10-gdn-official-b64-fp32-gdn-h2-ev16-s123-2026-05-20-05-11-12/gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep/train_config.json"
       }
     },
     {
