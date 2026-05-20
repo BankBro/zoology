@@ -1,0 +1,9 @@
+model_family,config_family,num_heads,expand_v,use_gate,use_short_conv,conv_size,d_model,n_layers,trainable_params,dynamic_capacity_per_layer,dynamic_capacity_total,params_per_capacity_per_layer
+gdn,gdn-h1-ev4-usegate0,1,4,False,True,4,128,2,1234563,65536,131072,18.837936401367188
+gdn,gdn-h1-ev8-usegate0,1,8,False,True,4,128,2,1368195,131072,262144,10.438499450683594
+gdn,gdn-h2-ev2-usegate0,2,2,False,True,4,128,2,1167878,16384,32768,71.2816162109375
+gdn,gdn-h2-ev6-usegate0,2,6,False,True,4,128,2,1301254,49152,98304,26.474080403645832
+gdn,gdn-h2-ev8-usegate0,2,8,False,True,4,128,2,1367942,65536,131072,20.873138427734375
+gdn,gdn-h2-ev10-usegate0,2,10,False,True,4,128,2,1434630,81920,163840,17.5125732421875
+gdn,gdn-h2-ev12-usegate0,2,12,False,True,4,128,2,1501318,98304,196608,15.272196451822916
+gdn,gdn-h2-ev16-usegate0,2,16,False,True,4,128,2,1634694,131072,262144,12.471725463867188
