@@ -1,0 +1,15 @@
+model_family,config,run_id,requested_run_id,status,trainable_params,flash_dynamic_capacity,gdn_dynamic_state_capacity,rank,num_heads,expand_v,batch_accum_profile,dtype_policy,actual_kernel_dtype,comparison_scope
+flash,cb256-r10-s123-d123,gd-r10-s123-d123-b64-ga4-fp32-noearly4ep,gd-r10-s123-d123-b64-ga4-fp32-noearly4ep,completed,1184198,327680,,10,,,b64_ga4,float32,float32,b64_ga4_fp32_official
+flash,cb256-r10-s124-d123,gd-r10-s124-d123-b64-ga4-fp32-noearly4ep,gd-r10-s124-d123-b64-ga4-fp32-noearly4ep,completed,1184198,327680,,10,,,b64_ga4,float32,float32,b64_ga4_fp32_official
+flash,cb256-r10-s125-d123,gd-r10-s125-d123-b64-ga4-fp32-noearly4ep,gd-r10-s125-d123-b64-ga4-fp32-noearly4ep,completed,1184198,327680,,10,,,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev2-usegate0-s124-d123,gdn-h2-ev2-s124-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev2-s124-d123-b64-ga4-fp32-noearly4ep,completed,1167878,,16384,,2,2,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev8-usegate0-s123-d123,gdn-h2-ev8-s123-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev8-s123-d123-b64-ga4-fp32-noearly4ep,completed,1367942,,65536,,2,8,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev8-usegate0-s125-d123,gdn-h2-ev8-s125-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev8-s125-d123-b64-ga4-fp32-noearly4ep,completed,1367942,,65536,,2,8,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h1-ev2-usegate0-s123-d123,gdn-h1-ev2-s123-d123-b64-ga4-fp32-noearly4ep,gdn-h1-ev2-s123-d123-b64-ga4-fp32-noearly4ep,completed,1167747,,32768,,1,2,b64_ga4,float32,float32,b64_ga4_fp32_official
+flash,cb256-r10-s126-d123,gd-r10-s126-d123-b64-ga4-fp32-noearly4ep,gd-r10-s126-d123-b64-ga4-fp32-noearly4ep,completed,1184198,327680,,10,,,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev2-usegate0-s125-d123,gdn-h2-ev2-s125-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev2-s125-d123-b64-ga4-fp32-noearly4ep,completed,1167878,,16384,,2,2,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev8-usegate0-s124-d123,gdn-h2-ev8-s124-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev8-s124-d123-b64-ga4-fp32-noearly4ep,completed,1367942,,65536,,2,8,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev4-usegate0-s123-d123,gdn-h2-ev4-s123-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev4-s123-d123-b64-ga4-fp32-noearly4ep,completed,1234566,,32768,,2,4,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h1-ev4-usegate0-s123-d123,gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep,gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep,failed,1234563,,65536,,1,4,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev16-usegate0-s123-d123,gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep,gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep,failed,1634694,,131072,,2,16,b64_ga4,float32,float32,b64_ga4_fp32_official
+gdn,gdn-h2-ev2-usegate0-s123-d123,gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-gdnkernel-fp32,gdn-h2-ev2-s123-d123-b64-ga4-fp32-reference,reference,1167878,,16384,,2,2,b64_ga4,float32,float32,b64_ga4_fp32_reference
