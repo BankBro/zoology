@@ -1,0 +1,5 @@
+model_family,config,run_id,status,num_codebook_vectors,rank,dynamic_capacity_total,trainable_params,zoology_state_size_metric_seq1024,batch_accum_profile,dtype_policy,actual_kernel_dtype,comparison_scope,valid_accuracy,valid_mqar_case_accuracy_1024x256
+flash,cb128-r8-s123-d123,gd-cb128-r8-s123-d123-b64-ga4-fp32-noearly4ep,completed,128,8,131072,1167558,657920,b64_ga4,float32,float32,b64_ga4_fp32_official,0.96207275390625,0.77210546875
+flash,cb256-r4-s123-d123,gd-cb256-r4-s123-d123-b64-ga4-fp32-noearly4ep,completed,256,4,131072,1183430,724480,b64_ga4,float32,float32,b64_ga4_fp32_official,0.98034765625,0.8950234375
+flash,cb64-r16-s123-d123,gd-cb64-r16-s123-d123-b64-ga4-fp32-noearly4ep,completed,64,16,131072,1160390,624640,b64_ga4,float32,float32,b64_ga4_fp32_official,0.99387890625,0.9687109375
+flash,cb128-r10-s123-d123,gd-cb128-r10-s123-d123-b64-ga4-fp32-noearly4ep,completed,128,10,163840,1167814,788992,b64_ga4,float32,float32,b64_ga4_fp32_official,0.95649072265625,0.70416015625
