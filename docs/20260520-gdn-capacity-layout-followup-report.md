@@ -51,14 +51,16 @@
 - h1-ev8 stronger than h2-ev16 in the 131k capacity tier by 3-seed mean: true, but not consistently per seed.
 
 ## h2 Capacity Curve
-| h2 expand_v | capacity/layer | capacity total | params | loss | acc | 1024x256 | 512x128 |
+当前 Hybrid 配置只有一层 GDN, 另一层是 BaseConv. 下表的 `active GDN capacity` 不做 `model.n_layers` 翻倍, 也不包含 BaseConv 状态.
+
+| h2 expand_v | capacity/layer | active GDN capacity | params | loss | acc | 1024x256 | 512x128 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2 | 16384 | 32768 | 1167878 | 0.347751 | 0.962247 | 0.711828 | 0.987602 |
-| 6 | 49152 | 98304 | 1301254 | 0.296228 | 0.975709 | 0.811367 | 0.994789 |
-| 8 | 65536 | 131072 | 1367942 | 0.289848 | 0.978623 | 0.831684 | 0.997656 |
-| 10 | 81920 | 163840 | 1434630 | 0.275982 | 0.981971 | 0.858922 | 0.998203 |
-| 12 | 98304 | 196608 | 1501318 | 0.291562 | 0.980175 | 0.844816 | 0.997586 |
-| 16 | 131072 | 262144 | 1634694 | 0.408903 | 0.960377 | 0.704930 | 0.979117 |
+| 2 | 16384 | 16384 | 1167878 | 0.347751 | 0.962247 | 0.711828 | 0.987602 |
+| 6 | 49152 | 49152 | 1301254 | 0.296228 | 0.975709 | 0.811367 | 0.994789 |
+| 8 | 65536 | 65536 | 1367942 | 0.289848 | 0.978623 | 0.831684 | 0.997656 |
+| 10 | 81920 | 81920 | 1434630 | 0.275982 | 0.981971 | 0.858922 | 0.998203 |
+| 12 | 98304 | 98304 | 1501318 | 0.291562 | 0.980175 | 0.844816 | 0.997586 |
+| 16 | 131072 | 131072 | 1634694 | 0.408903 | 0.960377 | 0.704930 | 0.979117 |
 
 - h2 curve monotonic on seed 123: false.
 - h2 curve best seed-123 point: h2-ev10 with 1024x256=0.858922.
@@ -77,7 +79,7 @@
 | 8 | h2-ev8 | 126 | 0.831566 | 0.978413 | 0.286705 | 20260520_gdn_capacity_layout_followup |
 
 - Current best GDN single run by 1024x256: h2-ev10, seed 123, 1024x256=0.858922, acc=0.981971.
-- Recommended best GDN baseline for future Flash-VQG capacity-fair comparisons: use h2-ev8 as the current multi-seed baseline, and treat h2-ev10 as the new best single-run candidate that needs s124/s125 follow-up before promotion.
+- Recommended best GDN baseline for future Flash-VQG comparisons: use h2-ev8 as the current multi-seed stable baseline, but remember it is 65k active GDN capacity. For strict 131k capacity-fair comparisons, use h1-ev8 or h2-ev16; treat h2-ev10 as the new best single-run candidate that needs s124/s125 follow-up before promotion.
 
 ## Answers
 1. h2-ev8 新增 s126/s127 后仍稳定. 5-seed 1024x256 mean=0.828155, std(pop)=0.013317, range=0.040980.
@@ -86,7 +88,7 @@
 4. h2-ev6/ev10/ev12 与 h2-ev8 的 seed-123 曲线显示当前 seed-123 sweet spot 是 h2-ev10, 不是 h2-ev8. h2-ev10 需要补 s124/s125 才能作为稳定 baseline.
 5. GDN capacity-up 不呈单调趋势: true. expand_v 增大后可能变弱.
 6. 当前最强 GDN best-of-family single run 是 h2-ev10-s123, hard=0.858922. 当前最强 multi-seed baseline 仍是 h2-ev8.
-7. 后续和 Flash-VQG 做容量公平比较时, GDN 应先选 h2-ev8 作为已固化 multi-seed baseline, 同时补 h2-ev10 的 s124/s125 来判断是否升级 best GDN baseline.
+7. 后续和 Flash-VQG 做容量公平比较时, h2-ev8 只能作为 65k stable baseline. 严格 131k 对等容量应选 h1-ev8 或 h2-ev16; 同时补 h2-ev10 的 s124/s125 来判断是否升级 best GDN baseline.
 8. 本报告所有 completed 结果属于 b64_ga4 + fp32 official GDN scope, 不和 128x2, auto-fp16, probe 结果混表.
 
 ## Artifact Files

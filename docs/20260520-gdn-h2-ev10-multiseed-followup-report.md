@@ -53,7 +53,7 @@
 2. h2-ev10 是否稳定强于 h2-ev8: false. h2-ev10 1024x256 mean=0.834573 高于 h2-ev8 mean=0.828155, 但 paired seeds 中 wins=3, losses=2, 且 h2-ev10 std/range 更大, 所以不能判定稳定强于.
 3. h2-ev10 是否可以升级为 best GDN baseline: false. 当前建议 best GDN baseline=h2-ev8 作为主稳定 baseline; h2-ev10 作为更高均值/上界候选.
 4. h2-ev10 不是只有 s123 强: s124/s127 也强于 h2-ev8 对应 seed, 但 s125/s126 低于 h2-ev8. 因此继续保留 h2-ev8 作为稳定 baseline, 同时把 h2-ev10 作为更高均值/上界候选.
-5. 后续 Flash-VQG 容量公平实验建议对齐: 主对齐 h2-ev8; 资源允许时同时报告 h2-ev10 作为 GDN 上界候选.
+5. 后续 Flash-VQG 对比建议: h2-ev8 作为 65k active-capacity stable baseline; h2-ev10 作为 81,920 active-capacity 上界候选. 如果做严格 131k capacity-fair, GDN 应对齐 h1-ev8 或 h2-ev16.
 6. 本报告所有 completed 结果都属于 b64_ga4 + fp32 official GDN scope, 不和 128x2, auto-fp16, probe 结果混表.
 
 ## Artifact Files

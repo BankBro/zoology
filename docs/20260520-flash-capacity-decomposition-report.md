@@ -5,7 +5,7 @@
 - 本轮只跑 Flash-VQG `gd_residual_v1`, 不跑 GDN, 不重跑 dense baseline, 不做 event_pack 优化, 不做真实任务, 不改核心模型源码.
 - 新 completed 结果统一为 `MAX_EPOCHS=4`, early stopping disabled, `TRAIN_BATCH_SIZE=64`, `GRADIENT_ACCUMULATION_STEPS=4`, `EVAL_BATCH_SIZE=16`, `DATA_SEED=123`, `SEED_VALUES=123`, `dtype_policy=float32`.
 - 本轮 completed Flash 结果属于 `b64_ga4 + fp32` official scope, 但每个 decomposition 配置目前只有 seed123, 因此跨 cb/rank 的强弱结论只作为 single-seed trend.
-- GDN h2-ev8/h2-ev10 只从既有 report/artifacts 读取为 reference, 不新增 GDN run.
+- GDN h2-ev8/h2-ev10 只从既有 report/artifacts 读取为 reference, 不新增 GDN run. 按 active GDN capacity 口径, h2-ev8=65,536, h2-ev10=81,920, 不是 131k/163k 对等容量.
 - 不混入 historical inferred rows, b128_ga2 rows, auto-fp16 rows.
 
 ## Artifacts
@@ -42,11 +42,12 @@
 - GDN h2-ev8 5-seed overall acc: n=5, mean=0.978032, std=0.001772, range=0.005448, min=0.975081, max=0.980528.
 - GDN h2-ev10 5-seed 1024x256: n=5, mean=0.834573, std=0.015274, range=0.046125, min=0.812797, max=0.858922.
 - GDN h2-ev10 5-seed overall acc: n=5, mean=0.978884, std=0.001958, range=0.005891, min=0.976080, max=0.981971.
+- Capacity note: GDN h2-ev8/h2-ev10 是 active GDN capacity 65,536/81,920 的 stable/reference baseline, 不应写成与 Flash 131k/163k 对等容量.
 
 ## Answers
 
-1. 131k 容量档谁最强: `cb64-r16-s123-d123` 是本轮 seed123 best-of-family, hard slice 比 h2-ev8 5-seed mean 高 +0.140556, overall acc 比 h2-ev8 mean 高 +0.015847.
-2. cb128-r10 是否强于 GDN h2-ev10: 否. cb128-r10 seed123 hard=0.704160, h2-ev10 5-seed mean hard=0.834573, delta=-0.130413; overall acc delta=-0.022393.
+1. 131k Flash 容量档谁最强: `cb64-r16-s123-d123` 是本轮 seed123 best-of-family. 它的 hard slice 比 65k GDN h2-ev8 5-seed mean 高 +0.140556, overall acc 比 h2-ev8 mean 高 +0.015847; 这不是严格 131k capacity-fair 对比.
+2. cb128-r10 是否强于 GDN h2-ev10 reference: 否. cb128-r10 seed123 hard=0.704160, h2-ev10 5-seed mean hard=0.834573, delta=-0.130413; overall acc delta=-0.022393. 注意 h2-ev10 active GDN capacity 是 81,920, 不是 163k 对等容量.
 3. cb/rank 分解影响明显. 在相同 131k dynamic capacity 下, 本轮 seed123 呈现 `cb64-r16 > cb256-r4 > cb128-r8` 的 hard-slice 排序. 这说明更多 codebook slots 不一定更好, 更高 rank 在这个 seed 下更有利, 但这是 single-seed trend, 不能直接升级为稳定结论.
 4. Official scope: 四个新 Flash rows 都是 completed `b64_ga4 + fp32` official training runs, 可进入 canonical ledger. 但 decomposition 比较当前只有 seed123, 只能作为 single-seed trend; 若要 claim 稳定 best-of-family, 需要对最强分解补 s124/s125.
 5. 下一步: 优先给 `cb64-r16` 补 seeds 124/125, 同时可给 `cb256-r4` 做 paired seed 复核, 因为它在历史和本轮都不是完全稳定的低容量强点.

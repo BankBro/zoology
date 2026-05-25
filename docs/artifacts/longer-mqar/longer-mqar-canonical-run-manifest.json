@@ -1,0 +1,24 @@
+{
+  "batch_id": "20260521-longer-mqar-canonical-full",
+  "created_at_utc": "2026-05-21T05:20:39.150467+00:00",
+  "source_count": 59,
+  "gpus": [
+    0,
+    1
+  ],
+  "phases": [
+    "batch-search",
+    "formal",
+    "sanity"
+  ],
+  "sanity_examples": 16,
+  "batch_search_examples": 8,
+  "formal_examples": 500,
+  "batch_candidates": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "tmp_root": "tmp/20260521-longer-mqar-canonical-full"
+}

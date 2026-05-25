@@ -29,6 +29,7 @@ Normalized values:
 Interpretation:
 
 - `comparison_scope` is the historical experiment grouping label. Use `official_scope` for normalized official/probe/search filtering.
+- `dynamic_capacity` is the active Flash-VQG `gd_residual_v1` residual-memory capacity for the FlashVQG mixer layer, computed from `num_codebook_vectors * rank * d_model`. It is not a sum over `model.n_layers` and does not include the BaseConv layer in Hybrid configs.
 - `dtype_policy=float32` means the run is treated as float32 policy. If `metadata_verification_level=inferred_default_no_amp`, this was inferred from train config plus the no-AMP training path rather than measured runtime dtype telemetry.
 - `actual_kernel_dtype=not_recorded` must not be silently interpreted as a measured `float32` kernel. It only means no separate runtime kernel dtype telemetry was recorded for that row.
 - `b64_ga4_fp32_historical_inferred` rows can be useful for historical analysis, but stricter direct official comparisons should prefer `official_scope=b64_ga4_fp32_official` unless the report explicitly accepts inferred historical metadata.

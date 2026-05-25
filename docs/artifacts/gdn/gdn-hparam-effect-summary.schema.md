@@ -57,6 +57,7 @@ Normalized values:
 Interpretation:
 
 - `comparison_scope` identifies comparable GDN experiment groups. `official_scope` is the normalized high-level filter for official/probe/search rows.
+- `dynamic_state_capacity` is the active GDN recurrent-state capacity for the GDN mixer layer only, computed as `num_heads * head_k_dim * head_v_dim`. It is not multiplied by `model.n_layers` and does not include the BaseConv layer in Hybrid configs.
 - `dtype_policy=float32` means the row is treated as float32 policy. `gdn_kernel_dtype_policy=float32` means the GDN kernel was explicitly configured or promoted as fp32 policy.
 - `actual_kernel_dtype=float32` means the GDN runtime/kernel dtype is recorded as float32 in the source artifact/report path for that row.
 - `b128_ga2_fp32_capacity_search` rows should not be mixed into `b64_ga4_fp32_official` quality comparisons.

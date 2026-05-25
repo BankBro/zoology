@@ -1,0 +1,384 @@
+{
+  "batch_id": "20260521-longer-mqar-canonical-full",
+  "created_at_utc": "2026-05-21T05:20:39.150467+00:00",
+  "source_count": 59,
+  "gpus": [
+    0,
+    1
+  ],
+  "phases": [
+    "batch-search",
+    "formal",
+    "sanity"
+  ],
+  "sanity_examples": 16,
+  "batch_search_examples": 8,
+  "formal_examples": 500,
+  "batch_candidates": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "tmp_root": "tmp/20260521-longer-mqar-canonical-full",
+  "updated_at_utc": "2026-05-21T19:05:02.628992+00:00",
+  "completed_sources": 59,
+  "errors": [],
+  "summaries": [
+    {
+      "source_run_id": "gd-r1-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity2x",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 10
+    },
+    {
+      "source_run_id": "gd-r4-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity8x",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r16-wk4-mu01-t025-cb256-s123-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r4-wk4-mu01-t025-cb256-s124-d123-noearly4ep-crossgpu-gpu1",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s124-d123-noearly4ep-crossgpu-gpu0",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r16-wk4-mu01-t025-cb256-s124-d123-noearly4ep-repeat-gpu0",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s125-d123-noearly4ep-r4r8-seed125",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r16-wk4-mu01-t025-cb256-s125-d123-noearly4ep-r16-robustness",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-wk4-mu01-t025-cb256-s125-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s126-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb128-r8-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb64-r16-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gated_delta_net-default-s123-d123-noearly4ep-b64-ga4-gdnkernel-fp32",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 7
+    },
+    {
+      "source_run_id": "gdn-usegate0-h2-ev2-s125-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h2-ev8-s123-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h1-ev2-s123-d123-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev2-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev2-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s127-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h1-ev8-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev6-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev12-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s127-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r2-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity4x",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s123-d123-noearly4ep-capacity16x",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r4-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r4r8-recheck",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r4r8-recheck",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r16-wk4-mu01-t025-cb256-s124-d123-noearly4ep-r16-robustness",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r4-wk4-mu01-t025-cb256-s125-d123-noearly4ep-r4r8-seed125",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s125-d123-noearly4ep-repeat-gpu1",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r8-wk4-mu01-t025-cb256-s125-d123-noearly4ep-b128-ga2-probe",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r6-wk4-mu01-t025-cb256-s125-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r16-wk4-mu01-t025-cb256-s126-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb256-r4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb128-r10-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h2-ev2-s123-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h2-ev4-s123-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h2-ev2-s124-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-usegate0-h1-ev4-s123-d123-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h1-ev2-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h1-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h1-ev8-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h1-ev8-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    }
+  ],
+  "status": "completed"
+}
