@@ -119,6 +119,7 @@ class GatedDeltaNet(nn.Module):
     def __init__(
         self,
         d_model: int = 2048,
+        expand_k: float = 1,
         expand_v: float = 2,
         # head_dim: int = 256,
         num_heads: int = 6,
@@ -137,6 +138,7 @@ class GatedDeltaNet(nn.Module):
 
         hidden_size = int(d_model)
         self.hidden_size = hidden_size
+        self.expand_k = expand_k
         self.expand_v = expand_v
 
         self.use_gate = use_gate
@@ -147,12 +149,12 @@ class GatedDeltaNet(nn.Module):
         # self.head_dim = head_dim
         self.num_heads = num_heads
         self.head_dim = hidden_size // self.num_heads
-        head_dim = self.head_dim
+        base_head_dim = self.head_dim
 
-        self.key_dim = self.num_heads * self.head_dim
-        self.value_dim = self.key_dim * self.expand_v
-        self.head_k_dim = head_dim
-        self.head_v_dim = head_dim * self.expand_v
+        self.head_k_dim = int(base_head_dim * self.expand_k)
+        self.head_v_dim = int(base_head_dim * self.expand_v)
+        self.key_dim = self.num_heads * self.head_k_dim
+        self.value_dim = self.num_heads * self.head_v_dim
         self.layer_idx = layer_idx
         self.silu = nn.SiLU()
 
@@ -331,3 +333,9 @@ class GatedDeltaNet(nn.Module):
             self.num_heads * self.head_k_dim * self.head_v_dim
         )
         return state_size 
+
+
+class GatedDeltaNetExpandedK(GatedDeltaNet):
+    """GatedDeltaNet variant with explicit key/address expansion."""
+
+    pass

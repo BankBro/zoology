@@ -71,3 +71,29 @@ def test_maybe_cast_gated_delta_kernel_inputs_explicit_policy(monkeypatch):
 
     assert q_out.dtype == torch.float16
     assert k_out.dtype == torch.float16
+
+
+def test_gated_delta_net_default_dimensions_unchanged():
+    layer = gdn.GatedDeltaNet(d_model=128, num_heads=2, expand_v=2, use_gate=False)
+
+    assert layer.head_k_dim == 64
+    assert layer.head_v_dim == 128
+    assert layer.key_dim == 128
+    assert layer.value_dim == 256
+    assert layer.state_size() == 16384
+
+
+def test_gated_delta_net_expanded_k_dimensions():
+    layer = gdn.GatedDeltaNetExpandedK(
+        d_model=128,
+        num_heads=2,
+        expand_k=16,
+        expand_v=1,
+        use_gate=False,
+    )
+
+    assert layer.head_k_dim == 1024
+    assert layer.head_v_dim == 64
+    assert layer.key_dim == 2048
+    assert layer.value_dim == 128
+    assert layer.state_size() == 131072

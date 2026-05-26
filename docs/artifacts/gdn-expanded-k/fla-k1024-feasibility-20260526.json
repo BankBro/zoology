@@ -1,0 +1,68 @@
+{
+  "artifact_id": "fla-k1024-feasibility-20260526",
+  "status": "analyzed",
+  "started_at_utc": "2026-05-26T06:38:00Z",
+  "ended_at_utc": "2026-05-26T07:00:24Z",
+  "gpu": "0",
+  "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+  "compute_capability": "sm75",
+  "official_fla_repo": "/home/lyj/mnt/project/flash-linear-attention",
+  "official_fla_remote": "https://github.com/fla-org/flash-linear-attention.git",
+  "official_fla_branch": "main",
+  "official_fla_commit": "19b5a3f4",
+  "official_fla_commit_subject": "[GDN] Support use_beta_sigmoid_in_kernel & allow_neg_eigval (#919)",
+  "local_torch_version": "2.6.0+cu118",
+  "local_triton_version_note": "当前环境 Triton 3.2.0, 官方运行时提示推荐 3.3.0+。",
+  "findings": [
+    {
+      "item": "official_chunk_limit",
+      "result": "K=512 和 K=1024 在官方 chunk_gated_delta_rule_fwd_h 入口被断言拒绝。",
+      "source": "/home/lyj/mnt/project/flash-linear-attention/fla/ops/common/chunk_delta_h.py",
+      "source_lines": [625, 678],
+      "assertions": [
+        "assert K <= 256, \"current kernel does not support head dimension larger than 256.\"",
+        "assert K <= 256, \"current kernel does not support head dimension being larger than 256.\""
+      ]
+    },
+    {
+      "item": "kernel_design_reason",
+      "result": "state-update kernel 以 64 维 K block 手工展开为 b_h1 到 b_h4, 因而最多覆盖 K=256。K=1024 需要 16 个 K block 或跨 K-block state 分片/同步, 不是删除断言即可解决。"
+    },
+    {
+      "item": "chunk_subkernels",
+      "result": "GDN 的 intra-chunk KKT/solve 和 chunk_fwd_o 已经按 K tile 循环, 关键缺口集中在 chunk_gated_delta_rule_fwd_h, chunk_gated_delta_rule_bwd_dhu, CP pre-process 这些 state update 路径。"
+    },
+    {
+      "item": "fused_recurrent_forward",
+      "result": "官方 fused_recurrent_gated_delta_rule 可以在 K=1024,V=64 的极小 forward smoke 上通过。",
+      "shape": {
+        "B": 1,
+        "T": 4,
+        "H": 2,
+        "HV": 2,
+        "K": 1024,
+        "V": 64
+      },
+      "forward_sec": 1.383
+    },
+    {
+      "item": "fused_recurrent_backward",
+      "result": "fused_recurrent backward 明确未实现, 因此不能直接用于正式训练。",
+      "error_type": "NotImplementedError",
+      "error_message": "Backward pass is not implemented yet and we do not have plans to implement it because we haven't figured out how to compute dg without materializing the full hidden states for all time steps."
+    },
+    {
+      "item": "naive_oracle",
+      "result": "官方 naive_recurrent_gated_delta_rule 可以在 K=1024,V=64 的极小 backward smoke 上通过, 可作为 correctness oracle, 不适合作为正式 MQAR 训练 kernel。",
+      "shape": {
+        "B": 1,
+        "T": 4,
+        "H": 2,
+        "K": 1024,
+        "V": 64
+      },
+      "forward_backward_sec": 0.131
+    }
+  ],
+  "recommendation": "若目标是正式训练 GDN K=1024,V=64, 较可行路线是 fork FLA 并实现 K-blocked chunk_gated_delta_rule_fwd_h 和对应 backward, 用 naive/fused_recurrent 做 correctness oracle。短期实验只能先停在 K<=256, 或把问题改成 ek4-ev4 的受限 probe。"
+}

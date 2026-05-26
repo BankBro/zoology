@@ -28,6 +28,17 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _elapsed_seconds(started_at_utc: str | None, ended_at_utc: str | None) -> float | None:
+    if not started_at_utc or not ended_at_utc:
+        return None
+    try:
+        started = datetime.fromisoformat(started_at_utc)
+        ended = datetime.fromisoformat(ended_at_utc)
+    except ValueError:
+        return None
+    return max(0.0, (ended - started).total_seconds())
+
+
 def _to_jsonable(value: Any):
     if isinstance(value, Path):
         return str(value.resolve())
@@ -199,6 +210,9 @@ def initialize_manifest(
                 "eval_task": eval_task,
                 "status": "planned",
                 "error": None,
+                "started_at_utc": None,
+                "ended_at_utc": None,
+                "wall_clock_sec": None,
                 "updated_at_utc": _utc_now(),
                 "swanlab": {
                     "project": project,
@@ -261,7 +275,18 @@ def update_manifest_for_run(
 
         target["status"] = status
         target["error"] = error
-        target["updated_at_utc"] = _utc_now()
+        updated_at = _utc_now()
+        target["updated_at_utc"] = updated_at
+        if status == "running" and not target.get("started_at_utc"):
+            target["started_at_utc"] = updated_at
+            target["ended_at_utc"] = None
+            target["wall_clock_sec"] = None
+        elif status in {"completed", "failed"}:
+            if not target.get("started_at_utc"):
+                target["started_at_utc"] = updated_at
+            target["ended_at_utc"] = updated_at
+            elapsed = _elapsed_seconds(target.get("started_at_utc"), target.get("ended_at_utc"))
+            target["wall_clock_sec"] = None if elapsed is None else round(elapsed, 6)
         target["config_summary"] = config_summary_from_config(config)
 
         swanlab_payload = target.setdefault("swanlab", {})

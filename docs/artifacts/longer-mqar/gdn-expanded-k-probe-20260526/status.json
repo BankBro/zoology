@@ -1,0 +1,14 @@
+{
+  "artifact_id": "gdn-expanded-k-probe-20260526",
+  "stage": "pre_eval_kernel_smoke",
+  "status": "not_run",
+  "reason": "正式 GDN expanded-K 训练没有启动, 因为 FLA chunk gated delta rule kernel 断言 head_k_dim <= 256。计划中的 ek8-ev2 和 ek16-ev1 分别需要 head_k_dim 512 和 1024。",
+  "started_at_utc": "2026-05-26T05:37:36Z",
+  "ended_at_utc": "2026-05-26T05:45:41Z",
+  "wall_clock_sec": 485,
+  "gpu": "0",
+  "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+  "formal_eval_started": false,
+  "eval_rows_added": 0,
+  "kernel_probe": "../../gdn-expanded-k/kernel-smoke-20260526.json"
+}

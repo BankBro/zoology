@@ -96,6 +96,17 @@ def _load_gdn_capacity_up_builder_module():
     return module
 
 
+def _load_gdn_expanded_k_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260526-gdn-expanded-k/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gdn_expanded_k_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _load_gd_residual_short_run_module():
     script_path = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/short_run_gd_residual_v1.py"
@@ -250,14 +261,54 @@ def _build_gdn_capacity_up_args() -> Namespace:
     )
 
 
+def _build_gdn_expanded_k_args() -> Namespace:
+    return Namespace(
+        launch_id_prefix="flash-vqg-gdn-expanded-k-test",
+        backend="torch",
+        logger_backend="none",
+        dmodels="128",
+        learning_rates="1e-3",
+        train_batch_order="global_shuffle",
+        seed_values="123",
+        data_seed=123,
+        gradient_accumulation_steps=4,
+        train_batch_size=64,
+        eval_batch_size=16,
+        cache_dir="./data/flash_vqg",
+        project="flash_vqg_gdn_expanded_k",
+        entity="scu-mclab",
+        max_epochs=4,
+        validations_per_epoch=2,
+        disable_early_stopping="true",
+        metrics_white_list=None,
+        metrics_white_list_file=str(
+            Path(
+                "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260526-gdn-expanded-k/metrics.yaml"
+            )
+        ),
+        run_id=None,
+        experiment_mode="gdn_expanded_k",
+    )
+
+
 def _extract_flash_kwargs(config):
     return config.model.sequence_mixer.kwargs["configs"][-1]["kwargs"]
 
 
 def _extract_gdn_kwargs(config):
     for mixer in config.model.sequence_mixer.kwargs["configs"]:
-        if mixer["name"] == "zoology.mixers.gated_delta_net.GatedDeltaNet":
+        if mixer["name"] in {
+            "zoology.mixers.gated_delta_net.GatedDeltaNet",
+            "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+        }:
             return mixer["kwargs"]
+    raise AssertionError("GDN mixer not found")
+
+
+def _extract_gdn_mixer_name(config):
+    for mixer in config.model.sequence_mixer.kwargs["configs"]:
+        if str(mixer["name"]).startswith("zoology.mixers.gated_delta_net.GatedDeltaNet"):
+            return mixer["name"]
     raise AssertionError("GDN mixer not found")
 
 
@@ -518,6 +569,50 @@ def test_gdn_capacity_up_builder_integer_expand_v_instantiates(monkeypatch):
     model = LanguageModel(configs[0].model)
 
     assert sum(p.numel() for p in model.parameters() if p.requires_grad) > 0
+
+
+def test_gdn_expanded_k_builder_generates_target_pairs(monkeypatch):
+    module = _load_gdn_expanded_k_builder_module()
+    args = _build_gdn_expanded_k_args()
+    monkeypatch.setenv("GDN_NUM_HEADS", "2")
+    monkeypatch.setenv("GDN_EXPANDED_K_PAIRS", "4:4,8:2,16:1")
+    monkeypatch.setenv("GDN_USE_GATE", "false")
+
+    configs = module.build_gdn_expanded_k_configs(args)
+    run_ids = [config.run_id for config in configs]
+    kwargs = [_extract_gdn_kwargs(config) for config in configs]
+
+    assert run_ids == [
+        "gdnxk-h2-ek4-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+        "gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep",
+        "gdnxk-h2-ek16-ev1-s123-d123-b64-ga4-fp32-noearly4ep",
+    ]
+    assert [_extract_gdn_mixer_name(config) for config in configs] == [
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+    ]
+    assert [(item["expand_k"], item["expand_v"]) for item in kwargs] == [(4, 4), (8, 2), (16, 1)]
+    assert all(config.data.batch_size == (64, 16) for config in configs)
+    assert all(config.gradient_accumulation_steps == 4 for config in configs)
+    assert all(config.early_stopping_metric is None for config in configs)
+
+
+def test_gdn_expanded_k_builder_instantiates_equal_capacity(monkeypatch):
+    from zoology.mixers.gated_delta_net import GatedDeltaNetExpandedK
+
+    module = _load_gdn_expanded_k_builder_module()
+    args = _build_gdn_expanded_k_args()
+    monkeypatch.setenv("GDN_EXPANDED_K_PAIRS", "4:4,8:2,16:1")
+
+    configs = module.build_gdn_expanded_k_configs(args)
+    state_sizes = []
+    for config in configs:
+        kwargs = _extract_gdn_kwargs(config)
+        layer = GatedDeltaNetExpandedK(d_model=config.model.d_model, **kwargs)
+        state_sizes.append(layer.state_size(sequence_length=1024))
+
+    assert state_sizes == [131072, 131072, 131072]
 
 
 def _build_short_run_args(tmp_path):

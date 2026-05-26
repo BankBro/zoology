@@ -1,0 +1,64 @@
+{
+  "probe_id": "gdn-expanded-k-kernel-smoke-20260526",
+  "status": "blocked_by_kernel_limit",
+  "started_at_utc": "2026-05-26T05:37:36Z",
+  "ended_at_utc": "2026-05-26T05:45:41Z",
+  "wall_clock_sec": 485,
+  "gpu": "0",
+  "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+  "compute_capability": "sm75",
+  "torch_version": "2.6.0+cu118",
+  "dtype_policy": "float32",
+  "GDN_KERNEL_DTYPE": "float32",
+  "outer_model_dtype": "float32",
+  "input_shape": {
+    "batch": 1,
+    "seq_len": 8,
+    "d_model": 128
+  },
+  "configs": [
+    {
+      "run_id": "gdnxk-h2-ek4-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "num_heads": 2,
+      "expand_k": 4,
+      "expand_v": 4,
+      "head_k_dim": 256,
+      "head_v_dim": 256,
+      "dynamic_state_capacity": 131072,
+      "result": "minimal_forward_backward_passed",
+      "forward_sec": 182.250,
+      "backward_sec": 250.422,
+      "total_sec": 432.776,
+      "notes": "该 shape 在 RTX 2080 Ti/sm75 上首次 Triton/FLA 编译和执行很慢, 但仍处于当前 FLA K<=256 kernel 限制内。"
+    },
+    {
+      "run_id": "gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep",
+      "num_heads": 2,
+      "expand_k": 8,
+      "expand_v": 2,
+      "head_k_dim": 512,
+      "head_v_dim": 128,
+      "dynamic_state_capacity": 131072,
+      "result": "failed_before_training",
+      "error_type": "AssertionError",
+      "error_message": "current kernel does not support head dimension larger than 256.",
+      "source_file": "/home/lyj/miniconda3/envs/flash-vqg/lib/python3.12/site-packages/fla/ops/common/chunk_delta_h.py",
+      "source_lines": [454, 499],
+      "notes": "这是 FLA chunk gated delta rule 路径中的 head_k_dim 硬限制。"
+    },
+    {
+      "run_id": "gdnxk-h2-ek16-ev1-s123-d123-b64-ga4-fp32-noearly4ep",
+      "num_heads": 2,
+      "expand_k": 16,
+      "expand_v": 1,
+      "head_k_dim": 1024,
+      "head_v_dim": 64,
+      "dynamic_state_capacity": 131072,
+      "result": "not_launched",
+      "reason": "受 ek8-ev2 暴露的同一个 FLA K<=256 kernel 限制阻塞。目标 Flash 对齐 endpoint 需要 head_k_dim=1024。"
+    }
+  ],
+  "training_started": false,
+  "ledger_rows_added": 0,
+  "conclusion": "计划中的第一阶段设计在当前 FLA chunk kernel 下不可执行, 因为关键的 ek8-ev2 和 ek16-ev1 都要求 head_k_dim 大于 256。"
+}
