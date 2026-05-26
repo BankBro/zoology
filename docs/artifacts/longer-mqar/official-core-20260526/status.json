@@ -1,0 +1,160 @@
+{
+  "batch_id": "20260526-longer-mqar-official-core",
+  "created_at_utc": "2026-05-25T20:24:37.237073+00:00",
+  "source_count": 19,
+  "expected_core_source_count": 19,
+  "formal_slices": [
+    "1024x256",
+    "2048x512",
+    "4096x1024",
+    "8190x512",
+    "8190x2047"
+  ],
+  "expected_formal_rows": 95,
+  "eval_seed": 123,
+  "gpus": [
+    0,
+    1
+  ],
+  "phases": [
+    "batch-search",
+    "formal",
+    "repro"
+  ],
+  "sanity_examples": 16,
+  "batch_search_examples": 32,
+  "formal_examples": 500,
+  "batch_candidates": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "tmp_root": "tmp/20260526-longer-mqar-official-core",
+  "detail_csv": "docs/artifacts/longer-mqar/official-core-20260526/longer-mqar-official-core-detail.csv",
+  "summary_csv": "docs/artifacts/longer-mqar/official-core-20260526/longer-mqar-official-core-summary.csv",
+  "status_csv": "docs/artifacts/longer-mqar/official-core-20260526/status.csv",
+  "preliminary_ledger_retained": "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv",
+  "updated_at_utc": "2026-05-25T22:54:32.118586+00:00",
+  "completed_sources": 19,
+  "errors": [],
+  "summaries": [
+    {
+      "source_run_id": "gd-r10-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb256-r4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s127-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-r10-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gd-cb64-r16-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s123-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev8-s127-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev16-s125-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s124-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    },
+    {
+      "source_run_id": "gdn-h2-ev10-s126-d123-b64-ga4-fp32-noearly4ep",
+      "gpu": 1,
+      "status": "completed",
+      "events_appended": 11
+    }
+  ],
+  "status": "completed"
+}

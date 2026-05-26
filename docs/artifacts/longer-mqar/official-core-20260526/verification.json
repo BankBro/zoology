@@ -1,0 +1,22 @@
+{
+  "status": "completed",
+  "detail_csv": "docs/artifacts/longer-mqar/official-core-20260526/longer-mqar-official-core-detail.csv",
+  "summary_csv": "docs/artifacts/longer-mqar/official-core-20260526/longer-mqar-official-core-summary.csv",
+  "status_csv": "docs/artifacts/longer-mqar/official-core-20260526/status.csv",
+  "formal_completed": 95,
+  "formal_expected": 95,
+  "formal_failed_or_incomplete": 0,
+  "dataset_hash_unique_count_by_slice": {
+    "1024x256": 1,
+    "2048x512": 1,
+    "4096x1024": 1,
+    "8190x2047": 1,
+    "8190x512": 1
+  },
+  "dataset_hash_consistent_by_slice": true,
+  "repro_rows": 19,
+  "repro_completed": 19,
+  "repro_dataset_hash_match": true,
+  "repro_accuracy_match": true,
+  "updated_at_utc": "2026-05-25T22:54:32.129537+00:00"
+}

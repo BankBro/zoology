@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -30,17 +31,70 @@ def find_repo_root(start: Path) -> Path:
 ROOT = find_repo_root(Path(__file__).resolve())
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-LEDGER_PATH = ROOT / "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv"
+PRELIM_LEDGER_PATH = ROOT / "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv"
 FLASH_LEDGER = ROOT / "docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv"
 GDN_LEDGER = ROOT / "docs/artifacts/gdn/gdn-hparam-effect-summary.csv"
-ARTIFACT_DIR = ROOT / "docs/artifacts/longer-mqar"
-TMP_ROOT = ROOT / "tmp/20260521-longer-mqar-canonical-full"
-BATCH_ID = "20260521-longer-mqar-canonical-full"
-EVAL_SCOPE = "longer_mqar_eval_only_vocab8192_canonical_20260521"
-FORMAL_SLICES = [(1024, 256), (2048, 512), (4096, 1024), (8190, 2047), (4096, 512), (8190, 512)]
-BATCH_SEARCH_SLICES = [(1024, 256), (2048, 512), (4096, 1024), (8190, 2047)]
+ARTIFACT_DIR = ROOT / "docs/artifacts/longer-mqar/official-core-20260526"
+LEDGER_PATH = ARTIFACT_DIR / "longer-mqar-official-core-detail.csv"
+SUMMARY_PATH = ARTIFACT_DIR / "longer-mqar-official-core-summary.csv"
+STATUS_CSV_PATH = ARTIFACT_DIR / "status.csv"
+TMP_ROOT = ROOT / "tmp/20260526-longer-mqar-official-core"
+BATCH_ID = "20260526-longer-mqar-official-core"
+EVAL_SCOPE = "longer_mqar_eval_only_vocab8192_official_core_20260526"
+EVAL_SEED = 123
+FORMAL_SLICES = [(1024, 256), (2048, 512), (4096, 1024), (8190, 512), (8190, 2047)]
+BATCH_SEARCH_SLICES = list(FORMAL_SLICES)
 SANITY_SLICE = (1024, 256)
 LEDGER_LOCK = threading.Lock()
+
+CORE_FLASH_TARGETS = {
+    ("cb256-r10", "123"),
+    ("cb256-r10", "124"),
+    ("cb256-r10", "125"),
+    ("cb256-r10", "126"),
+    ("cb256-r4", "123"),
+    ("cb64-r16", "123"),
+}
+CORE_GDN_TARGETS = {
+    ("gdn-h2-ev8-usegate0", "123"),
+    ("gdn-h2-ev8-usegate0", "124"),
+    ("gdn-h2-ev8-usegate0", "125"),
+    ("gdn-h2-ev8-usegate0", "126"),
+    ("gdn-h2-ev8-usegate0", "127"),
+    ("gdn-h2-ev10-usegate0", "123"),
+    ("gdn-h2-ev10-usegate0", "124"),
+    ("gdn-h2-ev10-usegate0", "125"),
+    ("gdn-h2-ev10-usegate0", "126"),
+    ("gdn-h2-ev10-usegate0", "127"),
+    ("gdn-h2-ev16-usegate0", "123"),
+    ("gdn-h2-ev16-usegate0", "124"),
+    ("gdn-h2-ev16-usegate0", "125"),
+}
+EXPECTED_CORE_SOURCE_COUNT = len(CORE_FLASH_TARGETS) + len(CORE_GDN_TARGETS)
+OFFICIAL_CORE_BATCH_PROFILE = {
+    "source_train_batch_size": "64",
+    "source_eval_batch_size": "16",
+    "source_gradient_accumulation_steps": "4",
+    "source_effective_train_batch_size": "256",
+    "source_batch_accum_profile": "b64_ga4",
+}
+EXTRA_DETAIL_FIELDS = [
+    "eval_seed",
+    "dataset_hash",
+    "dataset_hash_algorithm",
+    "dataset_input_shape",
+    "dataset_label_shape",
+    "dataset_num_examples",
+    "dataset_dtype",
+    "checkpoint_hash",
+    "checkpoint_hash_algorithm",
+    "official_core_constraint_status",
+    "selected_core_subset",
+    "repro_check_reference_event_id",
+    "repro_check_dataset_hash_match",
+    "repro_check_accuracy_delta_abs",
+    "repro_check_accuracy_match",
+]
 
 
 def now_utc() -> str:
@@ -62,14 +116,86 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def set_eval_seed(seed: int) -> None:
+    random.seed(seed)
+    try:
+        import numpy as np
+
+        np.random.seed(seed)
+    except Exception:
+        pass
+    try:
+        import torch
+
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+    except Exception:
+        pass
+
+
+def tensor_sha256(*tensors: Any) -> str:
+    h = hashlib.sha256()
+    for tensor in tensors:
+        arr = tensor.detach().cpu().contiguous().numpy()
+        h.update(str(arr.dtype).encode("utf-8"))
+        h.update(str(tuple(arr.shape)).encode("utf-8"))
+        h.update(arr.tobytes())
+    return h.hexdigest()
+
+
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
+def desired_detail_fields() -> list[str]:
+    with PRELIM_LEDGER_PATH.open(newline="", encoding="utf-8") as f:
+        fields = list(csv.DictReader(f).fieldnames or [])
+    out = list(fields)
+    for field in EXTRA_DETAIL_FIELDS:
+        if field not in out:
+            out.append(field)
+    return out
+
+
+def detail_fields() -> list[str]:
+    desired = desired_detail_fields()
+    if LEDGER_PATH.exists() and LEDGER_PATH.stat().st_size > 0:
+        with LEDGER_PATH.open(newline="", encoding="utf-8") as f:
+            fields = list(csv.DictReader(f).fieldnames or [])
+        if fields:
+            out = list(fields)
+            for field in desired:
+                if field not in out:
+                    out.append(field)
+            return out
+    return desired
+
+
+def ensure_detail_ledger() -> None:
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    fields = detail_fields()
+    if LEDGER_PATH.exists() and LEDGER_PATH.stat().st_size > 0:
+        with LEDGER_PATH.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            old_fields = list(reader.fieldnames or [])
+            rows = list(reader)
+        if old_fields and all(field in old_fields for field in fields):
+            return
+        with LEDGER_PATH.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows([{field: row.get(field, "") for field in fields} for row in rows])
+        return
+    with LEDGER_PATH.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+
+
 def ledger_fields() -> list[str]:
-    with LEDGER_PATH.open(newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f).fieldnames or [])
+    return detail_fields()
 
 
 def load_existing_rows() -> dict[str, dict[str, str]]:
@@ -88,6 +214,7 @@ def append_ledger_row(row: dict[str, Any]) -> None:
     fields = ledger_fields()
     clean = {field: row.get(field, "") for field in fields}
     with LEDGER_LOCK:
+        ensure_detail_ledger()
         with LEDGER_PATH.open("a", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writerow(clean)
@@ -169,6 +296,24 @@ def infer_gdn_total_capacity(row: dict[str, str], train_config_path: Path) -> tu
     return per_layer, total
 
 
+def is_b64_ga4_fp32_official(row: dict[str, str]) -> bool:
+    if row.get("train_batch_size") != OFFICIAL_CORE_BATCH_PROFILE["source_train_batch_size"]:
+        return False
+    if row.get("eval_batch_size") != OFFICIAL_CORE_BATCH_PROFILE["source_eval_batch_size"]:
+        return False
+    if row.get("gradient_accumulation_steps") != OFFICIAL_CORE_BATCH_PROFILE["source_gradient_accumulation_steps"]:
+        return False
+    if row.get("effective_train_batch_size") != OFFICIAL_CORE_BATCH_PROFILE["source_effective_train_batch_size"]:
+        return False
+    if row.get("batch_accum_profile") != OFFICIAL_CORE_BATCH_PROFILE["source_batch_accum_profile"]:
+        return False
+    if row.get("dtype_policy") != "float32":
+        return False
+    if row.get("outer_model_dtype") not in {"", "float32"}:
+        return False
+    return row.get("official_scope") == "b64_ga4_fp32_official"
+
+
 def load_ckpt_epoch(path: Path) -> str:
     try:
         import torch
@@ -184,6 +329,14 @@ def build_sources() -> list[dict[str, Any]]:
     for kind, ledger in [("flash", FLASH_LEDGER), ("gdn", GDN_LEDGER)]:
         for row in read_csv(ledger):
             if (row.get("status") or "completed").lower() != "completed":
+                continue
+            target_key = (row.get("config_family", ""), row.get("seed", ""))
+            if kind == "flash":
+                if target_key not in CORE_FLASH_TARGETS:
+                    continue
+            elif target_key not in CORE_GDN_TARGETS:
+                continue
+            if not is_b64_ga4_fp32_official(row):
                 continue
             tc = row.get("train_config_path") or row.get("source_train_config_path") or ""
             if not tc:
@@ -262,15 +415,32 @@ def build_sources() -> list[dict[str, Any]]:
                 "source_dynamic_capacity_per_layer": dyn_per_layer,
                 "source_dynamic_capacity_total": dyn_total,
                 "source_artifact": row.get("source_artifact", "") or rel(ledger),
+                "checkpoint_hash": sha256_file(ckpt_path),
+                "checkpoint_hash_algorithm": "sha256",
+                "official_core_constraint_status": "passed",
+                "selected_core_subset": "true",
             }
             sources.append(src)
     # Stable order: Flash first, then GDN, within each ledger order.
+    seen = set()
+    duplicates = []
+    for src in sources:
+        key = (src["source_model_family"], src["source_config_family"], src["source_seed"])
+        if key in seen:
+            duplicates.append(key)
+        seen.add(key)
+    if duplicates:
+        raise RuntimeError(f"official core source 出现重复项: {duplicates}")
+    if len(sources) != EXPECTED_CORE_SOURCE_COUNT:
+        observed = sorted((s["source_model_family"], s["source_config_family"], s["source_seed"], s["source_run_id"]) for s in sources)
+        raise RuntimeError(f"official core source 数量应为 {EXPECTED_CORE_SOURCE_COUNT}, 实际 {len(sources)}: {observed}")
     return sources
 
 
 def write_source_manifest(sources: list[dict[str, Any]]) -> None:
-    json_path = ARTIFACT_DIR / "longer-mqar-canonical-ckpt-manifest.json"
-    csv_path = ARTIFACT_DIR / "longer-mqar-canonical-ckpt-manifest.csv"
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    json_path = ARTIFACT_DIR / "manifest.json"
+    csv_path = ARTIFACT_DIR / "manifest.csv"
     json_path.write_text(json.dumps(sources, ensure_ascii=False, indent=2), encoding="utf-8")
     keys = sorted({k for s in sources for k in s})
     with csv_path.open("w", newline="", encoding="utf-8") as f:
@@ -285,6 +455,10 @@ def protocol_id(input_seq_len: int, num_kv_pairs: int, num_examples: int) -> str
 
 def event_id(mode: str, source: dict[str, Any], input_seq_len: int, num_kv_pairs: int, num_examples: int) -> str:
     return f"{BATCH_ID}:{mode}:{source['source_run_id']}:{input_seq_len}x{num_kv_pairs}:n{num_examples}"
+
+
+def event_id_for_run_id(mode: str, source_run_id: str, input_seq_len: int, num_kv_pairs: int, num_examples: int) -> str:
+    return f"{BATCH_ID}:{mode}:{source_run_id}:{input_seq_len}x{num_kv_pairs}:n{num_examples}"
 
 
 def base_row(
@@ -321,7 +495,8 @@ def base_row(
         "num_examples": str(num_examples),
         "eval_batch_size": str(eval_batch_size),
         "adaptive_batch_search": "true" if mode in {"batch_search", "formal"} else "false",
-        "eval_data_seed": "123",
+        "eval_data_seed": str(EVAL_SEED),
+        "eval_seed": str(EVAL_SEED),
         "random_non_queries": "true",
         "power_a": "0.01",
         "artifact_dir": rel(ARTIFACT_DIR),
@@ -332,6 +507,8 @@ def base_row(
         **gpu_info,
         **torch_meta,
     })
+    row["checkpoint_hash"] = source.get("checkpoint_hash") or source.get("source_ckpt_sha256", "")
+    row["checkpoint_hash_algorithm"] = source.get("checkpoint_hash_algorithm") or "sha256"
     hp = hardware_profile_id(row)
     row["eval_hardware_profile_id"] = hp
     if extra:
@@ -440,6 +617,7 @@ def child_single_event(event_path: Path, result_path: Path) -> int:
             def log(self, metrics, step=None):
                 return None
 
+        set_eval_seed(int(event.get("eval_seed", EVAL_SEED)))
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA is not available")
         torch.cuda.empty_cache()
@@ -465,7 +643,7 @@ def child_single_event(event_path: Path, result_path: Path) -> int:
             "include_slices": True,
         })
         config.data = config.data.model_copy(deep=True)
-        config.data.seed = 123
+        config.data.seed = int(event.get("eval_seed", EVAL_SEED))
         config.data.cache_dir = None
         config.data.force_cache = False
         config.data.test_configs = [MQARConfig(**payload)]
@@ -474,7 +652,22 @@ def child_single_event(event_path: Path, result_path: Path) -> int:
         else:
             config.data.batch_size = (config.data.batch_size[0], int(event["eval_batch_size"]))
         config.slice_keys = ["mqar_case", "input_seq_len", "num_kv_pairs"]
+        set_eval_seed(int(event.get("eval_seed", EVAL_SEED)))
         test_dataloader = _prepare_test_dataloader_from_data_config(config.data)
+        dataset_hash = ""
+        dataset_input_shape = ""
+        dataset_label_shape = ""
+        dataset_num_examples = ""
+        dataset_dtype = ""
+        try:
+            segment = test_dataloader.dataset.segments[0]
+            dataset_hash = tensor_sha256(segment.inputs, segment.labels)
+            dataset_input_shape = "x".join(str(x) for x in segment.inputs.shape)
+            dataset_label_shape = "x".join(str(x) for x in segment.labels.shape)
+            dataset_num_examples = str(len(segment))
+            dataset_dtype = f"{segment.inputs.dtype}/{segment.labels.dtype}"
+        except Exception as exc:
+            raise RuntimeError(f"dataset_hash 计算失败: {exc}") from exc
         task = Trainer(
             model=bundle["model"],
             train_dataloader=test_dataloader,
@@ -509,6 +702,13 @@ def child_single_event(event_path: Path, result_path: Path) -> int:
             "peak_memory_mb": peak_alloc,
             "torch_peak_memory_allocated_mib": peak_alloc,
             "torch_peak_memory_reserved_mib": peak_reserved,
+            "dataset_hash": dataset_hash,
+            "dataset_hash_algorithm": "sha256(inputs,labels)",
+            "dataset_input_shape": dataset_input_shape,
+            "dataset_label_shape": dataset_label_shape,
+            "dataset_num_examples": dataset_num_examples,
+            "dataset_dtype": dataset_dtype,
+            "eval_seed": str(event.get("eval_seed", EVAL_SEED)),
         }
     except BaseException as exc:
         elapsed = time.time() - t0
@@ -549,6 +749,13 @@ def result_to_row_extra(result: dict[str, Any], log_path: str) -> dict[str, Any]
         "log_path": log_path,
         "failure_type": result.get("failure_type", ""),
         "failure_detail": result.get("failure_detail", ""),
+        "eval_seed": result.get("eval_seed", str(EVAL_SEED)),
+        "dataset_hash": result.get("dataset_hash", ""),
+        "dataset_hash_algorithm": result.get("dataset_hash_algorithm", ""),
+        "dataset_input_shape": result.get("dataset_input_shape", ""),
+        "dataset_label_shape": result.get("dataset_label_shape", ""),
+        "dataset_num_examples": result.get("dataset_num_examples", ""),
+        "dataset_dtype": result.get("dataset_dtype", ""),
     }
 
 
@@ -570,6 +777,7 @@ def run_eval_once(
         "num_kv_pairs": int(num_kv_pairs),
         "num_examples": int(num_examples),
         "eval_batch_size": int(eval_batch_size),
+        "eval_seed": EVAL_SEED,
     }
     log_path = TMP_ROOT / "logs" / f"{uid}.log"
     result_path = TMP_ROOT / "results" / f"{uid}.json"
@@ -590,7 +798,7 @@ def append_eval_row(
     gpu_info: dict[str, str],
     torch_meta: dict[str, str],
     extra: dict[str, Any] | None = None,
-) -> None:
+) -> dict[str, Any]:
     row_extra = result_to_row_extra(result, log_path)
     if extra:
         row_extra.update(extra)
@@ -607,6 +815,7 @@ def append_eval_row(
         extra=row_extra,
     )
     append_ledger_row(row)
+    return row
 
 
 def process_source(
@@ -626,6 +835,7 @@ def process_source(
     summary = {"source_run_id": source["source_run_id"], "gpu": gpu, "status": "started", "events_appended": 0}
     search_best: dict[tuple[int, int], int] = {}
     search_rows: dict[tuple[int, int], dict[str, Any]] = {}
+    observed_rows: dict[str, dict[str, Any]] = {}
 
     if "sanity" in phases:
         seq, kv = SANITY_SLICE
@@ -717,11 +927,198 @@ def process_source(
             result, log_path = run_eval_once(source=source, gpu=gpu, mode="formal", input_seq_len=seq, num_kv_pairs=kv, num_examples=formal_examples, eval_batch_size=best_batch)
             b_extra["batch_search_slice"] = f"{lookup[0]}x{lookup[1]}"
             b_extra["batch_search_best_eval_batch_size"] = str(best_batch)
-            append_eval_row(mode="formal", source=source, input_seq_len=seq, num_kv_pairs=kv, num_examples=formal_examples, eval_batch_size=best_batch, result=result, log_path=log_path, gpu_info=gpu_info, torch_meta=torch_meta, extra=b_extra)
+            row = append_eval_row(mode="formal", source=source, input_seq_len=seq, num_kv_pairs=kv, num_examples=formal_examples, eval_batch_size=best_batch, result=result, log_path=log_path, gpu_info=gpu_info, torch_meta=torch_meta, extra=b_extra)
+            observed_rows[eid] = row
+            existing.add(eid)
+            summary["events_appended"] += 1
+
+    if "repro" in phases:
+        seq, kv = SANITY_SLICE
+        repro_examples = formal_examples
+        reference_eid = event_id("formal", source, seq, kv, repro_examples)
+        eid = event_id("repro", source, seq, kv, repro_examples)
+        if eid not in existing:
+            best_batch = search_best.get((seq, kv))
+            if best_batch is None:
+                previous = existing_rows.get(reference_eid, {})
+                try:
+                    best_batch = int(previous.get("eval_batch_size") or "")
+                except Exception:
+                    best_batch = None
+            if best_batch is None:
+                result = {
+                    "status": "skipped",
+                    "failure_type": "missing_formal_reference",
+                    "failure_detail": f"missing formal reference for {seq}x{kv}",
+                }
+                extra = {
+                    "repro_check_reference_event_id": reference_eid,
+                    "repro_check_dataset_hash_match": "",
+                    "repro_check_accuracy_delta_abs": "",
+                    "repro_check_accuracy_match": "",
+                }
+                append_eval_row(mode="repro", source=source, input_seq_len=seq, num_kv_pairs=kv, num_examples=repro_examples, eval_batch_size="", result=result, log_path="", gpu_info=gpu_info, torch_meta=torch_meta, extra=extra)
+            else:
+                result, log_path = run_eval_once(source=source, gpu=gpu, mode="repro", input_seq_len=seq, num_kv_pairs=kv, num_examples=repro_examples, eval_batch_size=best_batch)
+                reference = observed_rows.get(reference_eid) or existing_rows.get(reference_eid, {})
+                ref_hash = reference.get("dataset_hash", "")
+                ref_acc = reference.get("accuracy", "")
+                delta: str | float = ""
+                acc_match = ""
+                try:
+                    delta_float = abs(float(result.get("accuracy", "nan")) - float(ref_acc))
+                    delta = delta_float
+                    acc_match = str(delta_float <= 1e-12).lower()
+                except Exception:
+                    pass
+                extra = {
+                    "repro_check_reference_event_id": reference_eid,
+                    "repro_check_dataset_hash_match": str(bool(ref_hash) and result.get("dataset_hash") == ref_hash).lower(),
+                    "repro_check_accuracy_delta_abs": delta,
+                    "repro_check_accuracy_match": acc_match,
+                }
+                append_eval_row(mode="repro", source=source, input_seq_len=seq, num_kv_pairs=kv, num_examples=repro_examples, eval_batch_size=best_batch, result=result, log_path=log_path, gpu_info=gpu_info, torch_meta=torch_meta, extra=extra)
             existing.add(eid)
             summary["events_appended"] += 1
     summary["status"] = "completed"
     return summary
+
+
+def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str] | None = None) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if fieldnames is None:
+        fieldnames = sorted({key for row in rows for key in row})
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows([{field: row.get(field, "") for field in fieldnames} for row in rows])
+
+
+def mean_std(values: list[float]) -> tuple[str, str]:
+    if not values:
+        return "", ""
+    mean = sum(values) / len(values)
+    if len(values) == 1:
+        return f"{mean:.10f}", ""
+    var = sum((value - mean) ** 2 for value in values) / len(values)
+    return f"{mean:.10f}", f"{var ** 0.5:.10f}"
+
+
+def source_group_label(row: dict[str, str]) -> str:
+    family = row.get("source_config_family", "")
+    if row.get("source_model_family") == "flash":
+        return family
+    return family.replace("-usegate0", "")
+
+
+def generate_status_and_summary() -> dict[str, Any]:
+    if not LEDGER_PATH.exists():
+        return {"status": "missing_detail_csv"}
+    rows = read_csv(LEDGER_PATH)
+    formal_rows = [row for row in rows if row.get("eval_mode") == "formal"]
+    completed_formal = [row for row in formal_rows if row.get("eval_status") == "completed"]
+    repro_rows = [row for row in rows if row.get("eval_mode") == "repro"]
+    status_rows: list[dict[str, Any]] = []
+    for row in rows:
+        if row.get("eval_mode") not in {"formal", "repro"}:
+            continue
+        status_rows.append({
+            "eval_event_id": row.get("eval_event_id", ""),
+            "eval_mode": row.get("eval_mode", ""),
+            "eval_status": row.get("eval_status", ""),
+            "source_model_family": row.get("source_model_family", ""),
+            "source_config_family": row.get("source_config_family", ""),
+            "source_config": row.get("source_config", ""),
+            "source_seed": row.get("source_seed", ""),
+            "input_seq_len": row.get("input_seq_len", ""),
+            "num_kv_pairs": row.get("num_kv_pairs", ""),
+            "dataset_hash": row.get("dataset_hash", ""),
+            "accuracy": row.get("accuracy", ""),
+            "gpu": row.get("gpu", ""),
+            "cuda_device": row.get("cuda_device", ""),
+            "gpu_name": row.get("gpu_name", ""),
+            "failure_type": row.get("failure_type", ""),
+            "failure_detail": row.get("failure_detail", ""),
+            "repro_check_dataset_hash_match": row.get("repro_check_dataset_hash_match", ""),
+            "repro_check_accuracy_delta_abs": row.get("repro_check_accuracy_delta_abs", ""),
+            "repro_check_accuracy_match": row.get("repro_check_accuracy_match", ""),
+        })
+    write_csv(STATUS_CSV_PATH, status_rows)
+
+    by_group_slice: dict[tuple[str, str], list[float]] = {}
+    group_meta: dict[str, dict[str, Any]] = {}
+    for row in completed_formal:
+        group = source_group_label(row)
+        slc = f"{row.get('input_seq_len')}x{row.get('num_kv_pairs')}"
+        try:
+            acc = float(row.get("accuracy", ""))
+        except Exception:
+            continue
+        by_group_slice.setdefault((group, slc), []).append(acc)
+        meta = group_meta.setdefault(group, {
+            "config_group": group,
+            "source_model_family": row.get("source_model_family", ""),
+            "seeds": set(),
+            "source_trainable_params": row.get("source_trainable_params", ""),
+            "source_dynamic_capacity_total": row.get("source_dynamic_capacity_total", ""),
+            "source_batch_accum_profile": row.get("source_batch_accum_profile", ""),
+        })
+        meta["seeds"].add(row.get("source_seed", ""))
+
+    summary_rows: list[dict[str, Any]] = []
+    for group in sorted(group_meta):
+        meta = group_meta[group]
+        out = {
+            "config_group": group,
+            "source_model_family": meta["source_model_family"],
+            "n_checkpoints": len(meta["seeds"]),
+            "seeds": ";".join(sorted(meta["seeds"])),
+            "source_trainable_params": meta["source_trainable_params"],
+            "source_dynamic_capacity_total": meta["source_dynamic_capacity_total"],
+            "source_batch_accum_profile": meta["source_batch_accum_profile"],
+        }
+        for seq, kv in FORMAL_SLICES:
+            slc = f"{seq}x{kv}"
+            mean, std = mean_std(by_group_slice.get((group, slc), []))
+            out[f"accuracy_mean_{slc}"] = mean
+            out[f"accuracy_std_{slc}"] = std
+        summary_rows.append(out)
+    summary_fields = [
+        "config_group",
+        "source_model_family",
+        "n_checkpoints",
+        "seeds",
+        "source_trainable_params",
+        "source_dynamic_capacity_total",
+        "source_batch_accum_profile",
+    ]
+    for seq, kv in FORMAL_SLICES:
+        slc = f"{seq}x{kv}"
+        summary_fields.extend([f"accuracy_mean_{slc}", f"accuracy_std_{slc}"])
+    write_csv(SUMMARY_PATH, summary_rows, summary_fields)
+
+    dataset_hashes_by_slice: dict[str, set[str]] = {}
+    for row in completed_formal:
+        slc = f"{row.get('input_seq_len')}x{row.get('num_kv_pairs')}"
+        dataset_hashes_by_slice.setdefault(slc, set()).add(row.get("dataset_hash", ""))
+    status = {
+        "status": "completed" if len(completed_formal) == EXPECTED_CORE_SOURCE_COUNT * len(FORMAL_SLICES) else "incomplete",
+        "detail_csv": rel(LEDGER_PATH),
+        "summary_csv": rel(SUMMARY_PATH),
+        "status_csv": rel(STATUS_CSV_PATH),
+        "formal_completed": len(completed_formal),
+        "formal_expected": EXPECTED_CORE_SOURCE_COUNT * len(FORMAL_SLICES),
+        "formal_failed_or_incomplete": len(formal_rows) - len(completed_formal),
+        "dataset_hash_unique_count_by_slice": {key: len(value) for key, value in sorted(dataset_hashes_by_slice.items())},
+        "dataset_hash_consistent_by_slice": all(len(value) == 1 for value in dataset_hashes_by_slice.values()) and len(dataset_hashes_by_slice) == len(FORMAL_SLICES),
+        "repro_rows": len(repro_rows),
+        "repro_completed": sum(1 for row in repro_rows if row.get("eval_status") == "completed"),
+        "repro_dataset_hash_match": all(row.get("repro_check_dataset_hash_match") == "true" for row in repro_rows if row.get("eval_status") == "completed"),
+        "repro_accuracy_match": all(row.get("repro_check_accuracy_match") == "true" for row in repro_rows if row.get("eval_status") == "completed"),
+        "updated_at_utc": now_utc(),
+    }
+    write_json(ARTIFACT_DIR / "verification.json", status)
+    return status
 
 
 def run_queue(args: argparse.Namespace) -> int:
@@ -729,6 +1126,8 @@ def run_queue(args: argparse.Namespace) -> int:
     (TMP_ROOT / "logs").mkdir(exist_ok=True)
     (TMP_ROOT / "events").mkdir(exist_ok=True)
     (TMP_ROOT / "results").mkdir(exist_ok=True)
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_detail_ledger()
     sources = build_sources()
     if args.offset:
         sources = sources[int(args.offset):]
@@ -740,15 +1139,19 @@ def run_queue(args: argparse.Namespace) -> int:
     gpus = [int(x) for x in args.gpus.split(",") if x.strip()]
     phases = set(args.phases.split(","))
     if "all" in phases:
-        phases = {"sanity", "batch-search", "formal"}
+        phases = {"sanity", "batch-search", "formal", "repro"}
     candidates = [int(x) for x in args.batch_candidates.split(",") if x.strip()]
     existing_rows = load_existing_rows()
     existing = set(existing_rows)
-    status_path = ARTIFACT_DIR / "longer-mqar-canonical-run-status.json"
+    status_path = ARTIFACT_DIR / "status.json"
     run_manifest = {
         "batch_id": BATCH_ID,
         "created_at_utc": now_utc(),
         "source_count": len(sources),
+        "expected_core_source_count": EXPECTED_CORE_SOURCE_COUNT,
+        "formal_slices": [f"{seq}x{kv}" for seq, kv in FORMAL_SLICES],
+        "expected_formal_rows": len(sources) * len(FORMAL_SLICES),
+        "eval_seed": EVAL_SEED,
         "gpus": gpus,
         "phases": sorted(phases),
         "sanity_examples": args.sanity_examples,
@@ -756,8 +1159,12 @@ def run_queue(args: argparse.Namespace) -> int:
         "formal_examples": args.formal_examples,
         "batch_candidates": candidates,
         "tmp_root": rel(TMP_ROOT),
+        "detail_csv": rel(LEDGER_PATH),
+        "summary_csv": rel(SUMMARY_PATH),
+        "status_csv": rel(STATUS_CSV_PATH),
+        "preliminary_ledger_retained": rel(PRELIM_LEDGER_PATH),
     }
-    write_json(ARTIFACT_DIR / "longer-mqar-canonical-run-manifest.json", run_manifest)
+    write_json(ARTIFACT_DIR / "manifest-run.json", run_manifest)
 
     buckets = {gpu: [] for gpu in gpus}
     for idx, src in enumerate(sources):
@@ -795,6 +1202,7 @@ def run_queue(args: argparse.Namespace) -> int:
             summaries.extend(fut.result())
             write_json(status_path, {**run_manifest, "updated_at_utc": now_utc(), "completed_sources": len(summaries), "errors": errors, "summaries": summaries})
     write_json(status_path, {**run_manifest, "updated_at_utc": now_utc(), "completed_sources": len(summaries), "errors": errors, "summaries": summaries, "status": "completed"})
+    generate_status_and_summary()
     return 0
 
 
@@ -803,7 +1211,7 @@ def main() -> int:
     parser.add_argument("--single-event", type=Path, default=None)
     parser.add_argument("--result", type=Path, default=None)
     parser.add_argument("--gpus", default="0,1")
-    parser.add_argument("--phases", default="all", help="all or comma list: sanity,batch-search,formal")
+    parser.add_argument("--phases", default="all", help="all or comma list: sanity,batch-search,formal,repro,summary")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--sanity-examples", type=int, default=16)
@@ -815,6 +1223,9 @@ def main() -> int:
         if args.result is None:
             raise SystemExit("--result is required with --single-event")
         return child_single_event(args.single_event, args.result)
+    if args.phases.strip() == "summary":
+        generate_status_and_summary()
+        return 0
     return run_queue(args)
 
 
