@@ -332,10 +332,230 @@ class GatedDeltaNet(nn.Module):
         state_size = (
             self.num_heads * self.head_k_dim * self.head_v_dim
         )
-        return state_size 
+        return state_size
 
 
 class GatedDeltaNetExpandedK(GatedDeltaNet):
     """GatedDeltaNet variant with explicit key/address expansion."""
 
     pass
+
+
+class GatedDeltaNetBankedK(nn.Module):
+    """Kernel-compatible K-sharded GDN with multiple address banks per logical head."""
+
+    def __init__(
+        self,
+        d_model: int = 2048,
+        num_heads: int = 2,
+        banks_per_head: int = 4,
+        bank_k_dim: int = 256,
+        bank_v_dim: int = 64,
+        mode: str = 'chunk',
+        use_gate: bool = False,
+        use_short_conv: bool = True,
+        conv_size: int = 4,
+        conv_bias: bool = False,
+        layer_idx: int = None,
+        norm_eps: float = 1e-5,
+        merge: str = "softmax_gate",
+        shared_v: bool = True,
+        **kwargs,
+    ) -> GatedDeltaNetBankedK:
+        super().__init__()
+
+        if mode != 'chunk':
+            raise ValueError("GatedDeltaNetBankedK currently supports only chunk mode.")
+        if not shared_v:
+            raise ValueError("GatedDeltaNetBankedK first version supports only shared_v=True.")
+        if merge != "softmax_gate":
+            raise ValueError("GatedDeltaNetBankedK currently supports only merge='softmax_gate'.")
+        if num_heads <= 0 or banks_per_head <= 0 or bank_k_dim <= 0 or bank_v_dim <= 0:
+            raise ValueError("num_heads, banks_per_head, bank_k_dim, and bank_v_dim must be positive.")
+
+        hidden_size = int(d_model)
+        self.mode = mode
+        self.hidden_size = hidden_size
+        self.num_heads = int(num_heads)
+        self.banks_per_head = int(banks_per_head)
+        self.effective_heads = self.num_heads * self.banks_per_head
+        self.bank_k_dim = int(bank_k_dim)
+        self.bank_v_dim = int(bank_v_dim)
+        self.head_k_dim = self.bank_k_dim
+        self.head_v_dim = self.bank_v_dim
+        self.key_dim = self.effective_heads * self.bank_k_dim
+        self.logical_value_dim = self.num_heads * self.bank_v_dim
+        self.value_dim = self.effective_heads * self.bank_v_dim
+        self.merge = merge
+        self.shared_v = shared_v
+        self.use_gate = use_gate
+        self.use_short_conv = use_short_conv
+        self.conv_size = conv_size
+        self.conv_bias = conv_bias
+        self.layer_idx = layer_idx
+        self.silu = nn.SiLU()
+
+        self.q_proj = nn.Linear(hidden_size, self.key_dim, bias=False)
+        self.k_proj = nn.Linear(hidden_size, self.key_dim, bias=False)
+        self.v_proj = nn.Linear(hidden_size, self.logical_value_dim, bias=False)
+        self.bank_gate_proj = nn.Linear(hidden_size, self.effective_heads, bias=False)
+        self.b_proj = nn.Linear(hidden_size, self.effective_heads, bias=False)
+        self.a_proj = nn.Linear(hidden_size, self.effective_heads, bias=False)
+
+        A = torch.empty(self.effective_heads, dtype=torch.float32).uniform_(0, 16)
+        self.A_log = nn.Parameter(torch.log(A))
+        self.A_log._no_weight_decay = True
+        self.D = nn.Parameter(torch.ones(self.effective_heads))
+        self.D._no_weight_decay = True
+
+        dt_min = 0.001
+        dt_max = 0.1
+        dt_init_floor = 1e-4
+        dt = torch.exp(
+            torch.rand(self.effective_heads) * (math.log(dt_max) - math.log(dt_min))
+            + math.log(dt_min)
+        )
+        dt = torch.clamp(dt, min=dt_init_floor)
+        inv_dt = dt + torch.log(-torch.expm1(-dt))
+        self.dt_bias = nn.Parameter(inv_dt)
+        self.dt_bias._no_weight_decay = True
+
+        if use_short_conv:
+            self.q_conv1d = ShortConvolution(
+                hidden_size=self.key_dim,
+                kernel_size=conv_size,
+                activation='silu',
+            )
+            self.k_conv1d = ShortConvolution(
+                hidden_size=self.key_dim,
+                kernel_size=conv_size,
+                activation='silu',
+            )
+            self.v_conv1d = ShortConvolution(
+                hidden_size=self.logical_value_dim,
+                kernel_size=conv_size,
+                activation='silu',
+            )
+        else:
+            raise UserWarning(
+                "ShortConvolution is crucial to the performance. "
+                "Do not turn it off, i.e., setting `use_short_conv=False` unless you know what you are doing."
+            )
+
+        if use_gate:
+            self.g_proj = nn.Linear(hidden_size, self.logical_value_dim, bias=False)
+            self.o_norm = FusedRMSNormSwishGate(self.bank_v_dim, eps=norm_eps)
+        else:
+            self.o_norm = RMSNorm(self.bank_v_dim, eps=norm_eps)
+        self.o_proj = nn.Linear(self.logical_value_dim, hidden_size, bias=False)
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        past_key_values: Optional[Cache] = None,
+        use_cache: Optional[bool] = False,
+        output_attentions: Optional[bool] = False,
+        **kwargs: Unpack[Dict],
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Cache]]:
+        if attention_mask is not None:
+            assert len(attention_mask.shape) == 2, (
+                "Expected attention_mask as a 0-1 matrix with shape [batch_size, seq_len] "
+                "for padding purposes (0 indicating padding). "
+                "Arbitrary attention masks of shape [batch_size, seq_len, seq_len] are not allowed."
+            )
+        if self.training:
+            assert self.mode == 'chunk', "Only chunk mode is supported in training."
+
+        last_state = None
+        if past_key_values is not None and len(past_key_values) > self.layer_idx:
+            last_state = past_key_values[self.layer_idx]
+
+        if self.use_short_conv:
+            conv_state_q, conv_state_k, conv_state_v = None, None, None
+            if last_state is not None:
+                conv_state_q, conv_state_k, conv_state_v = last_state['conv_state']
+            conv_mask = attention_mask[:, -hidden_states.shape[1]:] if attention_mask is not None else None
+            position_ids = kwargs.get('position_ids', None)
+            q, conv_state_q = self.q_conv1d(
+                x=self.q_proj(hidden_states),
+                mask=conv_mask,
+                cache=conv_state_q,
+                output_final_state=use_cache,
+                seq_idx=position_ids,
+            )
+            k, conv_state_k = self.k_conv1d(
+                x=self.k_proj(hidden_states),
+                mask=conv_mask,
+                cache=conv_state_k,
+                output_final_state=use_cache,
+                seq_idx=position_ids,
+            )
+            v, conv_state_v = self.v_conv1d(
+                x=self.v_proj(hidden_states),
+                mask=conv_mask,
+                cache=conv_state_v,
+                output_final_state=use_cache,
+                seq_idx=position_ids,
+            )
+        else:
+            q = self.silu(self.q_proj(hidden_states))
+            k = self.silu(self.k_proj(hidden_states))
+            v = self.silu(self.v_proj(hidden_states))
+
+        q, k = map(lambda x: rearrange(x, 'b t (h d) -> b t h d', d=self.bank_k_dim), (q, k))
+        v = rearrange(v, 'b t (h d) -> b t h d', d=self.bank_v_dim)
+        v = v[:, :, :, None, :].expand(-1, -1, -1, self.banks_per_head, -1)
+        v = rearrange(v, 'b t h bank d -> b t (h bank) d')
+
+        beta = self.b_proj(hidden_states).sigmoid()
+        g = -self.A_log.float().exp() * F.softplus(self.a_proj(hidden_states).float() + self.dt_bias)
+
+        if attention_mask is not None:
+            beta = beta.mul(attention_mask[:, -beta.shape[-2]:, None])
+            g = g.mul(attention_mask[:, -g.shape[-2]:, None])
+
+        q, k, v, beta, g = _maybe_cast_gated_delta_kernel_inputs(q, k, v, beta, g)
+        recurrent_state = last_state['recurrent_state'] if last_state is not None else None
+        cu_seqlens = kwargs.get('cu_seqlens', None)
+        o, recurrent_state = chunk_gated_delta_rule(
+            q=q,
+            k=k,
+            v=v,
+            g=g,
+            beta=beta,
+            initial_state=recurrent_state,
+            output_final_state=use_cache,
+            cu_seqlens=cu_seqlens,
+            head_first=False,
+            use_qk_l2norm_in_kernel=True,
+        )
+
+        if past_key_values is not None:
+            past_key_values.update(
+                recurrent_state=recurrent_state,
+                conv_state=(conv_state_q, conv_state_k, conv_state_v) if self.use_short_conv else None,
+                layer_idx=self.layer_idx,
+                offset=q.shape[1],
+            )
+
+        o = rearrange(o, 'b t (h bank) d -> b t h bank d', h=self.num_heads, bank=self.banks_per_head)
+        bank_weight = rearrange(
+            self.bank_gate_proj(hidden_states),
+            'b t (h bank) -> b t h bank',
+            h=self.num_heads,
+            bank=self.banks_per_head,
+        ).softmax(dim=-1)
+        o = (o * bank_weight[..., None].to(o.dtype)).sum(dim=3)
+
+        if self.use_gate:
+            gate = rearrange(self.g_proj(hidden_states), '... (h d) -> ... h d', d=self.bank_v_dim)
+            o = self.o_norm(o, gate)
+        else:
+            o = self.o_norm(o)
+
+        o = rearrange(o, 'b t h d -> b t (h d)').to(torch.float32)
+        return self.o_proj(o)
+
+    def state_size(self, sequence_length: int = 2048):
+        return self.num_heads * self.banks_per_head * self.bank_k_dim * self.bank_v_dim

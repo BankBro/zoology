@@ -63,6 +63,22 @@ FLA 源码位置:
 
 所以本轮没有启动正式 MQAR 训练, 没有产生 final checkpoint, 没有写入正式训练结果行, 也没有启动 longer-MQAR formal eval。该结果满足本 goal 的停止条件 4: 记录 shape, dtype, GPU, batch, traceback/日志和时间后停止, 报告该设计当前不可执行或需要缩小配置。
 
+## Phase 0 capacity/accounting 固化, 2026-05-26
+
+后续 GDN 与 Flash-VQG 公平对照方案将本节作为 Phase 0 固化结论。三组 expanded-K 配置的 active state capacity 均为 131072, 但可训练性不同:
+
+| run_id | per-head K | per-head V | trainable params | 可训练性 | ledger 处理 |
+|---|---:|---:|---:|---|---|
+| `gdnxk-h2-ek4-ev4-s123-d123-b64-ga4-fp32-noearly4ep` | 256 | 256 | 1335942 | 最小 forward/backward smoke 通过, 不是正式训练 | 不写 official ledger |
+| `gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep` | 512 | 128 | 1404422 | FLA chunk state-update kernel `K<=256` 断言失败 | 不写 official ledger |
+| `gdnxk-h2-ek16-ev1-s123-d123-b64-ga4-fp32-noearly4ep` | 1024 | 64 | 1641414 | 因同一 kernel 限制未启动 | 不写 official ledger |
+
+补充 accounting 表见:
+
+`docs/artifacts/gdn-flash-fairness-20260526/phase0-gdn-expanded-k-accounting.csv`
+
+该表按实际 `LanguageModel(config.model)` 口径统计整模型 trainable params, 并保留 smoke 时间, GPU, dtype, batch 和 ledger policy 字段。`ek4-ev4` 只能作为 current-kernel-compatible probe, 不能写成 true `K=1024,V=64` 对照。
+
 ## 对实验方案的影响
 
 当前结果不能回答“只扩大 GDN K/address capacity 是否足以追上 Flash”, 因为最关键的 `K=1024, V=64` GDN 对齐配置无法跑起来。

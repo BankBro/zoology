@@ -1,0 +1,337 @@
+{
+  "plan": "docs/plans/20260526-gdn-flash-fairness-experiment-plan.md",
+  "branch": "flash-vqg",
+  "commit": "b83328a",
+  "updated_at_utc": "2026-05-26T20:41:29.907174+00:00",
+  "current_phase": "Phase 6 complete",
+  "phase_status": {
+    "Phase 0": {
+      "status": "done",
+      "summary": "GDN expanded-K blocked conclusion is fixed. ek4-ev4 smoke forward/backward passed; ek8-ev2 is blocked by FLA chunk state-update K<=256 assertion; ek16-ev1 was not launched because it requires per-head K=1024 under the same limit.",
+      "artifacts": [
+        "docs/artifacts/gdn-expanded-k/kernel-smoke-20260526.json",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase0-gdn-expanded-k-accounting.csv"
+      ],
+      "ledger_rows_added": 0,
+      "ledger_policy": "Smoke, blocked, failed, and not-launched rows are not official training results and were not written to canonical ledger."
+    },
+    "Phase 1": {
+      "status": "done",
+      "summary": "Kernel-compatible GDN Phase 1 completed: ek4-ev4, mh-h4-k256-v128, and mh-h8-k256-v64 all finished 4epoch seed123 training with GDN_KERNEL_DTYPE=float32. mh-h4-k256-v128 is best among the three by final overall accuracy and 1024x256 hard accuracy.",
+      "artifacts": [
+        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-final.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-kernel-compatible-smoke.json",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-runtime-summary.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-slice-level.csv",
+        "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02"
+      ],
+      "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase1/run_train.sh",
+      "next_step": "Re-read plan, then enter Phase 2 to run Flash-VQG cb256-r8-s126 and cb256-r16-s126 stability seeds.",
+      "notes": "First formal launch attempt exited before training because PARALLELIZE=true/-p required ray, which is not installed. Runner now defaults PARALLELIZE=false so sequential launch does not require ray. The failed launch has planned runs only and was not written to official ledger.",
+      "failed_launch_attempt": "zoology/experiments/flash_vqg/generated/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-11-25/manifest.json",
+      "active_launch_id": "flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02",
+      "active_manifest": "zoology/experiments/flash_vqg/generated/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02/manifest.json",
+      "active_log": "docs/artifacts/gdn-flash-fairness-20260526/phase1-training-sequential.log",
+      "active_run": null,
+      "ledger_rows_added": 3,
+      "canonical_ledger": "docs/artifacts/gdn/gdn-hparam-effect-summary.csv",
+      "best_run_id": "mh-h4-k256-v128-s123-d123-b64-ga4-fp32-noearly4ep"
+    },
+    "Phase 2": {
+      "status": "done",
+      "summary": "Phase 2 Flash-VQG stability check completed. New b64_ga4 fp32 official runs were completed for cb256-r8-s126 and cb256-r6-s125; existing b64_ga4 fp32 results were reused for cb256-r16-s126 and cb256-r10-s125. Results show Flash rank/seed behavior is non-monotonic: r10-s125 is currently strongest, r6-s125 is competitive on hard slice, r8-s126 is weak, and r16-s126 is below r10.",
+      "artifacts": [
+        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-final.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-slice-level.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-runtime-summary.csv",
+        "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase2-2026-05-26-13-35-52",
+        "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase2-r6-s125-2026-05-26-13-47-07"
+      ],
+      "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase2/run_train.sh",
+      "required_targets": {
+        "cb256-r8-s126": {
+          "status": "completed",
+          "run_id": "gd-residual-v1-train-s126-d123-rread-top2-r8-wk4-b64",
+          "valid_accuracy": 0.96881494140625,
+          "hard_1024x256_accuracy": 0.80922265625,
+          "gpu": "0",
+          "wall_clock_sec": 17142.66884
+        },
+        "cb256-r16-s126": {
+          "status": "reused_existing_completed_result",
+          "run_id": "gd-r16-wk4-mu01-t025-cb256-s126-d123-noearly4ep",
+          "valid_accuracy": 0.99070703125,
+          "hard_1024x256_accuracy": 0.9426953125,
+          "gpu": "1",
+          "wall_clock_sec": 19708.276558030397
+        }
+      },
+      "optional_targets": {
+        "cb256-r6-s125": {
+          "status": "completed",
+          "run_id": "gd-residual-v1-train-s125-d123-rread-top2-r6-wk4-b64",
+          "valid_accuracy": 0.99170703125,
+          "hard_1024x256_accuracy": 0.9593046875,
+          "gpu": "1",
+          "wall_clock_sec": 17655.407008
+        },
+        "cb256-r10-s125": {
+          "status": "reused_existing_completed_result",
+          "run_id": "gd-r10-s125-d123-b64-ga4-fp32-noearly4ep",
+          "valid_accuracy": 0.99725146484375,
+          "hard_1024x256_accuracy": 0.99073046875,
+          "gpu": "0",
+          "wall_clock_sec": 13585.642972534522
+        }
+      },
+      "ledger_rows_added": 2,
+      "canonical_ledger": "docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv",
+      "best_phase2_flash_run_id": "gd-r10-s125-d123-b64-ga4-fp32-noearly4ep",
+      "comparison_note": "Compared with Phase 1 best GDN mh-h4-k256-v128, Flash r10-s125 is stronger but has larger active_state_capacity. Same active capacity comparison remains close between best GDN and cb64-r16 seed123; Phase 2 primarily evaluates Flash mainline stability rather than same-capacity fairness."
+    },
+    "Phase 3": {
+      "status": "done",
+      "trigger_review": "Phase 1 mh-h4/mh-h8 improved over ek4 and did not falsify address-capacity route; training cost was acceptable, so Banked-K GDN is implemented for Phase 3.",
+      "summary": "Phase 3 Banked-K GDN shared-V completed. It keeps logical_heads=2 with 4 banks per head and per-kernel K=256,V=64, reaches valid_accuracy=0.9973046875 and hard 1024x256=0.9799609375 at seed123, outperforming Phase 1 mh-h4-k256-v128 on both overall and hard slice while keeping active_state_capacity=131072.",
+      "artifacts": [
+        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-smoke.json",
+        "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/config_builder.py",
+        "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/run_train.sh",
+        "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/common_env.sh",
+        "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/metrics.yaml",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-final.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-slice-level.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-runtime-summary.csv",
+        "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19"
+      ],
+      "smoke": {
+        "status": "passed",
+        "pytest_phase3": "2 passed, 27 deselected",
+        "pytest_regression_subset": "6 passed, 23 deselected"
+      },
+      "training_target": {
+        "run_id": "banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep",
+        "seed": 123,
+        "data_seed": 123,
+        "train_batch_size": 64,
+        "gradient_accumulation_steps": 4,
+        "effective_train_batch_size": 256,
+        "dtype_policy": "float32",
+        "gdn_kernel_dtype": "float32",
+        "configured_max_epochs": 4
+      },
+      "next_step": "Re-read plan, then enter Phase 4 to add multi-seed only for winning points. Banked-K qualifies because seed123 is clearly promising.",
+      "active_run": {
+        "status": "completed",
+        "launch_id": "flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19",
+        "run_id": "banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep",
+        "swanlab_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_flash_fairness_phase3/runs/m9nfz3a4ece8lpcgkeubt",
+        "swanlab_run_dir": "/home/lyj/mnt/project/zoology/swanlog/run-20260527_025823-m9nfz3a4ece8lpcgkeubt",
+        "gpu": "0",
+        "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+        "started_at_utc": "2026-05-26T18:58:23+00:00",
+        "log_session": "exec session 20758",
+        "note": "Formal cloud SwanLab run. Earlier disabled-mode launch 2026-05-26T18:56:41Z was debug-only and terminated during epoch 0.",
+        "ended_at_utc": "2026-05-26T19:20:18.564134+00:00",
+        "wall_clock_sec": 1311.580404
+      },
+      "debug_launch_attempt": {
+        "status": "terminated",
+        "launch_id": "flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-56-41",
+        "reason": "Started with SWANLAB_MODE=disabled only to confirm launch path; terminated during epoch 0 and not official."
+      },
+      "result": {
+        "run_id": "banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep",
+        "valid_accuracy": 0.9973046875,
+        "hard_1024x256_accuracy": 0.9799609375,
+        "valid_loss": 0.0792120099067688,
+        "active_state_capacity": 131072,
+        "trainable_params": 1643992.0,
+        "wall_clock_sec": 1311.580404,
+        "comparison_to_phase1_best": {
+          "phase1_best_run_id": "mh-h4-k256-v128-s123-d123-b64-ga4-fp32-noearly4ep",
+          "valid_accuracy_delta": 0.0030234375000000036,
+          "hard_1024x256_delta": 0.024859375000000017
+        }
+      },
+      "ledger_rows_added": 1,
+      "canonical_ledger": "docs/artifacts/gdn/gdn-hparam-effect-summary.csv"
+    },
+    "Phase 4": {
+      "status": "done",
+      "trigger_review": "Banked-K seed123 is clearly promising: valid_accuracy 0.9973046875 and hard 1024x256 0.9799609375, better than Phase 1 best GDN mh-h4-k256-v128. Proceed to selective multi-seed planning/execution per Phase 4, not broad grid expansion.",
+      "summary": "Selective multi-seed Phase 4 completed for Banked-K GDN seeds 124, 125, and 126, combined with Phase 3 seed123. Banked-K seed123/126 are stronger than Phase 1 increased-head GDN seed123, but the 4-seed mean is lower than mh-h4 seed123 on both overall and hard accuracy because seed124/125 drop substantially. It should be reported as high-upside but seed-sensitive, not as a stable win over increased-head GDN yet.",
+      "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase4/run_train.sh",
+      "targets": {
+        "banked-h2-b4-k256-v64-sharedv-s124-d123-b64-ga4-fp32-noearly4ep": {
+          "status": "completed",
+          "seed": 124,
+          "gpu": "0",
+          "valid_accuracy": 0.9728310546875,
+          "hard_1024x256_accuracy": 0.786109375,
+          "wall_clock_sec": 2141.919336
+        },
+        "banked-h2-b4-k256-v64-sharedv-s125-d123-b64-ga4-fp32-noearly4ep": {
+          "status": "completed",
+          "seed": 125,
+          "gpu": "1",
+          "valid_accuracy": 0.9502275390625,
+          "hard_1024x256_accuracy": 0.615984375,
+          "wall_clock_sec": 1232.928737
+        },
+        "banked-h2-b4-k256-v64-sharedv-s126-d123-b64-ga4-fp32-noearly4ep": {
+          "status": "completed",
+          "seed": 126,
+          "gpu": "1",
+          "valid_accuracy": 0.99880712890625,
+          "hard_1024x256_accuracy": 0.99187890625,
+          "wall_clock_sec": 1234.222978
+        }
+      },
+      "artifacts": [
+        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-final.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-slice-level.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-runtime-summary.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-multiseed-summary.csv"
+      ],
+      "result": {
+        "seeds": [
+          123,
+          124,
+          125,
+          126
+        ],
+        "valid_accuracy_mean": 0.9797926025390625,
+        "valid_accuracy_std_sample": 0.023027385576817924,
+        "hard_1024x256_accuracy_mean": 0.8434833984375,
+        "hard_1024x256_accuracy_std_sample": 0.1786009795026415,
+        "active_state_capacity": 131072,
+        "trainable_params": 1643992.0,
+        "comparison_to_phase1_best_mh_h4_seed123": {
+          "phase1_best_valid_accuracy": 0.99428125,
+          "phase1_best_hard_1024x256_accuracy": 0.9551015625,
+          "banked_k_multiseed_valid_accuracy_mean_delta": -0.014488647460937476,
+          "banked_k_multiseed_hard_1024x256_mean_delta": -0.11161816406250002
+        }
+      },
+      "ledger_rows_added": 3,
+      "canonical_ledger": "docs/artifacts/gdn/gdn-hparam-effect-summary.csv",
+      "next_step": "Re-read plan before Phase 5. Because Banked-K is promising but seed-sensitive, Phase 5 should be treated as OOD/generic retrieval validation only after comparing against the selected Flash multiseed anchors."
+    },
+    "Phase 5": {
+      "status": "done",
+      "summary": "Phase 5 longer-MQAR OOD completed for mh-h4 seed123 and Banked-K seeds 123-126. All 25 formal eval rows completed with dataset_hash consistent by slice. Banked-K seed123/126 outperform mh-h4 seed123 on most OOD slices, but the four-seed Banked-K mean is lower than mh-h4 seed123 on all five slices because seeds 124/125 degrade substantially. This confirms the Phase 4 high-upside but seed-sensitive conclusion under OOD evaluation.",
+      "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase5/longer_mqar_eval_runner.py",
+      "artifacts": [
+        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/status.csv",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/verification.json",
+        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/manifest.csv"
+      ],
+      "verification": {
+        "formal_completed": 25,
+        "formal_expected": 25,
+        "formal_failed_or_incomplete": 0,
+        "dataset_hash_consistent_by_slice": true,
+        "eval_seed": 123,
+        "formal_examples_per_slice": 500,
+        "timing_fields_present": "started_at_utc, ended_at_utc, wall_clock_sec, gpu, gpu_name, status are present in phase5 detail/status CSV after deterministic backfill for historical rows.",
+        "timing_backfill_method": "For rows generated before native timing wrapper support, started_at_utc is created_at_utc - wall_clock_sec and ended_at_utc is created_at_utc. Future Phase 5 wrapper runs write native timing fields."
+      },
+      "result": {
+        "mh_h4_seed123": {
+          "accuracy_1024x256": 0.9569453125,
+          "accuracy_2048x512": 0.4105,
+          "accuracy_4096x1024": 0.053759765625,
+          "accuracy_8190x512": 0.2548046875,
+          "accuracy_8190x2047": 0.002525647288715193,
+          "mean_across_five_slices": 0.335707082582743
+        },
+        "banked_k_seed123": {
+          "accuracy_1024x256": 0.9800546875,
+          "accuracy_2048x512": 0.53251171875,
+          "accuracy_4096x1024": 0.07312109375,
+          "accuracy_8190x512": 0.3244609375,
+          "accuracy_8190x2047": 0.002273571079628725,
+          "mean_across_five_slices": 0.3824844017159258
+        },
+        "banked_k_seed126": {
+          "accuracy_1024x256": 0.9919609375,
+          "accuracy_2048x512": 0.6140546875,
+          "accuracy_4096x1024": 0.048927734375,
+          "accuracy_8190x512": 0.3469296875,
+          "accuracy_8190x2047": 0.0012574499267220323,
+          "mean_across_five_slices": 0.40062609936034443
+        },
+        "banked_k_multiseed_mean": {
+          "seeds": [
+            123,
+            124,
+            125,
+            126
+          ],
+          "accuracy_mean_1024x256": 0.8445761719,
+          "accuracy_std_1024x256": 0.1536089408,
+          "accuracy_mean_2048x512": 0.3357783203,
+          "accuracy_std_2048x512": 0.2401611754,
+          "accuracy_mean_4096x1024": 0.0326303711,
+          "accuracy_std_4096x1024": 0.0296764384,
+          "accuracy_mean_8190x512": 0.2018291016,
+          "accuracy_std_8190x512": 0.134659434,
+          "accuracy_mean_8190x2047": 0.0011211529,
+          "accuracy_std_8190x2047": 0.0007389819
+        },
+        "comparison_to_existing_flash_official_core": {
+          "cb64_r16_seed123_same_capacity": {
+            "accuracy_1024x256": 0.969625,
+            "accuracy_2048x512": 0.8226445313,
+            "accuracy_4096x1024": 0.4689238281,
+            "accuracy_8190x512": 0.7172617187,
+            "accuracy_8190x2047": 0.1622882267,
+            "active_state_capacity": 131072
+          },
+          "cb256_r10_seeds123_126_higher_capacity_mean": {
+            "accuracy_1024x256": 0.9142167969,
+            "accuracy_2048x512": 0.707953125,
+            "accuracy_4096x1024": 0.4589375,
+            "accuracy_8190x512": 0.6232167969,
+            "accuracy_8190x2047": 0.2327906693,
+            "active_state_capacity": 327680
+          }
+        }
+      },
+      "passkey_needle_status": "not_run",
+      "language_modeling_slice_status": "not_run",
+      "not_run_reason": "The minimum Phase 5 stopping criterion was longer-MQAR OOD. Results are already decisive enough to support Phase 6 gate decision; passkey/needle and LM slice should be separate follow-up tasks if needed."
+    },
+    "Phase 6": {
+      "status": "done",
+      "decision": "go_as_separate_goal",
+      "summary": "Phase 6 gate is triggered. Kernel-compatible GDN variants do not remove the fairness concern: Banked-K has high single-seed upside but poor multi-seed stability, and existing same-capacity Flash cb64-r16 seed123 is much stronger on longer-MQAR OOD than Banked-K multi-seed mean and mh-h4 seed123. Therefore true per-head K=1024,V=64 GDN remains the cleanest endpoint if the paper needs to isolate address/key capacity. This should be started as an independent FLA kernel research goal, not mixed into the current experiment run.",
+      "go_conditions_met": [
+        "Banked-K result is insufficient to remove fairness concern because multi-seed mean is below mh-h4 seed123 and far below same-capacity Flash cb64-r16 on longer-MQAR OOD.",
+        "Flash remains clearly stronger than kernel-compatible GDN on longer-MQAR OOD, especially 2048x512 and longer slices.",
+        "A true K=1024,V=64 GDN baseline is still missing because FLA chunk state-update kernel blocks per-head K>256."
+      ],
+      "next_independent_goal": "Implement or evaluate a fork of fla-org/flash-linear-attention with K-blocked Gated Delta Rule chunk state-update kernel supporting per-head K=512,V=128 and K=1024,V=64, using naive_recurrent_gated_delta_rule as correctness oracle and preserving K<=256 old path behavior.",
+      "do_not_mix_with_current_goal": true
+    }
+  },
+  "gpu_snapshot": [
+    {
+      "gpu": "0",
+      "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+      "memory_used_mib": 21,
+      "memory_total_mib": 11264,
+      "utilization_gpu_percent": 0
+    },
+    {
+      "gpu": "1",
+      "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+      "memory_used_mib": 6,
+      "memory_total_mib": 11264,
+      "utilization_gpu_percent": 0
+    }
+  ]
+}

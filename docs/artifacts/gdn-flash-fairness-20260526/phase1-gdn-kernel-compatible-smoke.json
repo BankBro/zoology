@@ -1,0 +1,97 @@
+{
+  "probe_id": "phase1-gdn-kernel-compatible-smoke-20260526",
+  "plan": "docs/plans/20260526-gdn-flash-fairness-experiment-plan.md",
+  "phase": "Phase 1",
+  "status": "passed",
+  "started_at_utc": "2026-05-26T10:23:32Z",
+  "ended_at_utc": "2026-05-26T10:39:55Z",
+  "wall_clock_sec": 982,
+  "gpu": "0",
+  "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+  "compute_capability": "sm75",
+  "torch_version": "2.6.0+cu118",
+  "dtype_policy": "float32",
+  "GDN_KERNEL_DTYPE": "float32",
+  "input_shape": {
+    "batch": 1,
+    "seq_len": 8,
+    "d_model": 128
+  },
+  "configs": [
+    {
+      "run_id": "gdnxk-h2-ek4-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+      "label": "ek4-ev4",
+      "num_heads": 2,
+      "expand_k": 4,
+      "expand_v": 4,
+      "expected_head_k_dim": 256,
+      "expected_head_v_dim": 256,
+      "started_at_utc": "2026-05-26T10:23:32Z",
+      "head_k_dim": 256,
+      "head_v_dim": 256,
+      "active_state_capacity": 131072,
+      "mixer_trainable_params": 269062,
+      "status": "passed",
+      "forward_sec": 13.115,
+      "backward_sec": 8.648,
+      "loss": 0.012567797675728798,
+      "output_shape": [
+        1,
+        8,
+        128
+      ],
+      "ended_at_utc": "2026-05-26T10:23:54Z",
+      "wall_clock_sec": 21.867
+    },
+    {
+      "run_id": "mh-h4-k256-v128-s123-d123-b64-ga4-fp32-noearly4ep",
+      "label": "mh-h4-k256-v128",
+      "num_heads": 4,
+      "expand_k": 8,
+      "expand_v": 4,
+      "expected_head_k_dim": 256,
+      "expected_head_v_dim": 128,
+      "started_at_utc": "2026-05-26T10:23:54Z",
+      "head_k_dim": 256,
+      "head_v_dim": 128,
+      "active_state_capacity": 131072,
+      "mixer_trainable_params": 404620,
+      "status": "passed",
+      "forward_sec": 244.888,
+      "backward_sec": 229.957,
+      "loss": 0.008516399189829826,
+      "output_shape": [
+        1,
+        8,
+        128
+      ],
+      "ended_at_utc": "2026-05-26T10:31:49Z",
+      "wall_clock_sec": 474.849
+    },
+    {
+      "run_id": "mh-h8-k256-v64-s123-d123-b64-ga4-fp32-noearly4ep",
+      "label": "mh-h8-k256-v64",
+      "num_heads": 8,
+      "expand_k": 16,
+      "expand_v": 4,
+      "expected_head_k_dim": 256,
+      "expected_head_v_dim": 64,
+      "started_at_utc": "2026-05-26T10:31:49Z",
+      "head_k_dim": 256,
+      "head_v_dim": 64,
+      "active_state_capacity": 131072,
+      "mixer_trainable_params": 675928,
+      "status": "passed",
+      "forward_sec": 250.531,
+      "backward_sec": 235.328,
+      "loss": 0.010784994810819626,
+      "output_shape": [
+        1,
+        8,
+        128
+      ],
+      "ended_at_utc": "2026-05-26T10:39:55Z",
+      "wall_clock_sec": 485.864
+    }
+  ]
+}

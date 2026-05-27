@@ -1,0 +1,6 @@
+config_family,metric,n,mean,std_sample,min,max,seeds,active_state_capacity,trainable_params,note
+gdn-banked-k-h2-b4-k256-v64-sharedv-usegate0,valid_accuracy,4,0.9797926025390625,0.023027385576817924,0.9502275390625,0.99880712890625,123;124;125;126,131072,1643992.0,std_sample uses n-1 denominator; seed123 from Phase 3 plus seeds124-126 from Phase 4.
+gdn-banked-k-h2-b4-k256-v64-sharedv-usegate0,valid_mqar_case_accuracy_1024x256,4,0.8434833984375,0.1786009795026415,0.615984375,0.99187890625,123;124;125;126,131072,1643992.0,std_sample uses n-1 denominator; seed123 from Phase 3 plus seeds124-126 from Phase 4.
+gdn-banked-k-h2-b4-k256-v64-sharedv-usegate0,valid_mqar_case_accuracy_512x128,4,0.996548828125,0.0052924767222108015,0.9888203125,0.999984375,123;124;125;126,131072,1643992.0,std_sample uses n-1 denominator; seed123 from Phase 3 plus seeds124-126 from Phase 4.
+gdn-banked-k-h2-b4-k256-v64-sharedv-usegate0,valid_loss,4,0.1865798681974411,0.13716921838789714,0.06190958619117737,0.3376331925392151,123;124;125;126,131072,1643992.0,std_sample uses n-1 denominator; seed123 from Phase 3 plus seeds124-126 from Phase 4.
+gdn-banked-k-h2-b4-k256-v64-sharedv-usegate0,wall_clock_sec,4,1480.16286375,442.70110877531636,1232.928737,2141.919336,123;124;125;126,131072,1643992.0,std_sample uses n-1 denominator; seed123 from Phase 3 plus seeds124-126 from Phase 4.

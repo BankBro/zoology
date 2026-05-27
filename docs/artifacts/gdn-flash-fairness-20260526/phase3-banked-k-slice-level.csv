@@ -1,0 +1,9 @@
+run_id,launch_id,case,metric,value,final_epoch,final_validation_index,timestamp_utc
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,1024x256,valid/mqar_case/accuracy-1024x256,0.9799609375,4,8,2026-05-26T19:20:18.385135+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,128x32,valid/mqar_case/accuracy-128x32,1.0,4,8,2026-05-26T19:20:18.385227+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,256x64,valid/mqar_case/accuracy-256x64,1.0,4,8,2026-05-26T19:20:18.385320+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,512x128,valid/mqar_case/accuracy-512x128,0.9999765625,4,8,2026-05-26T19:20:18.385419+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,512x64,valid/mqar_case/accuracy-512x64,0.998875,4,8,2026-05-26T19:20:18.385509+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,64x16,valid/mqar_case/accuracy-64x16,1.0,4,8,2026-05-26T19:20:18.385599+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,64x4,valid/mqar_case/accuracy-64x4,0.99975,4,8,2026-05-26T19:20:18.385689+00:00
+banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep,flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19,64x8,valid/mqar_case/accuracy-64x8,0.999875,4,8,2026-05-26T19:20:18.385777+00:00

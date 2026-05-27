@@ -1,0 +1,5 @@
+source_status,target,run_id,rank,seed,started_at_utc,ended_at_utc,wall_clock_sec,gpu,gpu_name,status,time_source
+new,cb256-r6-s125,gd-residual-v1-train-s125-d123-rread-top2-r6-wk4-b64,6,125,2026-05-26T13:47:12+00:00,2026-05-26T18:41:27.407008+00:00,17655.407008,1,NVIDIA GeForce RTX 2080 Ti,completed,swanlog_dir_start_and_log_mtime_end
+new,cb256-r8-s126,gd-residual-v1-train-s126-d123-rread-top2-r8-wk4-b64,8,126,2026-05-26T13:35:57+00:00,2026-05-26T18:21:39.668840+00:00,17142.668840,0,NVIDIA GeForce RTX 2080 Ti,completed,swanlog_dir_start_and_log_mtime_end
+reused,cb256-r10-s125-d123,gd-r10-s125-d123-b64-ga4-fp32-noearly4ep,10,125,,,13585.642972534522,0,NVIDIA GeForce RTX 2080 Ti,completed,existing_canonical_ledger_elapsed_only
+reused,cb256-r16-s126-d123,gd-r16-wk4-mu01-t025-cb256-s126-d123-noearly4ep,16,126,,,19708.276558030397,1,NVIDIA GeForce RTX 2080 Ti,completed,existing_canonical_ledger_elapsed_only

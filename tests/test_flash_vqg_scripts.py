@@ -107,6 +107,28 @@ def _load_gdn_expanded_k_builder_module():
     return module
 
 
+def _load_gdn_flash_fairness_phase1_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase1/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gdn_flash_fairness_phase1_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_gdn_flash_fairness_phase3_builder_module():
+    script_path = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/config_builder.py"
+    )
+    spec = importlib.util.spec_from_file_location("flash_vqg_gdn_flash_fairness_phase3_builder", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _load_gd_residual_short_run_module():
     script_path = Path(
         "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/short_run_gd_residual_v1.py"
@@ -300,6 +322,7 @@ def _extract_gdn_kwargs(config):
         if mixer["name"] in {
             "zoology.mixers.gated_delta_net.GatedDeltaNet",
             "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+            "zoology.mixers.gated_delta_net.GatedDeltaNetBankedK",
         }:
             return mixer["kwargs"]
     raise AssertionError("GDN mixer not found")
@@ -613,6 +636,143 @@ def test_gdn_expanded_k_builder_instantiates_equal_capacity(monkeypatch):
         state_sizes.append(layer.state_size(sequence_length=1024))
 
     assert state_sizes == [131072, 131072, 131072]
+
+
+def test_gdn_flash_fairness_phase1_builder_generates_kernel_compatible_layouts(monkeypatch):
+    from zoology.mixers.gated_delta_net import GatedDeltaNetExpandedK
+
+    module = _load_gdn_flash_fairness_phase1_builder_module()
+    args = _build_gdn_expanded_k_args()
+    args.launch_id_prefix = "flash-vqg-gdn-flash-fairness-phase1-test"
+    args.project = "flash_vqg_gdn_flash_fairness_phase1"
+    monkeypatch.setenv("GDN_PHASE1_LAYOUTS", "ek4-ev4:2:4:4,mh-h4-k256-v128:4:8:4,mh-h8-k256-v64:8:16:4")
+    monkeypatch.setenv("GDN_USE_GATE", "false")
+
+    configs = module.build_gdn_flash_fairness_phase1_configs(args)
+    run_ids = [config.run_id for config in configs]
+    kwargs = [_extract_gdn_kwargs(config) for config in configs]
+
+    assert run_ids == [
+        "ek4-ev4-s123-d123-b64-ga4-fp32-noearly4ep",
+        "mh-h4-k256-v128-s123-d123-b64-ga4-fp32-noearly4ep",
+        "mh-h8-k256-v64-s123-d123-b64-ga4-fp32-noearly4ep",
+    ]
+    assert [_extract_gdn_mixer_name(config) for config in configs] == [
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+        "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK",
+    ]
+    assert [(item["num_heads"], item["expand_k"], item["expand_v"]) for item in kwargs] == [
+        (2, 4, 4),
+        (4, 8, 4),
+        (8, 16, 4),
+    ]
+    layers = [
+        GatedDeltaNetExpandedK(d_model=config.model.d_model, **item)
+        for config, item in zip(configs, kwargs)
+    ]
+    state_sizes = [layer.state_size(sequence_length=1024) for layer in layers]
+
+    assert state_sizes == [131072, 131072, 131072]
+    assert [(layer.head_k_dim, layer.head_v_dim) for layer in layers] == [
+        (256, 256),
+        (256, 128),
+        (256, 64),
+    ]
+    assert all(config.data.batch_size == (64, 16) for config in configs)
+    assert all(config.gradient_accumulation_steps == 4 for config in configs)
+    assert all(config.early_stopping_metric is None for config in configs)
+
+
+def test_gdn_flash_fairness_phase2_script_defaults_to_missing_r8_s126_b64_ga4():
+    base_dir = Path(
+        "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase2"
+    )
+    common_env = (base_dir / "common_env.sh").read_text(encoding="utf-8")
+    train = (base_dir / "run_train.sh").read_text(encoding="utf-8")
+
+    assert 'SEED_VALUES="${SEED_VALUES:-126}"' in common_env
+    assert 'DATA_SEED="${DATA_SEED:-123}"' in common_env
+    assert 'NUM_CODEBOOK_VECTORS="${NUM_CODEBOOK_VECTORS:-256}"' in common_env
+    assert 'TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-64}"' in common_env
+    assert 'EVAL_BATCH_SIZE="${EVAL_BATCH_SIZE:-16}"' in common_env
+    assert 'GRADIENT_ACCUMULATION_STEPS="${GRADIENT_ACCUMULATION_STEPS:-4}"' in common_env
+    assert 'DISABLE_EARLY_STOPPING="${DISABLE_EARLY_STOPPING:-true}"' in common_env
+    assert 'FOX_GD_RESIDUAL_RANK="${FOX_GD_RESIDUAL_RANK:-8}"' in common_env
+    assert 'FOX_GD_RESIDUAL_MU_MIN_COUNT="${FOX_GD_RESIDUAL_MU_MIN_COUNT:-0.1}"' in common_env
+    assert 'VQ_SOFTMAX_TAU="${VQ_SOFTMAX_TAU:-0.25}"' in common_env
+    assert "build_gd_residual_v1_train_configs" in train
+    assert "不接受额外参数" in train
+    assert "--train-batch-size \"${TRAIN_BATCH_SIZE}\"" in train
+    assert "--gradient-accumulation-steps \"${GRADIENT_ACCUMULATION_STEPS}\"" in train
+    assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in train
+    assert "--vq-softmax-tau \"${VQ_SOFTMAX_TAU}\"" in train
+
+
+def test_gdn_flash_fairness_phase3_builder_generates_banked_k_layout(monkeypatch):
+    from zoology.mixers.gated_delta_net import GatedDeltaNetBankedK
+
+    module = _load_gdn_flash_fairness_phase3_builder_module()
+    args = _build_gdn_expanded_k_args()
+    args.launch_id_prefix = "flash-vqg-gdn-flash-fairness-phase3-test"
+    args.project = "flash_vqg_gdn_flash_fairness_phase3"
+    monkeypatch.setenv("GDN_PHASE3_LAYOUTS", "banked-h2-b4-k256-v64-sharedv:2:4:256:64")
+    monkeypatch.setenv("GDN_USE_GATE", "false")
+
+    configs = module.build_gdn_flash_fairness_phase3_configs(args)
+    run_ids = [config.run_id for config in configs]
+    kwargs = [_extract_gdn_kwargs(config) for config in configs]
+
+    assert run_ids == ["banked-h2-b4-k256-v64-sharedv-s123-d123-b64-ga4-fp32-noearly4ep"]
+    assert [_extract_gdn_mixer_name(config) for config in configs] == [
+        "zoology.mixers.gated_delta_net.GatedDeltaNetBankedK"
+    ]
+    assert kwargs == [
+        {
+            "num_heads": 2,
+            "banks_per_head": 4,
+            "bank_k_dim": 256,
+            "bank_v_dim": 64,
+            "merge": "softmax_gate",
+            "shared_v": True,
+            "use_gate": False,
+            "use_short_conv": True,
+            "conv_size": 4,
+        }
+    ]
+
+    layer = GatedDeltaNetBankedK(d_model=configs[0].model.d_model, **kwargs[0])
+    assert layer.effective_heads == 8
+    assert layer.head_k_dim == 256
+    assert layer.head_v_dim == 64
+    assert layer.state_size(sequence_length=1024) == 131072
+    assert configs[0].data.batch_size == (64, 16)
+    assert configs[0].gradient_accumulation_steps == 4
+    assert configs[0].early_stopping_metric is None
+
+
+def test_gated_delta_net_banked_k_forward_backward_smoke(monkeypatch):
+    from zoology.mixers.gated_delta_net import GatedDeltaNetBankedK
+
+    if not torch.cuda.is_available():
+        pytest.skip("GatedDeltaNetBankedK smoke requires CUDA FLA kernels.")
+
+    monkeypatch.setenv("GDN_KERNEL_DTYPE", "float32")
+    layer = GatedDeltaNetBankedK(
+        d_model=128,
+        num_heads=2,
+        banks_per_head=4,
+        bank_k_dim=256,
+        bank_v_dim=64,
+        use_gate=False,
+    ).cuda()
+    layer.train()
+    x = torch.randn(1, 8, 128, device="cuda", requires_grad=True)
+    y = layer(x)
+    assert y.shape == x.shape
+    y.float().square().mean().backward()
+    assert x.grad is not None
+    assert torch.isfinite(x.grad).all()
 
 
 def _build_short_run_args(tmp_path):

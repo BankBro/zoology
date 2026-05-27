@@ -1,0 +1,32 @@
+{
+  "updated_at_utc": "2026-05-26T18:55:46.798643+00:00",
+  "target": "banked-h2-b4-k256-v64-sharedv",
+  "module": "zoology.mixers.gated_delta_net.GatedDeltaNetBankedK",
+  "logical_heads": 2,
+  "banks_per_head": 4,
+  "effective_kernel_heads": 8,
+  "per_kernel_head_k_dim": 256,
+  "per_kernel_head_v_dim": 64,
+  "active_state_capacity": 131072,
+  "shared_v": true,
+  "merge": "softmax_gate",
+  "gdn_kernel_dtype": "float32",
+  "smoke": {
+    "status": "passed",
+    "shape": {
+      "batch": 1,
+      "seq_len": 8,
+      "d_model": 128
+    },
+    "checks": [
+      "builder_config",
+      "state_size",
+      "cuda_forward_backward"
+    ],
+    "pytest": "pytest -q tests/test_flash_vqg_scripts.py -k 'phase3 or banked_k'",
+    "pytest_result": "2 passed, 27 deselected",
+    "regression_pytest": "pytest -q tests/test_flash_vqg_scripts.py -k 'gdn_expanded_k or gdn_flash_fairness_phase1 or gdn_flash_fairness_phase2 or phase3 or banked_k'",
+    "regression_pytest_result": "6 passed, 23 deselected"
+  },
+  "notes": "This is a kernel-compatible K-sharded approximation, not a true single continuous K=1024 head."
+}

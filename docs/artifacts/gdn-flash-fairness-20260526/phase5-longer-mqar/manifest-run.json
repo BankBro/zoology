@@ -1,0 +1,37 @@
+{
+  "batch_id": "20260526-gdn-flash-fairness-phase5-longer-mqar",
+  "created_at_utc": "2026-05-26T20:17:06.994890+00:00",
+  "source_count": 5,
+  "expected_core_source_count": 5,
+  "formal_slices": [
+    "1024x256",
+    "2048x512",
+    "4096x1024",
+    "8190x512",
+    "8190x2047"
+  ],
+  "expected_formal_rows": 25,
+  "eval_seed": 123,
+  "gpus": [
+    0,
+    1
+  ],
+  "phases": [
+    "batch-search",
+    "formal"
+  ],
+  "sanity_examples": 16,
+  "batch_search_examples": 8,
+  "formal_examples": 500,
+  "batch_candidates": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "tmp_root": "tmp/20260526-gdn-flash-fairness-phase5-longer-mqar",
+  "detail_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
+  "summary_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
+  "status_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/status.csv",
+  "preliminary_ledger_retained": "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv"
+}
