@@ -1,0 +1,2 @@
+- 2026-05-28T19:00:02.089866+00:00 eval_buckets wrote slice_summary.csv and distance_bucket.csv rows=288
+- 2026-05-28T19:05:39.497957+00:00 stage2 archived: rows=32 bucket_rows=288 run_status=completed full_sanity_passed=6 full_sanity_no_ref=2 local_only_near_zero=true
