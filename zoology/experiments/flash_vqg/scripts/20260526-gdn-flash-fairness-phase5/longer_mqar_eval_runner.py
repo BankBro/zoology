@@ -33,7 +33,7 @@ def load_canonical_runner():
 
 
 def configure_phase5(module) -> None:
-    artifact_dir = ROOT / "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar"
+    artifact_dir = ROOT / "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar"
     module.ARTIFACT_DIR = artifact_dir
     module.LEDGER_PATH = artifact_dir / "longer-mqar-phase5-detail.csv"
     module.SUMMARY_PATH = artifact_dir / "longer-mqar-phase5-summary.csv"

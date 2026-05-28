@@ -83,13 +83,13 @@ docs/20260526-longer-mqar-official-core-report.md
 ```text
 docs/artifacts/gdn-expanded-k/
 docs/artifacts/longer-mqar/
-docs/artifacts/gdn-flash-fairness-20260526/
+docs/artifacts/20260526-gdn-flash-fairness/
 ```
 
 如果需要新增 summary 表, 优先放到:
 
 ```text
-docs/artifacts/gdn-flash-fairness-20260526/
+docs/artifacts/20260526-gdn-flash-fairness/
 ```
 
 完整正式 GDN hparam/baseline 结果如符合既有 canonical ledger 口径, 再追加到:

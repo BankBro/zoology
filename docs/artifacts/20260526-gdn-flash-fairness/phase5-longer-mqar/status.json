@@ -30,9 +30,9 @@
     8
   ],
   "tmp_root": "tmp/20260526-gdn-flash-fairness-phase5-longer-mqar",
-  "detail_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
-  "summary_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
-  "status_csv": "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/status.csv",
+  "detail_csv": "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
+  "summary_csv": "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
+  "status_csv": "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/status.csv",
   "preliminary_ledger_retained": "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv",
   "updated_at_utc": "2026-05-26T20:39:34.239573+00:00",
   "completed_sources": 5,

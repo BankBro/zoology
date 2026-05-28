@@ -75,7 +75,7 @@ FLA 源码位置:
 
 补充 accounting 表见:
 
-`docs/artifacts/gdn-flash-fairness-20260526/phase0-gdn-expanded-k-accounting.csv`
+`docs/artifacts/20260526-gdn-flash-fairness/phase0-gdn-expanded-k-accounting.csv`
 
 该表按实际 `LanguageModel(config.model)` 口径统计整模型 trainable params, 并保留 smoke 时间, GPU, dtype, batch 和 ledger policy 字段。`ek4-ev4` 只能作为 current-kernel-compatible probe, 不能写成 true `K=1024,V=64` 对照。
 

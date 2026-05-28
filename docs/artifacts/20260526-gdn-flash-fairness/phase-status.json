@@ -10,7 +10,7 @@
       "summary": "GDN expanded-K blocked conclusion is fixed. ek4-ev4 smoke forward/backward passed; ek8-ev2 is blocked by FLA chunk state-update K<=256 assertion; ek16-ev1 was not launched because it requires per-head K=1024 under the same limit.",
       "artifacts": [
         "docs/artifacts/gdn-expanded-k/kernel-smoke-20260526.json",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase0-gdn-expanded-k-accounting.csv"
+        "docs/artifacts/20260526-gdn-flash-fairness/phase0-gdn-expanded-k-accounting.csv"
       ],
       "ledger_rows_added": 0,
       "ledger_policy": "Smoke, blocked, failed, and not-launched rows are not official training results and were not written to canonical ledger."
@@ -19,10 +19,10 @@
       "status": "done",
       "summary": "Kernel-compatible GDN Phase 1 completed: ek4-ev4, mh-h4-k256-v128, and mh-h8-k256-v64 all finished 4epoch seed123 training with GDN_KERNEL_DTYPE=float32. mh-h4-k256-v128 is best among the three by final overall accuracy and 1024x256 hard accuracy.",
       "artifacts": [
-        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-final.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-kernel-compatible-smoke.json",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-runtime-summary.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase1-gdn-slice-level.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase1-gdn-final.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase1-gdn-kernel-compatible-smoke.json",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase1-gdn-runtime-summary.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase1-gdn-slice-level.csv",
         "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02"
       ],
       "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase1/run_train.sh",
@@ -31,7 +31,7 @@
       "failed_launch_attempt": "zoology/experiments/flash_vqg/generated/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-11-25/manifest.json",
       "active_launch_id": "flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02",
       "active_manifest": "zoology/experiments/flash_vqg/generated/flash-vqg-20260526-gdn-flash-fairness-phase1-2026-05-26-11-35-02/manifest.json",
-      "active_log": "docs/artifacts/gdn-flash-fairness-20260526/phase1-training-sequential.log",
+      "active_log": "docs/artifacts/20260526-gdn-flash-fairness/phase1-training-sequential.log",
       "active_run": null,
       "ledger_rows_added": 3,
       "canonical_ledger": "docs/artifacts/gdn/gdn-hparam-effect-summary.csv",
@@ -41,9 +41,9 @@
       "status": "done",
       "summary": "Phase 2 Flash-VQG stability check completed. New b64_ga4 fp32 official runs were completed for cb256-r8-s126 and cb256-r6-s125; existing b64_ga4 fp32 results were reused for cb256-r16-s126 and cb256-r10-s125. Results show Flash rank/seed behavior is non-monotonic: r10-s125 is currently strongest, r6-s125 is competitive on hard slice, r8-s126 is weak, and r16-s126 is below r10.",
       "artifacts": [
-        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-final.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-slice-level.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase2-flash-runtime-summary.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase2-flash-final.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase2-flash-slice-level.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase2-flash-runtime-summary.csv",
         "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase2-2026-05-26-13-35-52",
         "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase2-r6-s125-2026-05-26-13-47-07"
       ],
@@ -94,14 +94,14 @@
       "trigger_review": "Phase 1 mh-h4/mh-h8 improved over ek4 and did not falsify address-capacity route; training cost was acceptable, so Banked-K GDN is implemented for Phase 3.",
       "summary": "Phase 3 Banked-K GDN shared-V completed. It keeps logical_heads=2 with 4 banks per head and per-kernel K=256,V=64, reaches valid_accuracy=0.9973046875 and hard 1024x256=0.9799609375 at seed123, outperforming Phase 1 mh-h4-k256-v128 on both overall and hard slice while keeping active_state_capacity=131072.",
       "artifacts": [
-        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-smoke.json",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase3-banked-k-smoke.json",
         "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/config_builder.py",
         "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/run_train.sh",
         "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/common_env.sh",
         "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase3/metrics.yaml",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-final.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-slice-level.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase3-banked-k-runtime-summary.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase3-banked-k-final.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase3-banked-k-slice-level.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase3-banked-k-runtime-summary.csv",
         "zoology/analysis/flash_vqg/results/flash-vqg-20260526-gdn-flash-fairness-phase3-2026-05-26-18-58-19"
       ],
       "smoke": {
@@ -189,10 +189,10 @@
         }
       },
       "artifacts": [
-        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-final.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-slice-level.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-runtime-summary.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase4-banked-k-multiseed-summary.csv"
+        "docs/artifacts/20260526-gdn-flash-fairness/phase4-banked-k-final.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase4-banked-k-slice-level.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase4-banked-k-runtime-summary.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase4-banked-k-multiseed-summary.csv"
       ],
       "result": {
         "seeds": [
@@ -223,11 +223,11 @@
       "summary": "Phase 5 longer-MQAR OOD completed for mh-h4 seed123 and Banked-K seeds 123-126. All 25 formal eval rows completed with dataset_hash consistent by slice. Banked-K seed123/126 outperform mh-h4 seed123 on most OOD slices, but the four-seed Banked-K mean is lower than mh-h4 seed123 on all five slices because seeds 124/125 degrade substantially. This confirms the Phase 4 high-upside but seed-sensitive conclusion under OOD evaluation.",
       "runner": "zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase5/longer_mqar_eval_runner.py",
       "artifacts": [
-        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/status.csv",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/verification.json",
-        "docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/manifest.csv"
+        "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-detail.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-summary.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/status.csv",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/verification.json",
+        "docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/manifest.csv"
       ],
       "verification": {
         "formal_completed": 25,

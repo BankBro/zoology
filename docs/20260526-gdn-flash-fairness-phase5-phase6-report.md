@@ -15,10 +15,10 @@ Phase 5 已完成 longer-MQAR OOD eval. 本轮只评估本方案新增的 GDN �
 
 ## artifact
 
-- 逐条结果: `docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-detail.csv`
-- 聚合结果: `docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/longer-mqar-phase5-summary.csv`
-- 状态表: `docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/status.csv`
-- 验证摘要: `docs/artifacts/gdn-flash-fairness-20260526/phase5-longer-mqar/verification.json`
+- 逐条结果: `docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-detail.csv`
+- 聚合结果: `docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/longer-mqar-phase5-summary.csv`
+- 状态表: `docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/status.csv`
+- 验证摘要: `docs/artifacts/20260526-gdn-flash-fairness/phase5-longer-mqar/verification.json`
 - runner: `zoology/experiments/flash_vqg/scripts/20260526-gdn-flash-fairness-phase5/longer_mqar_eval_runner.py`
 
 ## Phase 5 结果
