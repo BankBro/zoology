@@ -23,3 +23,24 @@ hand-maintained.
 
 Eval-time override variants such as `local_only`, `local1`, and `local4` are
 diagnostic only. They must not be mixed with formal training results.
+
+## Stage 3 formal training ablation
+
+Stage 3 uses the same cb64-r16 seed123 gd-residual training budget as the
+existing official anchor, but changes only the Flash local/remote structure:
+
+```text
+GPU_ID=0 bash run_stage3_train.sh local-only
+GPU_ID=0 bash run_stage3_train.sh local1
+GPU_ID=0 bash run_stage3_train.sh local4
+```
+
+Targets:
+
+- `local-only`: `local_num_blocks=2`, `if_remote_enabled=false`.
+- `local1`: `local_num_blocks=1`, `if_remote_enabled=true`.
+- `local4`: `local_num_blocks=4`, `if_remote_enabled=true`.
+
+Formal runs must be launched one at a time on the 3090 GPU. Their checkpoint,
+manifest, logs, and analysis output are recorded under
+`docs/artifacts/20260529-flash-local-window-fairness/` after each run completes.
