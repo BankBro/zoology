@@ -18,3 +18,10 @@
 - 失败, 中断, smoke, diagnostic 不写入正式结果表, 只在 status 或独立记录中说明.
 
 创建时间: 2026-05-28T19:13:53.033928+00:00
+
+## 阶段 3 当前结果
+
+- `local-only` 已完成正式训练, manifest status `completed`, final `last.pt` 已保存.
+- 训练 wrapper 在 SwanLab finalization 后未自然退出, 在 manifest 完成后 SIGTERM 释放 GPU. 本地 `backup.swanlab` 校验失败, remote analysis 成功.
+- final validation: overall `0.404470`, `1024x256=0.000262`, `512x128=0.000219`, `512x64=0.025156`, `128x32=0.203969`, `64x16=1.0`.
+- 当前观察: exact local-only 训练可以解决短配置, 但不能解决长 MQAR. 这进一步支持 Flash 的长距离优势不是由 64-token local exact window 单独解释.
