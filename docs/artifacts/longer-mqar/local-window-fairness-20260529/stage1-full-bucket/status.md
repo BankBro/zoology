@@ -1,0 +1,2 @@
+- 2026-05-28T17:18:04.891176+00:00 eval_buckets wrote slice_summary.csv and distance_bucket.csv rows=180
+- stage1 sanity archived: flash passed, gdn strict invalid rows=8 max_abs_diff=0.0005703125

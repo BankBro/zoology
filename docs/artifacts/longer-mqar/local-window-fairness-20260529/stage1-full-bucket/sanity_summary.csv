@@ -1,0 +1,6 @@
+source_model_family,sanity_status,rows
+flash,no_ref,2
+flash,passed,6
+gdn,invalid,8
+gdn,no_ref,3
+gdn,passed,1
