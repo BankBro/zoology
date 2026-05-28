@@ -1,0 +1,22 @@
+{
+  "status": "completed",
+  "detail_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/longer-mqar-detail.csv",
+  "summary_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/longer-mqar-summary.csv",
+  "status_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/status.csv",
+  "formal_completed": 5,
+  "formal_expected": 5,
+  "formal_failed_or_incomplete": 0,
+  "dataset_hash_unique_count_by_slice": {
+    "1024x256": 1,
+    "2048x512": 1,
+    "4096x1024": 1,
+    "8190x2047": 1,
+    "8190x512": 1
+  },
+  "dataset_hash_consistent_by_slice": true,
+  "repro_rows": 0,
+  "repro_completed": 0,
+  "repro_dataset_hash_match": true,
+  "repro_accuracy_match": true,
+  "updated_at_utc": "2026-05-28T05:56:11.934378+00:00"
+}

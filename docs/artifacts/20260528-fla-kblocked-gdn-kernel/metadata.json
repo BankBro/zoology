@@ -1,0 +1,22 @@
+{
+  "artifact": "20260528-fla-kblocked-gdn-kernel",
+  "created_on": "2026-05-28",
+  "scope": "FLA K-blocked GDN kernel research evidence bundle",
+  "machine": "mclab-3090 via Flash-VQG-tun container",
+  "source_worktrees_may_be_deleted": true,
+  "official_ledger": false,
+  "weekly_material": false,
+  "contains_checkpoints": false,
+  "contains_full_swanlog": false,
+  "contains_source_diff_snapshot": true,
+  "contains_environment_snapshot": true,
+  "script_entrypoint": "zoology/experiments/flash_vqg/scripts/20260528-fla-kblocked-gdn-kernel/",
+  "standard_generated_configs": [
+    "zoology/experiments/flash_vqg/generated/flash-vqg-20260528-kblocked-probe-ek16-ev1-retry-ieee-20260528T020346Z-2026-05-28-02-06-08/",
+    "zoology/experiments/flash_vqg/generated/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/"
+  ],
+  "status": "evidence_preserved",
+  "main_result_csv": "fla-kblocked-gdn-kernel-final.csv",
+  "source_manifest_csv": "fla-kblocked-gdn-kernel-source-manifest.csv",
+  "caveat": "Research evidence only. Upstream-ready correctness remains no-go because fp32 K=1024,V=64 strict abs_tol=0.005 still has dk/dbeta excess while FLA-style tolerance passes."
+}

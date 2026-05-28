@@ -1,0 +1,35 @@
+{
+  "batch_id": "fla-kblocked-ek8-ev2-longer-mqar-20260528T072627Z",
+  "created_at_utc": "2026-05-28T07:26:28.023410+00:00",
+  "source_count": 1,
+  "formal_slices": [
+    "1024x256",
+    "2048x512",
+    "4096x1024",
+    "8190x512",
+    "8190x2047"
+  ],
+  "eval_seed": 123,
+  "gpus": [
+    0
+  ],
+  "phases": [
+    "batch-search",
+    "formal"
+  ],
+  "batch_search_examples": 8,
+  "formal_examples": 500,
+  "batch_candidates": [
+    8,
+    4,
+    2,
+    1
+  ],
+  "source_run_id": "gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z",
+  "source_config_group": "gdnxk-h2-ek8-ev2-kblocked-ieee",
+  "source_ckpt_path_abs": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z/last.pt",
+  "source_ckpt_sha256": "1a69fd5e7e9e12aab672856f18becd8bd39fcd0c506560d28b8f61fafc7dfdc7",
+  "source_train_config_path_abs": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z/train_config.json",
+  "source_train_config_sha256": "3cead7d5d191f225e5ef1893ae7dd6b2ddcab1c280a954ff0de7663b0270d8a2",
+  "tmp_only_not_official": true
+}

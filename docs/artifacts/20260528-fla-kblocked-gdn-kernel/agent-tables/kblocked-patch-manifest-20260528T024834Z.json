@@ -1,0 +1,142 @@
+{
+  "updated_at_utc": "2026-05-28T02:48:34Z",
+  "scope": "patch manifest and merge advice only; no commit, push, formal write, or new experiment performed",
+  "controller_rules_applied": {
+    "blocker_threshold": "Only escalate when crossing current gate, affecting shared resources, changing experiment semantics, or risking formal-record pollution.",
+    "current_actions_are_within_gate": [
+      "read-only follow-up checks",
+      "agent-directory process file updates",
+      "manifest/table completion",
+      "log and evidence organization"
+    ]
+  },
+  "worktrees": {
+    "flash_linear_attention": {
+      "path": "/home/lyj/mnt/project/worktrees/fla-kblocked/flash-linear-attention",
+      "branch": "codex/fla-kblocked-gdn-kernel",
+      "base_commit": "19b5a3f411ecea6cdda62c6cc65cdae55ed2dec5",
+      "dirty_files": [
+        "fla/ops/common/chunk_delta_h.py",
+        "fla/ops/gated_delta_rule/chunk.py"
+      ],
+      "diff_stat": "2 files changed, 327 insertions(+), 2 deletions(-)",
+      "change_summary": [
+        "Add true large-K K-blocked hidden-state forward Triton kernel for K>256 Phase A.",
+        "Add true large-K K-blocked hidden-state backward dhu Triton kernel for K>256 Phase A.",
+        "Route chunk hidden-state fwd/bwd to K-blocked path for K>256 while keeping old K<=256 path.",
+        "Use input_precision=\"ieee\" in new K-blocked tl.dot calls to avoid TF32-driven fp32 drift.",
+        "Use num_stages=2 for large-K backward to avoid RTX 3090 shared-memory limit.",
+        "Disable/remove the temporary public K>256 PyTorch autograd fallback as default path."
+      ],
+      "phase_a_limitations": [
+        "equal-length batch only",
+        "state_v_first=False",
+        "gk=None",
+        "no varlen/CP support in the new large-K path",
+        "FLA-style gradient tolerance accepted only for tmp readiness, not final upstream correctness"
+      ]
+    },
+    "zoology": {
+      "path": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology",
+      "branch": "detached HEAD",
+      "base_commit": "dd522a77f8b101e90e7204b1b381c28c99cf0bbd",
+      "dirty_files": [
+        "zoology/mixers/gated_delta_net.py"
+      ],
+      "untracked_paths": [
+        "artifacts/"
+      ],
+      "source_diff_stat": "1 file changed, 3 deletions(-)",
+      "change_summary": [
+        "Remove deprecated/incompatible head_first=False argument from GatedDeltaNet chunk path.",
+        "Remove deprecated/incompatible head_first=False argument from GatedDeltaNet fused_recurrent path.",
+        "Remove deprecated/incompatible head_first=False argument from GatedDeltaNetBankedK chunk path."
+      ],
+      "artifact_policy": "Do not commit artifacts/, checkpoints, swanlog, raw logs, caches, profiler outputs, or tensor dumps."
+    },
+    "flash_vqg": {
+      "path": "/home/lyj/mnt/project/worktrees/fla-kblocked/Flash-VQG",
+      "branch": "detached HEAD",
+      "base_commit": "603d2d603fb5389b5eaaad1ccfbe569c5fc023b4",
+      "dirty_files": [],
+      "diff_stat": "clean"
+    }
+  },
+  "validation_evidence": {
+    "static_checks": [
+      "git diff --check passed during source/repair stages",
+      "py_compile passed during source/repair stages",
+      "import-source sanity pointed to kblocked worktrees"
+    ],
+    "cuda_correctness_phase_a": {
+      "artifact": "/home/lyj/mnt/project/zoology/tmp/20260527-flash-gdn-seed-kblocked-followups/agents/fla-kblocked-kernel/tables/true-triton-cuda-correctness-phaseA-20260527T200224Z.json",
+      "summary": "11/11 fp16 cases passed for K=512,V=128, K=1024,V=64 and K<=256 regression."
+    },
+    "fp32_numerical_diagnosis": {
+      "artifact": "/home/lyj/mnt/project/zoology/tmp/20260527-flash-gdn-seed-kblocked-followups/agents/fla-kblocked-kernel/tables/fp32-numerical-diagnosis-summary.md",
+      "summary": "input_precision=\"ieee\" improved fp32 dk/dbeta; K=1024,V=64 fp32 passes FLA-style tolerance but not strict abs_tol=0.005 for dk/dbeta."
+    },
+    "zoology_smoke": {
+      "artifact": "/home/lyj/mnt/project/zoology/tmp/20260527-flash-gdn-seed-kblocked-followups/agents/fla-kblocked-kernel/tables/zoology-wrapper-smoke-20260527T202855Z.json",
+      "summary": "GatedDeltaNetExpandedK H=2,K=512,V=128 and H=2,K=1024,V=64 forward/backward passed and hit true large-K path."
+    },
+    "training_probe_retry_ieee": {
+      "artifact": "/home/lyj/mnt/project/zoology/tmp/20260527-flash-gdn-seed-kblocked-followups/agents/fla-kblocked-kernel/tables/training-probe-ek16-ev1-retry-ieee-completion-20260528T022230Z.json",
+      "summary": "ek16-ev1 tmp-only probe completed, final valid accuracy 0.974, hard 1024x256 accuracy 0.792, no pre-completion training failure."
+    }
+  },
+  "commit_selection_advice": {
+    "candidate_source_commits": [
+      {
+        "repo": "flash-linear-attention",
+        "include": [
+          "fla/ops/common/chunk_delta_h.py",
+          "fla/ops/gated_delta_rule/chunk.py"
+        ],
+        "suggested_split": [
+          "true large-K hidden-state Phase A implementation",
+          "shared-memory and ieee numerical repair",
+          "public dispatch cleanup / fallback disable"
+        ]
+      },
+      {
+        "repo": "zoology",
+        "include": [
+          "zoology/mixers/gated_delta_net.py"
+        ],
+        "suggested_split": [
+          "FLA API compatibility wrapper update"
+        ]
+      }
+    ],
+    "exclude_from_git": [
+      "artifacts/",
+      "checkpoints/",
+      "swanlog/",
+      "raw train logs",
+      "cache directories",
+      "profiler traces",
+      "tensor dumps",
+      "large generated outputs"
+    ],
+    "integration_options_requiring_new_gate": [
+      "3090 push to BankBro fork and 2080ti fetch/cherry-pick",
+      "3090 format-patch/git diff and scp back to 2080ti for git am/apply",
+      "direct commit on 3090 research branch"
+    ]
+  },
+  "current_resource_state": {
+    "gpu": "RTX 3090, 28 MiB used, 0 percent util, P8",
+    "tmux": "no active probe session",
+    "compute_processes": []
+  },
+  "not_performed": [
+    "second training probe",
+    "fallback ek8-ev2",
+    "new benchmark",
+    "source commit",
+    "push",
+    "formal docs/ledger/weekly writes",
+    "2080ti main repository source edits"
+  ]
+}

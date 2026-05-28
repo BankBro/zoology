@@ -1,0 +1,8 @@
+model,category,trainable_params,dynamic_capacity,seed,train_probe,1024x256_acc,2048x512_acc,4096x1024_acc,8190x512_acc,8190x2047_acc,source_artifact,notes
+ek16-ev1-kblocked,kblocked_gdn,1641414,131072,123,training-probe-ek16-ev1-retry-ieee,0.791492,0.092754,0.002947,0.062453,0.000530,docs/artifacts/20260528-fla-kblocked-gdn-kernel/raw-3090/artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/longer-mqar-summary.csv,"true expanded-K GDN, K=1024,V=64; tmp research evidence, not upstream-ready correctness"
+ek8-ev2-kblocked,kblocked_gdn,1404422,131072,123,training-probe-ek8-ev2,0.899836,0.203586,0.007020,0.121328,0.000472,docs/artifacts/20260528-fla-kblocked-gdn-kernel/raw-3090/artifacts/fla-kblocked-kernel/longer-mqar-ek8-ev2-20260528T072627Z/longer-mqar-summary.csv,"true expanded-K GDN, K=512,V=128; tmp research evidence, not upstream-ready correctness"
+Flash cb64-r16,baseline_flash,,,,,0.969625,0.822645,0.468924,0.717262,0.162288,,historical comparison row from prior Flash-VQG MQAR comparison
+Flash cb256-r4,baseline_flash,,,,,0.894156,0.666691,0.380678,0.566734,0.171702,,historical comparison row from prior Flash-VQG MQAR comparison
+GDN h2-ev16,baseline_gdn,,,,,0.799854,0.354935,0.107297,0.249089,0.015924,,historical comparison row from prior GDN variant experiments
+GDNXK h4-ek8-ev4,baseline_gdn_variant,,,,,0.956945,0.410500,0.053760,0.254805,0.002526,,historical comparison row from prior GDN expanded-K variant experiments
+Banked-K b4 k256 v64,baseline_banked_k,,,,,0.844576,0.335778,0.032630,0.201829,0.001121,,historical comparison row from prior Banked-K experiments

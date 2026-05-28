@@ -1,0 +1,48 @@
+{
+  "batch_id": "fla-kblocked-ek16-ev1-retry-ieee-longer-mqar-20260528",
+  "created_at_utc": "2026-05-28T05:52:26.681836+00:00",
+  "source_count": 1,
+  "expected_core_source_count": 1,
+  "formal_slices": [
+    "1024x256",
+    "2048x512",
+    "4096x1024",
+    "8190x512",
+    "8190x2047"
+  ],
+  "expected_formal_rows": 5,
+  "eval_seed": 123,
+  "gpus": [
+    0
+  ],
+  "phases": [
+    "batch-search",
+    "formal"
+  ],
+  "sanity_examples": 16,
+  "batch_search_examples": 8,
+  "formal_examples": 500,
+  "batch_candidates": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "tmp_root": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/tmp",
+  "detail_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/longer-mqar-detail.csv",
+  "summary_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/longer-mqar-summary.csv",
+  "status_csv": "artifacts/fla-kblocked-kernel/longer-mqar-ek16-ev1-retry-ieee-20260528T020346Z/status.csv",
+  "preliminary_ledger_retained": "docs/artifacts/longer-mqar/longer-mqar-eval-summary.csv",
+  "updated_at_utc": "2026-05-28T05:56:11.931749+00:00",
+  "completed_sources": 1,
+  "errors": [],
+  "summaries": [
+    {
+      "source_run_id": "gdnxk-h2-ek16-ev1-s123-d123-b64-ga4-fp32-noearly4ep-retry-ieee-20260528T020346Z",
+      "gpu": 0,
+      "status": "completed",
+      "events_appended": 10
+    }
+  ],
+  "status": "completed"
+}

@@ -1,0 +1,2 @@
+config_group,source_model_family,n_checkpoints,seeds,source_trainable_params,source_dynamic_capacity_total,source_batch_accum_profile,accuracy_mean_1024x256,accuracy_std_1024x256,accuracy_mean_2048x512,accuracy_std_2048x512,accuracy_mean_4096x1024,accuracy_std_4096x1024,accuracy_mean_8190x512,accuracy_std_8190x512,accuracy_mean_8190x2047,accuracy_std_8190x2047
+gdnxk-h2-ek16-ev1-kblocked-ieee,gdn,1,123,1641414,131072,b64_ga4,0.7914921875,,0.0927539063,,0.0029472656,,0.0624531250,,0.0005295554,

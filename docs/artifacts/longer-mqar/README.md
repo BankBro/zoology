@@ -10,6 +10,7 @@
 - `official-core-20260526/status.csv`: official core formal/repro 状态表.
 - `official-core-20260526/verification.json`: official core 完成性, dataset_hash 和 repro 验证摘要.
 - `official-core-20260526/manifest.csv` 和 `manifest.json`: 19 个 official core checkpoint 来源清单.
+- `kblocked-gdn-20260528/`: FLA K-blocked GDN research evidence. 该目录用于记录 true expanded-K GDN 的 longer-MQAR 结果, 但不属于 official core 推荐引用集.
 
 official core 结果使用 `eval_seed=123`, 在 dataset 生成前固定 `random`, `numpy`, `torch`, `torch.cuda` RNG, 并为每个 slice 记录 `dataset_hash`. 所有纳入 official core 的 checkpoint 均为 `b64_ga4 fp32 official` 训练口径: `source_train_batch_size=64`, `source_gradient_accumulation_steps=4`, `source_effective_train_batch_size=256`, `source_batch_accum_profile=b64_ga4`, `source_dtype_policy=float32`.
 
@@ -18,6 +19,8 @@ official core 结果使用 `eval_seed=123`, 在 dataset 生成前固定 `random`
 - `longer-mqar-eval-summary.csv`: 旧 preliminary eval ledger. 该表来自 2026-05-20/2026-05-21 附近的 backfill 和 eval attempt, 未锁定 dataset 生成前 RNG, 且不记录 `dataset_hash`. 它保留用于历史追溯和与 official core 对比, 不作为当前推荐引用结果.
 
 不要把 `official-core-20260526/` 的新结果追加回 `longer-mqar-eval-summary.csv`, 也不要写入 `gd-residual-v1` 或 `gdn` 训练 canonical ledger.
+
+K-blocked GDN 结果应引用 `kblocked-gdn-20260528/` 和 `docs/artifacts/20260528-fla-kblocked-gdn-kernel/`. 由于 upstream-ready correctness 仍为 no-go, 这些结果只能作为 research evidence, 不应和 official core 混写成同一推荐总表.
 
 ## runner 路径
 

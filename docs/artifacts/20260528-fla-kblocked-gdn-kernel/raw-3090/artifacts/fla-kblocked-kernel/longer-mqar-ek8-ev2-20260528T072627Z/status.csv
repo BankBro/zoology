@@ -1,0 +1,11 @@
+slice,phase,status,best_eval_batch_size,failure_detail
+1024x256,batch-search,completed,8,
+1024x256,formal,completed,8,
+2048x512,batch-search,completed,8,
+2048x512,formal,completed,8,
+4096x1024,batch-search,completed,8,
+4096x1024,formal,completed,8,
+8190x512,batch-search,completed,8,
+8190x512,formal,completed,8,
+8190x2047,batch-search,completed,8,
+8190x2047,formal,completed,8,

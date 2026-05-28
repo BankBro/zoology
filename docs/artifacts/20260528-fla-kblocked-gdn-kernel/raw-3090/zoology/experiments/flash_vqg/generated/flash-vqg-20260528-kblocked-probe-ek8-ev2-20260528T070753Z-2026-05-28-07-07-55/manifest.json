@@ -1,0 +1,77 @@
+{
+  "schema_version": 4,
+  "launch_id": "flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55",
+  "sweep_id": "flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z",
+  "eval_task": null,
+  "logger_backend": "swanlab",
+  "project": "flash_vqg_gdn_expanded_k",
+  "entity": "scu-mclab",
+  "created_at_utc": "2026-05-28T07:07:55.598781+00:00",
+  "updated_at_utc": "2026-05-28T07:19:54.619252+00:00",
+  "launch_config_file": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/launch_configs.py",
+  "runs": [
+    {
+      "run_id": "gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z",
+      "eval_task": null,
+      "status": "completed",
+      "error": null,
+      "started_at_utc": "2026-05-28T07:08:01.945988+00:00",
+      "ended_at_utc": "2026-05-28T07:19:54.618792+00:00",
+      "wall_clock_sec": 712.672804,
+      "updated_at_utc": "2026-05-28T07:19:54.618792+00:00",
+      "swanlab": {
+        "project": "flash_vqg_gdn_expanded_k",
+        "entity": "scu-mclab",
+        "experiment_id": "yicdgoqvyzvnpodzv98jr",
+        "run_url": "https://swanlab.cn/@scu-mclab/flash_vqg_gdn_expanded_k/runs/yicdgoqvyzvnpodzv98jr"
+      },
+      "local": {
+        "run_dir": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/swanlog/run-20260528_070759-yicdgoqvyzvnpodzv98jr",
+        "backup_file": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/swanlog/run-20260528_070759-yicdgoqvyzvnpodzv98jr/backup.swanlab",
+        "config_file": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/swanlog/run-20260528_070759-yicdgoqvyzvnpodzv98jr/files/config.yaml",
+        "metadata_file": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/swanlog/run-20260528_070759-yicdgoqvyzvnpodzv98jr/files/swanlab-metadata.json",
+        "log_file": null,
+        "checkpoint_run_dir": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z",
+        "best_checkpoint": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z/best.pt",
+        "last_checkpoint": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z/last.pt",
+        "train_config_json": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/checkpoints/flash-vqg-20260528-kblocked-probe-ek8-ev2-20260528T070753Z-2026-05-28-07-07-55/gdnxk-h2-ek8-ev2-s123-d123-b64-ga4-fp32-noearly4ep-kblocked-ieee-20260528T070753Z/train_config.json"
+      },
+      "eval_source": {
+        "checkpoint_launch_id": null,
+        "checkpoint_run_id": null,
+        "best_checkpoint": null
+      },
+      "config_summary": {
+        "experiment_part": null,
+        "experiment_mode": null,
+        "fox_remote_formula": null,
+        "fox_remote_read_topk": null,
+        "fox_clr_selector_mode": null,
+        "fox_clr_merge_mode": null,
+        "fox_clr_gate_mode": null,
+        "fox_clr_lambda_remote": null,
+        "fox_clr_gate_init_bias": null,
+        "fox_clr_residual_update_mode": null,
+        "fox_clr_residual_forget_mode": null,
+        "fox_clr_state_write_topk": null,
+        "fox_clr_delta_target_mode": null,
+        "fox_gd_residual_rank": null,
+        "fox_gd_residual_write_topk": null,
+        "fox_gd_residual_builder": null,
+        "fox_gd_residual_pack_mode": null,
+        "fox_gd_residual_chunk_size": null,
+        "fox_gd_residual_lambda_init": null,
+        "fox_dense_teacher_mode": null,
+        "fox_dense_teacher_loss_mode": null,
+        "fox_dense_teacher_layer_idx": null,
+        "fox_dense_teacher_lambda": null,
+        "fox_dense_teacher_tau_teacher": null,
+        "fox_dense_teacher_row_weight_mode": null,
+        "fox_dense_teacher_warmup_steps": null,
+        "init_checkpoint_path": null,
+        "init_checkpoint_source_launch_id": null,
+        "init_checkpoint_source_run_id": null
+      }
+    }
+  ]
+}

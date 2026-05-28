@@ -1,0 +1,8 @@
+{
+  "created_at_utc": "2026-05-28T07:30:53.806035+00:00",
+  "artifact_dir": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/artifacts/fla-kblocked-kernel/longer-mqar-ek8-ev2-20260528T072627Z",
+  "formal_completed": 5,
+  "formal_expected": 5,
+  "summary_csv": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/artifacts/fla-kblocked-kernel/longer-mqar-ek8-ev2-20260528T072627Z/longer-mqar-summary.csv",
+  "detail_csv": "/home/lyj/mnt/project/worktrees/fla-kblocked/zoology/artifacts/fla-kblocked-kernel/longer-mqar-ek8-ev2-20260528T072627Z/longer-mqar-detail.csv"
+}
