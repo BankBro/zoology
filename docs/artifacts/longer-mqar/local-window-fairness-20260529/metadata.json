@@ -1,0 +1,25 @@
+{
+  "created_at_utc": "2026-05-28T16:38:45.741148+00:00",
+  "command": "zoology/experiments/flash_vqg/scripts/20260529-flash-local-window-fairness/local_window_bucket_eval.py prepare-sources",
+  "source": "prepare_source_checkpoints",
+  "official_manifest": "docs/artifacts/longer-mqar/official-core-20260526/manifest.csv",
+  "official_detail": "docs/artifacts/longer-mqar/official-core-20260526/longer-mqar-official-core-detail.csv",
+  "groups": [
+    "cb256-r4",
+    "cb64-r16",
+    "gdn-h2-ev10",
+    "gdn-h2-ev16",
+    "gdn-h2-ev8"
+  ],
+  "seeds": [
+    "123"
+  ],
+  "include_all_official": false,
+  "row_count": 5,
+  "status": "completed",
+  "errors": [],
+  "git_commit": "8e670888078425cd70d38fc21eba059d4bd798c9",
+  "git_dirty": "true",
+  "flash_vqg_commit": "8dcf1332fef8c325cb6311d5adca8c7cbbe24879",
+  "flash_vqg_dirty": "true"
+}
