@@ -35,6 +35,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 ARTIFACT_DIR = ROOT / "docs/artifacts/longer-mqar/local-window-fairness-20260529"
+EVAL_ONLY_ARTIFACT_DIR = ROOT / "docs/artifacts/20260529-flash-local-window-fairness-eval-only"
+STAGE3_TRAIN_SUMMARY = ROOT / "docs/artifacts/20260529-flash-local-window-fairness/stage3_train_summary.csv"
 OFFICIAL_CORE_DIR = ROOT / "docs/artifacts/longer-mqar/official-core-20260526"
 OFFICIAL_MANIFEST = OFFICIAL_CORE_DIR / "manifest.csv"
 OFFICIAL_DETAIL = OFFICIAL_CORE_DIR / "longer-mqar-official-core-detail.csv"
@@ -204,6 +206,9 @@ SOURCE_FIELDS = [
     "kind",
     "checkpoint_path",
     "checkpoint_path_rel",
+    "checkpoint_which",
+    "checkpoint_file_path",
+    "checkpoint_file_path_rel",
     "source_run",
     "source_run_id",
     "source_ledger",
@@ -225,6 +230,10 @@ SOURCE_FIELDS = [
     "source_ckpt_epoch",
     "source_trainable_params",
     "source_dynamic_capacity_total",
+    "stage3_variant",
+    "stage3_launch_id",
+    "stage3_run_id",
+    "stage3_valid_accuracy",
 ]
 
 
@@ -324,6 +333,97 @@ def prepare_sources(args: argparse.Namespace) -> int:
     append_status(output.parent / "status.md", f"prepare_source_checkpoints wrote {rel(output)} rows={len(rows)} status={metadata['status']}")
     return 0
 
+def prepare_stage3_sources(args: argparse.Namespace) -> int:
+    summary_path = Path(args.stage3_summary)
+    if not summary_path.exists():
+        raise FileNotFoundError(f"Missing stage3 summary: {summary_path}")
+    checkpoint_kinds = parse_csv_list(args.checkpoint_kinds)
+    allowed_kinds = {"best", "last"}
+    unknown = sorted(set(checkpoint_kinds) - allowed_kinds)
+    if unknown:
+        raise ValueError(f"unknown checkpoint kinds: {unknown}; expected best,last")
+
+    rows: list[dict[str, Any]] = []
+    errors: list[str] = []
+    for row in read_csv(summary_path):
+        if row.get("status") != "completed":
+            continue
+        variant = row.get("variant", "")
+        for checkpoint_which in checkpoint_kinds:
+            ckpt_raw = row.get(f"checkpoint_{checkpoint_which}", "")
+            if not ckpt_raw:
+                errors.append(f"{variant}: missing checkpoint_{checkpoint_which}")
+                continue
+            ckpt = resolve_path(ckpt_raw)
+            train_config = ckpt.parent / "train_config.json"
+            status = "completed"
+            if not ckpt.exists():
+                status = "missing_checkpoint"
+                errors.append(f"{variant}:{checkpoint_which}: checkpoint missing: {ckpt}")
+            if not train_config.exists():
+                status = "missing_train_config"
+                errors.append(f"{variant}:{checkpoint_which}: train_config missing: {train_config}")
+            model_label = f"stage3-{variant}-{checkpoint_which}"
+            run_id = row.get("run_id", "")
+            rows.append({
+                "model_label": model_label,
+                "kind": "flash",
+                "checkpoint_path": str(ckpt),
+                "checkpoint_path_rel": rel(ckpt),
+                "checkpoint_which": checkpoint_which,
+                "checkpoint_file_path": str(ckpt),
+                "checkpoint_file_path_rel": rel(ckpt),
+                "source_run": f"{run_id}:{checkpoint_which}",
+                "source_run_id": f"{run_id}:{checkpoint_which}",
+                "source_ledger": rel(summary_path),
+                "seed": "123",
+                "git_commit": git_commit(ROOT),
+                "flash_vqg_commit": git_commit(FLASH_VQG_ROOT),
+                "machine": "mclab-3090",
+                "dtype_policy": "torch-fp32; GDN_KERNEL_DTYPE=float32",
+                "status": status,
+                "source_model_family": "flash",
+                "source_config_family": f"stage3-{variant}",
+                "source_config": row.get("run_id", ""),
+                "source_scope": "stage3_training_ablation_eval_only",
+                "source_batch_accum_profile": row.get("run_id", ""),
+                "source_train_config_path": rel(train_config),
+                "source_train_config_path_abs": str(train_config),
+                "source_train_config_sha256": sha256_file(train_config) if train_config.exists() else "",
+                "source_ckpt_sha256": sha256_file(ckpt) if ckpt.exists() else "",
+                "source_ckpt_epoch": "",
+                "source_trainable_params": "",
+                "source_dynamic_capacity_total": "",
+                "stage3_variant": variant,
+                "stage3_launch_id": row.get("launch_id", ""),
+                "stage3_run_id": run_id,
+                "stage3_valid_accuracy": row.get("valid_accuracy", ""),
+            })
+    if not rows:
+        raise RuntimeError("No completed stage3 checkpoints selected.")
+    if errors and not args.allow_missing:
+        raise RuntimeError("stage3 source checkpoint prepare failed:\n" + "\n".join(errors))
+
+    output = Path(args.output)
+    write_csv(output, rows, SOURCE_FIELDS)
+    metadata = {
+        "created_at_utc": now_utc(),
+        "command": " ".join(sys.argv),
+        "source": "prepare_stage3_source_checkpoints",
+        "stage3_summary": rel(summary_path),
+        "checkpoint_kinds": checkpoint_kinds,
+        "row_count": len(rows),
+        "status": "completed_with_warnings" if errors else "completed",
+        "errors": errors,
+        "git_commit": git_commit(ROOT),
+        "git_dirty": git_dirty(ROOT),
+        "flash_vqg_commit": git_commit(FLASH_VQG_ROOT),
+        "flash_vqg_dirty": git_dirty(FLASH_VQG_ROOT),
+    }
+    write_json(output.parent / "metadata.json", metadata)
+    append_status(output.parent / "status.md", f"prepare_stage3_source_checkpoints wrote {rel(output)} rows={len(rows)} status={metadata['status']}")
+    return 0
+
 
 @dataclass
 class MQARWithMetadata:
@@ -346,6 +446,51 @@ def set_eval_seed(seed: int) -> None:
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
 
+def build_near_distance_gaps(
+    *,
+    num_examples: int,
+    input_seq_len: int,
+    num_kv_pairs: int,
+    seed: int,
+    near_pairs_per_bucket: int = 16,
+) -> np.ndarray:
+    context_size = num_kv_pairs * 2
+    space = (input_seq_len - context_size) // 2
+    if space < num_kv_pairs:
+        raise ValueError("near-distance MQAR requires query slot space >= num_kv_pairs")
+    pairs_per_bucket = min(int(near_pairs_per_bucket), 16, num_kv_pairs // 3)
+    if pairs_per_bucket <= 0:
+        raise ValueError("near_pairs_per_bucket resolved to zero")
+    # distance = query_pos - value_pos = 2 * (gap + tail_offset) + 1.
+    # Each example enriches one target bucket. The first bucket uses distance 31
+    # to keep 16 unique near pairs; the other buckets sample uniformly inside range.
+    bucket_margin_ranges = [(15, 15), (16, 31), (32, 63)]
+    if pairs_per_bucket - 1 > bucket_margin_ranges[0][1]:
+        raise ValueError("near_pairs_per_bucket cannot exceed the <=32 bucket capacity")
+    if bucket_margin_ranges[-1][1] >= space:
+        raise ValueError(f"near-distance assignment needs gap {bucket_margin_ranges[-1][1]}, but space is {space}")
+
+    rng = np.random.default_rng(seed)
+    all_gaps = np.empty((num_examples, num_kv_pairs), dtype=np.int64)
+    for example_idx in range(num_examples):
+        row = np.full(num_kv_pairs, -1, dtype=np.int64)
+        used: set[int] = set()
+        margin_lo, margin_hi = bucket_margin_ranges[example_idx % len(bucket_margin_ranges)]
+        margin = int(rng.integers(margin_lo, margin_hi + 1))
+        enriched_pairs = min(pairs_per_bucket, margin + 1)
+        for tail_offset in range(enriched_pairs):
+            pair_idx = num_kv_pairs - 1 - tail_offset
+            gap = margin - tail_offset
+            row[pair_idx] = gap
+            used.add(gap)
+        remaining_pairs = np.where(row < 0)[0]
+        remaining_gaps = np.array([gap for gap in range(space) if gap not in used], dtype=np.int64)
+        chosen = rng.choice(remaining_gaps, size=len(remaining_pairs), replace=False)
+        rng.shuffle(chosen)
+        row[remaining_pairs] = chosen
+        all_gaps[example_idx] = row
+    return all_gaps
+
 
 def build_mqar_with_metadata(
     *,
@@ -357,6 +502,7 @@ def build_mqar_with_metadata(
     num_kv_pairs: int = 8,
     num_passes: int = 1,
     random_non_queries: bool = True,
+    gaps_override: np.ndarray | None = None,
 ) -> MQARWithMetadata:
     if input_seq_len % 2 != 0:
         raise ValueError("input_seq_len must be even")
@@ -382,10 +528,19 @@ def build_mqar_with_metadata(
     kvs = np.tile(kvs, (1, num_passes))
 
     space = (input_seq_len - context_size) // 2
-    p = power_a * np.arange(1, space + 1) ** (power_a - 1)
-    p = p / p.sum()
-    x = np.stack([np.arange(space, dtype=int)] * num_examples)
-    gaps = np.apply_along_axis(np.random.choice, axis=1, arr=x, replace=False, p=p, size=num_kv_pairs)
+    if gaps_override is None:
+        p = power_a * np.arange(1, space + 1) ** (power_a - 1)
+        p = p / p.sum()
+        x = np.stack([np.arange(space, dtype=int)] * num_examples)
+        gaps = np.apply_along_axis(np.random.choice, axis=1, arr=x, replace=False, p=p, size=num_kv_pairs)
+    else:
+        gaps = np.asarray(gaps_override, dtype=np.int64)
+        if gaps.shape != (num_examples, num_kv_pairs):
+            raise ValueError(f"gaps_override shape must be {(num_examples, num_kv_pairs)}, got {gaps.shape}")
+        if (gaps < 0).any() or (gaps >= space).any():
+            raise ValueError("gaps_override contains out-of-range query gaps")
+        if any(len(set(row.tolist())) != num_kv_pairs for row in gaps):
+            raise ValueError("gaps_override must not repeat query gaps within an example")
 
     queries = np.zeros((num_examples, input_seq_len - context_size + 1), dtype=np.int64)
     np.put_along_axis(queries, gaps * 2, values=keys, axis=1)
@@ -436,7 +591,16 @@ def find_mqar_template(config: Any) -> Any:
     raise TypeError("checkpoint config does not contain MQARConfig")
 
 
-def build_eval_dataset(config: Any, *, seq_len: int, num_kv_pairs: int, num_examples: int, eval_seed: int) -> MQARWithMetadata:
+def build_eval_dataset(
+    config: Any,
+    *,
+    seq_len: int,
+    num_kv_pairs: int,
+    num_examples: int,
+    eval_seed: int,
+    dataset_mode: str = "official",
+    near_pairs_per_bucket: int = 16,
+) -> MQARWithMetadata:
     from zoology.data.multiquery_ar import MQARConfig
 
     template = find_mqar_template(config)
@@ -457,6 +621,17 @@ def build_eval_dataset(config: Any, *, seq_len: int, num_kv_pairs: int, num_exam
     data_config.test_configs = [MQARConfig(**payload)]
     test_seed = derive_single_test_seed(data_config)
     set_eval_seed(eval_seed)
+    gaps_override = None
+    if dataset_mode == "near_enriched":
+        gaps_override = build_near_distance_gaps(
+            num_examples=int(payload["num_examples"]),
+            input_seq_len=int(payload["input_seq_len"]),
+            num_kv_pairs=int(payload["num_kv_pairs"]),
+            seed=test_seed,
+            near_pairs_per_bucket=int(near_pairs_per_bucket),
+        )
+    elif dataset_mode != "official":
+        raise ValueError(f"unknown dataset_mode `{dataset_mode}`")
     return build_mqar_with_metadata(
         vocab_size=int(payload["vocab_size"]),
         num_examples=int(payload["num_examples"]),
@@ -466,6 +641,7 @@ def build_eval_dataset(config: Any, *, seq_len: int, num_kv_pairs: int, num_exam
         num_kv_pairs=int(payload["num_kv_pairs"]),
         num_passes=int(payload.get("num_passes", 1)),
         random_non_queries=bool(payload.get("random_non_queries", True)),
+        gaps_override=gaps_override,
     )
 
 
@@ -650,11 +826,16 @@ def eval_buckets(args: argparse.Namespace) -> int:
     for source in sources:
         for variant, override in build_source_variants(source, variants):
             checkpoint_path = source["checkpoint_path"]
+            checkpoint_which = source.get("checkpoint_which") or "last"
             source_id = source["source_run_id"]
             model_label = source["model_label"]
             variant_label = f"{model_label}:{variant}"
             load_t0 = time.time()
-            bundle = load_checkpoint(checkpoint_path, which="last", device=device, strict=True)
+            bundle = load_checkpoint(checkpoint_path, which=checkpoint_which, device=device, strict=True)
+            actual_checkpoint_path = str(bundle.get("checkpoint_path", checkpoint_path))
+            checkpoint_sha256 = source.get("source_ckpt_sha256", "")
+            if not checkpoint_sha256 and Path(actual_checkpoint_path).exists():
+                checkpoint_sha256 = sha256_file(Path(actual_checkpoint_path))
             config_dump = apply_flash_override(bundle["model"], override)
             load_sec = time.time() - load_t0
             for seq_len, num_kv_pairs in slices:
@@ -664,6 +845,8 @@ def eval_buckets(args: argparse.Namespace) -> int:
                     num_kv_pairs=num_kv_pairs,
                     num_examples=int(args.num_examples),
                     eval_seed=int(args.eval_seed),
+                    dataset_mode=str(args.dataset_mode),
+                    near_pairs_per_bucket=int(args.near_pairs_per_bucket),
                 )
                 dataset_hash = tensor_sha256(dataset.inputs, dataset.labels)
                 slice_t0 = time.time()
@@ -710,6 +893,7 @@ def eval_buckets(args: argparse.Namespace) -> int:
                     "slice_seq_len": seq_len,
                     "slice_num_kv_pairs": num_kv_pairs,
                     "eval_seed": args.eval_seed,
+                    "dataset_mode": args.dataset_mode,
                     "dataset_hash": dataset_hash,
                     "accuracy": f"{accuracy:.10f}" if total else "",
                     "stderr": f"{stderr:.10f}" if total else "",
@@ -728,8 +912,11 @@ def eval_buckets(args: argparse.Namespace) -> int:
                     "fallback_failures": json.dumps(fallback_failures, ensure_ascii=True, sort_keys=True),
                     "peak_memory_mb": f"{peak_memory:.3f}",
                     "wall_clock_sec": f"{elapsed:.3f}",
-                    "checkpoint_path": checkpoint_path,
-                    "checkpoint_sha256": source.get("source_ckpt_sha256", ""),
+                    "checkpoint_path": actual_checkpoint_path,
+                    "checkpoint_which": checkpoint_which,
+                    "checkpoint_sha256": checkpoint_sha256,
+                    "checkpoint_file_path": source.get("checkpoint_file_path", actual_checkpoint_path),
+                    "stage3_variant": source.get("stage3_variant", ""),
                     "config_override": json.dumps(config_dump, ensure_ascii=True, sort_keys=True),
                     "failure_type": failure_type,
                     "failure_detail": failure_detail,
@@ -751,6 +938,7 @@ def eval_buckets(args: argparse.Namespace) -> int:
                             "slice_seq_len",
                             "slice_num_kv_pairs",
                             "eval_seed",
+                            "dataset_mode",
                             "dataset_hash",
                         ]},
                         "distance_def": "query_pos-value_pos",
@@ -789,6 +977,8 @@ def eval_buckets(args: argparse.Namespace) -> int:
         "variants": variants,
         "eval_seed": int(args.eval_seed),
         "num_examples": int(args.num_examples),
+        "dataset_mode": args.dataset_mode,
+        "near_pairs_per_bucket": int(args.near_pairs_per_bucket),
         "batch_candidates": batch_candidates,
         "sanity_tolerance": SANITY_TOL,
         "duration_sec": time.time() - t0,
@@ -844,6 +1034,13 @@ def main() -> int:
     p_prepare.add_argument("--output", default=str(ARTIFACT_DIR / "source_checkpoints.csv"))
     p_prepare.set_defaults(func=prepare_sources)
 
+    p_prepare_stage3 = sub.add_parser("prepare-stage3-sources", help="Build source_checkpoints.csv from stage3 training summary.")
+    p_prepare_stage3.add_argument("--stage3-summary", default=str(STAGE3_TRAIN_SUMMARY))
+    p_prepare_stage3.add_argument("--checkpoint-kinds", default="last,best")
+    p_prepare_stage3.add_argument("--allow-missing", action="store_true")
+    p_prepare_stage3.add_argument("--output", default=str(EVAL_ONLY_ARTIFACT_DIR / "stage3-longer-mqar-bucket/source_checkpoints.csv"))
+    p_prepare_stage3.set_defaults(func=prepare_stage3_sources)
+
     p_eval = sub.add_parser("eval-buckets", help="Evaluate source checkpoints by MQAR distance bucket.")
     p_eval.add_argument("--sources", default=str(ARTIFACT_DIR / "source_checkpoints.csv"))
     p_eval.add_argument("--official-detail", default=str(OFFICIAL_DETAIL))
@@ -852,6 +1049,8 @@ def main() -> int:
     p_eval.add_argument("--variants", default="full")
     p_eval.add_argument("--eval-seed", default=str(EVAL_SEED))
     p_eval.add_argument("--num-examples", type=int, default=DEFAULT_NUM_EXAMPLES)
+    p_eval.add_argument("--dataset-mode", choices=["official", "near_enriched"], default="official")
+    p_eval.add_argument("--near-pairs-per-bucket", type=int, default=16)
     p_eval.add_argument("--batch-candidates", default="8,4,2,1")
     p_eval.add_argument("--limit", type=int, default=0)
     p_eval.add_argument("--cpu", action="store_true", help="CPU smoke only; not formal.")

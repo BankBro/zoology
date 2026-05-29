@@ -1,0 +1,41 @@
+{
+  "created_at_utc": "2026-05-29T08:22:22.187698+00:00",
+  "command": "zoology/experiments/flash_vqg/scripts/20260529-flash-local-window-fairness/local_window_bucket_eval.py eval-buckets --sources docs/artifacts/20260529-flash-local-window-fairness-eval-only/near-distance-enriched/source_checkpoints.csv --output-dir docs/artifacts/20260529-flash-local-window-fairness-eval-only/near-distance-enriched --slices 1024x256,2048x512,4096x512,4096x1024 --variants full --dataset-mode near_enriched --near-pairs-per-bucket 16 --num-examples 500 --batch-candidates 8,4,2,1",
+  "source": "local_window_bucket_eval",
+  "sources": "docs/artifacts/20260529-flash-local-window-fairness-eval-only/near-distance-enriched/source_checkpoints.csv",
+  "slices": [
+    "1024x256",
+    "2048x512",
+    "4096x512",
+    "4096x1024"
+  ],
+  "variants": [
+    "full"
+  ],
+  "eval_seed": 123,
+  "num_examples": 500,
+  "dataset_mode": "near_enriched",
+  "near_pairs_per_bucket": 16,
+  "batch_candidates": [
+    8,
+    4,
+    2,
+    1
+  ],
+  "sanity_tolerance": 0.0001,
+  "duration_sec": 4704.092119693756,
+  "device": "cuda",
+  "gpu": {
+    "gpu": "0",
+    "gpu_name": "NVIDIA GeForce RTX 3090",
+    "gpu_total_memory_mb": "24576",
+    "gpu_compute_capability": "8.6",
+    "gpu_uuid": "GPU-7aacf077-5d12-6d44-f356-32a9c0e67d2e",
+    "driver_version": "580.159.03"
+  },
+  "git_commit": "cc2ceba829ce3a3940ba94629c233af48bf32d6e",
+  "git_dirty": "true",
+  "flash_vqg_commit": "8dcf1332fef8c325cb6311d5adca8c7cbbe24879",
+  "flash_vqg_dirty": "true",
+  "status": "completed"
+}

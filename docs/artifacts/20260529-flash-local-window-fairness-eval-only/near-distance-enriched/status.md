@@ -1,0 +1,4 @@
+- 2026-05-29T05:15:26.943307+00:00 prepare_stage3_source_checkpoints wrote docs/artifacts/20260529-flash-local-window-fairness-eval-only/near-distance-enriched/source_checkpoints.csv rows=6 status=completed
+- 2026-05-29T06:32:33.339567+00:00 eval_buckets wrote slice_summary.csv and distance_bucket.csv rows=216
+- 2026-05-29T07:03:55.372724+00:00 prepare_stage3_source_checkpoints wrote docs/artifacts/20260529-flash-local-window-fairness-eval-only/near-distance-enriched/source_checkpoints.csv rows=6 status=completed
+- 2026-05-29T08:22:22.208481+00:00 eval_buckets wrote slice_summary.csv and distance_bucket.csv rows=216

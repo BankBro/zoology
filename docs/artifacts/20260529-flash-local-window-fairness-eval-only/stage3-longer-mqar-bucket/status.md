@@ -1,0 +1,3 @@
+- 2026-05-29T03:56:24.797859+00:00 prepare_stage3_source_checkpoints wrote docs/artifacts/20260529-flash-local-window-fairness-eval-only/stage3-longer-mqar-bucket/source_checkpoints.csv rows=6 status=completed
+- 2026-05-29T03:58:55.311818+00:00 prepare_stage3_source_checkpoints wrote docs/artifacts/20260529-flash-local-window-fairness-eval-only/stage3-longer-mqar-bucket/source_checkpoints.csv rows=6 status=completed
+- 2026-05-29T05:15:25.108574+00:00 eval_buckets wrote slice_summary.csv and distance_bucket.csv rows=216
