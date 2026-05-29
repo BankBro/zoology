@@ -7,6 +7,12 @@
 - MQAR 正式实验: 完整跑到预期 final checkpoint 的 MQAR 正式实验和正式 longer-MQAR eval 必须记录 ledger, 时间, GPU, dtype policy 和状态; smoke/debug/失败/中断实验不写入正式 ledger, 但要在 artifact/status/report 中记录状态和原因.
 - MQAR 细则: canonical ledger 字段, 时间字段, dtype 默认策略, GDN kernel dtype 和 official 对比口径详见 `docs/reference/mqar-official-recording-rules.md`.
 
+## 当前活跃开发分支
+
+- 当前 Flash-VQG/GD residual 相关实验默认从 `flash-vqg` 分支派生, 完成后优先合入 `flash-vqg`, 不默认合入 `main`.
+- 只有明确属于仓库通用基础设施, 文档规范或跨项目公共逻辑的改动, 才考虑合入 `main`.
+- 若用户在任务中明确指定 base 或目标分支, 以用户指定为准; 不确定时先确认再执行 merge/rebase/PR.
+
 ## zoology 实验文件组织管理规范
 
 - 实验入口脚本放在 `zoology/experiments/flash_vqg/scripts/YYYYMMDD-experiment-name/`.
