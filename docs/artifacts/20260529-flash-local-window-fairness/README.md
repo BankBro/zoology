@@ -25,3 +25,6 @@
 - 训练 wrapper 在 SwanLab finalization 后未自然退出, 在 manifest 完成后 SIGTERM 释放 GPU. 本地 `backup.swanlab` 校验失败, remote analysis 成功.
 - final validation: overall `0.404470`, `1024x256=0.000262`, `512x128=0.000219`, `512x64=0.025156`, `128x32=0.203969`, `64x16=1.0`.
 - 当前观察: exact local-only 训练可以解决短配置, 但不能解决长 MQAR. 这进一步支持 Flash 的长距离优势不是由 64-token local exact window 单独解释.
+- `local1` 已完成正式训练和 local analysis, manifest status `completed`, final `last.pt` 已保存.
+- final validation: overall `0.917821`, `1024x256=0.508379`, `512x128=0.877281`, `512x64=0.977297`, `128x32=0.997844`, `64x16=0.999563`.
+- 当前观察: 将 local window 从 2 blocks 缩到 1 block 后, 训练后的 remote-on 模型仍显著强于 `local-only`, 说明当前长距离能力主要依赖 remote/VQ/GD residual 路径, 不是 local exact attention 单独造成.
