@@ -28,3 +28,6 @@
 - `local1` 已完成正式训练和 local analysis, manifest status `completed`, final `last.pt` 已保存.
 - final validation: overall `0.917821`, `1024x256=0.508379`, `512x128=0.877281`, `512x64=0.977297`, `128x32=0.997844`, `64x16=0.999563`.
 - 当前观察: 将 local window 从 2 blocks 缩到 1 block 后, 训练后的 remote-on 模型仍显著强于 `local-only`, 说明当前长距离能力主要依赖 remote/VQ/GD residual 路径, 不是 local exact attention 单独造成.
+- `local4` 已完成正式训练和 local analysis, manifest status `completed`, final `last.pt` 已保存.
+- final validation: overall `0.967501`, `1024x256=0.758496`, `512x128=0.986875`, `512x64=0.996828`, `128x32=0.999969`, `64x16=1.0`. Best validation peak 为 `0.991211`, 高于 final, 对应 `best.pt`.
+- 当前观察: 放大 local window 到 4 blocks 明显提升训练速度和 final 长配置表现, 但 final `1024x256` 仍低于早期 best peak. 这提示 local exact attention 会影响训练动态和中短距离样本, 但 `local-only` 与 `local1/local4` 的差距仍说明 remote/VQ/GD residual 是长距离能力的必要路径.
