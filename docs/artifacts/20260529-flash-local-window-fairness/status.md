@@ -15,3 +15,5 @@
 - 2026-05-29T00:31:13Z: `local4` 正式训练已启动, launch_id `flash-vqg-20260529-local-window-fairness-stage3-local4-2026-05-29-00-30-31`, run_id `gd-cb64-r16-s123-local4-d123-b64-ga4-fp32-noearly4ep`, supervisor PID `54125`, launch PID `54155`, SwanLab run `z58teo9eamx011dynzrf8`, log `tmp/20260529-flash-local-window-fairness-stage3-logs/local4-20260529T003030Z.log`.
 
 - 2026-05-29T03:25:20Z: `local4` 训练和 local analysis 完成. manifest status `completed`, ended_at `2026-05-29T03:12:54.746882+00:00`, wall_clock_sec `9736.745953`. Final valid accuracy `0.96750146484375`, `1024x256` `0.75849609375`, `512x128` `0.986875`, `512x64` `0.996828125`, `64x16` `1.0`. Best validation peak `0.99121142578125` at epoch `3`, step `1058`; final lower than best, so summary table records final and checkpoint paths record both `best.pt`/`last.pt`. 3090 GPU 已空闲.
+
+- 2026-05-29T08:40:00Z: 生成 `local-window-fairness-summary.csv`, 作为本实验最终精选证据总表. 该表只汇总关键 evidence item, 并通过 `source_file` 追溯原始 CSV, 不并入 canonical longer-MQAR 或 rank/seed 总表.

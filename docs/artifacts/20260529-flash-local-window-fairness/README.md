@@ -19,12 +19,16 @@
 
 创建时间: 2026-05-28T19:13:53.033928+00:00
 
+## 汇总表
+
+- `local-window-fairness-summary.csv`: 本实验最终精选证据总表, 每行是一条可引用 evidence item. 该表从阶段 1/2/3 和 eval-only 补强 artifact 自动抽取关键指标, 并用 `source_file` 字段追溯到原始 CSV. 它不是 canonical longer-MQAR 总表, 不与 formal baseline 总表混合.
+
 ## 阶段 3 当前结果
 
 - `local-only` 已完成正式训练, manifest status `completed`, final `last.pt` 已保存.
 - 训练 wrapper 在 SwanLab finalization 后未自然退出, 在 manifest 完成后 SIGTERM 释放 GPU. 本地 `backup.swanlab` 校验失败, remote analysis 成功.
 - final validation: overall `0.404470`, `1024x256=0.000262`, `512x128=0.000219`, `512x64=0.025156`, `128x32=0.203969`, `64x16=1.0`.
-- 当前观察: exact local-only 训练可以解决短配置, 但不能解决长 MQAR. 这进一步支持 Flash 的长距离优势不是由 64-token local exact window 单独解释.
+- 当前观察: exact local-only 训练可以解决短配置, 但不能解决长 MQAR. 这进一步支持 Flash 的长距离优势不是由 2-block causal local path 单独解释.
 - `local1` 已完成正式训练和 local analysis, manifest status `completed`, final `last.pt` 已保存.
 - final validation: overall `0.917821`, `1024x256=0.508379`, `512x128=0.877281`, `512x64=0.977297`, `128x32=0.997844`, `64x16=0.999563`.
 - 当前观察: 将 local window 从 2 blocks 缩到 1 block 后, 训练后的 remote-on 模型仍显著强于 `local-only`, 说明当前长距离能力主要依赖 remote/VQ/GD residual 路径, 不是 local exact attention 单独造成.
