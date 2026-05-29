@@ -1,0 +1,6 @@
+variant,sanity_status,rows
+full,no_ref,2
+full,passed,6
+local1,not_applicable,8
+local4,not_applicable,8
+local_only,not_applicable,8

@@ -1,0 +1,3 @@
+- 2026-05-28T16:38:45.761604+00:00 prepare_source_checkpoints wrote docs/artifacts/longer-mqar/local-window-fairness-20260529/source_checkpoints.csv rows=5 status=completed
+- 2026-05-28T16:38:46.917415+00:00 initialized README
+- 2026-05-28T16:44:32.867911+00:00 env_snapshot wrote docs/artifacts/longer-mqar/local-window-fairness-20260529/env_snapshot.json pip_freeze_sha256=5edc8178010bda7ff9c701962cba555262d8476f0a6a2954a62e57bac315e90b conda_list_json_sha256=f9b60b7a7b467463bba8f2f06bc739481364cd3592c74e5b857f481e4216266b

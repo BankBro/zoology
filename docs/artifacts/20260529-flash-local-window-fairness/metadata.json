@@ -1,0 +1,42 @@
+{
+  "artifact": "20260529-flash-local-window-fairness",
+  "created_at_utc": "2026-05-28T19:13:53.033928+00:00",
+  "source_of_truth": {
+    "host": "mclab-3090",
+    "ip": "192.168.2.114",
+    "container": "Flash-VQG-tun",
+    "repo": "/home/lyj/mnt/project/zoology",
+    "branch": "codex/20260529-flash-local-window-fairness"
+  },
+  "stage3_training_plan": [
+    {
+      "variant": "local-only",
+      "local_num_blocks": 2,
+      "if_remote_enabled": false
+    },
+    {
+      "variant": "local1",
+      "local_num_blocks": 1,
+      "if_remote_enabled": true
+    },
+    {
+      "variant": "local4",
+      "local_num_blocks": 4,
+      "if_remote_enabled": true
+    }
+  ],
+  "fixed_training_config": {
+    "seed": 123,
+    "data_seed": 123,
+    "num_codebook_vectors": 64,
+    "fox_gd_residual_rank": 16,
+    "train_batch_size": 64,
+    "eval_batch_size": 16,
+    "gradient_accumulation_steps": 4,
+    "max_epochs": 4,
+    "disable_early_stopping": true,
+    "backend": "torch",
+    "remote_path_backend": "torch",
+    "dtype_policy": "fp32 official-compatible policy"
+  }
+}
