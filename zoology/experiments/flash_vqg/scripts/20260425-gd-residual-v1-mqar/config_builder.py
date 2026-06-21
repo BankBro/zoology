@@ -22,6 +22,17 @@ def _rewrite_run_id(config, *, run_id: str):
     return config
 
 
+def _optional_float_arg(args, name: str):
+    value = getattr(args, name, None)
+    if value is None:
+        return None
+    return float(value)
+
+
+def _float_tag(value) -> str:
+    return str(float(value)).replace("-", "m").replace(".", "p")
+
+
 def _copy_config(config):
     return config.model_copy(deep=True) if hasattr(config, "model_copy") else config.copy(deep=True)
 
@@ -163,8 +174,195 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             fox_gd_residual_addr_eps=float(getattr(args, "fox_gd_residual_addr_eps", 1e-6)),
             fox_gd_residual_den_eps=float(getattr(args, "fox_gd_residual_den_eps", 1e-6)),
             fox_gd_residual_rho_eps=float(getattr(args, "fox_gd_residual_rho_eps", 1e-12)),
+            fox_gd_residual_addr_init_rng_mode=str(
+                getattr(args, "fox_gd_residual_addr_init_rng_mode", "global")
+            ),
+            fox_gd_residual_addr_init_seed=getattr(
+                args, "fox_gd_residual_addr_init_seed", None
+            ),
             fox_gd_residual_beta_init=float(getattr(args, "fox_gd_residual_beta_init", 0.5)),
+            fox_gd_residual_beta_cap=(
+                None
+                if getattr(args, "fox_gd_residual_beta_cap", None) is None
+                else float(getattr(args, "fox_gd_residual_beta_cap"))
+            ),
+            fox_gd_residual_beta_cap_final=(
+                None
+                if getattr(args, "fox_gd_residual_beta_cap_final", None) is None
+                else float(getattr(args, "fox_gd_residual_beta_cap_final"))
+            ),
+            fox_gd_residual_beta_cap_release_start_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_cap_release_start_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_beta_cap_release_end_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_cap_release_end_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_beta_cap_eval_policy=str(
+                getattr(args, "fox_gd_residual_beta_cap_eval_policy", "final")
+            ),
+            fox_gd_residual_beta_control_mode=str(
+                getattr(args, "fox_gd_residual_beta_control_mode", "hard_cap")
+            ),
+            fox_gd_residual_beta_sigmoid_temp=float(
+                getattr(args, "fox_gd_residual_beta_sigmoid_temp", 1.0)
+            ),
+            fox_gd_residual_beta_low=_optional_float_arg(
+                args, "fox_gd_residual_beta_low"
+            ),
+            fox_gd_residual_beta_high=_optional_float_arg(
+                args, "fox_gd_residual_beta_high"
+            ),
+            fox_gd_residual_beta_low_final=_optional_float_arg(
+                args, "fox_gd_residual_beta_low_final"
+            ),
+            fox_gd_residual_beta_high_final=_optional_float_arg(
+                args, "fox_gd_residual_beta_high_final"
+            ),
+            fox_gd_residual_beta_band_release_start_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_band_release_start_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_beta_band_release_end_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_band_release_end_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_beta_band_eval_policy=str(
+                getattr(args, "fox_gd_residual_beta_band_eval_policy", "final")
+            ),
+            fox_gd_residual_beta_band_schedule=str(
+                getattr(args, "fox_gd_residual_beta_band_schedule", "smoothstep")
+            ),
             fox_gd_residual_lambda_init=float(getattr(args, "fox_gd_residual_lambda_init", 0.05)),
+            fox_gd_residual_lambda_floor=float(
+                getattr(args, "fox_gd_residual_lambda_floor", 0.0)
+            ),
+            fox_gd_residual_write_strength_mode=str(
+                getattr(args, "fox_gd_residual_write_strength_mode", "renorm_topk")
+            ),
+            fox_gd_residual_write_strength_cap=(
+                None
+                if getattr(args, "fox_gd_residual_write_strength_cap", None) is None
+                else float(getattr(args, "fox_gd_residual_write_strength_cap"))
+            ),
+            fox_gd_residual_write_strength_cap_mode=str(
+                getattr(args, "fox_gd_residual_write_strength_cap_mode", "hard")
+            ),
+            fox_gd_residual_write_strength_cap_until_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_strength_cap_until_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_strength_cap_final=(
+                None
+                if getattr(args, "fox_gd_residual_write_strength_cap_final", None) is None
+                else float(getattr(args, "fox_gd_residual_write_strength_cap_final"))
+            ),
+            fox_gd_residual_write_strength_cap_release_start_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_strength_cap_release_start_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_strength_cap_release_end_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_strength_cap_release_end_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_strength_cap_eval_policy=str(
+                getattr(args, "fox_gd_residual_write_strength_cap_eval_policy", "final")
+            ),
+            fox_gd_residual_write_budget=(
+                None
+                if getattr(args, "fox_gd_residual_write_budget", None) is None
+                else float(getattr(args, "fox_gd_residual_write_budget"))
+            ),
+            fox_gd_residual_write_budget_final=(
+                None
+                if getattr(args, "fox_gd_residual_write_budget_final", None) is None
+                else float(getattr(args, "fox_gd_residual_write_budget_final"))
+            ),
+            fox_gd_residual_write_budget_release_start_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_budget_release_start_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_budget_release_end_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_budget_release_end_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_budget_eval_policy=str(
+                getattr(args, "fox_gd_residual_write_budget_eval_policy", "final")
+            ),
+            fox_gd_residual_write_budget_schedule=str(
+                getattr(args, "fox_gd_residual_write_budget_schedule", "smoothstep")
+            ),
+            fox_gd_residual_write_total_cap=(
+                None
+                if getattr(args, "fox_gd_residual_write_total_cap", None) is None
+                else float(getattr(args, "fox_gd_residual_write_total_cap"))
+            ),
+            fox_gd_residual_write_total_cap_final=(
+                None
+                if getattr(args, "fox_gd_residual_write_total_cap_final", None) is None
+                else float(getattr(args, "fox_gd_residual_write_total_cap_final"))
+            ),
+            fox_gd_residual_write_total_cap_release_start_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_total_cap_release_start_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_total_cap_release_end_train_steps=int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_total_cap_release_end_train_steps",
+                    0,
+                )
+            ),
+            fox_gd_residual_write_total_cap_eval_policy=str(
+                getattr(args, "fox_gd_residual_write_total_cap_eval_policy", "final")
+            ),
+            fox_gd_residual_write_total_cap_schedule=str(
+                getattr(args, "fox_gd_residual_write_total_cap_schedule", "smoothstep")
+            ),
+            fox_gd_residual_write_q_alpha=float(
+                getattr(args, "fox_gd_residual_write_q_alpha", 1.0)
+            ),
+            fox_gd_residual_m_norm_cap=(
+                None
+                if getattr(args, "fox_gd_residual_m_norm_cap", None) is None
+                else float(getattr(args, "fox_gd_residual_m_norm_cap"))
+            ),
+            fox_gd_residual_update_norm_cap=(
+                None
+                if getattr(args, "fox_gd_residual_update_norm_cap", None) is None
+                else float(getattr(args, "fox_gd_residual_update_norm_cap"))
+            ),
             fox_gd_residual_norm_with_gain=_parse_bool_arg(
                 getattr(args, "fox_gd_residual_norm_with_gain", False),
                 field_name="fox_gd_residual_norm_with_gain",
@@ -177,6 +375,8 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             vq_weight_mode=str(getattr(args, "vq_weight_mode", "dense_softmax")),
             vq_update_mode=str(getattr(args, "vq_update_mode", "grad")),
             vq_softmax_tau=float(getattr(args, "vq_softmax_tau", 1.0)),
+            codebook_init_rng_mode=str(getattr(args, "codebook_init_rng_mode", "global")),
+            codebook_init_seed=getattr(args, "codebook_init_seed", None),
             vq_topk=int(getattr(args, "vq_topk", 4)),
             gradient_accumulation_steps=int(args.gradient_accumulation_steps),
             train_batch_size=int(args.train_batch_size) if args.train_batch_size is not None else None,
@@ -215,6 +415,218 @@ def _build_single(args, *, experiment_mode: str):
         f"-wk{int(getattr(args, 'fox_gd_residual_write_topk', 4))}"
         f"-b{train_batch_size}"
     )
+    write_strength_mode = str(
+        getattr(args, "fox_gd_residual_write_strength_mode", "renorm_topk")
+    )
+    if write_strength_mode != "renorm_topk":
+        run_id = f"{run_id}-wmode{write_strength_mode}"
+    codebook_init_rng_mode = str(getattr(args, "codebook_init_rng_mode", "global"))
+    if codebook_init_rng_mode != "global":
+        run_id = (
+            f"{run_id}-cbinit{codebook_init_rng_mode}"
+            f"s{getattr(args, 'codebook_init_seed', None)}"
+        )
+    addr_init_rng_mode = str(
+        getattr(args, "fox_gd_residual_addr_init_rng_mode", "global")
+    )
+    if addr_init_rng_mode != "global":
+        run_id = (
+            f"{run_id}-addrinit{addr_init_rng_mode}"
+            f"s{getattr(args, 'fox_gd_residual_addr_init_seed', None)}"
+        )
+    write_strength_cap = getattr(args, "fox_gd_residual_write_strength_cap", None)
+    if write_strength_cap is not None:
+        cap_tag = str(write_strength_cap).replace(".", "p")
+        run_id = f"{run_id}-wcap{cap_tag}"
+        cap_mode = str(getattr(args, "fox_gd_residual_write_strength_cap_mode", "hard"))
+        if cap_mode != "hard":
+            run_id = f"{run_id}-wcapmode{cap_mode}"
+        cap_until = int(
+            getattr(args, "fox_gd_residual_write_strength_cap_until_train_steps", 0)
+        )
+        if cap_until != 0:
+            run_id = f"{run_id}-wcapuntil{cap_until}"
+        cap_final = getattr(args, "fox_gd_residual_write_strength_cap_final", None)
+        if cap_final is not None:
+            cap_final_tag = str(cap_final).replace(".", "p")
+            run_id = f"{run_id}-wcapfinal{cap_final_tag}"
+            rel_start = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_strength_cap_release_start_train_steps",
+                    0,
+                )
+            )
+            rel_end = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_strength_cap_release_end_train_steps",
+                    0,
+                )
+            )
+            run_id = f"{run_id}-wcaprel{rel_start}to{rel_end}"
+            cap_eval_policy = str(
+                getattr(args, "fox_gd_residual_write_strength_cap_eval_policy", "final")
+            )
+            if cap_eval_policy != "final":
+                run_id = f"{run_id}-wcapeval{cap_eval_policy}"
+    write_budget = getattr(args, "fox_gd_residual_write_budget", None)
+    if write_budget is not None:
+        budget_tag = str(write_budget).replace(".", "p")
+        run_id = f"{run_id}-wbudget{budget_tag}"
+        budget_final = getattr(args, "fox_gd_residual_write_budget_final", None)
+        if budget_final is not None:
+            budget_final_tag = str(budget_final).replace(".", "p")
+            rel_start = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_budget_release_start_train_steps",
+                    0,
+                )
+            )
+            rel_end = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_budget_release_end_train_steps",
+                    0,
+                )
+            )
+            budget_eval_policy = str(
+                getattr(args, "fox_gd_residual_write_budget_eval_policy", "final")
+            )
+            budget_schedule = str(
+                getattr(args, "fox_gd_residual_write_budget_schedule", "smoothstep")
+            )
+            run_id = (
+                f"{run_id}-wbudgetfinal{budget_final_tag}"
+                f"-wbudgetrel{rel_start}to{rel_end}"
+            )
+            if budget_eval_policy != "final":
+                run_id = f"{run_id}-wbudgeteval{budget_eval_policy}"
+            if budget_schedule != "smoothstep":
+                run_id = f"{run_id}-wbudgetsched{budget_schedule}"
+    write_total_cap = getattr(args, "fox_gd_residual_write_total_cap", None)
+    if write_total_cap is not None:
+        total_cap_tag = str(write_total_cap).replace(".", "p")
+        run_id = f"{run_id}-wtotalcap{total_cap_tag}"
+        total_cap_final = getattr(args, "fox_gd_residual_write_total_cap_final", None)
+        if total_cap_final is not None:
+            total_cap_final_tag = str(total_cap_final).replace(".", "p")
+            rel_start = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_total_cap_release_start_train_steps",
+                    0,
+                )
+            )
+            rel_end = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_write_total_cap_release_end_train_steps",
+                    0,
+                )
+            )
+            total_cap_eval_policy = str(
+                getattr(args, "fox_gd_residual_write_total_cap_eval_policy", "final")
+            )
+            total_cap_schedule = str(
+                getattr(args, "fox_gd_residual_write_total_cap_schedule", "smoothstep")
+            )
+            run_id = (
+                f"{run_id}-wtotalcapfinal{total_cap_final_tag}"
+                f"-wtotalcaprel{rel_start}to{rel_end}"
+            )
+            if total_cap_eval_policy != "final":
+                run_id = f"{run_id}-wtotalcapeval{total_cap_eval_policy}"
+            if total_cap_schedule != "smoothstep":
+                run_id = f"{run_id}-wtotalcapsched{total_cap_schedule}"
+    write_q_alpha = float(getattr(args, "fox_gd_residual_write_q_alpha", 1.0))
+    if write_q_alpha != 1.0:
+        run_id = f"{run_id}-wqalpha{_float_tag(write_q_alpha)}"
+    m_norm_cap = getattr(args, "fox_gd_residual_m_norm_cap", None)
+    if m_norm_cap is not None:
+        m_norm_cap_tag = str(m_norm_cap).replace(".", "p")
+        run_id = f"{run_id}-mcap{m_norm_cap_tag}"
+    update_norm_cap = getattr(args, "fox_gd_residual_update_norm_cap", None)
+    if update_norm_cap is not None:
+        update_norm_cap_tag = str(update_norm_cap).replace(".", "p")
+        run_id = f"{run_id}-ucap{update_norm_cap_tag}"
+    beta_cap = getattr(args, "fox_gd_residual_beta_cap", None)
+    if beta_cap is not None:
+        beta_cap_tag = str(beta_cap).replace(".", "p")
+        run_id = f"{run_id}-betacap{beta_cap_tag}"
+        beta_cap_final = getattr(args, "fox_gd_residual_beta_cap_final", None)
+        if beta_cap_final is not None:
+            beta_cap_final_tag = str(beta_cap_final).replace(".", "p")
+            run_id = f"{run_id}-betacapfinal{beta_cap_final_tag}"
+            beta_rel_start = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_cap_release_start_train_steps",
+                    0,
+                )
+            )
+            beta_rel_end = int(
+                getattr(
+                    args,
+                    "fox_gd_residual_beta_cap_release_end_train_steps",
+                    0,
+                )
+            )
+            run_id = f"{run_id}-betacaprel{beta_rel_start}to{beta_rel_end}"
+            beta_cap_eval_policy = str(
+                getattr(args, "fox_gd_residual_beta_cap_eval_policy", "final")
+            )
+            if beta_cap_eval_policy != "final":
+                run_id = f"{run_id}-betacapeval{beta_cap_eval_policy}"
+    beta_control_mode = str(getattr(args, "fox_gd_residual_beta_control_mode", "hard_cap"))
+    if beta_control_mode != "hard_cap":
+        run_id = f"{run_id}-betactrl{beta_control_mode}"
+    beta_temp = float(getattr(args, "fox_gd_residual_beta_sigmoid_temp", 1.0))
+    if beta_temp != 1.0:
+        run_id = f"{run_id}-betatemp{_float_tag(beta_temp)}"
+    beta_low = getattr(args, "fox_gd_residual_beta_low", None)
+    if beta_low is not None:
+        run_id = f"{run_id}-betalow{_float_tag(beta_low)}"
+    beta_high = getattr(args, "fox_gd_residual_beta_high", None)
+    if beta_high is not None:
+        run_id = f"{run_id}-betahigh{_float_tag(beta_high)}"
+    beta_low_final = getattr(args, "fox_gd_residual_beta_low_final", None)
+    if beta_low_final is not None:
+        run_id = f"{run_id}-betalowfinal{_float_tag(beta_low_final)}"
+    beta_high_final = getattr(args, "fox_gd_residual_beta_high_final", None)
+    if beta_high_final is not None:
+        run_id = f"{run_id}-betahighfinal{_float_tag(beta_high_final)}"
+    if beta_low_final is not None or beta_high_final is not None:
+        beta_band_rel_start = int(
+            getattr(
+                args,
+                "fox_gd_residual_beta_band_release_start_train_steps",
+                0,
+            )
+        )
+        beta_band_rel_end = int(
+            getattr(
+                args,
+                "fox_gd_residual_beta_band_release_end_train_steps",
+                0,
+            )
+        )
+        run_id = f"{run_id}-betabandrel{beta_band_rel_start}to{beta_band_rel_end}"
+        beta_band_eval_policy = str(
+            getattr(args, "fox_gd_residual_beta_band_eval_policy", "final")
+        )
+        if beta_band_eval_policy != "final":
+            run_id = f"{run_id}-betabandeval{beta_band_eval_policy}"
+        beta_band_schedule = str(
+            getattr(args, "fox_gd_residual_beta_band_schedule", "smoothstep")
+        )
+        if beta_band_schedule != "smoothstep":
+            run_id = f"{run_id}-betabandsched{beta_band_schedule}"
+    lambda_floor = float(getattr(args, "fox_gd_residual_lambda_floor", 0.0))
+    if lambda_floor != 0.0:
+        lambda_floor_tag = str(lambda_floor).replace(".", "p")
+        run_id = f"{run_id}-lambdafloor{lambda_floor_tag}"
     run_id = str(getattr(args, "run_id", None) or run_id)
     return _rewrite_run_id(configs[0], run_id=run_id)
 

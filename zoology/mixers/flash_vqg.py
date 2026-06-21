@@ -31,14 +31,57 @@ class FlashVQGMixer(nn.Module):
         fox_gd_residual_addr_eps: float = 1e-6,
         fox_gd_residual_den_eps: float = 1e-6,
         fox_gd_residual_rho_eps: float = 1e-12,
+        fox_gd_residual_addr_init_rng_mode: str = "global",
+        fox_gd_residual_addr_init_seed: int | None = None,
+        fox_gd_residual_write_strength_mode: str = "renorm_topk",
+        fox_gd_residual_write_strength_cap: float | None = None,
+        fox_gd_residual_write_strength_cap_mode: str = "hard",
+        fox_gd_residual_write_strength_cap_until_train_steps: int = 0,
+        fox_gd_residual_write_strength_cap_final: float | None = None,
+        fox_gd_residual_write_strength_cap_release_start_train_steps: int = 0,
+        fox_gd_residual_write_strength_cap_release_end_train_steps: int = 0,
+        fox_gd_residual_write_strength_cap_eval_policy: str = "final",
+        fox_gd_residual_write_budget: float | None = None,
+        fox_gd_residual_write_budget_final: float | None = None,
+        fox_gd_residual_write_budget_release_start_train_steps: int = 0,
+        fox_gd_residual_write_budget_release_end_train_steps: int = 0,
+        fox_gd_residual_write_budget_eval_policy: str = "final",
+        fox_gd_residual_write_budget_schedule: str = "smoothstep",
+        fox_gd_residual_write_total_cap: float | None = None,
+        fox_gd_residual_write_total_cap_final: float | None = None,
+        fox_gd_residual_write_total_cap_release_start_train_steps: int = 0,
+        fox_gd_residual_write_total_cap_release_end_train_steps: int = 0,
+        fox_gd_residual_write_total_cap_eval_policy: str = "final",
+        fox_gd_residual_write_total_cap_schedule: str = "smoothstep",
+        fox_gd_residual_write_q_alpha: float = 1.0,
+        fox_gd_residual_m_norm_cap: float | None = None,
+        fox_gd_residual_update_norm_cap: float | None = None,
         fox_gd_residual_beta_init: float = 0.5,
+        fox_gd_residual_beta_cap: float | None = None,
+        fox_gd_residual_beta_cap_final: float | None = None,
+        fox_gd_residual_beta_cap_release_start_train_steps: int = 0,
+        fox_gd_residual_beta_cap_release_end_train_steps: int = 0,
+        fox_gd_residual_beta_cap_eval_policy: str = "final",
+        fox_gd_residual_beta_control_mode: str = "hard_cap",
+        fox_gd_residual_beta_sigmoid_temp: float = 1.0,
+        fox_gd_residual_beta_low: float | None = None,
+        fox_gd_residual_beta_high: float | None = None,
+        fox_gd_residual_beta_low_final: float | None = None,
+        fox_gd_residual_beta_high_final: float | None = None,
+        fox_gd_residual_beta_band_release_start_train_steps: int = 0,
+        fox_gd_residual_beta_band_release_end_train_steps: int = 0,
+        fox_gd_residual_beta_band_eval_policy: str = "final",
+        fox_gd_residual_beta_band_schedule: str = "smoothstep",
         fox_gd_residual_lambda_init: float = 0.05,
+        fox_gd_residual_lambda_floor: float = 0.0,
         fox_gd_residual_norm_with_gain: bool = False,
         fox_gd_residual_use_separate_addr_codebook: bool = False,
         attn_backend: str = "flash",
         attn_cfg: dict | None = None,
         use_time_mixing: str | None = "kv_shift",
         codebook_beta: float = 0.25,
+        codebook_init_rng_mode: str = "global",
+        codebook_init_seed: int | None = None,
         enable_layer_metrics: bool = False,
         vocab_size: int = 32_000,
         **kwargs,
@@ -82,13 +125,156 @@ class FlashVQGMixer(nn.Module):
         self.fox_gd_residual_addr_eps = float(fox_gd_residual_addr_eps)
         self.fox_gd_residual_den_eps = float(fox_gd_residual_den_eps)
         self.fox_gd_residual_rho_eps = float(fox_gd_residual_rho_eps)
+        self.fox_gd_residual_addr_init_rng_mode = str(
+            fox_gd_residual_addr_init_rng_mode
+        )
+        self.fox_gd_residual_addr_init_seed = (
+            None
+            if fox_gd_residual_addr_init_seed is None
+            else int(fox_gd_residual_addr_init_seed)
+        )
+        self.fox_gd_residual_write_strength_mode = str(fox_gd_residual_write_strength_mode)
+        self.fox_gd_residual_write_strength_cap = (
+            None
+            if fox_gd_residual_write_strength_cap is None
+            else float(fox_gd_residual_write_strength_cap)
+        )
+        self.fox_gd_residual_write_strength_cap_mode = str(
+            fox_gd_residual_write_strength_cap_mode
+        )
+        self.fox_gd_residual_write_strength_cap_until_train_steps = int(
+            fox_gd_residual_write_strength_cap_until_train_steps
+        )
+        self.fox_gd_residual_write_strength_cap_final = (
+            None
+            if fox_gd_residual_write_strength_cap_final is None
+            else float(fox_gd_residual_write_strength_cap_final)
+        )
+        self.fox_gd_residual_write_strength_cap_release_start_train_steps = int(
+            fox_gd_residual_write_strength_cap_release_start_train_steps
+        )
+        self.fox_gd_residual_write_strength_cap_release_end_train_steps = int(
+            fox_gd_residual_write_strength_cap_release_end_train_steps
+        )
+        self.fox_gd_residual_write_strength_cap_eval_policy = str(
+            fox_gd_residual_write_strength_cap_eval_policy
+        )
+        self.fox_gd_residual_write_budget = (
+            None
+            if fox_gd_residual_write_budget is None
+            else float(fox_gd_residual_write_budget)
+        )
+        self.fox_gd_residual_write_budget_final = (
+            None
+            if fox_gd_residual_write_budget_final is None
+            else float(fox_gd_residual_write_budget_final)
+        )
+        self.fox_gd_residual_write_budget_release_start_train_steps = int(
+            fox_gd_residual_write_budget_release_start_train_steps
+        )
+        self.fox_gd_residual_write_budget_release_end_train_steps = int(
+            fox_gd_residual_write_budget_release_end_train_steps
+        )
+        self.fox_gd_residual_write_budget_eval_policy = str(
+            fox_gd_residual_write_budget_eval_policy
+        )
+        self.fox_gd_residual_write_budget_schedule = str(
+            fox_gd_residual_write_budget_schedule
+        )
+        self.fox_gd_residual_write_total_cap = (
+            None
+            if fox_gd_residual_write_total_cap is None
+            else float(fox_gd_residual_write_total_cap)
+        )
+        self.fox_gd_residual_write_total_cap_final = (
+            None
+            if fox_gd_residual_write_total_cap_final is None
+            else float(fox_gd_residual_write_total_cap_final)
+        )
+        self.fox_gd_residual_write_total_cap_release_start_train_steps = int(
+            fox_gd_residual_write_total_cap_release_start_train_steps
+        )
+        self.fox_gd_residual_write_total_cap_release_end_train_steps = int(
+            fox_gd_residual_write_total_cap_release_end_train_steps
+        )
+        self.fox_gd_residual_write_total_cap_eval_policy = str(
+            fox_gd_residual_write_total_cap_eval_policy
+        )
+        self.fox_gd_residual_write_total_cap_schedule = str(
+            fox_gd_residual_write_total_cap_schedule
+        )
+        self.fox_gd_residual_write_q_alpha = float(fox_gd_residual_write_q_alpha)
+        self.fox_gd_residual_m_norm_cap = (
+            None if fox_gd_residual_m_norm_cap is None else float(fox_gd_residual_m_norm_cap)
+        )
+        self.fox_gd_residual_update_norm_cap = (
+            None
+            if fox_gd_residual_update_norm_cap is None
+            else float(fox_gd_residual_update_norm_cap)
+        )
         self.fox_gd_residual_beta_init = float(fox_gd_residual_beta_init)
+        self.fox_gd_residual_beta_cap = (
+            None if fox_gd_residual_beta_cap is None else float(fox_gd_residual_beta_cap)
+        )
+        self.fox_gd_residual_beta_cap_final = (
+            None
+            if fox_gd_residual_beta_cap_final is None
+            else float(fox_gd_residual_beta_cap_final)
+        )
+        self.fox_gd_residual_beta_cap_release_start_train_steps = int(
+            fox_gd_residual_beta_cap_release_start_train_steps
+        )
+        self.fox_gd_residual_beta_cap_release_end_train_steps = int(
+            fox_gd_residual_beta_cap_release_end_train_steps
+        )
+        self.fox_gd_residual_beta_cap_eval_policy = str(
+            fox_gd_residual_beta_cap_eval_policy
+        )
+        self.fox_gd_residual_beta_control_mode = str(
+            fox_gd_residual_beta_control_mode
+        )
+        self.fox_gd_residual_beta_sigmoid_temp = float(
+            fox_gd_residual_beta_sigmoid_temp
+        )
+        self.fox_gd_residual_beta_low = (
+            None if fox_gd_residual_beta_low is None else float(fox_gd_residual_beta_low)
+        )
+        self.fox_gd_residual_beta_high = (
+            None if fox_gd_residual_beta_high is None else float(fox_gd_residual_beta_high)
+        )
+        self.fox_gd_residual_beta_low_final = (
+            None
+            if fox_gd_residual_beta_low_final is None
+            else float(fox_gd_residual_beta_low_final)
+        )
+        self.fox_gd_residual_beta_high_final = (
+            None
+            if fox_gd_residual_beta_high_final is None
+            else float(fox_gd_residual_beta_high_final)
+        )
+        self.fox_gd_residual_beta_band_release_start_train_steps = int(
+            fox_gd_residual_beta_band_release_start_train_steps
+        )
+        self.fox_gd_residual_beta_band_release_end_train_steps = int(
+            fox_gd_residual_beta_band_release_end_train_steps
+        )
+        self.fox_gd_residual_beta_band_eval_policy = str(
+            fox_gd_residual_beta_band_eval_policy
+        )
+        self.fox_gd_residual_beta_band_schedule = str(
+            fox_gd_residual_beta_band_schedule
+        )
         self.fox_gd_residual_lambda_init = float(fox_gd_residual_lambda_init)
+        self.fox_gd_residual_lambda_floor = float(fox_gd_residual_lambda_floor)
         self.fox_gd_residual_norm_with_gain = bool(fox_gd_residual_norm_with_gain)
         self.fox_gd_residual_use_separate_addr_codebook = bool(
             fox_gd_residual_use_separate_addr_codebook
         )
         self.codebook_beta = float(codebook_beta)
+        self.codebook_init_rng_mode = str(codebook_init_rng_mode)
+        self.codebook_init_seed = (
+            None if codebook_init_seed is None else int(codebook_init_seed)
+        )
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
 
@@ -116,8 +302,97 @@ class FlashVQGMixer(nn.Module):
             fox_gd_residual_addr_eps=self.fox_gd_residual_addr_eps,
             fox_gd_residual_den_eps=self.fox_gd_residual_den_eps,
             fox_gd_residual_rho_eps=self.fox_gd_residual_rho_eps,
+            fox_gd_residual_addr_init_rng_mode=self.fox_gd_residual_addr_init_rng_mode,
+            fox_gd_residual_addr_init_seed=self.fox_gd_residual_addr_init_seed,
+            fox_gd_residual_write_strength_mode=self.fox_gd_residual_write_strength_mode,
+            fox_gd_residual_write_strength_cap=self.fox_gd_residual_write_strength_cap,
+            fox_gd_residual_write_strength_cap_mode=(
+                self.fox_gd_residual_write_strength_cap_mode
+            ),
+            fox_gd_residual_write_strength_cap_until_train_steps=(
+                self.fox_gd_residual_write_strength_cap_until_train_steps
+            ),
+            fox_gd_residual_write_strength_cap_final=(
+                self.fox_gd_residual_write_strength_cap_final
+            ),
+            fox_gd_residual_write_strength_cap_release_start_train_steps=(
+                self.fox_gd_residual_write_strength_cap_release_start_train_steps
+            ),
+            fox_gd_residual_write_strength_cap_release_end_train_steps=(
+                self.fox_gd_residual_write_strength_cap_release_end_train_steps
+            ),
+            fox_gd_residual_write_strength_cap_eval_policy=(
+                self.fox_gd_residual_write_strength_cap_eval_policy
+            ),
+            fox_gd_residual_write_budget=self.fox_gd_residual_write_budget,
+            fox_gd_residual_write_budget_final=self.fox_gd_residual_write_budget_final,
+            fox_gd_residual_write_budget_release_start_train_steps=(
+                self.fox_gd_residual_write_budget_release_start_train_steps
+            ),
+            fox_gd_residual_write_budget_release_end_train_steps=(
+                self.fox_gd_residual_write_budget_release_end_train_steps
+            ),
+            fox_gd_residual_write_budget_eval_policy=(
+                self.fox_gd_residual_write_budget_eval_policy
+            ),
+            fox_gd_residual_write_budget_schedule=(
+                self.fox_gd_residual_write_budget_schedule
+            ),
+            fox_gd_residual_write_total_cap=self.fox_gd_residual_write_total_cap,
+            fox_gd_residual_write_total_cap_final=(
+                self.fox_gd_residual_write_total_cap_final
+            ),
+            fox_gd_residual_write_total_cap_release_start_train_steps=(
+                self.fox_gd_residual_write_total_cap_release_start_train_steps
+            ),
+            fox_gd_residual_write_total_cap_release_end_train_steps=(
+                self.fox_gd_residual_write_total_cap_release_end_train_steps
+            ),
+            fox_gd_residual_write_total_cap_eval_policy=(
+                self.fox_gd_residual_write_total_cap_eval_policy
+            ),
+            fox_gd_residual_write_total_cap_schedule=(
+                self.fox_gd_residual_write_total_cap_schedule
+            ),
+            fox_gd_residual_write_q_alpha=self.fox_gd_residual_write_q_alpha,
+            fox_gd_residual_m_norm_cap=self.fox_gd_residual_m_norm_cap,
+            fox_gd_residual_update_norm_cap=self.fox_gd_residual_update_norm_cap,
             fox_gd_residual_beta_init=self.fox_gd_residual_beta_init,
+            fox_gd_residual_beta_cap=self.fox_gd_residual_beta_cap,
+            fox_gd_residual_beta_cap_final=self.fox_gd_residual_beta_cap_final,
+            fox_gd_residual_beta_cap_release_start_train_steps=(
+                self.fox_gd_residual_beta_cap_release_start_train_steps
+            ),
+            fox_gd_residual_beta_cap_release_end_train_steps=(
+                self.fox_gd_residual_beta_cap_release_end_train_steps
+            ),
+            fox_gd_residual_beta_cap_eval_policy=(
+                self.fox_gd_residual_beta_cap_eval_policy
+            ),
+            fox_gd_residual_beta_control_mode=(
+                self.fox_gd_residual_beta_control_mode
+            ),
+            fox_gd_residual_beta_sigmoid_temp=(
+                self.fox_gd_residual_beta_sigmoid_temp
+            ),
+            fox_gd_residual_beta_low=self.fox_gd_residual_beta_low,
+            fox_gd_residual_beta_high=self.fox_gd_residual_beta_high,
+            fox_gd_residual_beta_low_final=self.fox_gd_residual_beta_low_final,
+            fox_gd_residual_beta_high_final=self.fox_gd_residual_beta_high_final,
+            fox_gd_residual_beta_band_release_start_train_steps=(
+                self.fox_gd_residual_beta_band_release_start_train_steps
+            ),
+            fox_gd_residual_beta_band_release_end_train_steps=(
+                self.fox_gd_residual_beta_band_release_end_train_steps
+            ),
+            fox_gd_residual_beta_band_eval_policy=(
+                self.fox_gd_residual_beta_band_eval_policy
+            ),
+            fox_gd_residual_beta_band_schedule=(
+                self.fox_gd_residual_beta_band_schedule
+            ),
             fox_gd_residual_lambda_init=self.fox_gd_residual_lambda_init,
+            fox_gd_residual_lambda_floor=self.fox_gd_residual_lambda_floor,
             fox_gd_residual_norm_with_gain=self.fox_gd_residual_norm_with_gain,
             fox_gd_residual_use_separate_addr_codebook=(
                 self.fox_gd_residual_use_separate_addr_codebook
@@ -126,6 +401,8 @@ class FlashVQGMixer(nn.Module):
             attn_cfg={} if attn_cfg is None else attn_cfg,
             use_time_mixing=use_time_mixing,
             codebook_beta=self.codebook_beta,
+            codebook_init_rng_mode=self.codebook_init_rng_mode,
+            codebook_init_seed=self.codebook_init_seed,
             enable_layer_metrics=self.enable_layer_metrics,
             **kwargs,
         )

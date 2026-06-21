@@ -1,3 +1,4 @@
+import math
 from collections.abc import Mapping
 from typing import Iterable
 
@@ -32,6 +33,8 @@ DEFAULT_VQ_SCORE_MODE = "l2"
 DEFAULT_VQ_WEIGHT_MODE = "one-hot"
 DEFAULT_VQ_UPDATE_MODE = "ema"
 DEFAULT_VQ_SOFTMAX_TAU = 1.0
+DEFAULT_CODEBOOK_INIT_RNG_MODE = "global"
+DEFAULT_CODEBOOK_INIT_SEED = None
 DEFAULT_VQ_TOPK = 4
 DEFAULT_FOX_GD_RESIDUAL_RANK = 16
 DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK = 4
@@ -42,8 +45,49 @@ DEFAULT_FOX_GD_RESIDUAL_MU_MIN_COUNT = 1.0
 DEFAULT_FOX_GD_RESIDUAL_ADDR_EPS = 1e-6
 DEFAULT_FOX_GD_RESIDUAL_DEN_EPS = 1e-6
 DEFAULT_FOX_GD_RESIDUAL_RHO_EPS = 1e-12
+DEFAULT_FOX_GD_RESIDUAL_ADDR_INIT_RNG_MODE = "global"
+DEFAULT_FOX_GD_RESIDUAL_ADDR_INIT_SEED = None
 DEFAULT_FOX_GD_RESIDUAL_BETA_INIT = 0.5
+DEFAULT_FOX_GD_RESIDUAL_BETA_CAP = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_EVAL_POLICY = "final"
+DEFAULT_FOX_GD_RESIDUAL_BETA_CONTROL_MODE = "hard_cap"
+DEFAULT_FOX_GD_RESIDUAL_BETA_SIGMOID_TEMP = 1.0
+DEFAULT_FOX_GD_RESIDUAL_BETA_LOW = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_LOW_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_EVAL_POLICY = "final"
+DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_SCHEDULE = "smoothstep"
 DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT = 0.05
+DEFAULT_FOX_GD_RESIDUAL_LAMBDA_FLOOR = 0.0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE = "renorm_topk"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE = "hard"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_UNTIL_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_EVAL_POLICY = "final"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_EVAL_POLICY = "final"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_SCHEDULE = "smoothstep"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_FINAL = None
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_EVAL_POLICY = "final"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_SCHEDULE = "smoothstep"
+DEFAULT_FOX_GD_RESIDUAL_WRITE_Q_ALPHA = 1.0
+DEFAULT_FOX_GD_RESIDUAL_M_NORM_CAP = None
+DEFAULT_FOX_GD_RESIDUAL_UPDATE_NORM_CAP = None
 DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN = False
 DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK = False
 
@@ -525,6 +569,68 @@ def _normalize_fox_gd_residual_pack_mode(fox_gd_residual_pack_mode: str | None) 
     return pack_mode
 
 
+def _normalize_fox_gd_residual_write_strength_mode(
+    fox_gd_residual_write_strength_mode: str | None,
+) -> str:
+    mode = (
+        DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE
+        if fox_gd_residual_write_strength_mode is None
+        else str(fox_gd_residual_write_strength_mode).lower()
+    )
+    if mode not in {
+        "renorm_topk",
+        "topk_mass_scaled",
+        "renorm_topk_top1_scaled",
+        "renorm_topk_top1_sq_scaled",
+        "budgeted_topk_beta",
+        "budgeted_topk_beta_scaled_cap",
+        "budgeted_topk_beta_scaled_peak_total_cap",
+    }:
+        raise ValueError(
+            "fox_gd_residual_write_strength_mode 只能是 "
+            "['renorm_topk', 'topk_mass_scaled', 'renorm_topk_top1_scaled', "
+            "'renorm_topk_top1_sq_scaled', 'budgeted_topk_beta', "
+            "'budgeted_topk_beta_scaled_cap', "
+            "'budgeted_topk_beta_scaled_peak_total_cap'], "
+            f"当前收到: {fox_gd_residual_write_strength_mode}"
+        )
+    return mode
+
+
+def _normalize_fox_gd_residual_write_strength_cap_mode(value: str | None) -> str:
+    mode = (
+        DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE
+        if value is None
+        else str(value).lower()
+    )
+    if mode not in {"hard", "smooth_exp", "smooth_l4", "softplus"}:
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_mode 只能是 "
+            "['hard', 'smooth_exp', 'smooth_l4', 'softplus'], "
+            f"当前收到: {value}"
+        )
+    return mode
+
+
+def _normalize_local_rng_mode(value: str | None, *, field_name: str) -> str:
+    mode = "global" if value is None else str(value).lower()
+    if mode not in {"global", "local_burn", "local_noburn"}:
+        raise ValueError(
+            f"{field_name} 只能是 ['global', 'local_burn', 'local_noburn'], "
+            f"当前收到: {value}"
+        )
+    return mode
+
+
+def _normalize_optional_int_seed(value: int | None, *, field_name: str) -> int | None:
+    if value is None:
+        return None
+    seed = int(value)
+    if seed < 0:
+        raise ValueError(f"{field_name} 必须是非负整数或 None, 当前收到: {value}")
+    return seed
+
+
 def _normalize_fox_gd_residual_chunk_size(fox_gd_residual_chunk_size: int | None) -> int:
     chunk_size = (
         DEFAULT_FOX_GD_RESIDUAL_CHUNK_SIZE
@@ -561,8 +667,21 @@ def _normalize_fox_gd_residual_positive_float(
     default: float,
 ) -> float:
     resolved = default if value is None else float(value)
+    if resolved <= 0.0 or not math.isfinite(resolved):
+        raise ValueError(f"{field_name} 必须是有限正数, 当前收到: {value}")
+    return resolved
+
+
+def _normalize_fox_gd_residual_optional_positive_float(
+    value: float | None,
+    *,
+    field_name: str,
+) -> float | None:
+    if value is None:
+        return None
+    resolved = float(value)
     if resolved <= 0.0:
-        raise ValueError(f"{field_name} 必须是正数, 当前收到: {value}")
+        raise ValueError(f"{field_name} 必须是正数或 None, 当前收到: {value}")
     return resolved
 
 
@@ -575,6 +694,89 @@ def _normalize_fox_gd_residual_prob(
     resolved = default if value is None else float(value)
     if not (0.0 < resolved < 1.0):
         raise ValueError(f"{field_name} 必须在 (0, 1) 内, 当前收到: {value}")
+    return resolved
+
+
+def _normalize_fox_gd_residual_optional_prob_cap(
+    value: float | None,
+    *,
+    field_name: str,
+) -> float | None:
+    if value is None:
+        return None
+    resolved = float(value)
+    if not (0.0 < resolved <= 1.0):
+        raise ValueError(f"{field_name} 必须在 (0, 1] 内或为 None, 当前收到: {value}")
+    return resolved
+
+
+def _normalize_fox_gd_residual_optional_prob_bound(
+    value: float | None,
+    *,
+    field_name: str,
+) -> float | None:
+    if value is None:
+        return None
+    resolved = float(value)
+    if not (0.0 <= resolved <= 1.0):
+        raise ValueError(f"{field_name} 必须在 [0, 1] 内或为 None, 当前收到: {value}")
+    return resolved
+
+
+def _normalize_fox_gd_residual_beta_control_mode(value: str | None) -> str:
+    mode = (
+        DEFAULT_FOX_GD_RESIDUAL_BETA_CONTROL_MODE
+        if value is None
+        else str(value).lower()
+    )
+    if mode not in {"hard_cap", "bounded_sigmoid"}:
+        raise ValueError(
+            "fox_gd_residual_beta_control_mode 只能是 "
+            "['hard_cap', 'bounded_sigmoid'], "
+            f"当前收到: {value}"
+        )
+    return mode
+
+
+def _normalize_fox_gd_residual_beta_band_eval_policy(value: str | None) -> str:
+    policy = (
+        DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_EVAL_POLICY
+        if value is None
+        else str(value).lower()
+    )
+    if policy not in {"final", "scheduled"}:
+        raise ValueError(
+            "fox_gd_residual_beta_band_eval_policy 只能是 "
+            "['final', 'scheduled'], "
+            f"当前收到: {value}"
+        )
+    return policy
+
+
+def _normalize_fox_gd_residual_beta_band_schedule(value: str | None) -> str:
+    schedule = (
+        DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_SCHEDULE
+        if value is None
+        else str(value).lower()
+    )
+    if schedule not in {"smoothstep", "cosine"}:
+        raise ValueError(
+            "fox_gd_residual_beta_band_schedule 只能是 "
+            "['smoothstep', 'cosine'], "
+            f"当前收到: {value}"
+        )
+    return schedule
+
+
+def _normalize_fox_gd_residual_prob_floor(
+    value: float | None,
+    *,
+    field_name: str,
+    default: float,
+) -> float:
+    resolved = default if value is None else float(value)
+    if not (0.0 <= resolved < 1.0):
+        raise ValueError(f"{field_name} 必须在 [0, 1) 内, 当前收到: {value}")
     return resolved
 
 
@@ -594,6 +796,13 @@ def _remote_read_run_tag(read_topk: int | None) -> str:
     return "dense" if read_topk is None else f"top{int(read_topk)}"
 
 
+def _optional_float_run_tag(value: float | None, *, prefix: str) -> str:
+    if value is None:
+        return ""
+    value_tag = str(float(value)).replace("-", "m").replace(".", "p")
+    return f"-{prefix}{value_tag}"
+
+
 def _remote_formula_run_tag(
     *,
     fox_remote_formula: str,
@@ -603,6 +812,45 @@ def _remote_formula_run_tag(
     fox_gd_residual_write_topk: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK,
     fox_gd_residual_builder: str = DEFAULT_FOX_GD_RESIDUAL_BUILDER,
     fox_gd_residual_pack_mode: str = DEFAULT_FOX_GD_RESIDUAL_PACK_MODE,
+    fox_gd_residual_write_strength_mode: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE,
+    fox_gd_residual_write_strength_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP,
+    fox_gd_residual_write_strength_cap_mode: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE,
+    fox_gd_residual_write_strength_cap_until_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_UNTIL_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_FINAL,
+    fox_gd_residual_write_strength_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_EVAL_POLICY,
+    fox_gd_residual_write_budget: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET,
+    fox_gd_residual_write_budget_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_FINAL,
+    fox_gd_residual_write_budget_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_budget_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_budget_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_EVAL_POLICY,
+    fox_gd_residual_write_budget_schedule: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_SCHEDULE,
+    fox_gd_residual_write_total_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP,
+    fox_gd_residual_write_total_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_FINAL,
+    fox_gd_residual_write_total_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_total_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_total_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_EVAL_POLICY,
+    fox_gd_residual_write_total_cap_schedule: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_SCHEDULE,
+    fox_gd_residual_write_q_alpha: float = DEFAULT_FOX_GD_RESIDUAL_WRITE_Q_ALPHA,
+    fox_gd_residual_m_norm_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_M_NORM_CAP,
+    fox_gd_residual_update_norm_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_UPDATE_NORM_CAP,
+    fox_gd_residual_beta_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP,
+    fox_gd_residual_beta_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_FINAL,
+    fox_gd_residual_beta_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_beta_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_beta_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_EVAL_POLICY,
+    fox_gd_residual_beta_control_mode: str = DEFAULT_FOX_GD_RESIDUAL_BETA_CONTROL_MODE,
+    fox_gd_residual_beta_sigmoid_temp: float = DEFAULT_FOX_GD_RESIDUAL_BETA_SIGMOID_TEMP,
+    fox_gd_residual_beta_low: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_LOW,
+    fox_gd_residual_beta_high: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH,
+    fox_gd_residual_beta_low_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_LOW_FINAL,
+    fox_gd_residual_beta_high_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH_FINAL,
+    fox_gd_residual_beta_band_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_beta_band_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_beta_band_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_EVAL_POLICY,
+    fox_gd_residual_beta_band_schedule: str = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_SCHEDULE,
+    fox_gd_residual_lambda_floor: float = DEFAULT_FOX_GD_RESIDUAL_LAMBDA_FLOOR,
 ) -> str:
     if fox_remote_formula == "legacy":
         return "legacy"
@@ -615,6 +863,45 @@ def _remote_formula_run_tag(
             f"gdr1-r{int(fox_gd_residual_rank)}-"
             f"wk{int(fox_gd_residual_write_topk)}-"
             f"{builder_tag}-{pack_tag}"
+            f"{'' if fox_gd_residual_write_strength_mode == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE else f'-wmode{fox_gd_residual_write_strength_mode}'}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_strength_cap, prefix='wcap')}"
+            f"{'' if fox_gd_residual_write_strength_cap_mode == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE else f'-wcapmode{fox_gd_residual_write_strength_cap_mode}'}"
+            f"{'' if int(fox_gd_residual_write_strength_cap_until_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_UNTIL_TRAIN_STEPS else f'-wcapuntil{int(fox_gd_residual_write_strength_cap_until_train_steps)}'}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_strength_cap_final, prefix='wcapfinal')}"
+            f"{'' if int(fox_gd_residual_write_strength_cap_release_start_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_START_TRAIN_STEPS else f'-wcaprelstart{int(fox_gd_residual_write_strength_cap_release_start_train_steps)}'}"
+            f"{'' if int(fox_gd_residual_write_strength_cap_release_end_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_END_TRAIN_STEPS else f'-wcaprelend{int(fox_gd_residual_write_strength_cap_release_end_train_steps)}'}"
+            f"{'' if fox_gd_residual_write_strength_cap_eval_policy == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_EVAL_POLICY else f'-wcapeval{fox_gd_residual_write_strength_cap_eval_policy}'}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_budget, prefix='wbudget')}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_budget_final, prefix='wbudgetfinal')}"
+            f"{'' if int(fox_gd_residual_write_budget_release_start_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_START_TRAIN_STEPS else f'-wbudgetrelstart{int(fox_gd_residual_write_budget_release_start_train_steps)}'}"
+            f"{'' if int(fox_gd_residual_write_budget_release_end_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_END_TRAIN_STEPS else f'-wbudgetrelend{int(fox_gd_residual_write_budget_release_end_train_steps)}'}"
+            f"{'' if fox_gd_residual_write_budget_eval_policy == DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_EVAL_POLICY else f'-wbudgeteval{fox_gd_residual_write_budget_eval_policy}'}"
+            f"{'' if fox_gd_residual_write_budget_schedule == DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_SCHEDULE else f'-wbudgetsched{fox_gd_residual_write_budget_schedule}'}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_total_cap, prefix='wtotalcap')}"
+            f"{_optional_float_run_tag(fox_gd_residual_write_total_cap_final, prefix='wtotalcapfinal')}"
+            f"{'' if int(fox_gd_residual_write_total_cap_release_start_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_START_TRAIN_STEPS else f'-wtotalcaprelstart{int(fox_gd_residual_write_total_cap_release_start_train_steps)}'}"
+            f"{'' if int(fox_gd_residual_write_total_cap_release_end_train_steps) == DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_END_TRAIN_STEPS else f'-wtotalcaprelend{int(fox_gd_residual_write_total_cap_release_end_train_steps)}'}"
+            f"{'' if fox_gd_residual_write_total_cap_eval_policy == DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_EVAL_POLICY else f'-wtotalcapeval{fox_gd_residual_write_total_cap_eval_policy}'}"
+            f"{'' if fox_gd_residual_write_total_cap_schedule == DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_SCHEDULE else f'-wtotalcapsched{fox_gd_residual_write_total_cap_schedule}'}"
+            f"{'' if float(fox_gd_residual_write_q_alpha) == DEFAULT_FOX_GD_RESIDUAL_WRITE_Q_ALPHA else _optional_float_run_tag(fox_gd_residual_write_q_alpha, prefix='wqalpha')}"
+            f"{_optional_float_run_tag(fox_gd_residual_m_norm_cap, prefix='mcap')}"
+            f"{_optional_float_run_tag(fox_gd_residual_update_norm_cap, prefix='ucap')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_cap, prefix='betacap')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_cap_final, prefix='betacapfinal')}"
+            f"{'' if int(fox_gd_residual_beta_cap_release_start_train_steps) == DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_START_TRAIN_STEPS else f'-betacaprelstart{int(fox_gd_residual_beta_cap_release_start_train_steps)}'}"
+            f"{'' if int(fox_gd_residual_beta_cap_release_end_train_steps) == DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_END_TRAIN_STEPS else f'-betacaprelend{int(fox_gd_residual_beta_cap_release_end_train_steps)}'}"
+            f"{'' if fox_gd_residual_beta_cap_eval_policy == DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_EVAL_POLICY else f'-betacapeval{fox_gd_residual_beta_cap_eval_policy}'}"
+            f"{'' if fox_gd_residual_beta_control_mode == DEFAULT_FOX_GD_RESIDUAL_BETA_CONTROL_MODE else f'-betactrl{fox_gd_residual_beta_control_mode}'}"
+            f"{'' if float(fox_gd_residual_beta_sigmoid_temp) == DEFAULT_FOX_GD_RESIDUAL_BETA_SIGMOID_TEMP else _optional_float_run_tag(fox_gd_residual_beta_sigmoid_temp, prefix='betatemp')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_low, prefix='betalow')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_high, prefix='betahigh')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_low_final, prefix='betalowfinal')}"
+            f"{_optional_float_run_tag(fox_gd_residual_beta_high_final, prefix='betahighfinal')}"
+            f"{'' if int(fox_gd_residual_beta_band_release_start_train_steps) == DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_START_TRAIN_STEPS else f'-betabandrelstart{int(fox_gd_residual_beta_band_release_start_train_steps)}'}"
+            f"{'' if int(fox_gd_residual_beta_band_release_end_train_steps) == DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_END_TRAIN_STEPS else f'-betabandrelend{int(fox_gd_residual_beta_band_release_end_train_steps)}'}"
+            f"{'' if fox_gd_residual_beta_band_eval_policy == DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_EVAL_POLICY else f'-betabandeval{fox_gd_residual_beta_band_eval_policy}'}"
+            f"{'' if fox_gd_residual_beta_band_schedule == DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_SCHEDULE else f'-betabandsched{fox_gd_residual_beta_band_schedule}'}"
+            f"{'' if fox_gd_residual_lambda_floor == DEFAULT_FOX_GD_RESIDUAL_LAMBDA_FLOOR else _optional_float_run_tag(fox_gd_residual_lambda_floor, prefix='lambdafloor')}"
         )
     return f"clr1-r{int(fox_clr_rank)}-den{int(bool(fox_clr_use_den_residual))}"
 
@@ -753,8 +1040,49 @@ def build_configs(
     fox_gd_residual_addr_eps: float = DEFAULT_FOX_GD_RESIDUAL_ADDR_EPS,
     fox_gd_residual_den_eps: float = DEFAULT_FOX_GD_RESIDUAL_DEN_EPS,
     fox_gd_residual_rho_eps: float = DEFAULT_FOX_GD_RESIDUAL_RHO_EPS,
+    fox_gd_residual_addr_init_rng_mode: str = DEFAULT_FOX_GD_RESIDUAL_ADDR_INIT_RNG_MODE,
+    fox_gd_residual_addr_init_seed: int | None = DEFAULT_FOX_GD_RESIDUAL_ADDR_INIT_SEED,
     fox_gd_residual_beta_init: float = DEFAULT_FOX_GD_RESIDUAL_BETA_INIT,
+    fox_gd_residual_beta_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP,
+    fox_gd_residual_beta_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_FINAL,
+    fox_gd_residual_beta_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_beta_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_beta_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_BETA_CAP_EVAL_POLICY,
+    fox_gd_residual_beta_control_mode: str = DEFAULT_FOX_GD_RESIDUAL_BETA_CONTROL_MODE,
+    fox_gd_residual_beta_sigmoid_temp: float = DEFAULT_FOX_GD_RESIDUAL_BETA_SIGMOID_TEMP,
+    fox_gd_residual_beta_low: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_LOW,
+    fox_gd_residual_beta_high: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH,
+    fox_gd_residual_beta_low_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_LOW_FINAL,
+    fox_gd_residual_beta_high_final: float | None = DEFAULT_FOX_GD_RESIDUAL_BETA_HIGH_FINAL,
+    fox_gd_residual_beta_band_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_beta_band_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_beta_band_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_EVAL_POLICY,
+    fox_gd_residual_beta_band_schedule: str = DEFAULT_FOX_GD_RESIDUAL_BETA_BAND_SCHEDULE,
     fox_gd_residual_lambda_init: float = DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT,
+    fox_gd_residual_lambda_floor: float = DEFAULT_FOX_GD_RESIDUAL_LAMBDA_FLOOR,
+    fox_gd_residual_write_strength_mode: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE,
+    fox_gd_residual_write_strength_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP,
+    fox_gd_residual_write_strength_cap_mode: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE,
+    fox_gd_residual_write_strength_cap_until_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_UNTIL_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_FINAL,
+    fox_gd_residual_write_strength_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_strength_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_EVAL_POLICY,
+    fox_gd_residual_write_budget: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET,
+    fox_gd_residual_write_budget_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_FINAL,
+    fox_gd_residual_write_budget_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_budget_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_budget_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_EVAL_POLICY,
+    fox_gd_residual_write_budget_schedule: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_BUDGET_SCHEDULE,
+    fox_gd_residual_write_total_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP,
+    fox_gd_residual_write_total_cap_final: float | None = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_FINAL,
+    fox_gd_residual_write_total_cap_release_start_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_START_TRAIN_STEPS,
+    fox_gd_residual_write_total_cap_release_end_train_steps: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_RELEASE_END_TRAIN_STEPS,
+    fox_gd_residual_write_total_cap_eval_policy: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_EVAL_POLICY,
+    fox_gd_residual_write_total_cap_schedule: str = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOTAL_CAP_SCHEDULE,
+    fox_gd_residual_write_q_alpha: float = DEFAULT_FOX_GD_RESIDUAL_WRITE_Q_ALPHA,
+    fox_gd_residual_m_norm_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_M_NORM_CAP,
+    fox_gd_residual_update_norm_cap: float | None = DEFAULT_FOX_GD_RESIDUAL_UPDATE_NORM_CAP,
     fox_gd_residual_norm_with_gain: bool = DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN,
     fox_gd_residual_use_separate_addr_codebook: bool = DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK,
     experiment_part: str | None = None,
@@ -763,6 +1091,8 @@ def build_configs(
     vq_weight_mode: str = DEFAULT_VQ_WEIGHT_MODE,
     vq_update_mode: str = DEFAULT_VQ_UPDATE_MODE,
     vq_softmax_tau: float = DEFAULT_VQ_SOFTMAX_TAU,
+    codebook_init_rng_mode: str = DEFAULT_CODEBOOK_INIT_RNG_MODE,
+    codebook_init_seed: int | None = DEFAULT_CODEBOOK_INIT_SEED,
     vq_topk: int = DEFAULT_VQ_TOPK,
     gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
     validations_per_epoch: int = DEFAULT_VALIDATIONS_PER_EPOCH,
@@ -865,15 +1195,427 @@ def build_configs(
         field_name="fox_gd_residual_rho_eps",
         default=DEFAULT_FOX_GD_RESIDUAL_RHO_EPS,
     )
+    resolved_gd_residual_addr_init_rng_mode = _normalize_local_rng_mode(
+        fox_gd_residual_addr_init_rng_mode,
+        field_name="fox_gd_residual_addr_init_rng_mode",
+    )
+    resolved_gd_residual_addr_init_seed = _normalize_optional_int_seed(
+        fox_gd_residual_addr_init_seed,
+        field_name="fox_gd_residual_addr_init_seed",
+    )
+    if (
+        resolved_gd_residual_addr_init_rng_mode != "global"
+        and resolved_gd_residual_addr_init_seed is None
+    ):
+        raise ValueError(
+            "fox_gd_residual_addr_init_seed 必须在 "
+            "fox_gd_residual_addr_init_rng_mode 非 global 时设置."
+        )
     resolved_gd_residual_beta_init = _normalize_fox_gd_residual_prob(
         fox_gd_residual_beta_init,
         field_name="fox_gd_residual_beta_init",
         default=DEFAULT_FOX_GD_RESIDUAL_BETA_INIT,
     )
+    resolved_gd_residual_beta_cap = _normalize_fox_gd_residual_optional_prob_cap(
+        fox_gd_residual_beta_cap,
+        field_name="fox_gd_residual_beta_cap",
+    )
+    resolved_gd_residual_beta_cap_final = _normalize_fox_gd_residual_optional_prob_cap(
+        fox_gd_residual_beta_cap_final,
+        field_name="fox_gd_residual_beta_cap_final",
+    )
+    resolved_gd_residual_beta_cap_release_start_train_steps = int(
+        fox_gd_residual_beta_cap_release_start_train_steps
+    )
+    resolved_gd_residual_beta_cap_release_end_train_steps = int(
+        fox_gd_residual_beta_cap_release_end_train_steps
+    )
+    if resolved_gd_residual_beta_cap_release_start_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_beta_cap_release_start_train_steps 必须是非负整数."
+        )
+    if resolved_gd_residual_beta_cap_release_end_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_beta_cap_release_end_train_steps 必须是非负整数."
+        )
+    if (
+        resolved_gd_residual_beta_cap_final is not None
+        and resolved_gd_residual_beta_cap is None
+    ):
+        raise ValueError(
+            "fox_gd_residual_beta_cap_final 需要同时设置 "
+            "fox_gd_residual_beta_cap."
+        )
+    if (
+        resolved_gd_residual_beta_cap_final is not None
+        and resolved_gd_residual_beta_cap_release_end_train_steps
+        <= resolved_gd_residual_beta_cap_release_start_train_steps
+    ):
+        raise ValueError(
+            "fox_gd_residual_beta_cap_release_end_train_steps 必须大于 "
+            "release_start."
+        )
+    resolved_gd_residual_beta_cap_eval_policy = str(
+        fox_gd_residual_beta_cap_eval_policy
+    ).lower()
+    if resolved_gd_residual_beta_cap_eval_policy not in {"final", "scheduled"}:
+        raise ValueError(
+            "fox_gd_residual_beta_cap_eval_policy 只能是 "
+            "['final', 'scheduled'], "
+            f"当前收到: {fox_gd_residual_beta_cap_eval_policy}"
+        )
+    resolved_gd_residual_beta_control_mode = (
+        _normalize_fox_gd_residual_beta_control_mode(
+            fox_gd_residual_beta_control_mode
+        )
+    )
+    resolved_gd_residual_beta_sigmoid_temp = _normalize_fox_gd_residual_positive_float(
+        fox_gd_residual_beta_sigmoid_temp,
+        field_name="fox_gd_residual_beta_sigmoid_temp",
+        default=DEFAULT_FOX_GD_RESIDUAL_BETA_SIGMOID_TEMP,
+    )
+    resolved_gd_residual_beta_low = _normalize_fox_gd_residual_optional_prob_bound(
+        fox_gd_residual_beta_low,
+        field_name="fox_gd_residual_beta_low",
+    )
+    resolved_gd_residual_beta_high = _normalize_fox_gd_residual_optional_prob_bound(
+        fox_gd_residual_beta_high,
+        field_name="fox_gd_residual_beta_high",
+    )
+    resolved_gd_residual_beta_low_final = _normalize_fox_gd_residual_optional_prob_bound(
+        fox_gd_residual_beta_low_final,
+        field_name="fox_gd_residual_beta_low_final",
+    )
+    resolved_gd_residual_beta_high_final = _normalize_fox_gd_residual_optional_prob_bound(
+        fox_gd_residual_beta_high_final,
+        field_name="fox_gd_residual_beta_high_final",
+    )
+    resolved_gd_residual_beta_band_release_start_train_steps = int(
+        fox_gd_residual_beta_band_release_start_train_steps
+    )
+    resolved_gd_residual_beta_band_release_end_train_steps = int(
+        fox_gd_residual_beta_band_release_end_train_steps
+    )
+    if resolved_gd_residual_beta_band_release_start_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_beta_band_release_start_train_steps 必须是非负整数."
+        )
+    if resolved_gd_residual_beta_band_release_end_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_beta_band_release_end_train_steps 必须是非负整数."
+        )
+    resolved_gd_residual_beta_band_eval_policy = (
+        _normalize_fox_gd_residual_beta_band_eval_policy(
+            fox_gd_residual_beta_band_eval_policy
+        )
+    )
+    resolved_gd_residual_beta_band_schedule = (
+        _normalize_fox_gd_residual_beta_band_schedule(
+            fox_gd_residual_beta_band_schedule
+        )
+    )
+    beta_band_final_set = (
+        resolved_gd_residual_beta_low_final is not None
+        or resolved_gd_residual_beta_high_final is not None
+    )
+    if resolved_gd_residual_beta_control_mode == "bounded_sigmoid":
+        if (
+            resolved_gd_residual_beta_low is None
+            or resolved_gd_residual_beta_high is None
+        ):
+            raise ValueError(
+                "fox_gd_residual_beta_low 和 fox_gd_residual_beta_high "
+                "必须在 bounded_sigmoid 模式下设置."
+            )
+        if not (resolved_gd_residual_beta_low < resolved_gd_residual_beta_high):
+            raise ValueError(
+                "fox_gd_residual_beta_low 必须小于 fox_gd_residual_beta_high."
+            )
+        if not (
+            resolved_gd_residual_beta_low
+            < resolved_gd_residual_beta_init
+            < resolved_gd_residual_beta_high
+        ):
+            raise ValueError(
+                "fox_gd_residual_beta_init 必须位于 bounded beta band 内部."
+            )
+    if beta_band_final_set:
+        if (
+            resolved_gd_residual_beta_low_final is None
+            or resolved_gd_residual_beta_high_final is None
+        ):
+            raise ValueError(
+                "fox_gd_residual_beta_low_final 和 "
+                "fox_gd_residual_beta_high_final 必须成对设置."
+            )
+        if not (
+            resolved_gd_residual_beta_low_final
+            < resolved_gd_residual_beta_high_final
+        ):
+            raise ValueError(
+                "fox_gd_residual_beta_low_final 必须小于 "
+                "fox_gd_residual_beta_high_final."
+            )
+        if (
+            resolved_gd_residual_beta_band_release_end_train_steps
+            <= resolved_gd_residual_beta_band_release_start_train_steps
+        ):
+            raise ValueError(
+                "fox_gd_residual_beta_band_release_end_train_steps 必须大于 "
+                "release_start."
+            )
     resolved_gd_residual_lambda_init = _normalize_fox_gd_residual_prob(
         fox_gd_residual_lambda_init,
         field_name="fox_gd_residual_lambda_init",
         default=DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT,
+    )
+    resolved_gd_residual_lambda_floor = _normalize_fox_gd_residual_prob_floor(
+        fox_gd_residual_lambda_floor,
+        field_name="fox_gd_residual_lambda_floor",
+        default=DEFAULT_FOX_GD_RESIDUAL_LAMBDA_FLOOR,
+    )
+    resolved_gd_residual_write_strength_mode = (
+        _normalize_fox_gd_residual_write_strength_mode(
+            fox_gd_residual_write_strength_mode
+        )
+    )
+    resolved_gd_residual_write_strength_cap = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_strength_cap,
+        field_name="fox_gd_residual_write_strength_cap",
+    )
+    resolved_gd_residual_write_strength_cap_mode = (
+        _normalize_fox_gd_residual_write_strength_cap_mode(
+            fox_gd_residual_write_strength_cap_mode
+        )
+    )
+    resolved_gd_residual_write_strength_cap_until_train_steps = int(
+        fox_gd_residual_write_strength_cap_until_train_steps
+    )
+    if resolved_gd_residual_write_strength_cap_until_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_until_train_steps 必须是非负整数."
+        )
+    resolved_gd_residual_write_strength_cap_final = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_strength_cap_final,
+        field_name="fox_gd_residual_write_strength_cap_final",
+    )
+    resolved_gd_residual_write_strength_cap_release_start_train_steps = int(
+        fox_gd_residual_write_strength_cap_release_start_train_steps
+    )
+    resolved_gd_residual_write_strength_cap_release_end_train_steps = int(
+        fox_gd_residual_write_strength_cap_release_end_train_steps
+    )
+    if resolved_gd_residual_write_strength_cap_release_start_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_release_start_train_steps 必须是非负整数."
+        )
+    if resolved_gd_residual_write_strength_cap_release_end_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_release_end_train_steps 必须是非负整数."
+        )
+    if (
+        resolved_gd_residual_write_strength_cap_final is not None
+        and resolved_gd_residual_write_strength_cap is None
+    ):
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_final 需要同时设置 "
+            "fox_gd_residual_write_strength_cap."
+        )
+    if (
+        resolved_gd_residual_write_strength_cap_final is not None
+        and resolved_gd_residual_write_strength_cap_release_end_train_steps
+        <= resolved_gd_residual_write_strength_cap_release_start_train_steps
+    ):
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_release_end_train_steps 必须大于 "
+            "release_start."
+        )
+    resolved_gd_residual_write_strength_cap_eval_policy = str(
+        fox_gd_residual_write_strength_cap_eval_policy
+    ).lower()
+    if resolved_gd_residual_write_strength_cap_eval_policy not in {"final", "scheduled"}:
+        raise ValueError(
+            "fox_gd_residual_write_strength_cap_eval_policy 只能是 "
+            "['final', 'scheduled'], "
+            f"当前收到: {fox_gd_residual_write_strength_cap_eval_policy}"
+        )
+    resolved_gd_residual_write_budget = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_budget,
+        field_name="fox_gd_residual_write_budget",
+    )
+    resolved_gd_residual_write_budget_final = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_budget_final,
+        field_name="fox_gd_residual_write_budget_final",
+    )
+    resolved_gd_residual_write_budget_release_start_train_steps = int(
+        fox_gd_residual_write_budget_release_start_train_steps
+    )
+    resolved_gd_residual_write_budget_release_end_train_steps = int(
+        fox_gd_residual_write_budget_release_end_train_steps
+    )
+    if resolved_gd_residual_write_budget_release_start_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_budget_release_start_train_steps 必须是非负整数."
+        )
+    if resolved_gd_residual_write_budget_release_end_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_budget_release_end_train_steps 必须是非负整数."
+        )
+    resolved_gd_residual_write_budget_eval_policy = str(
+        fox_gd_residual_write_budget_eval_policy
+    ).lower()
+    if resolved_gd_residual_write_budget_eval_policy not in {"final", "scheduled"}:
+        raise ValueError(
+            "fox_gd_residual_write_budget_eval_policy 只能是 "
+            "['final', 'scheduled'], "
+            f"当前收到: {fox_gd_residual_write_budget_eval_policy}"
+        )
+    resolved_gd_residual_write_budget_schedule = str(
+        fox_gd_residual_write_budget_schedule
+    ).lower()
+    if resolved_gd_residual_write_budget_schedule not in {"smoothstep", "cosine"}:
+        raise ValueError(
+            "fox_gd_residual_write_budget_schedule 只能是 "
+            "['smoothstep', 'cosine'], "
+            f"当前收到: {fox_gd_residual_write_budget_schedule}"
+        )
+    if resolved_gd_residual_write_budget_final is not None:
+        if resolved_gd_residual_write_budget is None:
+            raise ValueError(
+                "fox_gd_residual_write_budget_final 需要同时设置 "
+                "fox_gd_residual_write_budget."
+            )
+        if (
+            resolved_gd_residual_write_budget_release_end_train_steps
+            <= resolved_gd_residual_write_budget_release_start_train_steps
+        ):
+            raise ValueError(
+                "fox_gd_residual_write_budget_release_end_train_steps 必须大于 "
+                "release_start."
+            )
+    resolved_gd_residual_write_total_cap = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_total_cap,
+        field_name="fox_gd_residual_write_total_cap",
+    )
+    resolved_gd_residual_write_total_cap_final = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_write_total_cap_final,
+        field_name="fox_gd_residual_write_total_cap_final",
+    )
+    resolved_gd_residual_write_total_cap_release_start_train_steps = int(
+        fox_gd_residual_write_total_cap_release_start_train_steps
+    )
+    resolved_gd_residual_write_total_cap_release_end_train_steps = int(
+        fox_gd_residual_write_total_cap_release_end_train_steps
+    )
+    if resolved_gd_residual_write_total_cap_release_start_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_total_cap_release_start_train_steps 必须是非负整数."
+        )
+    if resolved_gd_residual_write_total_cap_release_end_train_steps < 0:
+        raise ValueError(
+            "fox_gd_residual_write_total_cap_release_end_train_steps 必须是非负整数."
+        )
+    resolved_gd_residual_write_total_cap_eval_policy = str(
+        fox_gd_residual_write_total_cap_eval_policy
+    ).lower()
+    if resolved_gd_residual_write_total_cap_eval_policy not in {"final", "scheduled"}:
+        raise ValueError(
+            "fox_gd_residual_write_total_cap_eval_policy 只能是 "
+            "['final', 'scheduled'], "
+            f"当前收到: {fox_gd_residual_write_total_cap_eval_policy}"
+        )
+    resolved_gd_residual_write_total_cap_schedule = str(
+        fox_gd_residual_write_total_cap_schedule
+    ).lower()
+    if resolved_gd_residual_write_total_cap_schedule not in {"smoothstep", "cosine"}:
+        raise ValueError(
+            "fox_gd_residual_write_total_cap_schedule 只能是 "
+            "['smoothstep', 'cosine'], "
+            f"当前收到: {fox_gd_residual_write_total_cap_schedule}"
+        )
+    if resolved_gd_residual_write_total_cap_final is not None:
+        if resolved_gd_residual_write_total_cap is None:
+            raise ValueError(
+                "fox_gd_residual_write_total_cap_final 需要同时设置 "
+                "fox_gd_residual_write_total_cap."
+            )
+        if (
+            resolved_gd_residual_write_total_cap_release_end_train_steps
+            <= resolved_gd_residual_write_total_cap_release_start_train_steps
+        ):
+            raise ValueError(
+                "fox_gd_residual_write_total_cap_release_end_train_steps 必须大于 "
+                "release_start."
+            )
+    resolved_gd_residual_write_q_alpha = _normalize_fox_gd_residual_positive_float(
+        fox_gd_residual_write_q_alpha,
+        field_name="fox_gd_residual_write_q_alpha",
+        default=DEFAULT_FOX_GD_RESIDUAL_WRITE_Q_ALPHA,
+    )
+    budgeted_write_modes = {
+        "budgeted_topk_beta",
+        "budgeted_topk_beta_scaled_cap",
+        "budgeted_topk_beta_scaled_peak_total_cap",
+    }
+    if resolved_gd_residual_write_strength_mode in budgeted_write_modes:
+        if resolved_gd_residual_write_budget is None:
+            raise ValueError(
+                "budgeted write strength mode 需要设置 "
+                "fox_gd_residual_write_budget."
+            )
+    if resolved_gd_residual_write_strength_mode == "budgeted_topk_beta":
+        if resolved_gd_residual_write_strength_cap is not None:
+            raise ValueError(
+                "budgeted_topk_beta 使用 fox_gd_residual_write_budget, "
+                "不能同时设置 fox_gd_residual_write_strength_cap."
+            )
+        if resolved_gd_residual_write_total_cap is not None:
+            raise ValueError(
+                "budgeted_topk_beta 使用 fox_gd_residual_write_budget, "
+                "不能同时设置 fox_gd_residual_write_total_cap."
+            )
+    elif resolved_gd_residual_write_strength_mode == "budgeted_topk_beta_scaled_cap":
+        if resolved_gd_residual_write_strength_cap is None:
+            raise ValueError(
+                "budgeted_topk_beta_scaled_cap 需要同时设置 "
+                "fox_gd_residual_write_strength_cap."
+            )
+        if resolved_gd_residual_write_total_cap is not None:
+            raise ValueError(
+                "budgeted_topk_beta_scaled_cap 不能同时设置 "
+                "fox_gd_residual_write_total_cap."
+            )
+    elif (
+        resolved_gd_residual_write_strength_mode
+        == "budgeted_topk_beta_scaled_peak_total_cap"
+    ):
+        if resolved_gd_residual_write_strength_cap is None:
+            raise ValueError(
+                "budgeted_topk_beta_scaled_peak_total_cap 需要同时设置 "
+                "fox_gd_residual_write_strength_cap."
+            )
+        if resolved_gd_residual_write_total_cap is None:
+            raise ValueError(
+                "budgeted_topk_beta_scaled_peak_total_cap 需要同时设置 "
+                "fox_gd_residual_write_total_cap."
+            )
+    elif resolved_gd_residual_write_budget is not None:
+        raise ValueError(
+            "fox_gd_residual_write_budget 只能与 "
+            "budgeted write strength mode 一起使用."
+        )
+    elif resolved_gd_residual_write_total_cap is not None:
+        raise ValueError(
+            "fox_gd_residual_write_total_cap 只能与 "
+            "budgeted_topk_beta_scaled_peak_total_cap 一起使用."
+        )
+    resolved_gd_residual_m_norm_cap = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_m_norm_cap,
+        field_name="fox_gd_residual_m_norm_cap",
+    )
+    resolved_gd_residual_update_norm_cap = _normalize_fox_gd_residual_optional_positive_float(
+        fox_gd_residual_update_norm_cap,
+        field_name="fox_gd_residual_update_norm_cap",
     )
     resolved_gd_residual_norm_with_gain = bool(fox_gd_residual_norm_with_gain)
     resolved_gd_residual_use_separate_addr_codebook = bool(
@@ -883,6 +1625,18 @@ def build_configs(
     resolved_vq_weight_mode = str(vq_weight_mode).lower()
     resolved_vq_update_mode = str(vq_update_mode).lower()
     resolved_vq_softmax_tau = _normalize_vq_softmax_tau(vq_softmax_tau)
+    resolved_codebook_init_rng_mode = _normalize_local_rng_mode(
+        codebook_init_rng_mode,
+        field_name="codebook_init_rng_mode",
+    )
+    resolved_codebook_init_seed = _normalize_optional_int_seed(
+        codebook_init_seed,
+        field_name="codebook_init_seed",
+    )
+    if resolved_codebook_init_rng_mode != "global" and resolved_codebook_init_seed is None:
+        raise ValueError(
+            "codebook_init_seed 必须在 codebook_init_rng_mode 非 global 时设置."
+        )
     resolved_vq_topk = _normalize_vq_topk(vq_topk)
     resolved_gradient_accumulation_steps = _normalize_positive_int(
         gradient_accumulation_steps,
@@ -1099,8 +1853,119 @@ def build_configs(
                         fox_gd_residual_addr_eps=resolved_gd_residual_addr_eps,
                         fox_gd_residual_den_eps=resolved_gd_residual_den_eps,
                         fox_gd_residual_rho_eps=resolved_gd_residual_rho_eps,
+                        fox_gd_residual_addr_init_rng_mode=(
+                            resolved_gd_residual_addr_init_rng_mode
+                        ),
+                        fox_gd_residual_addr_init_seed=(
+                            resolved_gd_residual_addr_init_seed
+                        ),
                         fox_gd_residual_beta_init=resolved_gd_residual_beta_init,
+                        fox_gd_residual_beta_cap=resolved_gd_residual_beta_cap,
+                        fox_gd_residual_beta_cap_final=(
+                            resolved_gd_residual_beta_cap_final
+                        ),
+                        fox_gd_residual_beta_cap_release_start_train_steps=(
+                            resolved_gd_residual_beta_cap_release_start_train_steps
+                        ),
+                        fox_gd_residual_beta_cap_release_end_train_steps=(
+                            resolved_gd_residual_beta_cap_release_end_train_steps
+                        ),
+                        fox_gd_residual_beta_cap_eval_policy=(
+                            resolved_gd_residual_beta_cap_eval_policy
+                        ),
+                        fox_gd_residual_beta_control_mode=(
+                            resolved_gd_residual_beta_control_mode
+                        ),
+                        fox_gd_residual_beta_sigmoid_temp=(
+                            resolved_gd_residual_beta_sigmoid_temp
+                        ),
+                        fox_gd_residual_beta_low=resolved_gd_residual_beta_low,
+                        fox_gd_residual_beta_high=resolved_gd_residual_beta_high,
+                        fox_gd_residual_beta_low_final=(
+                            resolved_gd_residual_beta_low_final
+                        ),
+                        fox_gd_residual_beta_high_final=(
+                            resolved_gd_residual_beta_high_final
+                        ),
+                        fox_gd_residual_beta_band_release_start_train_steps=(
+                            resolved_gd_residual_beta_band_release_start_train_steps
+                        ),
+                        fox_gd_residual_beta_band_release_end_train_steps=(
+                            resolved_gd_residual_beta_band_release_end_train_steps
+                        ),
+                        fox_gd_residual_beta_band_eval_policy=(
+                            resolved_gd_residual_beta_band_eval_policy
+                        ),
+                        fox_gd_residual_beta_band_schedule=(
+                            resolved_gd_residual_beta_band_schedule
+                        ),
                         fox_gd_residual_lambda_init=resolved_gd_residual_lambda_init,
+                        fox_gd_residual_lambda_floor=resolved_gd_residual_lambda_floor,
+                        fox_gd_residual_write_strength_mode=(
+                            resolved_gd_residual_write_strength_mode
+                        ),
+                        fox_gd_residual_write_strength_cap=(
+                            resolved_gd_residual_write_strength_cap
+                        ),
+                        fox_gd_residual_write_strength_cap_mode=(
+                            resolved_gd_residual_write_strength_cap_mode
+                        ),
+                        fox_gd_residual_write_strength_cap_until_train_steps=(
+                            resolved_gd_residual_write_strength_cap_until_train_steps
+                        ),
+                        fox_gd_residual_write_strength_cap_final=(
+                            resolved_gd_residual_write_strength_cap_final
+                        ),
+                        fox_gd_residual_write_strength_cap_release_start_train_steps=(
+                            resolved_gd_residual_write_strength_cap_release_start_train_steps
+                        ),
+                        fox_gd_residual_write_strength_cap_release_end_train_steps=(
+                            resolved_gd_residual_write_strength_cap_release_end_train_steps
+                        ),
+                        fox_gd_residual_write_strength_cap_eval_policy=(
+                            resolved_gd_residual_write_strength_cap_eval_policy
+                        ),
+                        fox_gd_residual_write_budget=resolved_gd_residual_write_budget,
+                        fox_gd_residual_write_budget_final=(
+                            resolved_gd_residual_write_budget_final
+                        ),
+                        fox_gd_residual_write_budget_release_start_train_steps=(
+                            resolved_gd_residual_write_budget_release_start_train_steps
+                        ),
+                        fox_gd_residual_write_budget_release_end_train_steps=(
+                            resolved_gd_residual_write_budget_release_end_train_steps
+                        ),
+                        fox_gd_residual_write_budget_eval_policy=(
+                            resolved_gd_residual_write_budget_eval_policy
+                        ),
+                        fox_gd_residual_write_budget_schedule=(
+                            resolved_gd_residual_write_budget_schedule
+                        ),
+                        fox_gd_residual_write_total_cap=(
+                            resolved_gd_residual_write_total_cap
+                        ),
+                        fox_gd_residual_write_total_cap_final=(
+                            resolved_gd_residual_write_total_cap_final
+                        ),
+                        fox_gd_residual_write_total_cap_release_start_train_steps=(
+                            resolved_gd_residual_write_total_cap_release_start_train_steps
+                        ),
+                        fox_gd_residual_write_total_cap_release_end_train_steps=(
+                            resolved_gd_residual_write_total_cap_release_end_train_steps
+                        ),
+                        fox_gd_residual_write_total_cap_eval_policy=(
+                            resolved_gd_residual_write_total_cap_eval_policy
+                        ),
+                        fox_gd_residual_write_total_cap_schedule=(
+                            resolved_gd_residual_write_total_cap_schedule
+                        ),
+                        fox_gd_residual_write_q_alpha=(
+                            resolved_gd_residual_write_q_alpha
+                        ),
+                        fox_gd_residual_m_norm_cap=resolved_gd_residual_m_norm_cap,
+                        fox_gd_residual_update_norm_cap=(
+                            resolved_gd_residual_update_norm_cap
+                        ),
                         fox_gd_residual_norm_with_gain=resolved_gd_residual_norm_with_gain,
                         fox_gd_residual_use_separate_addr_codebook=(
                             resolved_gd_residual_use_separate_addr_codebook
@@ -1113,6 +1978,8 @@ def build_configs(
                         vq_weight_mode=resolved_vq_weight_mode,
                         vq_update_mode=resolved_vq_update_mode,
                         vq_softmax_tau=resolved_vq_softmax_tau,
+                        codebook_init_rng_mode=resolved_codebook_init_rng_mode,
+                        codebook_init_seed=resolved_codebook_init_seed,
                         vq_topk=resolved_vq_topk,
                         if_value_silu=True,
                         if_output_gate_use_rmsnorm=True,
@@ -1199,8 +2066,137 @@ def build_configs(
                                             fox_gd_residual_write_topk=resolved_gd_residual_write_topk,
                                             fox_gd_residual_builder=resolved_gd_residual_builder,
                                             fox_gd_residual_pack_mode=resolved_gd_residual_pack_mode,
+                                            fox_gd_residual_write_strength_mode=(
+                                                resolved_gd_residual_write_strength_mode
+                                            ),
+                                            fox_gd_residual_write_strength_cap=(
+                                                resolved_gd_residual_write_strength_cap
+                                            ),
+                                            fox_gd_residual_write_strength_cap_mode=(
+                                                resolved_gd_residual_write_strength_cap_mode
+                                            ),
+                                            fox_gd_residual_write_strength_cap_until_train_steps=(
+                                                resolved_gd_residual_write_strength_cap_until_train_steps
+                                            ),
+                                            fox_gd_residual_write_strength_cap_final=(
+                                                resolved_gd_residual_write_strength_cap_final
+                                            ),
+                                            fox_gd_residual_write_strength_cap_release_start_train_steps=(
+                                                resolved_gd_residual_write_strength_cap_release_start_train_steps
+                                            ),
+                                            fox_gd_residual_write_strength_cap_release_end_train_steps=(
+                                                resolved_gd_residual_write_strength_cap_release_end_train_steps
+                                            ),
+                                            fox_gd_residual_write_strength_cap_eval_policy=(
+                                                resolved_gd_residual_write_strength_cap_eval_policy
+                                            ),
+                                            fox_gd_residual_write_budget=(
+                                                resolved_gd_residual_write_budget
+                                            ),
+                                            fox_gd_residual_write_budget_final=(
+                                                resolved_gd_residual_write_budget_final
+                                            ),
+                                            fox_gd_residual_write_budget_release_start_train_steps=(
+                                                resolved_gd_residual_write_budget_release_start_train_steps
+                                            ),
+                                            fox_gd_residual_write_budget_release_end_train_steps=(
+                                                resolved_gd_residual_write_budget_release_end_train_steps
+                                            ),
+                                            fox_gd_residual_write_budget_eval_policy=(
+                                                resolved_gd_residual_write_budget_eval_policy
+                                            ),
+                                            fox_gd_residual_write_budget_schedule=(
+                                                resolved_gd_residual_write_budget_schedule
+                                            ),
+                                            fox_gd_residual_write_total_cap=(
+                                                resolved_gd_residual_write_total_cap
+                                            ),
+                                            fox_gd_residual_write_total_cap_final=(
+                                                resolved_gd_residual_write_total_cap_final
+                                            ),
+                                            fox_gd_residual_write_total_cap_release_start_train_steps=(
+                                                resolved_gd_residual_write_total_cap_release_start_train_steps
+                                            ),
+                                            fox_gd_residual_write_total_cap_release_end_train_steps=(
+                                                resolved_gd_residual_write_total_cap_release_end_train_steps
+                                            ),
+                                            fox_gd_residual_write_total_cap_eval_policy=(
+                                                resolved_gd_residual_write_total_cap_eval_policy
+                                            ),
+                                            fox_gd_residual_write_total_cap_schedule=(
+                                                resolved_gd_residual_write_total_cap_schedule
+                                            ),
+                                            fox_gd_residual_write_q_alpha=(
+                                                resolved_gd_residual_write_q_alpha
+                                            ),
+                                            fox_gd_residual_m_norm_cap=(
+                                                resolved_gd_residual_m_norm_cap
+                                            ),
+                                            fox_gd_residual_update_norm_cap=(
+                                                resolved_gd_residual_update_norm_cap
+                                            ),
+                                            fox_gd_residual_beta_cap=(
+                                                resolved_gd_residual_beta_cap
+                                            ),
+                                            fox_gd_residual_beta_cap_final=(
+                                                resolved_gd_residual_beta_cap_final
+                                            ),
+                                            fox_gd_residual_beta_cap_release_start_train_steps=(
+                                                resolved_gd_residual_beta_cap_release_start_train_steps
+                                            ),
+                                            fox_gd_residual_beta_cap_release_end_train_steps=(
+                                                resolved_gd_residual_beta_cap_release_end_train_steps
+                                            ),
+                                            fox_gd_residual_beta_cap_eval_policy=(
+                                                resolved_gd_residual_beta_cap_eval_policy
+                                            ),
+                                            fox_gd_residual_beta_control_mode=(
+                                                resolved_gd_residual_beta_control_mode
+                                            ),
+                                            fox_gd_residual_beta_sigmoid_temp=(
+                                                resolved_gd_residual_beta_sigmoid_temp
+                                            ),
+                                            fox_gd_residual_beta_low=(
+                                                resolved_gd_residual_beta_low
+                                            ),
+                                            fox_gd_residual_beta_high=(
+                                                resolved_gd_residual_beta_high
+                                            ),
+                                            fox_gd_residual_beta_low_final=(
+                                                resolved_gd_residual_beta_low_final
+                                            ),
+                                            fox_gd_residual_beta_high_final=(
+                                                resolved_gd_residual_beta_high_final
+                                            ),
+                                            fox_gd_residual_beta_band_release_start_train_steps=(
+                                                resolved_gd_residual_beta_band_release_start_train_steps
+                                            ),
+                                            fox_gd_residual_beta_band_release_end_train_steps=(
+                                                resolved_gd_residual_beta_band_release_end_train_steps
+                                            ),
+                                            fox_gd_residual_beta_band_eval_policy=(
+                                                resolved_gd_residual_beta_band_eval_policy
+                                            ),
+                                            fox_gd_residual_beta_band_schedule=(
+                                                resolved_gd_residual_beta_band_schedule
+                                            ),
+                                            fox_gd_residual_lambda_floor=(
+                                                resolved_gd_residual_lambda_floor
+                                            ),
                                         )}"
                                     )
+                                    if resolved_codebook_init_rng_mode != "global":
+                                        run_id = (
+                                            f"{run_id}-cbinit-"
+                                            f"{resolved_codebook_init_rng_mode}-"
+                                            f"s{resolved_codebook_init_seed}"
+                                        )
+                                    if resolved_gd_residual_addr_init_rng_mode != "global":
+                                        run_id = (
+                                            f"{run_id}-addrinit-"
+                                            f"{resolved_gd_residual_addr_init_rng_mode}-"
+                                            f"s{resolved_gd_residual_addr_init_seed}"
+                                        )
                                     if resolved_remote_formula in ("clr_v1", "clr_delta_v1"):
                                         run_id = (
                                             f"{run_id}-rremat-"

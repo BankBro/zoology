@@ -41,6 +41,10 @@ def test_candidate_metrics_include_attn_and_valid_variants():
     assert "valid/attn/remote_win_rate" in metrics
     assert "layer_1/attn/remote_win_rate" in metrics
     assert "valid/layer_1/attn/remote_win_rate" in metrics
+    assert "attn/gd_residual_write_q_top1_mean" in metrics
+    assert "valid/attn/gd_residual_write_q_entropy_mean" in metrics
+    assert "layer_1/attn/gd_residual_write_q_raw_top1_mean" in metrics
+    assert "valid/layer_1/attn/gd_residual_write_q_smoothing_active" in metrics
     assert "attn/clr_alpha_norm_mean" in metrics
     assert "valid/attn/clr_h_norm_mean" in metrics
     assert "attn/remote_routing_entropy" in metrics

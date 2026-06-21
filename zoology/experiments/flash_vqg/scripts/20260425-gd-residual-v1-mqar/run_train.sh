@@ -36,6 +36,7 @@ cd "${ROOT_DIR}"
   --fox-gd-residual-rho-eps "${FOX_GD_RESIDUAL_RHO_EPS}" \
   --fox-gd-residual-beta-init "${FOX_GD_RESIDUAL_BETA_INIT}" \
   --fox-gd-residual-lambda-init "${FOX_GD_RESIDUAL_LAMBDA_INIT}" \
+  --fox-gd-residual-write-q-alpha "${FOX_GD_RESIDUAL_WRITE_Q_ALPHA}" \
   --fox-gd-residual-norm-with-gain "${FOX_GD_RESIDUAL_NORM_WITH_GAIN}" \
   --fox-gd-residual-use-separate-addr-codebook "${FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK}" \
   --vq-score-mode "${VQ_SCORE_MODE}" \
