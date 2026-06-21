@@ -151,6 +151,18 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         "experiment_mode": flash_kwargs.get("experiment_mode"),
         "fox_remote_formula": flash_kwargs.get("fox_remote_formula"),
         "fox_remote_read_topk": flash_kwargs.get("fox_remote_read_topk"),
+        "fox_remote_read_topk_initial": flash_kwargs.get("fox_remote_read_topk_initial"),
+        "fox_remote_read_topk_final": flash_kwargs.get("fox_remote_read_topk_final"),
+        "fox_remote_read_topk_release_start_train_steps": flash_kwargs.get(
+            "fox_remote_read_topk_release_start_train_steps"
+        ),
+        "fox_remote_read_topk_release_end_train_steps": flash_kwargs.get(
+            "fox_remote_read_topk_release_end_train_steps"
+        ),
+        "fox_remote_read_topk_schedule": flash_kwargs.get("fox_remote_read_topk_schedule"),
+        "fox_remote_read_topk_eval_policy": flash_kwargs.get(
+            "fox_remote_read_topk_eval_policy"
+        ),
         "fox_clr_selector_mode": flash_kwargs.get("fox_clr_selector_mode"),
         "fox_clr_merge_mode": flash_kwargs.get("fox_clr_merge_mode"),
         "fox_clr_gate_mode": flash_kwargs.get("fox_clr_gate_mode"),

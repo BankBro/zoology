@@ -336,6 +336,12 @@ def add_flash_vqg(
     fox_state_build_backend="torch",
     fox_remote_path_backend="torch",
     fox_remote_read_topk=None,
+    fox_remote_read_topk_initial=None,
+    fox_remote_read_topk_final=None,
+    fox_remote_read_topk_release_start_train_steps=0,
+    fox_remote_read_topk_release_end_train_steps=0,
+    fox_remote_read_topk_schedule="linear_int",
+    fox_remote_read_topk_eval_policy="scheduled",
     fox_remote_formula="legacy",
     fox_clr_rank=4,
     fox_clr_use_den_residual=True,
@@ -447,6 +453,8 @@ def add_flash_vqg(
             {"torch", "triton"}.
         fox_remote_read_topk: Optional read-side top-k for remote reduction.
             None keeps dense readout.
+        fox_remote_read_topk_initial: Optional schedule start top-k for gd_residual_v1.
+        fox_remote_read_topk_final: Optional schedule final top-k for gd_residual_v1.
         fox_remote_formula: Remote read formula. One of
             {"legacy", "clr_v1", "clr_delta_v1", "gd_residual_v1"}.
         fox_clr_rank: CLR residual coordinate rank.
@@ -495,6 +503,24 @@ def add_flash_vqg(
                 "fox_remote_read_topk": (
                     None if fox_remote_read_topk is None else int(fox_remote_read_topk)
                 ),
+                "fox_remote_read_topk_initial": (
+                    None
+                    if fox_remote_read_topk_initial is None
+                    else int(fox_remote_read_topk_initial)
+                ),
+                "fox_remote_read_topk_final": (
+                    None
+                    if fox_remote_read_topk_final is None
+                    else int(fox_remote_read_topk_final)
+                ),
+                "fox_remote_read_topk_release_start_train_steps": int(
+                    fox_remote_read_topk_release_start_train_steps
+                ),
+                "fox_remote_read_topk_release_end_train_steps": int(
+                    fox_remote_read_topk_release_end_train_steps
+                ),
+                "fox_remote_read_topk_schedule": str(fox_remote_read_topk_schedule),
+                "fox_remote_read_topk_eval_policy": str(fox_remote_read_topk_eval_policy),
                 "fox_remote_formula": str(fox_remote_formula),
                 "fox_clr_rank": int(fox_clr_rank),
                 "fox_clr_use_den_residual": bool(fox_clr_use_den_residual),

@@ -10,6 +10,7 @@
 - attn/remote_routing_entropy
 - attn/gd_residual_inject_ratio
 - attn/gd_residual_lambda_mean
+- attn/gd_residual_remote_read_topk_effective
 - attn/gd_residual_beta_mean
 - attn/gd_residual_beta_max
 - attn/gd_residual_beta_cap_hit_ratio
@@ -91,6 +92,7 @@
 - attn/gd_residual_debug_l_state_hist_ge_1_0
 - layer_*/attn/gd_residual_inject_ratio
 - layer_*/attn/gd_residual_lambda_mean
+- layer_*/attn/gd_residual_remote_read_topk_effective
 - layer_*/attn/gd_residual_beta_mean
 - layer_*/attn/gd_residual_beta_max
 - layer_*/attn/gd_residual_beta_cap_hit_ratio
@@ -126,6 +128,7 @@
 - valid/attn/remote_routing_entropy
 - valid/attn/gd_residual_inject_ratio
 - valid/attn/gd_residual_lambda_mean
+- valid/attn/gd_residual_remote_read_topk_effective
 - valid/attn/gd_residual_beta_mean
 - valid/attn/gd_residual_beta_max
 - valid/attn/gd_residual_beta_cap_hit_ratio
@@ -207,6 +210,7 @@
 - valid/attn/gd_residual_debug_l_state_hist_ge_1_0
 - valid/layer_*/attn/gd_residual_inject_ratio
 - valid/layer_*/attn/gd_residual_lambda_mean
+- valid/layer_*/attn/gd_residual_remote_read_topk_effective
 - valid/layer_*/attn/gd_residual_beta_mean
 - valid/layer_*/attn/gd_residual_beta_max
 - valid/layer_*/attn/gd_residual_beta_cap_hit_ratio

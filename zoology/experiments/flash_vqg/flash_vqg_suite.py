@@ -36,6 +36,12 @@ DEFAULT_VQ_SOFTMAX_TAU = 1.0
 DEFAULT_CODEBOOK_INIT_RNG_MODE = "global"
 DEFAULT_CODEBOOK_INIT_SEED = None
 DEFAULT_VQ_TOPK = 4
+DEFAULT_FOX_REMOTE_READ_TOPK_INITIAL = None
+DEFAULT_FOX_REMOTE_READ_TOPK_FINAL = None
+DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_START_TRAIN_STEPS = 0
+DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_END_TRAIN_STEPS = 0
+DEFAULT_FOX_REMOTE_READ_TOPK_SCHEDULE = "linear_int"
+DEFAULT_FOX_REMOTE_READ_TOPK_EVAL_POLICY = "scheduled"
 DEFAULT_FOX_GD_RESIDUAL_RANK = 16
 DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK = 4
 DEFAULT_FOX_GD_RESIDUAL_BUILDER = "grouped_chunk_torch_ref"
@@ -421,6 +427,58 @@ def _normalize_fox_remote_read_topk_values(
     if not normalized:
         raise ValueError("fox_remote_read_topk_values 不能为空.")
     return normalized
+
+
+def _normalize_fox_remote_read_topk_schedule(
+    *,
+    fox_remote_read_topk_initial: int | None,
+    fox_remote_read_topk_final: int | None,
+    fox_remote_read_topk_release_start_train_steps: int,
+    fox_remote_read_topk_release_end_train_steps: int,
+    fox_remote_read_topk_schedule: str,
+    fox_remote_read_topk_eval_policy: str,
+) -> tuple[int | None, int | None, int, int, str, str]:
+    initial = _normalize_positive_int(
+        fox_remote_read_topk_initial,
+        field_name="fox_remote_read_topk_initial",
+    )
+    final = _normalize_positive_int(
+        fox_remote_read_topk_final,
+        field_name="fox_remote_read_topk_final",
+    )
+    if (initial is None) != (final is None):
+        raise ValueError(
+            "fox_remote_read_topk_initial 和 fox_remote_read_topk_final 必须成对设置."
+        )
+
+    start = int(fox_remote_read_topk_release_start_train_steps)
+    end = int(fox_remote_read_topk_release_end_train_steps)
+    if start < 0:
+        raise ValueError(
+            "fox_remote_read_topk_release_start_train_steps 必须是非负整数."
+        )
+    if end < 0:
+        raise ValueError(
+            "fox_remote_read_topk_release_end_train_steps 必须是非负整数."
+        )
+    if initial is not None and end <= start:
+        raise ValueError(
+            "fox_remote_read_topk_release_end_train_steps 必须大于 release_start."
+        )
+
+    schedule = str(fox_remote_read_topk_schedule).lower()
+    if schedule not in {"linear_int", "step"}:
+        raise ValueError(
+            "fox_remote_read_topk_schedule 只能是 ['linear_int', 'step'], "
+            f"当前收到: {fox_remote_read_topk_schedule}"
+        )
+    eval_policy = str(fox_remote_read_topk_eval_policy).lower()
+    if eval_policy not in {"scheduled", "final"}:
+        raise ValueError(
+            "fox_remote_read_topk_eval_policy 只能是 ['scheduled', 'final'], "
+            f"当前收到: {fox_remote_read_topk_eval_policy}"
+        )
+    return initial, final, start, end, schedule, eval_policy
 
 
 def _normalize_fox_remote_formula(fox_remote_formula: str | None) -> str:
@@ -809,6 +867,12 @@ def _remote_formula_run_tag(
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
+    fox_remote_read_topk_initial: int | None = DEFAULT_FOX_REMOTE_READ_TOPK_INITIAL,
+    fox_remote_read_topk_final: int | None = DEFAULT_FOX_REMOTE_READ_TOPK_FINAL,
+    fox_remote_read_topk_release_start_train_steps: int = DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_START_TRAIN_STEPS,
+    fox_remote_read_topk_release_end_train_steps: int = DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_END_TRAIN_STEPS,
+    fox_remote_read_topk_schedule: str = DEFAULT_FOX_REMOTE_READ_TOPK_SCHEDULE,
+    fox_remote_read_topk_eval_policy: str = DEFAULT_FOX_REMOTE_READ_TOPK_EVAL_POLICY,
     fox_gd_residual_rank: int = DEFAULT_FOX_GD_RESIDUAL_RANK,
     fox_gd_residual_write_topk: int = DEFAULT_FOX_GD_RESIDUAL_WRITE_TOPK,
     fox_gd_residual_builder: str = DEFAULT_FOX_GD_RESIDUAL_BUILDER,
@@ -860,10 +924,21 @@ def _remote_formula_run_tag(
     if fox_remote_formula == "gd_residual_v1":
         builder_tag = "gctref" if fox_gd_residual_builder == "grouped_chunk_torch_ref" else "tsref"
         pack_tag = "semivec" if fox_gd_residual_pack_mode == "semivec_ref" else "loop"
+        read_schedule_tag = ""
+        if fox_remote_read_topk_initial is not None:
+            read_schedule_tag = (
+                f"-readsched{int(fox_remote_read_topk_initial)}to"
+                f"{int(fox_remote_read_topk_final)}"
+                f"-rel{int(fox_remote_read_topk_release_start_train_steps)}to"
+                f"{int(fox_remote_read_topk_release_end_train_steps)}"
+                f"-{fox_remote_read_topk_schedule}"
+                f"-eval{fox_remote_read_topk_eval_policy}"
+            )
         return (
             f"gdr1-r{int(fox_gd_residual_rank)}-"
             f"wk{int(fox_gd_residual_write_topk)}-"
             f"{builder_tag}-{pack_tag}"
+            f"{read_schedule_tag}"
             f"{'' if fox_gd_residual_write_strength_mode == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_MODE else f'-wmode{fox_gd_residual_write_strength_mode}'}"
             f"{_optional_float_run_tag(fox_gd_residual_write_strength_cap, prefix='wcap')}"
             f"{'' if fox_gd_residual_write_strength_cap_mode == DEFAULT_FOX_GD_RESIDUAL_WRITE_STRENGTH_CAP_MODE else f'-wcapmode{fox_gd_residual_write_strength_cap_mode}'}"
@@ -1019,6 +1094,12 @@ def build_configs(
     fox_remote_path_backend: str | None = None,
     fox_remote_read_topk_values: Iterable[int | None] | None = None,
     fox_remote_read_topk: int | None = None,
+    fox_remote_read_topk_initial: int | None = DEFAULT_FOX_REMOTE_READ_TOPK_INITIAL,
+    fox_remote_read_topk_final: int | None = DEFAULT_FOX_REMOTE_READ_TOPK_FINAL,
+    fox_remote_read_topk_release_start_train_steps: int = DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_START_TRAIN_STEPS,
+    fox_remote_read_topk_release_end_train_steps: int = DEFAULT_FOX_REMOTE_READ_TOPK_RELEASE_END_TRAIN_STEPS,
+    fox_remote_read_topk_schedule: str = DEFAULT_FOX_REMOTE_READ_TOPK_SCHEDULE,
+    fox_remote_read_topk_eval_policy: str = DEFAULT_FOX_REMOTE_READ_TOPK_EVAL_POLICY,
     fox_remote_formula: str = "legacy",
     fox_clr_rank: int = 4,
     fox_clr_use_den_residual: bool = True,
@@ -1662,6 +1743,25 @@ def build_configs(
         fox_remote_read_topk_values,
         fox_remote_read_topk=fox_remote_read_topk,
     )
+    (
+        resolved_remote_read_topk_initial,
+        resolved_remote_read_topk_final,
+        resolved_remote_read_topk_release_start_train_steps,
+        resolved_remote_read_topk_release_end_train_steps,
+        resolved_remote_read_topk_schedule,
+        resolved_remote_read_topk_eval_policy,
+    ) = _normalize_fox_remote_read_topk_schedule(
+        fox_remote_read_topk_initial=fox_remote_read_topk_initial,
+        fox_remote_read_topk_final=fox_remote_read_topk_final,
+        fox_remote_read_topk_release_start_train_steps=(
+            fox_remote_read_topk_release_start_train_steps
+        ),
+        fox_remote_read_topk_release_end_train_steps=(
+            fox_remote_read_topk_release_end_train_steps
+        ),
+        fox_remote_read_topk_schedule=fox_remote_read_topk_schedule,
+        fox_remote_read_topk_eval_policy=fox_remote_read_topk_eval_policy,
+    )
     weighted_routing_write = (
         resolved_vq_score_mode == "codebook_dot"
         and resolved_vq_weight_mode in {"dense_softmax", "topk_softmax"}
@@ -1674,6 +1774,10 @@ def build_configs(
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 目前只支持 fox_remote_path_backend='torch'.")
         if resolved_remote_formula == "clr_delta_v1" and any(value is not None for value in remote_read_topk_list):
             raise ValueError(f"fox_remote_formula='{resolved_remote_formula}' 暂不支持 fox_remote_read_topk.")
+        if resolved_remote_read_topk_initial is not None:
+            raise ValueError(
+                f"fox_remote_formula='{resolved_remote_formula}' 暂不支持 fox_remote_read_topk schedule."
+            )
         if resolved_clr_rank == 0 and bool(fox_clr_use_den_residual):
             raise ValueError("fox_clr_rank=0 只能与 fox_clr_use_den_residual=False 搭配使用.")
         if resolved_clr_merge_mode == "shared_den" and resolved_clr_selector_mode != "den_aware":
@@ -1731,6 +1835,8 @@ def build_configs(
                 "gd_residual_v1 requires trainable routing codebook. "
                 "vq_update_mode 必须是 'grad'."
             )
+    elif resolved_remote_read_topk_initial is not None:
+        raise ValueError("fox_remote_read_topk schedule 目前只支持 fox_remote_formula='gd_residual_v1'.")
     elif resolved_clr_remat_mode != "off":
         raise ValueError("fox_clr_remat_mode 目前只支持 fox_remote_formula='clr_v1' 或 'clr_delta_v1'.")
     if weighted_routing_write and resolved_remote_formula not in {"clr_v1", "gd_residual_v1"}:
@@ -1750,6 +1856,7 @@ def build_configs(
         fox_remote_read_topk_values is not None
         or fox_remote_read_topk is not None
         or len(remote_read_topk_list) > 1
+        or resolved_remote_read_topk_initial is not None
     )
     if normalized_num_codebook_vectors_values is not None:
         codebook_variants = [
@@ -1836,6 +1943,18 @@ def build_configs(
                         fox_state_build_backend="triton" if flash_backend == "accel" else "torch",
                         fox_remote_path_backend=resolved_remote_path_backend,
                         fox_remote_read_topk=current_remote_read_topk,
+                        fox_remote_read_topk_initial=resolved_remote_read_topk_initial,
+                        fox_remote_read_topk_final=resolved_remote_read_topk_final,
+                        fox_remote_read_topk_release_start_train_steps=(
+                            resolved_remote_read_topk_release_start_train_steps
+                        ),
+                        fox_remote_read_topk_release_end_train_steps=(
+                            resolved_remote_read_topk_release_end_train_steps
+                        ),
+                        fox_remote_read_topk_schedule=resolved_remote_read_topk_schedule,
+                        fox_remote_read_topk_eval_policy=(
+                            resolved_remote_read_topk_eval_policy
+                        ),
                         fox_remote_formula=resolved_remote_formula,
                         fox_clr_rank=resolved_clr_rank,
                         fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
@@ -2070,6 +2189,24 @@ def build_configs(
                                             fox_remote_formula=resolved_remote_formula,
                                             fox_clr_rank=resolved_clr_rank,
                                             fox_clr_use_den_residual=bool(fox_clr_use_den_residual),
+                                            fox_remote_read_topk_initial=(
+                                                resolved_remote_read_topk_initial
+                                            ),
+                                            fox_remote_read_topk_final=(
+                                                resolved_remote_read_topk_final
+                                            ),
+                                            fox_remote_read_topk_release_start_train_steps=(
+                                                resolved_remote_read_topk_release_start_train_steps
+                                            ),
+                                            fox_remote_read_topk_release_end_train_steps=(
+                                                resolved_remote_read_topk_release_end_train_steps
+                                            ),
+                                            fox_remote_read_topk_schedule=(
+                                                resolved_remote_read_topk_schedule
+                                            ),
+                                            fox_remote_read_topk_eval_policy=(
+                                                resolved_remote_read_topk_eval_policy
+                                            ),
                                             fox_gd_residual_rank=resolved_gd_residual_rank,
                                             fox_gd_residual_write_topk=resolved_gd_residual_write_topk,
                                             fox_gd_residual_builder=resolved_gd_residual_builder,

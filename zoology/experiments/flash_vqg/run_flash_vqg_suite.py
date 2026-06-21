@@ -274,6 +274,12 @@ def _render_generated_config(
     num_codebook_vectors_map: dict[int, int] | None,
     fox_remote_path_backend: str | None,
     fox_remote_read_topk_values: list[int | None] | None,
+    fox_remote_read_topk_initial: int | None,
+    fox_remote_read_topk_final: int | None,
+    fox_remote_read_topk_release_start_train_steps: int,
+    fox_remote_read_topk_release_end_train_steps: int,
+    fox_remote_read_topk_schedule: str,
+    fox_remote_read_topk_eval_policy: str,
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
@@ -390,6 +396,14 @@ def _render_generated_config(
         f"    num_codebook_vectors_map={num_codebook_vectors_map!r},",
         f"    fox_remote_path_backend={fox_remote_path_backend!r},",
         f"    fox_remote_read_topk_values={fox_remote_read_topk_values!r},",
+        f"    fox_remote_read_topk_initial={fox_remote_read_topk_initial!r},",
+        f"    fox_remote_read_topk_final={fox_remote_read_topk_final!r},",
+        "    fox_remote_read_topk_release_start_train_steps="
+        f"{fox_remote_read_topk_release_start_train_steps!r},",
+        "    fox_remote_read_topk_release_end_train_steps="
+        f"{fox_remote_read_topk_release_end_train_steps!r},",
+        f"    fox_remote_read_topk_schedule={fox_remote_read_topk_schedule!r},",
+        f"    fox_remote_read_topk_eval_policy={fox_remote_read_topk_eval_policy!r},",
         f"    fox_remote_formula={fox_remote_formula!r},",
         f"    fox_clr_rank={fox_clr_rank!r},",
         f"    fox_clr_use_den_residual={fox_clr_use_den_residual!r},",
@@ -581,6 +595,12 @@ def _build_manifest_run_ids(
     num_codebook_vectors_map: dict[int, int] | None,
     fox_remote_path_backend: str | None,
     fox_remote_read_topk_values: list[int | None] | None,
+    fox_remote_read_topk_initial: int | None,
+    fox_remote_read_topk_final: int | None,
+    fox_remote_read_topk_release_start_train_steps: int,
+    fox_remote_read_topk_release_end_train_steps: int,
+    fox_remote_read_topk_schedule: str,
+    fox_remote_read_topk_eval_policy: str,
     fox_remote_formula: str,
     fox_clr_rank: int,
     fox_clr_use_den_residual: bool,
@@ -686,6 +706,16 @@ def _build_manifest_run_ids(
         num_codebook_vectors_map=num_codebook_vectors_map,
         fox_remote_path_backend=fox_remote_path_backend,
         fox_remote_read_topk_values=fox_remote_read_topk_values,
+        fox_remote_read_topk_initial=fox_remote_read_topk_initial,
+        fox_remote_read_topk_final=fox_remote_read_topk_final,
+        fox_remote_read_topk_release_start_train_steps=(
+            fox_remote_read_topk_release_start_train_steps
+        ),
+        fox_remote_read_topk_release_end_train_steps=(
+            fox_remote_read_topk_release_end_train_steps
+        ),
+        fox_remote_read_topk_schedule=fox_remote_read_topk_schedule,
+        fox_remote_read_topk_eval_policy=fox_remote_read_topk_eval_policy,
         fox_remote_formula=fox_remote_formula,
         fox_clr_rank=fox_clr_rank,
         fox_clr_use_den_residual=fox_clr_use_den_residual,
@@ -957,6 +987,28 @@ def main():
         type=str,
         default=None,
         help="逗号分隔的 read-side top-k 扫描, 例如 dense,2,4.",
+    )
+    parser.add_argument("--fox-remote-read-topk-initial", type=int, default=None)
+    parser.add_argument("--fox-remote-read-topk-final", type=int, default=None)
+    parser.add_argument(
+        "--fox-remote-read-topk-release-start-train-steps",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "--fox-remote-read-topk-release-end-train-steps",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "--fox-remote-read-topk-schedule",
+        choices=["linear_int", "step"],
+        default="linear_int",
+    )
+    parser.add_argument(
+        "--fox-remote-read-topk-eval-policy",
+        choices=["scheduled", "final"],
+        default="scheduled",
     )
     parser.add_argument(
         "--fox-remote-formula",
@@ -1471,6 +1523,16 @@ def main():
             num_codebook_vectors_map=num_codebook_vectors_map,
             fox_remote_path_backend=args.fox_remote_path_backend,
             fox_remote_read_topk_values=fox_remote_read_topk_values,
+            fox_remote_read_topk_initial=args.fox_remote_read_topk_initial,
+            fox_remote_read_topk_final=args.fox_remote_read_topk_final,
+            fox_remote_read_topk_release_start_train_steps=(
+                args.fox_remote_read_topk_release_start_train_steps
+            ),
+            fox_remote_read_topk_release_end_train_steps=(
+                args.fox_remote_read_topk_release_end_train_steps
+            ),
+            fox_remote_read_topk_schedule=args.fox_remote_read_topk_schedule,
+            fox_remote_read_topk_eval_policy=args.fox_remote_read_topk_eval_policy,
             fox_remote_formula=args.fox_remote_formula,
             fox_clr_rank=args.fox_clr_rank,
             fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),
@@ -1624,6 +1686,16 @@ def main():
                 num_codebook_vectors_map=num_codebook_vectors_map,
                 fox_remote_path_backend=args.fox_remote_path_backend,
                 fox_remote_read_topk_values=fox_remote_read_topk_values,
+                fox_remote_read_topk_initial=args.fox_remote_read_topk_initial,
+                fox_remote_read_topk_final=args.fox_remote_read_topk_final,
+                fox_remote_read_topk_release_start_train_steps=(
+                    args.fox_remote_read_topk_release_start_train_steps
+                ),
+                fox_remote_read_topk_release_end_train_steps=(
+                    args.fox_remote_read_topk_release_end_train_steps
+                ),
+                fox_remote_read_topk_schedule=args.fox_remote_read_topk_schedule,
+                fox_remote_read_topk_eval_policy=args.fox_remote_read_topk_eval_policy,
                 fox_remote_formula=args.fox_remote_formula,
                 fox_clr_rank=args.fox_clr_rank,
                 fox_clr_use_den_residual=(args.fox_clr_use_den_residual == "true"),

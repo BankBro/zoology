@@ -37,6 +37,7 @@ class SmokeCase:
     kwargs: dict[str, Any]
     expected: dict[str, Any]
     required_metrics: tuple[str, ...]
+    expected_runtime_metrics: dict[str, Any] | None = None
 
 
 def _json_default(value: Any) -> Any:
@@ -148,6 +149,7 @@ def _cases() -> list[SmokeCase]:
         "attn/gd_residual_m_norm_mean",
         "attn/gd_residual_lambda_mean",
         "attn/gd_residual_inject_ratio",
+        "attn/gd_residual_remote_read_topk_effective",
     )
     return [
         SmokeCase(
@@ -161,6 +163,9 @@ def _cases() -> list[SmokeCase]:
                 "fox_gd_residual_write_q_alpha": 0.75,
             },
             required_metrics=common_metrics,
+            expected_runtime_metrics={
+                "attn/gd_residual_remote_read_topk_effective": 2.0,
+            },
         ),
         SmokeCase(
             case_id="readk4",
@@ -173,6 +178,34 @@ def _cases() -> list[SmokeCase]:
                 "fox_gd_residual_write_q_alpha": 0.80,
             },
             required_metrics=common_metrics,
+            expected_runtime_metrics={
+                "attn/gd_residual_remote_read_topk_effective": 4.0,
+            },
+        ),
+        SmokeCase(
+            case_id="readk4-to-readk2-schedule",
+            kwargs={
+                "fox_remote_read_topk_values": [2],
+                "fox_remote_read_topk_initial": 4,
+                "fox_remote_read_topk_final": 2,
+                "fox_remote_read_topk_release_start_train_steps": 1,
+                "fox_remote_read_topk_release_end_train_steps": 3,
+                "fox_remote_read_topk_schedule": "linear_int",
+                "fox_remote_read_topk_eval_policy": "scheduled",
+            },
+            expected={
+                "fox_remote_read_topk": 2,
+                "fox_remote_read_topk_initial": 4,
+                "fox_remote_read_topk_final": 2,
+                "fox_remote_read_topk_release_start_train_steps": 1,
+                "fox_remote_read_topk_release_end_train_steps": 3,
+                "fox_remote_read_topk_schedule": "linear_int",
+                "fox_remote_read_topk_eval_policy": "scheduled",
+            },
+            required_metrics=common_metrics,
+            expected_runtime_metrics={
+                "attn/gd_residual_remote_read_topk_effective": 4.0,
+            },
         ),
         SmokeCase(
             case_id="write-cap-004",
@@ -191,6 +224,9 @@ def _cases() -> list[SmokeCase]:
                 "attn/gd_residual_write_strength_cap_active",
                 "attn/gd_residual_write_strength_effective_cap",
             ),
+            expected_runtime_metrics={
+                "attn/gd_residual_remote_read_topk_effective": 2.0,
+            },
         ),
         SmokeCase(
             case_id="bounded-beta-orthogonal-addr",
@@ -222,6 +258,9 @@ def _cases() -> list[SmokeCase]:
                 "attn/gd_residual_beta_effective_low",
                 "attn/gd_residual_beta_effective_high",
             ),
+            expected_runtime_metrics={
+                "attn/gd_residual_remote_read_topk_effective": 2.0,
+            },
         ),
     ]
 
@@ -267,6 +306,7 @@ def _runtime_smoke(config, case: SmokeCase, device: torch.device) -> dict[str, A
     metrics = mixer.get_scalar_metrics()
 
     missing = [key for key in case.required_metrics if key not in metrics]
+    metric_checks = _check_expected(metrics, case.expected_runtime_metrics or {})
     selected = {
         key: metrics[key]
         for key in sorted(metrics)
@@ -279,8 +319,9 @@ def _runtime_smoke(config, case: SmokeCase, device: torch.device) -> dict[str, A
         .item()
     )
     return {
-        "passed": not missing and train_forward_count >= 1,
+        "passed": not missing and all(item["passed"] for item in metric_checks) and train_forward_count >= 1,
         "missing_required_metrics": missing,
+        "metric_checks": metric_checks,
         "train_forward_count": train_forward_count,
         "metrics": selected,
     }
@@ -319,6 +360,20 @@ def _render_generated_config_text(case: SmokeCase) -> str:
         num_codebook_vectors_map=None,
         fox_remote_path_backend="torch",
         fox_remote_read_topk_values=[expected.get("fox_remote_read_topk", 2)],
+        fox_remote_read_topk_initial=expected.get("fox_remote_read_topk_initial"),
+        fox_remote_read_topk_final=expected.get("fox_remote_read_topk_final"),
+        fox_remote_read_topk_release_start_train_steps=expected.get(
+            "fox_remote_read_topk_release_start_train_steps", 0
+        ),
+        fox_remote_read_topk_release_end_train_steps=expected.get(
+            "fox_remote_read_topk_release_end_train_steps", 0
+        ),
+        fox_remote_read_topk_schedule=expected.get(
+            "fox_remote_read_topk_schedule", "linear_int"
+        ),
+        fox_remote_read_topk_eval_policy=expected.get(
+            "fox_remote_read_topk_eval_policy", "scheduled"
+        ),
         fox_remote_formula="gd_residual_v1",
         fox_clr_rank=4,
         fox_clr_use_den_residual=True,
@@ -421,6 +476,13 @@ def _render_generated_config_for_case(output_dir: Path, case: SmokeCase) -> dict
     generated_path.write_text(text + "\n", encoding="utf-8")
 
     marker_keys = (
+        "fox_remote_read_topk_values",
+        "fox_remote_read_topk_initial",
+        "fox_remote_read_topk_final",
+        "fox_remote_read_topk_release_start_train_steps",
+        "fox_remote_read_topk_release_end_train_steps",
+        "fox_remote_read_topk_schedule",
+        "fox_remote_read_topk_eval_policy",
         "fox_gd_residual_write_q_alpha",
         "fox_gd_residual_addr_proj_orthogonal_init",
     )
