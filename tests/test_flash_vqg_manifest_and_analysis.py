@@ -58,6 +58,45 @@ def _build_flash_config() -> TrainConfig:
                                 "fox_clr_gate_mode": "shared_query_linear",
                                 "fox_clr_lambda_remote": 0.5,
                                 "fox_clr_gate_init_bias": -2.0,
+                                "fox_gd_residual_mu_min_count": 0.1,
+                                "fox_gd_residual_beta_init": 0.5,
+                                "fox_gd_residual_beta_cap": 0.25,
+                                "fox_gd_residual_beta_cap_final": 0.5,
+                                "fox_gd_residual_beta_cap_release_start_train_steps": 704,
+                                "fox_gd_residual_beta_cap_release_end_train_steps": 2112,
+                                "fox_gd_residual_beta_cap_eval_policy": "scheduled",
+                                "fox_gd_residual_beta_control_mode": "bounded_sigmoid",
+                                "fox_gd_residual_beta_sigmoid_temp": 2.0,
+                                "fox_gd_residual_beta_low": 0.1,
+                                "fox_gd_residual_beta_high": 0.3,
+                                "fox_gd_residual_beta_low_final": 0.12,
+                                "fox_gd_residual_beta_high_final": 0.4,
+                                "fox_gd_residual_beta_band_release_start_train_steps": 2820,
+                                "fox_gd_residual_beta_band_release_end_train_steps": 11290,
+                                "fox_gd_residual_beta_band_eval_policy": "scheduled",
+                                "fox_gd_residual_beta_band_schedule": "cosine",
+                                "fox_gd_residual_lambda_init": 0.05,
+                                "fox_gd_residual_write_strength_mode": (
+                                    "budgeted_topk_beta_scaled_peak_total_cap"
+                                ),
+                                "fox_gd_residual_write_strength_cap": 0.05,
+                                "fox_gd_residual_write_strength_cap_mode": "softplus",
+                                "fox_gd_residual_write_strength_cap_until_train_steps": 352,
+                                "fox_gd_residual_write_strength_cap_eval_policy": "scheduled",
+                                "fox_gd_residual_write_budget": 0.25,
+                                "fox_gd_residual_write_budget_final": 0.35,
+                                "fox_gd_residual_write_budget_release_start_train_steps": 2820,
+                                "fox_gd_residual_write_budget_release_end_train_steps": 11290,
+                                "fox_gd_residual_write_budget_eval_policy": "scheduled",
+                                "fox_gd_residual_write_budget_schedule": "cosine",
+                                "fox_gd_residual_write_total_cap": 0.04,
+                                "fox_gd_residual_write_total_cap_final": 0.045,
+                                "fox_gd_residual_write_total_cap_release_start_train_steps": 2820,
+                                "fox_gd_residual_write_total_cap_release_end_train_steps": 11290,
+                                "fox_gd_residual_write_total_cap_eval_policy": "scheduled",
+                                "fox_gd_residual_write_total_cap_schedule": "cosine",
+                                "fox_gd_residual_write_q_alpha": 0.75,
+                                "fox_gd_residual_update_norm_cap": 0.06,
                                 "experiment_part": "e2_main",
                                 "experiment_mode": "2c",
                             },
@@ -184,6 +223,46 @@ def test_config_summary_from_config_extracts_e2_fields():
     assert summary["fox_clr_gate_mode"] == "shared_query_linear"
     assert summary["fox_clr_lambda_remote"] == 0.5
     assert summary["fox_clr_gate_init_bias"] == -2.0
+    assert summary["fox_gd_residual_mu_min_count"] == 0.1
+    assert summary["fox_gd_residual_beta_init"] == 0.5
+    assert summary["fox_gd_residual_beta_cap"] == 0.25
+    assert summary["fox_gd_residual_beta_cap_final"] == 0.5
+    assert summary["fox_gd_residual_beta_cap_release_start_train_steps"] == 704
+    assert summary["fox_gd_residual_beta_cap_release_end_train_steps"] == 2112
+    assert summary["fox_gd_residual_beta_cap_eval_policy"] == "scheduled"
+    assert summary["fox_gd_residual_beta_control_mode"] == "bounded_sigmoid"
+    assert summary["fox_gd_residual_beta_sigmoid_temp"] == 2.0
+    assert summary["fox_gd_residual_beta_low"] == 0.1
+    assert summary["fox_gd_residual_beta_high"] == 0.3
+    assert summary["fox_gd_residual_beta_low_final"] == 0.12
+    assert summary["fox_gd_residual_beta_high_final"] == 0.4
+    assert summary["fox_gd_residual_beta_band_release_start_train_steps"] == 2820
+    assert summary["fox_gd_residual_beta_band_release_end_train_steps"] == 11290
+    assert summary["fox_gd_residual_beta_band_eval_policy"] == "scheduled"
+    assert summary["fox_gd_residual_beta_band_schedule"] == "cosine"
+    assert summary["fox_gd_residual_lambda_init"] == 0.05
+    assert (
+        summary["fox_gd_residual_write_strength_mode"]
+        == "budgeted_topk_beta_scaled_peak_total_cap"
+    )
+    assert summary["fox_gd_residual_write_strength_cap"] == 0.05
+    assert summary["fox_gd_residual_write_strength_cap_mode"] == "softplus"
+    assert summary["fox_gd_residual_write_strength_cap_until_train_steps"] == 352
+    assert summary["fox_gd_residual_write_strength_cap_eval_policy"] == "scheduled"
+    assert summary["fox_gd_residual_write_budget"] == 0.25
+    assert summary["fox_gd_residual_write_budget_final"] == 0.35
+    assert summary["fox_gd_residual_write_budget_release_start_train_steps"] == 2820
+    assert summary["fox_gd_residual_write_budget_release_end_train_steps"] == 11290
+    assert summary["fox_gd_residual_write_budget_eval_policy"] == "scheduled"
+    assert summary["fox_gd_residual_write_budget_schedule"] == "cosine"
+    assert summary["fox_gd_residual_write_total_cap"] == 0.04
+    assert summary["fox_gd_residual_write_total_cap_final"] == 0.045
+    assert summary["fox_gd_residual_write_total_cap_release_start_train_steps"] == 2820
+    assert summary["fox_gd_residual_write_total_cap_release_end_train_steps"] == 11290
+    assert summary["fox_gd_residual_write_total_cap_eval_policy"] == "scheduled"
+    assert summary["fox_gd_residual_write_total_cap_schedule"] == "cosine"
+    assert summary["fox_gd_residual_write_q_alpha"] == 0.75
+    assert summary["fox_gd_residual_update_norm_cap"] == 0.06
     assert "fox_remote_formula" in summary
 
 

@@ -1,0 +1,23 @@
+{
+  "kind": "flash_vqg_init_transplant_checkpoint",
+  "created_at_utc": "2026-06-03T09:07:13+00:00",
+  "name": "flashdonor-cb64-r16-s124-to-s125",
+  "recipient_target": "cb64-r16-s125",
+  "recipient_spec": {
+    "target": "cb64-r16-s125",
+    "seed": 125,
+    "num_codebook_vectors": 64,
+    "gd_rank": 16,
+    "label": "cb64-r16-good"
+  },
+  "recipient_seed": 125,
+  "donor_snapshot_path": "/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s124-flash_only.pt",
+  "donor_target": "cb64-r16-s124",
+  "donor_scope": "flash_only",
+  "overlay_scope": "flash_only",
+  "overlay_num_tensors": 11,
+  "overlay_num_elements": 93510,
+  "overlay_sha256": "5ae39bb1add6da1c8d1b53bac5ad740de9433cfd17ab9395c00b55c0aa5eabda",
+  "full_model_sha256": "0eec685bd5752bef1eb1215d6cd6fb5609ffd7bf3c99c45a8000510302f9439a",
+  "torch_deterministic_env": "0"
+}

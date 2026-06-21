@@ -1,0 +1,40 @@
+{
+  "created_at_utc": "2026-06-03T08:53:30+00:00",
+  "items": [
+    {
+      "component": "zoology FlashVQGMixer wrapper",
+      "path": "/home/lyj/mnt/project/zoology/zoology/mixers/flash_vqg.py",
+      "details": "构造 FlashVQGConfig, 传递 codebook, addr, beta/lambda, gd_residual_v1 参数."
+    },
+    {
+      "component": "FlashVQGAttention projections",
+      "path": "/home/lyj/mnt/project/Flash-VQG/src/flash_vqg/nn/attn.py",
+      "details": "qkvg_proj, res_proj, quantizer, fox_gd_residual_addr_proj, beta/lambda projection 初始化."
+    },
+    {
+      "component": "codebook initialization",
+      "path": "/home/lyj/mnt/project/Flash-VQG/src/flash_vqg/nn/vq.py",
+      "details": "LearnableVQ/RoutingVQ 创建 codebook, 调用 make_codebook_initializer."
+    },
+    {
+      "component": "codebook RNG strategy",
+      "path": "/home/lyj/mnt/project/Flash-VQG/src/flash_vqg/nn/vq_init.py",
+      "details": "global/local_burn/local_noburn 随机初始化和 scale/bootstrap 策略."
+    },
+    {
+      "component": "model custom init",
+      "path": "/home/lyj/mnt/project/Flash-VQG/src/flash_vqg/nn/model.py",
+      "details": "gd_residual_beta/lambda custom init, 普通 Linear/Embedding 初始化策略."
+    },
+    {
+      "component": "gd_residual config builder",
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260425-gd-residual-v1-mqar/config_builder.py",
+      "details": "构造 gd_residual_v1 MQAR TrainConfig, seed/data_seed/codebook/addr/beta/lambda 参数."
+    },
+    {
+      "component": "training entry",
+      "path": "/home/lyj/mnt/project/zoology/zoology/train.py",
+      "details": "set_determinism(seed, deterministic=TORCH_DETERMINISTIC==1), LanguageModel 构造, init_checkpoint_path strict 加载."
+    }
+  ]
+}

@@ -229,7 +229,31 @@ def _build_gd_residual_args() -> Namespace:
         fox_gd_residual_den_eps=1e-6,
         fox_gd_residual_rho_eps=1e-12,
         fox_gd_residual_beta_init=0.5,
+        fox_gd_residual_beta_cap=None,
+        fox_gd_residual_beta_cap_final=None,
+        fox_gd_residual_beta_cap_release_start_train_steps=0,
+        fox_gd_residual_beta_cap_release_end_train_steps=0,
+        fox_gd_residual_beta_cap_eval_policy="final",
+        fox_gd_residual_beta_control_mode="hard_cap",
+        fox_gd_residual_beta_sigmoid_temp=1.0,
+        fox_gd_residual_beta_low=None,
+        fox_gd_residual_beta_high=None,
+        fox_gd_residual_beta_low_final=None,
+        fox_gd_residual_beta_high_final=None,
+        fox_gd_residual_beta_band_release_start_train_steps=0,
+        fox_gd_residual_beta_band_release_end_train_steps=0,
+        fox_gd_residual_beta_band_eval_policy="final",
+        fox_gd_residual_beta_band_schedule="smoothstep",
         fox_gd_residual_lambda_init=0.05,
+        fox_gd_residual_write_strength_mode="renorm_topk",
+        fox_gd_residual_write_total_cap=None,
+        fox_gd_residual_write_total_cap_final=None,
+        fox_gd_residual_write_total_cap_release_start_train_steps=0,
+        fox_gd_residual_write_total_cap_release_end_train_steps=0,
+        fox_gd_residual_write_total_cap_eval_policy="final",
+        fox_gd_residual_write_total_cap_schedule="smoothstep",
+        fox_gd_residual_write_q_alpha=1.0,
+        fox_gd_residual_update_norm_cap=None,
         fox_gd_residual_norm_with_gain="false",
         fox_gd_residual_use_separate_addr_codebook="false",
         vq_score_mode="codebook_dot",
@@ -526,6 +550,137 @@ def test_gd_residual_builder_supports_dense_read_topk():
     assert flash_kwargs["fox_remote_read_topk"] is None
 
 
+def test_gd_residual_builder_propagates_update_norm_cap():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.fox_gd_residual_update_norm_cap = 0.08
+    args.fox_gd_residual_write_strength_cap = 0.04
+    args.fox_gd_residual_write_strength_cap_final = 0.06
+    args.fox_gd_residual_write_strength_cap_release_start_train_steps = 704
+    args.fox_gd_residual_write_strength_cap_release_end_train_steps = 2112
+    args.fox_gd_residual_write_strength_cap_eval_policy = "scheduled"
+    args.fox_gd_residual_beta_cap = 0.25
+    args.fox_gd_residual_beta_cap_final = 0.5
+    args.fox_gd_residual_beta_cap_release_start_train_steps = 704
+    args.fox_gd_residual_beta_cap_release_end_train_steps = 2112
+    args.fox_gd_residual_beta_cap_eval_policy = "scheduled"
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == (
+        "gd-residual-v1-train-s123-d123-rread-top2-r16-wk4-b16"
+        "-wcap0p04-wcapfinal0p06-wcaprel704to2112-wcapevalscheduled-ucap0p08"
+        "-betacap0p25-betacapfinal0p5-betacaprel704to2112-betacapevalscheduled"
+    )
+    assert flash_kwargs["fox_gd_residual_write_strength_cap"] == 0.04
+    assert flash_kwargs["fox_gd_residual_write_strength_cap_final"] == 0.06
+    assert flash_kwargs["fox_gd_residual_write_strength_cap_release_start_train_steps"] == 704
+    assert flash_kwargs["fox_gd_residual_write_strength_cap_release_end_train_steps"] == 2112
+    assert flash_kwargs["fox_gd_residual_write_strength_cap_eval_policy"] == "scheduled"
+    assert flash_kwargs["fox_gd_residual_update_norm_cap"] == 0.08
+    assert flash_kwargs["fox_gd_residual_beta_cap"] == 0.25
+    assert flash_kwargs["fox_gd_residual_beta_cap_final"] == 0.5
+    assert flash_kwargs["fox_gd_residual_beta_cap_release_start_train_steps"] == 704
+    assert flash_kwargs["fox_gd_residual_beta_cap_release_end_train_steps"] == 2112
+    assert flash_kwargs["fox_gd_residual_beta_cap_eval_policy"] == "scheduled"
+
+
+def test_gd_residual_builder_propagates_bounded_beta_band():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.fox_gd_residual_beta_init = 0.2
+    args.fox_gd_residual_beta_control_mode = "bounded_sigmoid"
+    args.fox_gd_residual_beta_sigmoid_temp = 2.0
+    args.fox_gd_residual_beta_low = 0.1
+    args.fox_gd_residual_beta_high = 0.3
+    args.fox_gd_residual_beta_low_final = 0.12
+    args.fox_gd_residual_beta_high_final = 0.4
+    args.fox_gd_residual_beta_band_release_start_train_steps = 2820
+    args.fox_gd_residual_beta_band_release_end_train_steps = 11290
+    args.fox_gd_residual_beta_band_eval_policy = "scheduled"
+    args.fox_gd_residual_beta_band_schedule = "cosine"
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == (
+        "gd-residual-v1-train-s123-d123-rread-top2-r16-wk4-b16"
+        "-betactrlbounded_sigmoid-betatemp2p0-betalow0p1-betahigh0p3"
+        "-betalowfinal0p12-betahighfinal0p4-betabandrel2820to11290"
+        "-betabandevalscheduled-betabandschedcosine"
+    )
+    assert flash_kwargs["fox_gd_residual_beta_init"] == 0.2
+    assert flash_kwargs["fox_gd_residual_beta_control_mode"] == "bounded_sigmoid"
+    assert flash_kwargs["fox_gd_residual_beta_sigmoid_temp"] == 2.0
+    assert flash_kwargs["fox_gd_residual_beta_low"] == 0.1
+    assert flash_kwargs["fox_gd_residual_beta_high"] == 0.3
+    assert flash_kwargs["fox_gd_residual_beta_low_final"] == 0.12
+    assert flash_kwargs["fox_gd_residual_beta_high_final"] == 0.4
+    assert flash_kwargs["fox_gd_residual_beta_band_release_start_train_steps"] == 2820
+    assert flash_kwargs["fox_gd_residual_beta_band_release_end_train_steps"] == 11290
+    assert flash_kwargs["fox_gd_residual_beta_band_eval_policy"] == "scheduled"
+    assert flash_kwargs["fox_gd_residual_beta_band_schedule"] == "cosine"
+
+
+def test_gd_residual_builder_propagates_write_q_alpha():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.fox_gd_residual_write_q_alpha = 0.75
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == (
+        "gd-residual-v1-train-s123-d123-rread-top2-r16-wk4-b16-wqalpha0p75"
+    )
+    assert flash_kwargs["fox_gd_residual_write_q_alpha"] == 0.75
+
+
+def test_gd_residual_builder_propagates_budgeted_peak_total_cap():
+    module = _load_gd_residual_builder_module()
+    args = _build_gd_residual_args()
+    args.fox_gd_residual_write_strength_mode = (
+        "budgeted_topk_beta_scaled_peak_total_cap"
+    )
+    args.fox_gd_residual_write_strength_cap = 0.04
+    args.fox_gd_residual_write_budget = 0.25
+    args.fox_gd_residual_write_total_cap = 0.04
+    args.fox_gd_residual_write_total_cap_final = 0.045
+    args.fox_gd_residual_write_total_cap_release_start_train_steps = 2820
+    args.fox_gd_residual_write_total_cap_release_end_train_steps = 11290
+    args.fox_gd_residual_write_total_cap_eval_policy = "scheduled"
+    args.fox_gd_residual_write_total_cap_schedule = "cosine"
+
+    configs = module.build_gd_residual_v1_train_configs(args)
+    flash_kwargs = _extract_flash_kwargs(configs[0])
+
+    assert configs[0].run_id == (
+        "gd-residual-v1-train-s123-d123-rread-top2-r16-wk4-b16"
+        "-wmodebudgeted_topk_beta_scaled_peak_total_cap-wcap0p04-wbudget0p25"
+        "-wtotalcap0p04-wtotalcapfinal0p045-wtotalcaprel2820to11290"
+        "-wtotalcapevalscheduled-wtotalcapschedcosine"
+    )
+    assert (
+        flash_kwargs["fox_gd_residual_write_strength_mode"]
+        == "budgeted_topk_beta_scaled_peak_total_cap"
+    )
+    assert flash_kwargs["fox_gd_residual_write_strength_cap"] == 0.04
+    assert flash_kwargs["fox_gd_residual_write_budget"] == 0.25
+    assert flash_kwargs["fox_gd_residual_write_total_cap"] == 0.04
+    assert flash_kwargs["fox_gd_residual_write_total_cap_final"] == 0.045
+    assert (
+        flash_kwargs["fox_gd_residual_write_total_cap_release_start_train_steps"]
+        == 2820
+    )
+    assert (
+        flash_kwargs["fox_gd_residual_write_total_cap_release_end_train_steps"]
+        == 11290
+    )
+    assert flash_kwargs["fox_gd_residual_write_total_cap_eval_policy"] == "scheduled"
+    assert flash_kwargs["fox_gd_residual_write_total_cap_schedule"] == "cosine"
+
+
 def test_gd_residual_builder_supports_run_id_mode_and_validation_overrides():
     module = _load_gd_residual_builder_module()
     args = _build_gd_residual_args()
@@ -700,12 +855,16 @@ def test_gdn_flash_fairness_phase2_script_defaults_to_missing_r8_s126_b64_ga4():
     assert 'DISABLE_EARLY_STOPPING="${DISABLE_EARLY_STOPPING:-true}"' in common_env
     assert 'FOX_GD_RESIDUAL_RANK="${FOX_GD_RESIDUAL_RANK:-8}"' in common_env
     assert 'FOX_GD_RESIDUAL_MU_MIN_COUNT="${FOX_GD_RESIDUAL_MU_MIN_COUNT:-0.1}"' in common_env
+    assert 'FOX_GD_RESIDUAL_UPDATE_NORM_CAP="${FOX_GD_RESIDUAL_UPDATE_NORM_CAP:-}"' in common_env
     assert 'VQ_SOFTMAX_TAU="${VQ_SOFTMAX_TAU:-0.25}"' in common_env
     assert "build_gd_residual_v1_train_configs" in train
     assert "不接受额外参数" in train
+    assert "FLASH_VQG_REQUIRE_EXPLICIT_PHASE2_ENV" in train
+    assert "FLASH_VQG_ALLOW_PHASE2_DEFAULT_TRIPLE" in train
     assert "--train-batch-size \"${TRAIN_BATCH_SIZE}\"" in train
     assert "--gradient-accumulation-steps \"${GRADIENT_ACCUMULATION_STEPS}\"" in train
     assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in train
+    assert "--fox-gd-residual-update-norm-cap" in train
     assert "--vq-softmax-tau \"${VQ_SOFTMAX_TAU}\"" in train
 
 
@@ -927,6 +1086,7 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "SWANLAB_MODE=\"${SWANLAB_MODE:-cloud}\"" in common_env
     assert "FOX_REMOTE_READ_TOPK=\"${FOX_REMOTE_READ_TOPK:-2}\"" in common_env
     assert "DISABLE_EARLY_STOPPING=\"${DISABLE_EARLY_STOPPING:-false}\"" in common_env
+    assert "FOX_GD_RESIDUAL_WRITE_Q_ALPHA=\"${FOX_GD_RESIDUAL_WRITE_Q_ALPHA:-1.0}\"" in common_env
     assert "LAUNCH_ID_PREFIX_SMOKE" in common_env
     assert "LAUNCH_ID_PREFIX_TRAIN" in common_env
     assert "LAUNCH_ID_PREFIX_PROFILE" in common_env
@@ -938,6 +1098,8 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "--disable-early-stopping \"${DISABLE_EARLY_STOPPING}\"" in train
     assert "--fox-gd-residual-rank \"${FOX_GD_RESIDUAL_RANK}\"" in smoke
     assert "--fox-gd-residual-lambda-init \"${FOX_GD_RESIDUAL_LAMBDA_INIT}\"" in train
+    assert "--fox-gd-residual-write-q-alpha \"${FOX_GD_RESIDUAL_WRITE_Q_ALPHA}\"" in smoke
+    assert "--fox-gd-residual-write-q-alpha \"${FOX_GD_RESIDUAL_WRITE_Q_ALPHA}\"" in train
     assert "PROFILE_ENABLE_TORCH_PROFILER" in profile
     assert "PROFILE_ENABLE_GD_DIAGNOSTICS" in profile
     assert "profile_gd_residual_v1.py" in profile
@@ -974,6 +1136,10 @@ def test_gd_residual_scripts_and_gitignores_track_only_configs_and_numeric_resul
     assert "DISABLE_EARLY_STOPPING" in readme
     assert "flash_vqg_gd_residual_v1_mqar" in readme
     assert "attn/gd_residual_lambda_mean" in metrics_yaml
+    assert "attn/gd_residual_write_q_top1_mean" in metrics_yaml
+    assert "valid/attn/gd_residual_write_q_entropy_mean" in metrics_yaml
+    assert "layer_*/attn/gd_residual_write_q_raw_top1_mean" in metrics_yaml
+    assert "valid/layer_*/attn/gd_residual_write_q_smoothing_active" in metrics_yaml
     assert "attn/gd_residual_debug_avg_events_per_group" in metrics_yaml
     assert "attn/gd_residual_debug_l_state_p95" in metrics_yaml
     assert "attn/gd_residual_debug_l_state_hist_0_1_0_15" in metrics_yaml

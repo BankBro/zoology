@@ -165,7 +165,126 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         "fox_gd_residual_builder": flash_kwargs.get("fox_gd_residual_builder"),
         "fox_gd_residual_pack_mode": flash_kwargs.get("fox_gd_residual_pack_mode"),
         "fox_gd_residual_chunk_size": flash_kwargs.get("fox_gd_residual_chunk_size"),
+        "fox_gd_residual_mu_min_count": flash_kwargs.get("fox_gd_residual_mu_min_count"),
+        "fox_gd_residual_addr_init_rng_mode": flash_kwargs.get(
+            "fox_gd_residual_addr_init_rng_mode"
+        ),
+        "fox_gd_residual_addr_init_seed": flash_kwargs.get(
+            "fox_gd_residual_addr_init_seed"
+        ),
+        "fox_gd_residual_beta_init": flash_kwargs.get("fox_gd_residual_beta_init"),
+        "fox_gd_residual_beta_cap": flash_kwargs.get("fox_gd_residual_beta_cap"),
+        "fox_gd_residual_beta_cap_final": flash_kwargs.get(
+            "fox_gd_residual_beta_cap_final"
+        ),
+        "fox_gd_residual_beta_cap_release_start_train_steps": flash_kwargs.get(
+            "fox_gd_residual_beta_cap_release_start_train_steps"
+        ),
+        "fox_gd_residual_beta_cap_release_end_train_steps": flash_kwargs.get(
+            "fox_gd_residual_beta_cap_release_end_train_steps"
+        ),
+        "fox_gd_residual_beta_cap_eval_policy": flash_kwargs.get(
+            "fox_gd_residual_beta_cap_eval_policy"
+        ),
+        "fox_gd_residual_beta_control_mode": flash_kwargs.get(
+            "fox_gd_residual_beta_control_mode"
+        ),
+        "fox_gd_residual_beta_sigmoid_temp": flash_kwargs.get(
+            "fox_gd_residual_beta_sigmoid_temp"
+        ),
+        "fox_gd_residual_beta_low": flash_kwargs.get("fox_gd_residual_beta_low"),
+        "fox_gd_residual_beta_high": flash_kwargs.get("fox_gd_residual_beta_high"),
+        "fox_gd_residual_beta_low_final": flash_kwargs.get(
+            "fox_gd_residual_beta_low_final"
+        ),
+        "fox_gd_residual_beta_high_final": flash_kwargs.get(
+            "fox_gd_residual_beta_high_final"
+        ),
+        "fox_gd_residual_beta_band_release_start_train_steps": flash_kwargs.get(
+            "fox_gd_residual_beta_band_release_start_train_steps"
+        ),
+        "fox_gd_residual_beta_band_release_end_train_steps": flash_kwargs.get(
+            "fox_gd_residual_beta_band_release_end_train_steps"
+        ),
+        "fox_gd_residual_beta_band_eval_policy": flash_kwargs.get(
+            "fox_gd_residual_beta_band_eval_policy"
+        ),
+        "fox_gd_residual_beta_band_schedule": flash_kwargs.get(
+            "fox_gd_residual_beta_band_schedule"
+        ),
         "fox_gd_residual_lambda_init": flash_kwargs.get("fox_gd_residual_lambda_init"),
+        "fox_gd_residual_lambda_floor": flash_kwargs.get(
+            "fox_gd_residual_lambda_floor"
+        ),
+        "fox_gd_residual_write_strength_mode": flash_kwargs.get(
+            "fox_gd_residual_write_strength_mode"
+        ),
+        "fox_gd_residual_write_strength_cap": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap"
+        ),
+        "fox_gd_residual_write_strength_cap_mode": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_mode"
+        ),
+        "fox_gd_residual_write_strength_cap_until_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_until_train_steps"
+        ),
+        "fox_gd_residual_write_strength_cap_final": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_final"
+        ),
+        "fox_gd_residual_write_strength_cap_release_start_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_release_start_train_steps"
+        ),
+        "fox_gd_residual_write_strength_cap_release_end_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_release_end_train_steps"
+        ),
+        "fox_gd_residual_write_strength_cap_eval_policy": flash_kwargs.get(
+            "fox_gd_residual_write_strength_cap_eval_policy"
+        ),
+        "fox_gd_residual_write_budget": flash_kwargs.get(
+            "fox_gd_residual_write_budget"
+        ),
+        "fox_gd_residual_write_budget_final": flash_kwargs.get(
+            "fox_gd_residual_write_budget_final"
+        ),
+        "fox_gd_residual_write_budget_release_start_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_budget_release_start_train_steps"
+        ),
+        "fox_gd_residual_write_budget_release_end_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_budget_release_end_train_steps"
+        ),
+        "fox_gd_residual_write_budget_eval_policy": flash_kwargs.get(
+            "fox_gd_residual_write_budget_eval_policy"
+        ),
+        "fox_gd_residual_write_budget_schedule": flash_kwargs.get(
+            "fox_gd_residual_write_budget_schedule"
+        ),
+        "fox_gd_residual_write_total_cap": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap"
+        ),
+        "fox_gd_residual_write_total_cap_final": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap_final"
+        ),
+        "fox_gd_residual_write_total_cap_release_start_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap_release_start_train_steps"
+        ),
+        "fox_gd_residual_write_total_cap_release_end_train_steps": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap_release_end_train_steps"
+        ),
+        "fox_gd_residual_write_total_cap_eval_policy": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap_eval_policy"
+        ),
+        "fox_gd_residual_write_total_cap_schedule": flash_kwargs.get(
+            "fox_gd_residual_write_total_cap_schedule"
+        ),
+        "fox_gd_residual_write_q_alpha": flash_kwargs.get(
+            "fox_gd_residual_write_q_alpha"
+        ),
+        "fox_gd_residual_m_norm_cap": flash_kwargs.get("fox_gd_residual_m_norm_cap"),
+        "fox_gd_residual_update_norm_cap": flash_kwargs.get(
+            "fox_gd_residual_update_norm_cap"
+        ),
+        "codebook_init_rng_mode": flash_kwargs.get("codebook_init_rng_mode"),
+        "codebook_init_seed": flash_kwargs.get("codebook_init_seed"),
         "fox_dense_teacher_mode": flash_kwargs.get("fox_dense_teacher_mode"),
         "fox_dense_teacher_loss_mode": flash_kwargs.get("fox_dense_teacher_loss_mode"),
         "fox_dense_teacher_layer_idx": flash_kwargs.get("fox_dense_teacher_layer_idx"),
