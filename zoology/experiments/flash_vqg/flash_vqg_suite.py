@@ -46,6 +46,7 @@ DEFAULT_FOX_GD_RESIDUAL_BETA_INIT = 0.5
 DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT = 0.05
 DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN = False
 DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK = False
+DEFAULT_FOX_GD_RESIDUAL_ADDR_PROJ_ORTHOGONAL_INIT = False
 
 
 def _normalize_dmodels(dmodels: Iterable[int] | None) -> list[int]:
@@ -757,6 +758,7 @@ def build_configs(
     fox_gd_residual_lambda_init: float = DEFAULT_FOX_GD_RESIDUAL_LAMBDA_INIT,
     fox_gd_residual_norm_with_gain: bool = DEFAULT_FOX_GD_RESIDUAL_NORM_WITH_GAIN,
     fox_gd_residual_use_separate_addr_codebook: bool = DEFAULT_FOX_GD_RESIDUAL_USE_SEPARATE_ADDR_CODEBOOK,
+    fox_gd_residual_addr_proj_orthogonal_init: bool = DEFAULT_FOX_GD_RESIDUAL_ADDR_PROJ_ORTHOGONAL_INIT,
     experiment_part: str | None = None,
     experiment_mode: str | None = None,
     vq_score_mode: str = DEFAULT_VQ_SCORE_MODE,
@@ -878,6 +880,9 @@ def build_configs(
     resolved_gd_residual_norm_with_gain = bool(fox_gd_residual_norm_with_gain)
     resolved_gd_residual_use_separate_addr_codebook = bool(
         fox_gd_residual_use_separate_addr_codebook
+    )
+    resolved_gd_residual_addr_proj_orthogonal_init = bool(
+        fox_gd_residual_addr_proj_orthogonal_init
     )
     resolved_vq_score_mode = str(vq_score_mode).lower()
     resolved_vq_weight_mode = str(vq_weight_mode).lower()
@@ -1105,6 +1110,9 @@ def build_configs(
                         fox_gd_residual_use_separate_addr_codebook=(
                             resolved_gd_residual_use_separate_addr_codebook
                         ),
+                        fox_gd_residual_addr_proj_orthogonal_init=(
+                            resolved_gd_residual_addr_proj_orthogonal_init
+                        ),
                         experiment_part=experiment_part,
                         experiment_mode=experiment_mode,
                         local_num_blocks=current_local_num_blocks,
@@ -1227,9 +1235,14 @@ def build_configs(
                                         )
                                         if resolved_validations_per_epoch != DEFAULT_VALIDATIONS_PER_EPOCH:
                                             run_id = f"{run_id}-vpe{resolved_validations_per_epoch}"
+                                    # Deep-copy model per seed and inject codebook_init_seed
+                                    model_cur = model.model_copy(deep=True)
+                                    for sub_cfg in model_cur.sequence_mixer.kwargs.get("configs", []):
+                                        if hasattr(sub_cfg, "kwargs"):
+                                            sub_cfg.kwargs["codebook_init_seed"] = current_seed
                                     configs.append(
                                         TrainConfig(
-                                            model=model,
+                                            model=model_cur,
                                             data=data,
                                             learning_rate=lr,
                                             max_epochs=max_epochs,

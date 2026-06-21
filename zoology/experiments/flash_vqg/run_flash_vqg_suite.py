@@ -295,6 +295,7 @@ def _render_generated_config(
     fox_gd_residual_lambda_init: float = 0.05,
     fox_gd_residual_norm_with_gain: bool = False,
     fox_gd_residual_use_separate_addr_codebook: bool = False,
+    fox_gd_residual_addr_proj_orthogonal_init: bool = False,
     vq_score_mode: str = "l2",
     vq_weight_mode: str = "one-hot",
     vq_update_mode: str = "ema",
@@ -368,6 +369,8 @@ def _render_generated_config(
         f"    fox_gd_residual_norm_with_gain={fox_gd_residual_norm_with_gain!r},",
         "    fox_gd_residual_use_separate_addr_codebook="
         f"{fox_gd_residual_use_separate_addr_codebook!r},",
+        "    fox_gd_residual_addr_proj_orthogonal_init="
+        f"{fox_gd_residual_addr_proj_orthogonal_init!r},",
         f"    vq_score_mode={vq_score_mode!r},",
         f"    vq_weight_mode={vq_weight_mode!r},",
         f"    vq_update_mode={vq_update_mode!r},",
@@ -493,6 +496,7 @@ def _build_manifest_run_ids(
     fox_gd_residual_lambda_init: float = 0.05,
     fox_gd_residual_norm_with_gain: bool = False,
     fox_gd_residual_use_separate_addr_codebook: bool = False,
+    fox_gd_residual_addr_proj_orthogonal_init: bool = False,
     vq_score_mode: str = "l2",
     vq_weight_mode: str = "one-hot",
     vq_update_mode: str = "ema",
@@ -555,6 +559,9 @@ def _build_manifest_run_ids(
         fox_gd_residual_norm_with_gain=fox_gd_residual_norm_with_gain,
         fox_gd_residual_use_separate_addr_codebook=(
             fox_gd_residual_use_separate_addr_codebook
+        ),
+        fox_gd_residual_addr_proj_orthogonal_init=(
+            fox_gd_residual_addr_proj_orthogonal_init
         ),
         vq_score_mode=vq_score_mode,
         vq_weight_mode=vq_weight_mode,
@@ -810,6 +817,11 @@ def main():
         default="false",
     )
     parser.add_argument(
+        "--fox-gd-residual-addr-proj-orthogonal-init",
+        choices=["true", "false"],
+        default="false",
+    )
+    parser.add_argument(
         "--vq-score-mode",
         choices=["l2", "attn_dot", "mlp", "codebook_dot"],
         default="l2",
@@ -1047,8 +1059,6 @@ def main():
     early_stopping_threshold = None if disable_early_stopping else 0.99
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
-
-    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
     generated_launch_dir = GENERATED_DIR / launch_id
     generated_launch_dir.mkdir(parents=True, exist_ok=True)
     generated_path = generated_launch_dir / "launch_configs.py"
@@ -1104,6 +1114,9 @@ def main():
             fox_gd_residual_norm_with_gain=(args.fox_gd_residual_norm_with_gain == "true"),
             fox_gd_residual_use_separate_addr_codebook=(
                 args.fox_gd_residual_use_separate_addr_codebook == "true"
+            ),
+            fox_gd_residual_addr_proj_orthogonal_init=(
+                args.fox_gd_residual_addr_proj_orthogonal_init == "true"
             ),
             vq_score_mode=args.vq_score_mode,
             vq_weight_mode=args.vq_weight_mode,
