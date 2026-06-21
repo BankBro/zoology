@@ -1,0 +1,10 @@
+config_family,comparison,metric,values,spread,interpretation
+cb256-r4,ordinary_normal_readk2_r1_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.77246484375;s125=0.956375",0.18391015625,old ordinary normal path-sensitive baseline
+cb256-r4,ordinary_normal_readk2_r2_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.891;s125=0.953",0.062,old ordinary normal rerun still path-sensitive
+cb256-r4,pseudo_det_readk2_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.95114453125;s125=0.9515859375",0.00044140625,special numeric path proves high basin exists but is not ordinary baseline
+cb256-r4,runtime_probe_readk4_2ep_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.9033671875;s125=0.9200625",0.0166953125,readk4 first 2ep stability evidence
+cb256-r4,runtime_probe_readk4_4ep_r1_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.9182578125;s125=0.94227734375",0.02401953125,readk4 4ep runtime evidence
+cb256-r4,runtime_probe_readk4_4ep_r2_cross_seed,valid_mqar_case_accuracy_1024x256,"s124=0.97339453125;s125=0.94807421875",0.0253203125,readk4 4ep runtime rerun evidence
+cb256-r4,ordinary_formal_readk4_s124_rerun,valid_mqar_case_accuracy_1024x256,"s124-r1c=0.943;s124-r2c=0.958",0.015,ordinary run_train same-seed rerun spread
+cb256-r4,ordinary_formal_readk4_r1_cross_seed,valid_mqar_case_accuracy_1024x256,"s124-r1c=0.943;s125-r1c=0.944",0.001,ordinary run_train cross-seed spread
+cb256-r4,ordinary_formal_readk4_all_final_max_min,valid_mqar_case_accuracy_1024x256,"s124-r1c=0.943;s124-r2c=0.958;s125-r1c=0.944",0.015,final validated stable solution evidence

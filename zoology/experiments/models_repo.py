@@ -403,6 +403,7 @@ def add_flash_vqg(
     fox_gd_residual_update_norm_cap=None,
     fox_gd_residual_norm_with_gain=False,
     fox_gd_residual_use_separate_addr_codebook=False,
+    fox_gd_residual_addr_proj_orthogonal_init=False,
     experiment_part=None,
     experiment_mode=None,
     local_num_blocks=1,
@@ -672,6 +673,9 @@ def add_flash_vqg(
                 "fox_gd_residual_norm_with_gain": bool(fox_gd_residual_norm_with_gain),
                 "fox_gd_residual_use_separate_addr_codebook": bool(
                     fox_gd_residual_use_separate_addr_codebook
+                ),
+                "fox_gd_residual_addr_proj_orthogonal_init": bool(
+                    fox_gd_residual_addr_proj_orthogonal_init
                 ),
                 "experiment_part": experiment_part,
                 "experiment_mode": experiment_mode,

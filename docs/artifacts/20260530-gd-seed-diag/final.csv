@@ -1,0 +1,14 @@
+config_family,condition,seed,replicate,read_topk,max_epochs,valid_mqar_case_accuracy_1024x256_curve,final_valid_mqar_case_accuracy_1024x256,final_valid_accuracy,role
+cb256-r4,ordinary_normal_readk2,124,r1,2,4,0.000461/0.330/0.543/0.694/0.724/0.753/0.762/0.772,0.77246484375,0.96091650390625,old_low_path_baseline
+cb256-r4,ordinary_normal_readk2,125,r1,2,4,0.000531/0.814/0.900/0.927/0.941/0.948/0.953/0.956,0.956375,0.9899755859375,old_high_path_baseline
+cb256-r4,ordinary_normal_readk2,124,r2,2,4,0.000516/0.363/0.736/0.821/0.847/0.871/0.886/0.891,0.891,NA,old_medium_path_rerun
+cb256-r4,ordinary_normal_readk2,125,r2,2,4,0.000598/0.768/0.891/0.921/0.937/0.944/0.952/0.953,0.953,NA,old_high_path_rerun
+cb256-r4,pseudo_det_readk2,124,r1,2,4,NA,0.95114453125,0.98820849609375,special_numeric_high_path_not_ordinary_baseline
+cb256-r4,pseudo_det_readk2,125,r1,2,4,NA,0.9515859375,0.9892705078125,special_numeric_high_path_not_ordinary_baseline
+cb256-r4,runtime_probe_readk4,124,r1,4,4,0.000379/0.678855/NA/0.903367,0.9182578125,0.9858994140625,runtime_probe_stability_evidence
+cb256-r4,runtime_probe_readk4,125,r1,4,4,0.000512/0.861641/NA/0.920063,0.94227734375,0.98862744140625,runtime_probe_stability_evidence
+cb256-r4,runtime_probe_readk4,124,r2,4,4,0.000578/0.896742/0.948141/0.958484/0.964207/0.970293/0.972176/0.973395,0.97339453125,0.99286279296875,runtime_probe_rerun_evidence
+cb256-r4,runtime_probe_readk4,125,r2,4,4,0.000555/0.874676/0.905816/0.924152/0.941324/0.939203/0.948559/0.948074,0.94807421875,0.98963037109375,runtime_probe_rerun_evidence
+cb256-r4,ordinary_formal_readk4,124,r1c,4,4,0.000367/0.876/0.906/0.917/0.932/0.938/0.943,0.943,0.986,ordinary_run_train_validated_solution
+cb256-r4,ordinary_formal_readk4,124,r2c,4,4,0.000375/0.899/0.930/0.937/0.954/0.950/0.959/0.958,0.958,0.991,ordinary_run_train_rerun
+cb256-r4,ordinary_formal_readk4,125,r1c,4,4,0.000594/0.870/0.908/0.929/0.938/0.932/0.945/0.944,0.944,0.989,ordinary_run_train_cross_seed

@@ -1,0 +1,57 @@
+{
+  "artifact_id": "20260530-gd-seed-diag",
+  "updated_at_utc": "2026-06-03T09:52:00Z",
+  "machine": "3090 Flash-VQG-tun",
+  "zoology_branch": "flash-vqg",
+  "zoology_head": "7bbaea5",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_head": "4f1a1f4",
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "training_context": {
+    "data_seed": 123,
+    "train_batch_size": 64,
+    "gradient_accumulation_steps": 4,
+    "dtype_policy": "fp32",
+    "max_epochs": 4,
+    "validations_per_epoch": 2,
+    "early_stopping": "disabled",
+    "torch_deterministic": false
+  },
+  "artifact_files": [
+    "final.csv",
+    "gd-seed-diag-key-metrics.csv",
+    "gd-seed-diag-spread-summary.csv",
+    "gd-seed-diag-source-manifest.csv",
+    "metadata.json",
+    "README.md",
+    "gd-seed-diag-cross-config-final.csv",
+    "gd-seed-diag-cross-config-spread-summary.csv",
+    "gd-seed-diag-cross-config-source-manifest.csv"
+  ],
+  "main_conclusions": [
+    "ScaleInitStrategy without a local torch.Generator is an important codebook initialization RNG source, but codebook_init_seed alone is not a sufficient stable solution.",
+    "The final mechanism is early basin selection through codebook/address/projection joint geometry and routing/write/read/M/lambda feedback; the first explainable normal high/low split is at step 353-448.",
+    "Default phase2 read_topk=2 is a basin amplifier; it can lock early residual reads to a too narrow candidate set.",
+    "Phase2 read_topk=4 is validated on cb256-r4/cb256-r8, but cross-codebook/rank replication shows it is not a global default.",
+    "The design lesson is controlled read-side candidate coverage with schedule/gate/margin awareness, not larger read_topk in general or stronger early lambda injection."
+  ],
+  "counterexamples": [
+    "read_topk=8 gives s124 1ep step705=0.079113, showing wider read coverage is not monotonic.",
+    "read_topk=4 with lambda_init=0.15 gives s124 1ep step705=0.428566, showing stronger early injection is not sufficient.",
+    "fixed codebook seed and preserve-RNG variants do not produce a cross-seed stable solution."
+  ],
+  "caveats": [
+    "Historical pseudo-det 0.951/0.952 values are valid 1024x256 metrics but not ordinary normal training baselines.",
+    "cross-cb64r16-readk2-s124-r1 is a CUDA OOM failed run and is excluded from formal spread; cross-cb64r16-readk2-s124-r1b is the valid replacement.",
+    "Formal readk4 metrics are rounded to the precision logged by the training loop.",
+    "Large raw logs, checkpoints, and swanlog backups are kept in place; this artifact stores final tables and source references only.",
+    "No source default was changed in this artifact update."
+  ],
+  "cross_config_conclusions": [
+    "Fixed phase2 read_topk=4 is not a cross-configuration default solution.",
+    "cb256-r8 validates readk4 as effective: readk2 spread 0.184, readk4 completed-run max-min spread 0.010, worst 0.982.",
+    "cb64-r16 is a side-effect counterexample: readk4 s124 r1/r2 are 0.831/0.849 versus readk2 s124 0.959.",
+    "cb128-r8 is a reproducibility counterexample: readk4 main pair 0.973/0.972, but s125 rerun final 0.609.",
+    "The recommended direction is schedule/gate/margin-aware read-side control rather than a fixed global readk4 default."
+  ]
+}
