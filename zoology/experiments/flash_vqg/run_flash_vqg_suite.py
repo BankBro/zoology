@@ -467,6 +467,7 @@ def _render_generated_config(
         f"{fox_gd_residual_write_total_cap_eval_policy!r},",
         "    fox_gd_residual_write_total_cap_schedule="
         f"{fox_gd_residual_write_total_cap_schedule!r},",
+        f"    fox_gd_residual_write_q_alpha={fox_gd_residual_write_q_alpha!r},",
         f"    fox_gd_residual_m_norm_cap={fox_gd_residual_m_norm_cap!r},",
         f"    fox_gd_residual_update_norm_cap={fox_gd_residual_update_norm_cap!r},",
         f"    fox_gd_residual_norm_with_gain={fox_gd_residual_norm_with_gain!r},",
@@ -1738,6 +1739,9 @@ def main():
                 fox_gd_residual_norm_with_gain=(args.fox_gd_residual_norm_with_gain == "true"),
                 fox_gd_residual_use_separate_addr_codebook=(
                     args.fox_gd_residual_use_separate_addr_codebook == "true"
+                ),
+                fox_gd_residual_addr_proj_orthogonal_init=(
+                    args.fox_gd_residual_addr_proj_orthogonal_init == "true"
                 ),
                 vq_score_mode=args.vq_score_mode,
                 vq_weight_mode=args.vq_weight_mode,
