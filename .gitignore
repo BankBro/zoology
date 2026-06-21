@@ -179,6 +179,7 @@ cython_debug/
 # /tests
 
 # Flash-VQG generated configs and analysis outputs
+/zoology/experiments/flash_vqg/scripts/*/outputs/
 /zoology/experiments/flash_vqg/generated/*
 !/zoology/experiments/flash_vqg/generated/.gitignore
 !/zoology/experiments/flash_vqg/generated/flash-vqg-20260402-clr-v1-e2*

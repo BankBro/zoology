@@ -16,6 +16,7 @@
 ## zoology 实验文件组织管理规范
 
 - 实验入口脚本放在 `zoology/experiments/flash_vqg/scripts/YYYYMMDD-experiment-name/`.
+- 实验脚本旁的本地中间输出放在 `zoology/experiments/flash_vqg/scripts/YYYYMMDD-experiment-name/outputs/`; 该目录用于 debug, smoke, 临时拼表等未整理产物, 默认不提交. 收尾时只把可审计的轻量 summary/metadata/README 提炼到 `docs/artifacts/YYYYMMDD-experiment-name/`.
 - 实验 plan 如需落盘, 放在 `docs/plans/YYYYMMDD-experiment-name-plan.md`.
 - 自动生成配置和 manifest 放在 `zoology/experiments/flash_vqg/generated/<launch_id>/`; 若先在临时 worktree 或其他机器生成, 收尾时补回 base repo 标准路径.
 - 原始 analysis 放在 `zoology/analysis/flash_vqg/results/<launch_id>/`; 若没有生成, 在 artifact metadata 或 README 说明原因.
