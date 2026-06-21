@@ -1,0 +1,16 @@
+target,label,seed,num_codebook_vectors,gd_rank,scope,snapshot_path
+cb64-r16-s124,cb64-r16-boundary,124,64,16,full_model,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s124-full_model.pt
+cb64-r16-s124,cb64-r16-boundary,124,64,16,flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s124-flash_only.pt
+cb64-r16-s124,cb64-r16-boundary,124,64,16,non_flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s124-non_flash_only.pt
+cb64-r16-s125,cb64-r16-good,125,64,16,full_model,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s125-full_model.pt
+cb64-r16-s125,cb64-r16-good,125,64,16,flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s125-flash_only.pt
+cb64-r16-s125,cb64-r16-good,125,64,16,non_flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb64-r16-s125-non_flash_only.pt
+cb256-r4-s123,cb256-r4-historical-good,123,256,4,full_model,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s123-full_model.pt
+cb256-r4-s123,cb256-r4-historical-good,123,256,4,flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s123-flash_only.pt
+cb256-r4-s123,cb256-r4-historical-good,123,256,4,non_flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s123-non_flash_only.pt
+cb256-r4-s124,cb256-r4-bad,124,256,4,full_model,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s124-full_model.pt
+cb256-r4-s124,cb256-r4-bad,124,256,4,flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s124-flash_only.pt
+cb256-r4-s124,cb256-r4-bad,124,256,4,non_flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s124-non_flash_only.pt
+cb256-r4-s125,cb256-r4-boundary,125,256,4,full_model,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s125-full_model.pt
+cb256-r4-s125,cb256-r4-boundary,125,256,4,flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s125-flash_only.pt
+cb256-r4-s125,cb256-r4-boundary,125,256,4,non_flash_only,/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots/cb256-r4-s125-non_flash_only.pt

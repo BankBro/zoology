@@ -1,0 +1,9 @@
+{
+  "status": "generated",
+  "launch_id": "flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37",
+  "generated_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37/launch_configs.py",
+  "run_specs_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37/run_specs.json",
+  "matrix_path": "/home/lyj/mnt/project/zoology/docs/artifacts/20260603-gd-init-transplant/early-core-matrix.csv",
+  "num_runs": 9,
+  "launch_requested": true
+}

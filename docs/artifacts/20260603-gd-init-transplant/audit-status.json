@@ -1,0 +1,7 @@
+{
+  "status": "audit_completed",
+  "audit_path": "/home/lyj/mnt/project/zoology/docs/artifacts/20260603-gd-init-transplant/init-geometry-audit.csv",
+  "probe_path": "/home/lyj/mnt/project/zoology/docs/artifacts/20260603-gd-init-transplant/init-geometry-probe.csv",
+  "num_audit_rows": 4,
+  "num_probe_rows": 8
+}

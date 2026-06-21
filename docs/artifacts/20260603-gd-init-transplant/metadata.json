@@ -1,0 +1,83 @@
+{
+  "experiment": "20260603-gd-init-transplant",
+  "title": "Flash-VQG gd_residual_v1 init-transplant 探索实验",
+  "status": "complete_exploratory",
+  "created_at_utc": "2026-06-03T08:53:30+00:00",
+  "completed_at_local": "2026-06-05",
+  "host_scope": {
+    "requested_machine": "2080ti",
+    "container": "Flash-VQG-tun",
+    "allowed_paths": [
+      "/home/lyj/mnt/project/zoology",
+      "/home/lyj/mnt/project/Flash-VQG"
+    ],
+    "gpus": [
+      "NVIDIA GeForce RTX 2080 Ti GPU 0",
+      "NVIDIA GeForce RTX 2080 Ti GPU 1"
+    ]
+  },
+  "constraints": {
+    "no_commit": true,
+    "no_push": true,
+    "torch_deterministic_1_enabled": false,
+    "canonical_ledger_updated": false,
+    "canonical_ledger_path": "/home/lyj/mnt/project/zoology/docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv"
+  },
+  "script_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260603-gd-init-transplant",
+  "artifact_dir": "/home/lyj/mnt/project/zoology/docs/artifacts/20260603-gd-init-transplant",
+  "report_path": "/home/lyj/mnt/project/zoology/docs/20260603-gd-init-transplant-report.md",
+  "generated_configs": [
+    {
+      "mode": "early",
+      "launch_id": "flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37",
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37"
+    },
+    {
+      "mode": "train",
+      "launch_id": "flash-vqg-20260603-gd-init-transplant-train-core-2026-06-03-09-07-13",
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260603-gd-init-transplant-train-core-2026-06-03-09-07-13"
+    }
+  ],
+  "raw_analysis": [
+    {
+      "mode": "early",
+      "launch_id": "flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37",
+      "path": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260603-gd-init-transplant-early-core-2026-06-03-08-56-37"
+    },
+    {
+      "mode": "train",
+      "launch_id": "flash-vqg-20260603-gd-init-transplant-train-core-2026-06-03-09-07-13",
+      "path": "/home/lyj/mnt/project/zoology/zoology/analysis/flash_vqg/results/flash-vqg-20260603-gd-init-transplant-train-core-2026-06-03-09-07-13"
+    }
+  ],
+  "primary_artifacts": [
+    "init-transplant-source-manifest.csv",
+    "init-path-notes.json",
+    "init-geometry-audit.csv",
+    "init-geometry-probe.csv",
+    "early-core-final.csv",
+    "train-core-final.csv",
+    "early-core-matrix.csv",
+    "train-core-matrix.csv"
+  ],
+  "matrix_summary": {
+    "early_core_runs": 9,
+    "train_core_runs": 9,
+    "train_core_failed_runs": 0,
+    "train_core_max_epochs": 4,
+    "early_core_max_epochs": 1
+  },
+  "conclusion": {
+    "short": "FlashVQG 初始化几何与稳定 basin 有关, 但在本矩阵中不是充分条件. good flash-only 初始化移植到 bad/boundary recipient 不能稳定救回训练; full initialized state rerun 的分叉很小.",
+    "main_driver": "recipient-side 非 Flash 初始化状态和训练动力学与 FlashVQG 初始化共同决定最终稳定性",
+    "early_probe": "step 0/early probe 指标在 good/bad 间很接近, 不能可靠提前区分最终好坏"
+  },
+  "checkpoint_dir": "/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant",
+  "large_artifacts": {
+    "policy": "local_checkpoint_storage_not_git_artifact",
+    "init_snapshots_dir": "/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_snapshots",
+    "init_checkpoints_dir": "/home/lyj/mnt/project/zoology/checkpoints/20260603-gd-init-transplant/init_checkpoints",
+    "moved_from_artifact_dir": true,
+    "note": "The docs artifact keeps lightweight CSV/JSON/README indexes; .pt snapshots/checkpoints stay under the ignored checkpoints directory."
+  }
+}
