@@ -1,0 +1,33 @@
+{
+  "artifact_id": "20260622-03-flash-vqg-readk4-combined-formalization",
+  "created_at_local": "2026-06-22T16:39:55+08:00",
+  "created_at_utc": "2026-06-22T08:39:55Z",
+  "status": "completed_analysis_only",
+  "new_training_started": false,
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "source_artifacts": [
+    "docs/artifacts/20260622-01-flash-vqg-readk-boundary-audit/readk-boundary-final.csv",
+    "docs/artifacts/20260622-02-flash-vqg-readk-telemetry-formalization/final.csv",
+    "docs/artifacts/20260622-02-flash-vqg-readk-telemetry-formalization/readk4-context-summary.csv"
+  ],
+  "artifact_files": [
+    "combined-readk4-final.csv",
+    "combined-readk4-summary.csv",
+    "combined-readk4-decision.csv",
+    "candidate-pool.csv",
+    "metadata.json",
+    "README.md"
+  ],
+  "main_conclusions": [
+    "cb256-r8 fixed readk4 is the strongest local candidate: historical s124/s125 high paths plus new seed123=0.992.",
+    "cb256-r4 fixed readk4 is a local candidate: historical s124/s125 high-ish paths plus new seed123=0.965.",
+    "cb128-r8 fixed readk4 remains a boundary/risk case: new s125 repeat=0.967 did not reproduce collapse, but historical 0.609 remains valid and new m_norm_max=13.8 is not clean.",
+    "fixed readk4 is rejected as a global default because cb64-r16 and cb128-r8 remain counterexamples/risk cases."
+  ],
+  "caveats": [
+    "This is combined evidence, not a strict same-wave full matrix.",
+    "Historical rows lack the new read-side telemetry; telemetry conclusions are limited to the 20260622-02 rows.",
+    "No candidate churn telemetry exists yet.",
+    "No canonical official ledger update is made by this analysis artifact."
+  ]
+}
