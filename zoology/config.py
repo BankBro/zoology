@@ -155,6 +155,10 @@ class TrainConfig(BaseConfig):
     gradient_accumulation_steps: int = 1
     validations_per_epoch: int = 1
     seed: int = 123
+    read_churn_probe_enabled: bool = False
+    read_churn_probe_valid_batches: List[int] = [0]
+    read_churn_probe_max_samples: int = 16
+    read_churn_probe_query_only: bool = True
 
     launch_id: Optional[str] = None
     sweep_id: Optional[str] = None

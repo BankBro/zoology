@@ -358,6 +358,10 @@ def _render_generated_config(
     wandb_entity: str,
     max_epochs: int,
     metrics_white_list: list[str],
+    read_churn_probe_enabled: bool = False,
+    read_churn_probe_valid_batches: list[int] | None = None,
+    read_churn_probe_max_samples: int = 16,
+    read_churn_probe_query_only: bool = True,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -505,6 +509,10 @@ def _render_generated_config(
         f"    wandb_entity={wandb_entity!r},",
         f"    max_epochs={max_epochs!r},",
         f"    metrics_white_list={metrics_white_list!r},",
+        f"    read_churn_probe_enabled={read_churn_probe_enabled!r},",
+        f"    read_churn_probe_valid_batches={read_churn_probe_valid_batches!r},",
+        f"    read_churn_probe_max_samples={read_churn_probe_max_samples!r},",
+        f"    read_churn_probe_query_only={read_churn_probe_query_only!r},",
         f"    early_stopping_metric={early_stopping_metric!r},",
         f"    early_stopping_threshold={early_stopping_threshold!r},",
         ")",
@@ -679,6 +687,10 @@ def _build_manifest_run_ids(
     entity: str,
     max_epochs: int,
     metrics_white_list: list[str],
+    read_churn_probe_enabled: bool = False,
+    read_churn_probe_valid_batches: list[int] | None = None,
+    read_churn_probe_max_samples: int = 16,
+    read_churn_probe_query_only: bool = True,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -827,6 +839,10 @@ def _build_manifest_run_ids(
         wandb_entity=entity,
         max_epochs=max_epochs,
         metrics_white_list=metrics_white_list,
+        read_churn_probe_enabled=read_churn_probe_enabled,
+        read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+        read_churn_probe_max_samples=read_churn_probe_max_samples,
+        read_churn_probe_query_only=read_churn_probe_query_only,
         early_stopping_metric=early_stopping_metric,
         early_stopping_threshold=early_stopping_threshold,
     )
@@ -1324,6 +1340,10 @@ def main():
         default=None,
         help="JSON/YAML 格式的 metrics 白名单文件路径.",
     )
+    parser.add_argument("--read-churn-probe-enabled", choices=["true", "false"], default="false")
+    parser.add_argument("--read-churn-probe-valid-batches", type=str, default="0")
+    parser.add_argument("--read-churn-probe-max-samples", type=int, default=16)
+    parser.add_argument("--read-churn-probe-query-only", choices=["true", "false"], default="true")
     parser.add_argument("--project", type=str, default="flash_vqg_vs_gdn")
     parser.add_argument("--entity", type=str, default="scu-mclab")
     parser.add_argument("--max-epochs", type=int, default=32)
@@ -1488,6 +1508,17 @@ def main():
     )
     early_stopping_metric = None if disable_early_stopping else "valid/accuracy"
     early_stopping_threshold = None if disable_early_stopping else 0.99
+    read_churn_probe_enabled = _parse_bool_flag(
+        args.read_churn_probe_enabled,
+        field_name="read_churn_probe_enabled",
+    )
+    read_churn_probe_valid_batches = _parse_csv_ints(args.read_churn_probe_valid_batches)
+    read_churn_probe_query_only = _parse_bool_flag(
+        args.read_churn_probe_query_only,
+        field_name="read_churn_probe_query_only",
+    )
+    if args.read_churn_probe_max_samples <= 0:
+        raise ValueError("read_churn_probe_max_samples 必须是正整数.")
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
     generated_launch_dir = GENERATED_DIR / launch_id
@@ -1664,6 +1695,10 @@ def main():
             entity=args.entity,
             max_epochs=args.max_epochs,
             metrics_white_list=metrics_white_list,
+            read_churn_probe_enabled=read_churn_probe_enabled,
+            read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+            read_churn_probe_max_samples=args.read_churn_probe_max_samples,
+            read_churn_probe_query_only=read_churn_probe_query_only,
             early_stopping_metric=early_stopping_metric,
             early_stopping_threshold=early_stopping_threshold,
         )
@@ -1831,6 +1866,10 @@ def main():
                 wandb_entity=args.entity,
                 max_epochs=args.max_epochs,
                 metrics_white_list=metrics_white_list,
+                read_churn_probe_enabled=read_churn_probe_enabled,
+                read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+                read_churn_probe_max_samples=args.read_churn_probe_max_samples,
+                read_churn_probe_query_only=read_churn_probe_query_only,
                 early_stopping_metric=early_stopping_metric,
                 early_stopping_threshold=early_stopping_threshold,
             ),

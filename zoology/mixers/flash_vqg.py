@@ -488,6 +488,18 @@ class FlashVQGMixer(nn.Module):
             return
         clearer()
 
+    def set_read_candidate_probe_runtime(self, runtime) -> None:
+        setter = getattr(self.attn, "set_read_candidate_probe_runtime", None)
+        if setter is None:
+            raise RuntimeError("FlashVQGAttention does not support read candidate probe runtime.")
+        setter(runtime)
+
+    def clear_read_candidate_probe_runtime(self) -> None:
+        clearer = getattr(self.attn, "clear_read_candidate_probe_runtime", None)
+        if clearer is None:
+            return
+        clearer()
+
     def get_auxiliary_loss(self) -> torch.Tensor:
         zero = self.attn.res_proj.weight.new_zeros(())
         if not self._last_aux:

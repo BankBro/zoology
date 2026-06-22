@@ -1185,6 +1185,10 @@ def build_configs(
     eval_batch_size: int | None = None,
     cache_dir: str = DEFAULT_CACHE_DIR,
     metrics_white_list: Iterable[str] | None = None,
+    read_churn_probe_enabled: bool = False,
+    read_churn_probe_valid_batches: Iterable[int] | None = None,
+    read_churn_probe_max_samples: int = 16,
+    read_churn_probe_query_only: bool = True,
 ) -> list[TrainConfig]:
     flash_backend = str(flash_backend).lower()
     if flash_backend not in {"accel", "torch"}:
@@ -1226,6 +1230,11 @@ def build_configs(
     train_batch_orders_list = _normalize_train_batch_orders(train_batch_orders, train_batch_order)
     normalized_metrics_white_list = normalize_metrics_white_list(metrics_white_list)
     metric_controls = derive_flash_metric_controls(normalized_metrics_white_list)
+    read_churn_probe_valid_batches = (
+        [0]
+        if read_churn_probe_valid_batches is None
+        else [int(idx) for idx in read_churn_probe_valid_batches]
+    )
     normalized_num_codebook_vectors_values = _normalize_num_codebook_vectors_values(
         num_codebook_vectors_values
     )
@@ -2385,6 +2394,10 @@ def build_configs(
                                             early_stopping_threshold=early_stopping_threshold,
                                             logger=logger,
                                             metrics_white_list=normalized_metrics_white_list,
+                                            read_churn_probe_enabled=read_churn_probe_enabled,
+                                            read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+                                            read_churn_probe_max_samples=read_churn_probe_max_samples,
+                                            read_churn_probe_query_only=read_churn_probe_query_only,
                                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                                             sweep_id=sweep_id,
                                             seed=current_seed,
@@ -2418,6 +2431,10 @@ def build_configs(
                             early_stopping_threshold=early_stopping_threshold,
                             logger=logger,
                             metrics_white_list=normalized_metrics_white_list,
+                            read_churn_probe_enabled=read_churn_probe_enabled,
+                            read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+                            read_churn_probe_max_samples=read_churn_probe_max_samples,
+                            read_churn_probe_query_only=read_churn_probe_query_only,
                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                             sweep_id=sweep_id,
                             seed=current_seed,

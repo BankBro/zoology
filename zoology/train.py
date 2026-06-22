@@ -163,6 +163,10 @@ class Trainer:
         early_stopping_threshold: float = None,
         loss_type: str = "ce",
         slice_keys: List[str] = [],
+        read_churn_probe_enabled: bool = False,
+        read_churn_probe_valid_batches: List[int] = [0],
+        read_churn_probe_max_samples: int = 16,
+        read_churn_probe_query_only: bool = True,
         device: Union[str, int] = "cuda",
         logger: LoggerProtocol = None,
         checkpoint_manager: CheckpointManager = None,
@@ -187,6 +191,13 @@ class Trainer:
         self.slice_keys = slice_keys
         self.loss_type = loss_type
         self.global_step = 0
+        self.read_churn_probe_enabled = bool(read_churn_probe_enabled)
+        self.read_churn_probe_valid_batches = {
+            int(idx) for idx in (read_churn_probe_valid_batches or [])
+        }
+        self.read_churn_probe_max_samples = int(read_churn_probe_max_samples)
+        self.read_churn_probe_query_only = bool(read_churn_probe_query_only)
+        self._read_churn_probe_prev_top_idx_by_key: dict = {}
 
     def _set_dense_teacher_runtime(self, targets: torch.Tensor) -> None:
         if self.input_type != "discrete":
@@ -205,6 +216,51 @@ class Trainer:
     def _clear_dense_teacher_runtime(self) -> None:
         def clearer(module):
             clearer_fn = getattr(module, "clear_dense_teacher_runtime", None)
+            if clearer_fn is not None:
+                clearer_fn()
+
+        self.model.apply(clearer)
+
+    def _set_read_candidate_probe_runtime(
+        self,
+        *,
+        batch_idx: int,
+        targets: torch.Tensor,
+        epoch_idx: int,
+    ) -> bool:
+        if not self.read_churn_probe_enabled:
+            return False
+        if batch_idx not in self.read_churn_probe_valid_batches:
+            return False
+        if self.input_type != "discrete":
+            return False
+        max_samples = min(self.read_churn_probe_max_samples, int(targets.size(0)))
+        if max_samples <= 0:
+            return False
+        query_mask = (targets[:max_samples] != -100).detach()
+        if not self.read_churn_probe_query_only:
+            query_mask = torch.ones_like(query_mask, dtype=torch.bool)
+        runtime = {
+            "enabled": True,
+            "valid_batch_idx": int(batch_idx),
+            "epoch_idx": int(epoch_idx),
+            "global_step": int(self.global_step),
+            "max_samples": int(max_samples),
+            "query_mask": query_mask,
+            "_prev_top_idx_by_key": self._read_churn_probe_prev_top_idx_by_key,
+        }
+
+        def setter(module):
+            setter_fn = getattr(module, "set_read_candidate_probe_runtime", None)
+            if setter_fn is not None:
+                setter_fn(runtime)
+
+        self.model.apply(setter)
+        return True
+
+    def _clear_read_candidate_probe_runtime(self) -> None:
+        def clearer(module):
+            clearer_fn = getattr(module, "clear_read_candidate_probe_runtime", None)
             if clearer_fn is not None:
                 clearer_fn()
 
@@ -399,13 +455,20 @@ class Trainer:
             desc=f"Valid Epoch {epoch_idx}/{self.max_epochs}",
             postfix={"loss": "-", "acc": "-"},
         ) as iterator:
-            for inputs, targets, slices in self.test_dataloader:
+            for batch_idx, (inputs, targets, slices) in enumerate(self.test_dataloader):
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 self._set_dense_teacher_runtime(targets)
+                read_probe_active = self._set_read_candidate_probe_runtime(
+                    batch_idx=batch_idx,
+                    targets=targets,
+                    epoch_idx=epoch_idx,
+                )
                 try:
                     loss, preds = self.compute_loss(inputs, targets)
                 finally:
                     self._clear_dense_teacher_runtime()
+                    if read_probe_active:
+                        self._clear_read_candidate_probe_runtime()
                 test_loss += loss / len(self.test_dataloader)
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
                 for key, value in self._collect_model_scalar_metrics().items():
@@ -554,6 +617,10 @@ def train(config: TrainConfig):
             early_stopping_threshold=config.early_stopping_threshold,
             slice_keys=config.slice_keys,
             loss_type=config.loss_type,
+            read_churn_probe_enabled=config.read_churn_probe_enabled,
+            read_churn_probe_valid_batches=config.read_churn_probe_valid_batches,
+            read_churn_probe_max_samples=config.read_churn_probe_max_samples,
+            read_churn_probe_query_only=config.read_churn_probe_query_only,
             device="cuda" if torch.cuda.is_available() else "cpu",
             logger=logger,
             checkpoint_manager=checkpoint_manager,
