@@ -78,7 +78,7 @@ Spread summary:
 
 ## 与既有 readk4 证据的关系
 
-这轮 schedule 没有复现 fixed readk4 在 `cb256-r8` 上的强正结果. 之前 `20260530-gd-seed-diag` 中:
+这轮 schedule 没有达到既有 fixed readk4 在 `cb256-r8` 上的低 spread 水平. 需要注意, 本轮没有同批 fixed readk4 对照, 因此不能用本轮结果否定 fixed readk4; 这里只能判断当前 `4->2` schedule 不能替代旧 fixed readk4 证据中的候选覆盖效果. 之前 `20260530-gd-seed-diag` 中:
 
 - `cb256-r8` readk2 s124/s125 为 `0.988/0.804`, spread `0.184`.
 - `cb256-r8` fixed readk4 四条 completed run 为 `0.982/0.982/0.988/0.992`, spread `0.010`.
@@ -103,7 +103,7 @@ Spread summary:
 
 本轮应作为负结果记录:
 
-- `cb256-r8` 上不能替代 fixed readk4.
+- `cb256-r8` 上当前 `4->2` schedule 不能替代既有 fixed readk4 证据, 但本轮没有同批 fixed readk4 对照.
 - `cb128-r8` 上不能解除边界风险.
 - failure 与 late drift 或 m_norm redline 无直接对应, 需要更细的 read-side confidence telemetry.
 

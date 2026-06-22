@@ -1,0 +1,44 @@
+{
+  "artifact_id": "20260622-01-flash-vqg-readk-boundary-audit",
+  "created_at_local": "2026-06-22T11:19:26+08:00",
+  "created_at_utc": "2026-06-22T03:19:26Z",
+  "audit_type": "historical_artifact_audit",
+  "new_training_started": false,
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "scope": [
+    "cb256-r4 readk2/readk4 historical rows",
+    "cb64-r16 readk2/readk4 historical rows",
+    "cb128-r8 readk2/readk4 historical rows",
+    "cb256-r8 readk2/readk4 historical rows"
+  ],
+  "source_artifacts": [
+    "docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-key-metrics.csv",
+    "docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-spread-summary.csv",
+    "docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-final.csv",
+    "docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-spread-summary.csv",
+    "docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-source-manifest.csv",
+    "docs/artifacts/20260530-gd-seed-diag/metadata.json"
+  ],
+  "main_conclusions": [
+    "Existing historical data are sufficient to support that fixed readk4 is not a global default.",
+    "cb256-r8 has the strongest fixed-readk4 local positive evidence: readk2 spread 0.184 versus readk4 all-completed spread 0.010.",
+    "cb256-r4 also supports fixed-readk4 as a local positive: ordinary readk2 r1 spread 0.18391015625 versus formal readk4 all-completed spread 0.015.",
+    "cb64-r16 is a high-path damage counterexample: readk4 s124 r1/r2 are 0.831 and 0.849, versus readk2 s124 replacement 0.959.",
+    "cb128-r8 is a reproducibility counterexample: readk4 main pair is 0.973/0.972, but s125 rerun is 0.609.",
+    "Immediate broad rerun is not needed for the qualitative boundary claim; targeted runs are only needed if promoting cb256-r4/r8 readk4 to formal three-seed candidates."
+  ],
+  "known_gaps": [
+    "Fixed-readk4 seed123 is missing for cb256-r8 and cb256-r4 formalization.",
+    "cb128-r8 fixed-readk4 seed123 is missing for a complete three-seed failure map.",
+    "Historical rows lack read margin, read entropy, candidate churn, and per-head read telemetry.",
+    "Future runs should explicitly write both best and final metrics to artifacts."
+  ],
+  "artifact_files": [
+    "README.md",
+    "metadata.json",
+    "readk-boundary-final.csv",
+    "readk-boundary-spread-summary.csv",
+    "readk-boundary-gap-table.csv",
+    "readk-boundary-source-manifest.csv"
+  ]
+}

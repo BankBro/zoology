@@ -43,7 +43,7 @@ eval_policy = scheduled
 
 这版 `read_topk 4->2` schedule 不能升级为 official longer-MQAR 候选.
 
-- `cb256-r8` 没有保住既有 fixed readk4 正证据. 先前 fixed readk4 completed spread 约 `0.010`, 本轮 schedule spread 为 `0.171`, 其中 s124 只有 `0.820`.
+- `cb256-r8` 的当前 `4->2` schedule 没有达到既有 fixed readk4 证据的低 spread 水平. 先前 fixed readk4 completed spread 约 `0.010`, 本轮 schedule spread 为 `0.171`, 其中 s124 只有 `0.820`. 本轮没有同批 fixed readk4 对照, 因此不能用本轮结果否定 fixed readk4.
 - `cb128-r8` 仍是 read-side 边界风险配置. 本轮 s124 只有 `0.681`, s125 是 `0.976`, spread `0.295`.
 - failure 不是 late drift: 每条 run 的 best-final gap 都是 `0`.
 - failure 也不像简单 state norm explosion: `max_m_norm_max_over_valid` 最大为 `5.75`, 低于红线 `8`.

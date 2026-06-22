@@ -44,13 +44,13 @@
     "README.md"
   ],
   "main_results": [
-    "cb256-r8 schedule final hard values: s123=0.935, s124=0.820, s125=0.991; spread=0.171, worse than prior fixed readk4 positive evidence.",
+    "cb256-r8 schedule final hard values: s123=0.935, s124=0.820, s125=0.991; spread=0.171, worse than prior fixed readk4 low-spread evidence. This run did not include a same-wave fixed readk4 control, so it does not falsify fixed readk4.",
     "cb128-r8 schedule final hard values: s124=0.681, s125=0.976; spread=0.295, a strong negative/failure-case result.",
     "best-final gap is 0 for all five completed runs, so this wave does not look like late drift; split appears before final validation.",
     "m_norm_max stays below the redline 8 in all runs, so failure is not a simple state norm explosion.",
     "stdout validation telemetry only shows effective read_topk=2; config/smoke verify schedule wiring, but this artifact cannot prove the early training top4 window from stdout alone."
   ],
-  "decision": "Do not promote this read_topk 4->2 schedule to official longer-MQAR. Treat it as a negative exploratory result and move next to margin-aware read gate or write/read combined controls.",
+  "decision": "Do not promote this read_topk 4->2 schedule to official longer-MQAR. Treat it as a negative exploratory result for this schedule; it does not by itself falsify fixed readk4 because no same-wave fixed readk4 control was run. Move next to margin-aware read gate or write/read combined controls.",
   "caveats": [
     "Large raw logs, checkpoints, and swanlog remain ignored in their original locations; this artifact stores only lightweight summaries and source references.",
     "3090 generated configs and logs were copied back to the 2080ti workspace for unified artifact extraction.",

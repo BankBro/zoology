@@ -1,0 +1,11 @@
+source_id,source_path,role,used_for,notes
+src-20260530-key,docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-key-metrics.csv,primary_table,cb256-r4 run-level fixed readk2/readk4 metrics,Contains ordinary formal readk4 rows and ordinary readk2 baseline rows
+src-20260530-spread,docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-spread-summary.csv,primary_table,cb256-r4 spread summaries,Used to verify formal readk4 spread and readk2 split
+src-20260530-cross-final,docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-final.csv,primary_table,cb64-r16 cb128-r8 cb256-r8 run-level rows,Contains validation curves final hard accuracy loss and notes
+src-20260530-cross-spread,docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-spread-summary.csv,primary_table,cb64-r16 cb128-r8 cb256-r8 spread summaries,Used to verify rerun gaps and all-completed spread
+src-20260530-cross-manifest,docs/artifacts/20260530-gd-seed-diag/gd-seed-diag-cross-config-source-manifest.csv,source_manifest,launch and generated manifest references,Used to preserve source run identity
+src-20260530-metadata,docs/artifacts/20260530-gd-seed-diag/metadata.json,source_metadata,training context and caveats,Records data_seed dtype max_epochs and cross-config conclusions
+src-20260530-report,docs/20260530-gd-seed-diag-report.md,historical_report,interpretation baseline,Used for readk4 boundary interpretation and counterexample context
+src-20260605-review,docs/20260605-flash-vqg-stability-direction-independent-review.md,historical_review,independent review,Used for formalization criteria and risk framing
+src-20260605-research,docs/20260605-flash-vqg-stability-research-direction-report.md,historical_report,research direction,Used for candidate/failure framing
+src-20260622-roadmap,docs/plans/20260622-flash-vqg-seed-stability-roadmap.md,roadmap,current plan alignment,Used to decide which gaps require future training

@@ -1,0 +1,15 @@
+config_family,comparison,read_topk,values,worst,spread,best_final_gap_max,verdict,interpretation
+cb256-r4,readk2_r1_cross_seed,2,s124-r1=0.77246484375;s125-r1=0.956375,0.77246484375,0.18391015625,0,fail,ordinary readk2 has large path split on this historical pair
+cb256-r4,readk4_formal_all_completed,4,s124-r1c=0.943;s124-r2c=0.958;s125-r1c=0.944,0.943,0.015,0.001,pass_local,formal readk4 is a local positive for cb256-r4, but seed123 is missing from this fixed-readk4 table
+cb64-r16,readk2_main_cross_seed,2,s124-r1b=0.959;s125-r1=0.915,0.915,0.044,0,mixed,default readk2 has moderate seed spread
+cb64-r16,readk4_main_cross_seed,4,s124-r1=0.831;s125-r1=0.965,0.831,0.134,0,fail,readk4 improves s125 but harms s124 high path
+cb64-r16,readk4_s124_rerun,4,s124-r1=0.831;s124-r2=0.849,0.831,0.018,0,fail_reproduced,readk4 s124 weak path is reproducible despite low same-seed spread
+cb128-r8,readk2_main_cross_seed,2,s124-r1=0.956;s125-r1=0.956,0.956,0,0,pass_pair,default readk2 is stable in the available s124/s125 pair
+cb128-r8,readk4_main_cross_seed,4,s124-r1=0.973;s125-r1=0.972,0.972,0.001,0,initial_pass_only,main readk4 pair initially looks positive
+cb128-r8,readk4_s125_rerun,4,s125-r1=0.972;s125-r2=0.609,0.609,0.363,0,fail,readk4 s125 rerun is not reproducible
+cb128-r8,readk4_all_completed,4,s124-r1=0.973;s125-r1=0.972;s125-r2=0.609,0.609,0.364,0,fail,fixed readk4 is unstable under rerun for cb128-r8
+cb256-r8,readk2_main_cross_seed,2,s124-r1=0.988;s125-r1=0.804,0.804,0.184,0,fail,default readk2 has large seed split
+cb256-r8,readk4_main_cross_seed,4,s124-r1=0.982;s125-r1=0.988,0.982,0.006,0.001,pass_local,readk4 rescues weak seed in main pair
+cb256-r8,readk4_s124_rerun,4,s124-r1=0.982;s124-r2=0.982,0.982,0,0,pass_repeat,readk4 s124 high path reproduced
+cb256-r8,readk4_s125_rerun,4,s125-r1=0.988;s125-r2=0.992,0.988,0.004,0.001,pass_repeat,readk4 s125 high path reproduced
+cb256-r8,readk4_all_completed,4,s124-r1=0.982;s124-r2=0.982;s125-r1=0.988;s125-r2=0.992,0.982,0.01,0.001,pass_local,readk4 is the strongest fixed-read local positive, but seed123 is missing from this fixed-readk4 table
