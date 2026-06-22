@@ -1,0 +1,61 @@
+{
+  "artifact_id": "20260622-flash-vqg-seed-stability-next",
+  "updated_at_utc": "2026-06-22T01:59:44Z",
+  "status": "completed_exploratory_negative",
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "zoology_branch": "flash-vqg",
+  "zoology_head": "4d8e4d3",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_head": "e717489",
+  "machines": [
+    "mclab-3090 Flash-VQG-tun",
+    "mclab-2080ti Flash-VQG-tun"
+  ],
+  "training_context": {
+    "data_seed": 123,
+    "dtype_policy": "fp32/default training path",
+    "max_epochs": 4,
+    "validations_per_epoch": 2,
+    "train_batch_size": 64,
+    "eval_batch_size": 16,
+    "gradient_accumulation_steps": 4,
+    "early_stopping": "disabled",
+    "torch_deterministic": false,
+    "logger_backend": "swanlab"
+  },
+  "tested_mechanism": {
+    "fox_remote_read_topk_initial": 4,
+    "fox_remote_read_topk_final": 2,
+    "release_start_train_steps": 200,
+    "release_end_train_steps": 800,
+    "schedule": "linear_int",
+    "eval_policy": "scheduled",
+    "write_topk": 4,
+    "write_cap": null,
+    "beta_control": "hard_cap"
+  },
+  "artifact_files": [
+    "final.csv",
+    "validation-history.csv",
+    "spread-summary.csv",
+    "source-manifest.csv",
+    "smoke-summary.csv",
+    "metadata.json",
+    "README.md"
+  ],
+  "main_results": [
+    "cb256-r8 schedule final hard values: s123=0.935, s124=0.820, s125=0.991; spread=0.171, worse than prior fixed readk4 positive evidence.",
+    "cb128-r8 schedule final hard values: s124=0.681, s125=0.976; spread=0.295, a strong negative/failure-case result.",
+    "best-final gap is 0 for all five completed runs, so this wave does not look like late drift; split appears before final validation.",
+    "m_norm_max stays below the redline 8 in all runs, so failure is not a simple state norm explosion.",
+    "stdout validation telemetry only shows effective read_topk=2; config/smoke verify schedule wiring, but this artifact cannot prove the early training top4 window from stdout alone."
+  ],
+  "decision": "Do not promote this read_topk 4->2 schedule to official longer-MQAR. Treat it as a negative exploratory result and move next to margin-aware read gate or write/read combined controls.",
+  "caveats": [
+    "Large raw logs, checkpoints, and swanlog remain ignored in their original locations; this artifact stores only lightweight summaries and source references.",
+    "3090 generated configs and logs were copied back to the 2080ti workspace for unified artifact extraction.",
+    "The validation log prints each validation progress value twice; validation-history.csv uses adjacent de-duplication.",
+    "The final CUDA smoke with schedule coverage is config-runtime-smoke-20260621T194116Z. Earlier failed smoke attempts are retained in smoke-summary.csv as setup/debug history.",
+    "This is exploratory and is not written to the canonical gd-residual-v1 official ledger."
+  ]
+}

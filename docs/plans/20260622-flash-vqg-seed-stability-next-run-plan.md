@@ -1,7 +1,7 @@
 # Flash-VQG seed stability next 实验执行计划
 
 updated: 2026-06-22
-status: executing
+status: completed
 branch: `flash-vqg`
 
 ## 1. 目的
@@ -110,3 +110,15 @@ vq_topk=4
 - 分析 final/best/repeat, effective read_topk, m_norm, lambda/inject ratio.
 - 生成 `docs/20260622-flash-vqg-seed-stability-next-report.md`.
 - 视结果整理轻量 artifact.
+
+## 7. 收尾结果
+
+已完成.
+
+- report: `docs/20260622-flash-vqg-seed-stability-next-report.md`.
+- artifact: `docs/artifacts/20260622-flash-vqg-seed-stability-next/`.
+- source manifest: `docs/artifacts/20260622-flash-vqg-seed-stability-next/source-manifest.csv`.
+- final table: `docs/artifacts/20260622-flash-vqg-seed-stability-next/final.csv`.
+- spread summary: `docs/artifacts/20260622-flash-vqg-seed-stability-next/spread-summary.csv`.
+
+结论: 本轮 `read_topk 4->2, 200->800, linear_int` schedule 是负结果. `cb256-r8` 三 seed final hard 为 `0.935/0.820/0.991`, spread `0.171`; `cb128-r8` 两 seed 为 `0.681/0.976`, spread `0.295`. 五条 run 均 completed, 无日志错误, best-final gap 为 `0`, `m_norm_max` 未超过红线 `8`, 但 seed spread 远超准入门槛, 因此不进入 official longer-MQAR.

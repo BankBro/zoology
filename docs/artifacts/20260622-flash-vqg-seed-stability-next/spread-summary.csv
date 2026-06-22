@@ -1,0 +1,3 @@
+config_family,comparison,metric,values,n_completed,worst,best,spread,mean,pstdev,max_best_final_gap,max_m_norm_max_over_valid,criterion,verdict
+cb128-r8,read_schedule_4to2_cross_seed,valid/mqar_case/accuracy-1024x256,s124=0.681;s125=0.976,2,0.681,0.976,0.29499999999999993,0.8285,0.14749999999999996,0.0,4.58,"spread<=0.03, best-final gap<=0.01, m_norm_max<8",fail_spread_threshold
+cb256-r8,read_schedule_4to2_cross_seed,valid/mqar_case/accuracy-1024x256,s123=0.935;s124=0.820;s125=0.991,3,0.82,0.991,0.17100000000000004,0.9153333333333333,0.07118208263944581,0.0,5.75,"spread<=0.03, best-final gap<=0.01, m_norm_max<8",fail_spread_threshold

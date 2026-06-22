@@ -15,13 +15,14 @@
 
 ## zoology 实验文件组织管理规范
 
-- 实验入口脚本放在 `zoology/experiments/flash_vqg/scripts/YYYYMMDD-experiment-name/`.
-- 实验脚本旁的本地中间输出放在 `zoology/experiments/flash_vqg/scripts/YYYYMMDD-experiment-name/outputs/`; 该目录用于 debug, smoke, 临时拼表等未整理产物, 默认不提交. 收尾时只把可审计的轻量 summary/metadata/README 提炼到 `docs/artifacts/YYYYMMDD-experiment-name/`.
-- 实验 plan 如需落盘, 放在 `docs/plans/YYYYMMDD-experiment-name-plan.md`.
+- 新实验统一先定义 `experiment_id`, 格式为 `YYYYMMDD-NN-experiment-name`. 其中 `NN` 是当天第几个实验或研究单元, 从 `01` 开始递增; 同一实验的 script, plan, artifact, report 使用同一个 `experiment_id`. 历史已有 `YYYYMMDD-experiment-name` 路径和文档不强制重命名.
+- 实验入口脚本放在 `zoology/experiments/flash_vqg/scripts/<experiment_id>/`.
+- 实验脚本旁的本地中间输出放在 `zoology/experiments/flash_vqg/scripts/<experiment_id>/outputs/`; 该目录用于 debug, smoke, 临时拼表等未整理产物, 默认不提交. 收尾时只把可审计的轻量 summary/metadata/README 提炼到 `docs/artifacts/<experiment_id>/`.
+- 实验 plan 如需落盘, 放在 `docs/plans/<experiment_id>-plan.md`.
 - 自动生成配置和 manifest 放在 `zoology/experiments/flash_vqg/generated/<launch_id>/`; 若先在临时 worktree 或其他机器生成, 收尾时补回 base repo 标准路径.
 - 原始 analysis 放在 `zoology/analysis/flash_vqg/results/<launch_id>/`; 若没有生成, 在 artifact metadata 或 README 说明原因.
-- 正式 artifact 放在 `docs/artifacts/YYYYMMDD-experiment-name/`, 至少包含 final CSV, source manifest CSV, metadata JSON 和 README.
-- 人读报告放在 `docs/YYYYMMDD-experiment-name-report.md`.
+- 正式 artifact 放在 `docs/artifacts/<experiment_id>/`, 至少包含 final CSV, source manifest CSV, metadata JSON 和 README.
+- 人读报告放在 `docs/<experiment_id>-report.md`.
 - 组会一周一次; 需要组会汇报时同步更新 `/home/lyj/mnt/project/Flash-VQG/slices/<week-topic>/`.
 - 总表归属: Flash-VQG rank/seed/capacity 写 `docs/artifacts/gd-residual-v1/`; 普通 GDN 写 `docs/artifacts/gdn/`; expanded-K 或 kernel 线写 `docs/artifacts/gdn-expanded-k/`; longer-MQAR eval 写 `docs/artifacts/longer-mqar/`; 正式结果和探索性结果不要混成同一个推荐总表.
 - checkpoint, swanlog 和大型 raw 默认原位保留; 若来源 worktree/env 会删除, 先把关键 manifest, hash, command, config, log 和 source/env snapshot 归档到 artifact.
