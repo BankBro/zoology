@@ -18,7 +18,7 @@
 | `final.csv` | 三条 targeted run 的 final/best 指标和 final telemetry. |
 | `validation-history.csv` | 每条 run 去重后的 validation history, 包含 hard curve 和 read/write/state telemetry. |
 | `spread-summary.csv` | 本轮三条 run 的 config-level 摘要. 注意每个 config 只有一个新 seed/repeat. |
-| `source-manifest.csv` | raw log, generated manifest, checkpoint 和 SwanLab URL 索引. |
+| `source-manifest.csv` | raw log, generated manifest, checkpoint, local mirror 和 SwanLab URL 索引. |
 | `readk4-context-summary.csv` | 本轮结果与 `20260622-01` 历史 readk4 审计的连接说明. |
 | `metadata.json` | 机器, 配置, 结论和 caveat 元数据. |
 | `README.md` | 本说明文件. |
@@ -88,4 +88,5 @@ logger_backend=swanlab
 - 本轮每个 config 只补一个新 seed/repeat, 不是完整三 seed same-wave formal matrix.
 - 历史 rows 没有本轮新增 telemetry, 因此 combined conclusion 只能混合 final accuracy 和本轮 telemetry.
 - candidate churn 仍未实现.
-- 大型 raw log, SwanLab backup 和 checkpoint 保留在 3090 原位, 不进入 git artifact.
+- 3090 产生的 stdout log 和 generated manifest/config 已镜像回 2080ti 的 ignored workspace, 并完成 sha256 校验.
+- checkpoint, SwanLab backup 和大型 raw history 仍保留在 3090 原位, 不进入 git artifact.

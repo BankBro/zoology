@@ -57,7 +57,25 @@
     "This wave has no same-wave readk2 control; compare against historical readk2/readk4 rows only as contextual evidence.",
     "Only seed123 was added for cb256-r4 and cb256-r8; full three-seed cb256 formalization requires combining with historical readk4 rows.",
     "Candidate churn is still not implemented; read-side telemetry now covers margin, entropy and selected mass but not churn.",
-    "Large raw logs, swanlog backups and checkpoints remain on mclab-3090 under ignored paths; this artifact stores lightweight summaries and source references.",
+    "Raw logs and generated configs have been mirrored to mclab-2080ti under ignored paths and sha256 verified; swanlog backups and checkpoints remain on mclab-3090 under ignored paths.",
     "This is exploratory/formalization support and is not written to the canonical gd-residual-v1 official ledger."
-  ]
+  ],
+  "raw_mirror": {
+    "status": "logs_and_generated_configs_copied_to_2080ti_and_sha256_verified",
+    "source_machine": "mclab-3090 Flash-VQG-tun",
+    "mirror_machine": "mclab-2080ti Flash-VQG-tun",
+    "mirror_date_local": "2026-06-22",
+    "copied_relative_paths": [
+      "zoology/experiments/flash_vqg/generated/flash-vqg-20260622-02-readk-tel-cb256r8-readk4-s123-2026-06-22-04-15-10/",
+      "zoology/experiments/flash_vqg/generated/flash-vqg-20260622-02-readk-tel-cb256r4-readk4-s123-2026-06-22-04-15-10/",
+      "zoology/experiments/flash_vqg/generated/flash-vqg-20260622-02-readk-tel-cb128r8-readk4-s125-repeat-2026-06-22-04-15-10/",
+      "zoology/experiments/flash_vqg/scripts/20260622-02-flash-vqg-readk-telemetry-formalization/outputs/logs/20260622T041508Z/"
+    ],
+    "not_copied_by_default": [
+      "checkpoints/*.pt",
+      "swanlog backups",
+      "large raw analysis histories"
+    ],
+    "sha256_verified_files": 9
+  }
 }

@@ -15,7 +15,8 @@ updated: 2026-06-22
 - plan: `docs/plans/20260622-02-flash-vqg-readk-telemetry-formalization-plan.md`
 - artifact: `docs/artifacts/20260622-02-flash-vqg-readk-telemetry-formalization/`
 - scripts: `zoology/experiments/flash_vqg/scripts/20260622-02-flash-vqg-readk-telemetry-formalization/`
-- raw logs: 3090 `/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260622-02-flash-vqg-readk-telemetry-formalization/outputs/logs/20260622T041508Z/`
+- raw logs: source on 3090 `/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260622-02-flash-vqg-readk-telemetry-formalization/outputs/logs/20260622T041508Z/`; mirrored to 2080ti at the same container path and sha256 verified.
+- generated manifest/config: source on 3090 under `/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated/flash-vqg-20260622-02-readk-tel-*/`; mirrored to 2080ti at the same container paths and sha256 verified.
 - zoology branch/head: `flash-vqg`, `5d06e5646fce1ac50cee43cc157f6356a5c194c9`
 - Flash-VQG branch/head: `20260428-gd-residual-v1-sync`, `4d02c71ee6d19228f8104cc9844042f398d44f86`
 
