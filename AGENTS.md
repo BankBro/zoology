@@ -36,7 +36,7 @@
 - 标准链路: 跨机器操作默认先 SSH 到目标宿主机, 再进入该宿主机的 `Flash-VQG-tun` 容器执行, 例如 `ssh lyj@<host> "docker exec -u lyj Flash-VQG-tun bash -lc '<cmd>'"`.
 - 容器内优先: 项目更新, Git 状态检查, Python/CUDA 命令, 依赖检查, 实验脚本, `mihomo` 配置/启动/日志和 sudo 免密配置, 默认都在目标机器的 `Flash-VQG-tun` 容器内处理; 操作仓库时优先使用 `docker exec -u lyj`.
 - 多机实验代码同步: 多机实验的源码和实验脚本默认先在主工作区完成修改, 通过 git commit/push 同步到远端仓库, 再在目标机器的 `Flash-VQG-tun` 容器内 git pull 到相同分支和 commit 后启动实验. 不默认用 `scp`/`rsync` 临时覆盖源码或脚本.
-- 多机实验产物回收: 目标机器运行时生成的 `zoology/experiments/flash_vqg/generated/<launch_id>/`, logs, checkpoints, swanlog 等属于该机器本地产物. 其中 generated config/manifest 和轻量日志可在收尾时回收至 base repo 工作区, 用于 artifact/report 抽取; 大型 raw, checkpoints 和 swanlog 默认仍原位保留且不提交.
+- 多机实验产物回收: 目标机器运行时生成的 `zoology/experiments/flash_vqg/generated/<launch_id>/`, logs, checkpoints, swanlog 等属于该机器本地产物. 收尾时必须明确区分 source machine 与主工作区/base repo mirror. 用于 artifact/report 审计的轻量 raw evidence, 包括 generated config/manifest, stdout/stderr logs, resolved config, command, hash 和 source/env snapshot, 默认镜像回主工作区的相同相对路径或 artifact 指明的 mirror path, 并用 `sha256sum` 或等效方式校验; mirror 状态, source path, mirror path 和未回收项必须写入 `source-manifest.csv`, `metadata.json` 或 report. 镜像回来的 ignored raw 文件默认仍不提交, 只提交整理后的 summary/metadata/README/source-manifest. 大型 raw, checkpoints, swanlog backup 和 tensor dump 默认仍在 source machine 原位保留且不提交; 若未镜像轻量 raw evidence, 必须在 artifact/report 中说明原因和可追溯源路径.
 - 目标机器临时改代码: 若实验必须在目标机器临时修改代码, 收尾前必须把改动正规化为 git commit, 并同步回主工作区或明确记录差异, 避免多台机器出现不可追踪的源码分叉.
 - 多层 shell 写入: 跨机器 `ssh` + `docker exec` + `sudo tee` 场景中, 不用单条远程命令拼复杂多行脚本或配置. 需要写多行文件时, 优先本地生成并检查, 再通过 `scp`/`docker cp`/`install` 放入目标容器.
 - 宿主机边界: 宿主机只作为 SSH 入口, Docker 管理, GPU/进程粗查和路径映射确认的外层环境. 若确需在宿主机改文件, 服务或 sudoers, 必须先说明这是宿主机操作及原因.
