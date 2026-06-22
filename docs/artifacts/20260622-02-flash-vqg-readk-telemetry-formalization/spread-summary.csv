@@ -1,0 +1,4 @@
+config_family,num_runs,targets,seeds,final_hard_values,best_hard_values,worst_final_hard,best_final_hard,final_spread,max_best_final_gap,max_m_norm_max_over_valid,verdict
+cb128-r8,1,cb128r8-readk4-s125-repeat,125,0.967,0.967,0.967,0.967,0.0,0.0,13.8,single_run_formalization_seed
+cb256-r4,1,cb256r4-readk4-s123,123,0.965,0.965,0.965,0.965,0.0,0.0,1.4,single_run_formalization_seed
+cb256-r8,1,cb256r8-readk4-s123,123,0.992,0.992,0.992,0.992,0.0,0.0,1.86,single_run_formalization_seed

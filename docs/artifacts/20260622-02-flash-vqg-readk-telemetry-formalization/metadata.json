@@ -1,0 +1,63 @@
+{
+  "artifact_id": "20260622-02-flash-vqg-readk-telemetry-formalization",
+  "created_at_local": "2026-06-22T16:02:16+08:00",
+  "created_at_utc": "2026-06-22T08:02:16Z",
+  "status": "completed_exploratory_targeted",
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "zoology_branch": "flash-vqg",
+  "zoology_head": "5d06e5646fce1ac50cee43cc157f6356a5c194c9",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_head": "4d02c71ee6d19228f8104cc9844042f398d44f86",
+  "machine": "mclab-3090 Flash-VQG-tun",
+  "training_context": {
+    "data_seed": 123,
+    "dtype_policy": "fp32/default training path",
+    "max_epochs": 4,
+    "validations_per_epoch": 2,
+    "train_batch_size": 64,
+    "eval_batch_size": 16,
+    "gradient_accumulation_steps": 4,
+    "early_stopping": "disabled",
+    "torch_deterministic": false,
+    "logger_backend": "swanlab"
+  },
+  "tested_mechanism": {
+    "read_control": "fixed_read_topk_4",
+    "fox_remote_read_topk": 4,
+    "fox_gd_residual_write_topk": 4,
+    "write_cap": null,
+    "beta_control": "hard_cap",
+    "fox_remote_formula": "gd_residual_v1"
+  },
+  "new_telemetry": [
+    "valid/attn/gd_residual_read_margin_top1_top2_mean",
+    "valid/attn/gd_residual_read_margin_top1_top2_p05",
+    "valid/attn/gd_residual_read_entropy_mean",
+    "valid/attn/gd_residual_read_selected_mass_mean",
+    "valid/attn/gd_residual_read_selected_mass_p05"
+  ],
+  "artifact_files": [
+    "final.csv",
+    "validation-history.csv",
+    "spread-summary.csv",
+    "source-manifest.csv",
+    "readk4-context-summary.csv",
+    "metadata.json",
+    "README.md"
+  ],
+  "main_results": [
+    "All three targeted runs completed on mclab-3090 with fixed read_topk=4 and the new read-side telemetry present in validation logs.",
+    "cb256-r8 readk4 seed123 final/best hard is 0.992, filling the strongest historical local-positive gap for the cb256-r8 readk4 formalization set.",
+    "cb256-r4 readk4 seed123 final/best hard is 0.965, filling the cb256-r4 readk4 seed123 formalization gap.",
+    "cb128-r8 readk4 s125 repeat final/best hard is 0.967, so this repeat did not reproduce the earlier 0.609 collapse; it weakens but does not erase the cb128-r8 rerun-risk claim.",
+    "best-final gap is 0.0 for all three runs; this wave is not a late-drift failure case.",
+    "cb128-r8 reaches high hard accuracy but has final m_norm_max 13.8, above the prior m_norm>12 no-official redline, so it remains a boundary/risk case rather than a clean positive."
+  ],
+  "caveats": [
+    "This wave has no same-wave readk2 control; compare against historical readk2/readk4 rows only as contextual evidence.",
+    "Only seed123 was added for cb256-r4 and cb256-r8; full three-seed cb256 formalization requires combining with historical readk4 rows.",
+    "Candidate churn is still not implemented; read-side telemetry now covers margin, entropy and selected mass but not churn.",
+    "Large raw logs, swanlog backups and checkpoints remain on mclab-3090 under ignored paths; this artifact stores lightweight summaries and source references.",
+    "This is exploratory/formalization support and is not written to the canonical gd-residual-v1 official ledger."
+  ]
+}
