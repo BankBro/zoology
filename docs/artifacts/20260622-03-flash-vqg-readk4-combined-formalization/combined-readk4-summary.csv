@@ -1,5 +1,5 @@
 config_family,num_rows,seeds,historical_rows,new_telemetry_rows,final_values,worst_final_hard,best_final_hard,spread_all_rows,high_path_count_ge_0p95,low_path_count_lt_0p9,max_new_m_norm_max,decision,interpretation
 cb256-r8,5,123/124/125,4,1,0.992/0.982/0.982/0.988/0.992,0.982,0.992,0.01,5,0,1.86,local_candidate_strong,"历史 s124/s125 全部 high path, 新 s123=0.992 补齐缺口; fixed readk4 是 cb256-r8 的强局部候选."
 cb256-r4,4,123/124/125,3,1,0.965/0.943/0.958/0.944,0.943,0.965,0.022,2,0,1.4,local_candidate,"历史 s124/s125 为稳定 high-ish path, 新 s123=0.965 补齐缺口; fixed readk4 是 cb256-r4 的局部候选."
-cb128-r8,4,124/125,3,1,0.973/0.972/0.609/0.967,0.609,0.973,0.364,3,1,13.8,boundary_risk,"历史存在 s125 rerun collapse=0.609, 新 s125 repeat=0.967 未复现 collapse, 但 m_norm_max=13.8; 仍作为边界风险样例."
+cb128-r8,4,124/125,3,1,0.973/0.972/0.609/0.967,0.609,0.973,0.364,3,1,13.8,rerun_path_instability,"同一 seed=125 fixed readk4 出现 0.972/0.609/0.967; 0.609 已经由 raw log, manifest 和 train_config 核对为 cb128-r8 readk4 seed=125 data_seed=123, 因此不是简单配置错跑, 而是 rerun/path instability."
 cb64-r16,3,124/125,3,0,0.831/0.849/0.965,0.831,0.965,0.134,1,2,,counterexample_high_path_damage,"历史 readk4 s124 两次低分 0.831/0.849, 虽然 s125=0.965; 是 fixed readk4 不能全局默认的反例."

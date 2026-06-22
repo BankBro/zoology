@@ -21,12 +21,13 @@
   "main_conclusions": [
     "cb256-r8 fixed readk4 is the strongest local candidate: historical s124/s125 high paths plus new seed123=0.992.",
     "cb256-r4 fixed readk4 is a local candidate: historical s124/s125 high-ish paths plus new seed123=0.965.",
-    "cb128-r8 fixed readk4 remains a boundary/risk case: new s125 repeat=0.967 did not reproduce collapse, but historical 0.609 remains valid and new m_norm_max=13.8 is not clean.",
+    "cb128-r8 fixed readk4 shows real rerun/path instability: same seed=125 produced 0.972/0.609/0.967; raw log, manifest and train_config confirm the 0.609 run was cb128-r8 readk4 seed=125 data_seed=123, not a simple config mix-up.",
     "fixed readk4 is rejected as a global default because cb64-r16 and cb128-r8 remain counterexamples/risk cases."
   ],
   "caveats": [
     "This is combined evidence, not a strict same-wave full matrix.",
     "Historical rows lack the new read-side telemetry; telemetry conclusions are limited to the 20260622-02 rows.",
+    "The cb128-r8 0.609 run was checked against available raw log, manifest and train_config; a deeper historical-code runtime bug is not fully excluded, but no simple config mismatch was found.",
     "No candidate churn telemetry exists yet.",
     "No canonical official ledger update is made by this analysis artifact."
   ]

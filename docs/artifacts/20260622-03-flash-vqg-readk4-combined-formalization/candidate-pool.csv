@@ -1,4 +1,4 @@
 candidate,status,combined_values,worst,best,notes
 cb256-r8 fixed readk4,candidate_strong,s123=0.992;s124=0.982/0.982;s125=0.988/0.992,0.982,0.992,strongest local positive; new telemetry available only for s123.
 cb256-r4 fixed readk4,candidate,s123=0.965;s124=0.943/0.958;s125=0.944,0.943,0.965,positive but lower floor than cb256-r8; new telemetry available only for s123.
-cb128-r8 fixed readk4,risk_case_not_candidate,s124=0.973;s125=0.972/0.609/0.967,0.609,0.973,new repeat is high but prior collapse and m_norm_max=13.8 keep it out of candidate pool.
+cb128-r8 fixed readk4,rerun_path_instability_not_candidate,s124=0.973;s125=0.972/0.609/0.967,0.609,0.973,same seed=125 produced 0.972/0.609/0.967; 0.609 config was checked against raw log/manifest/train_config and is not a simple config mix-up.

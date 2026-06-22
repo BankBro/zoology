@@ -33,7 +33,7 @@ docs/artifacts/20260622-02-flash-vqg-readk-telemetry-formalization/readk4-contex
 |---|---|---|
 | `cb256-r8 fixed readk4` | strong local candidate | 历史 `s124/s125=0.982/0.982/0.988/0.992`, 新补 `s123=0.992`, combined worst=`0.982`. |
 | `cb256-r4 fixed readk4` | local candidate | 历史 `s124/s125=0.943/0.958/0.944`, 新补 `s123=0.965`, combined worst=`0.943`. |
-| `cb128-r8 fixed readk4` | boundary risk | 历史有 `s125=0.609` collapse, 新 repeat `0.967` 没复现, 但新 run `m_norm_max=13.8`. |
+| `cb128-r8 fixed readk4` | rerun/path instability | 同一 seed=125 出现 `0.972/0.609/0.967`; `0.609` 已核对 raw log, manifest 和 train_config, 没发现简单配置错跑. |
 | `cb64-r16 fixed readk4` | counterexample | 历史 `s124=0.831/0.849`, 低于 readk2 replacement `s124=0.959`. |
 | global fixed readk4 | reject | `cb64-r16` 和 `cb128-r8` 反例/风险仍成立. |
 
@@ -54,5 +54,6 @@ docs/artifacts/20260622-02-flash-vqg-readk-telemetry-formalization/readk4-contex
 
 - 这是 combined evidence, 不是 strict same-wave full matrix.
 - 历史 rows 没有新增 read telemetry; telemetry 只来自 `20260622-02`.
+- `cb128-r8/readk4/s125-r2=0.609` 已核对 available resolved config, 但仍不能完全排除历史代码 runtime bug.
 - candidate churn 还没有实现.
 - 本 artifact 不更新 official ledger.
