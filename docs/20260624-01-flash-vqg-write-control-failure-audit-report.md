@@ -138,7 +138,13 @@ best-final gap
 read margin / entropy / selected mass, if available
 ```
 
-推荐下一步分两段:
+后续路线已单独记录在:
+
+```text
+docs/plans/20260624-02-flash-vqg-pressure-telemetry-guard-plan.md
+```
+
+简要地说, 下一步分两段:
 
 1. 先实现更完整的 write/update pressure telemetry, 尤其是 update norm p95/hit ratio, cap guard reason, effective cap progress.
 2. 再实现最小 `state/pressure-aware write cap release`: release 不是按时间必然推进, 而是在 state/write/readout 健康时推进, 风险出现时 hold 或 rollback.
