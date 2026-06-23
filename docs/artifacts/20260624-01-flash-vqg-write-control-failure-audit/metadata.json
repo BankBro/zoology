@@ -1,0 +1,20 @@
+{
+  "experiment_id": "20260624-01-flash-vqg-write-control-failure-audit",
+  "created_from": "zoology/experiments/flash_vqg/scripts/20260624-01-flash-vqg-write-control-failure-audit/collect_write_control_audit.py",
+  "artifact_dir": "/home/lyj/mnt/project/zoology/docs/artifacts/20260624-01-flash-vqg-write-control-failure-audit",
+  "num_runs": 15,
+  "settings": [
+    "cap0405",
+    "cap0405_beta0p16",
+    "cap0406_mcap8",
+    "caprel0406late",
+    "default",
+    "hard04"
+  ],
+  "primary_metric": "valid/mqar_case/accuracy-1024x256",
+  "notes": [
+    "This audit reads existing history/manifest files only.",
+    "No new training was launched.",
+    "m_norm_max > 8 is treated as warning; > 12 is treated as redline."
+  ]
+}

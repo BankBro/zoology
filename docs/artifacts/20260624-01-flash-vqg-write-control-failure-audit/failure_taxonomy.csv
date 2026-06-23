@@ -1,0 +1,7 @@
+setting,failure_type,num_runs,seeds,final_hard_spread,max_best_final_gap,max_m_norm_max_over_valid,m_norm_redline_gt8,m_norm_fail_gt12,seed123_final_hard,seed124_final_hard,evidence,recommendation
+cap0405,late_drift_without_mnorm_overrun,2,123;124,0.14912499999999995,0.045007812499999966,5.896309375289887,False,False,0.8110859375,0.9602109375,"s123 final hard 低且 best-final gap 大, 但 m_norm 未过 8.",不要重跑同一 cap0405; 需要定位 write/readout/lambda 或 read 轨迹.
+cap0405_beta0p16,partial_rescue_low_ceiling,2,123;124,0.01164453125000009,0.03047656250000008,6.822552158719017,False,False,0.90077734375,0.912421875,"两 seed 接近但整体 hard 低于 hard04, 仍有 best-final gap.","beta init 可作诊断, 不作为主线."
+cap0406_mcap8,ineffective_static_mnorm_cap,2,123;124,0.07029687499999993,0.010425781249999932,5.369979289789049,False,False,0.89521484375,0.96551171875,"m_norm 未触发红线但 spread 仍大, 静态 m_norm_cap 不是有效 guard.",不能把 m_norm_cap=8 等同 guarded release.
+caprel0406late,low_spread_state_overrun,3,123;124;125,0.013632812500000036,0.0002031250000000817,15.735759578053914,True,True,0.94937109375,0.96300390625,"spread 小, 但 s123 m_norm_max 超过 12 红线.","release 思路保留, 但无 guard 的 0.06 release 不进 official."
+default,unstable_baseline,3,123;124;125,0.16748828125000004,0.0,5.445921719074249,False,False,0.9687109375,0.819796875,"三 seed final hard spread 大, s124 为低盆地.",只作为不稳定基线.
+hard04,stable_ceiling_tax,3,123;124;125,0.01801562499999998,0.0,7.60963938822822,False,False,0.9450390625,0.9630546875,"spread 小, 但 s123/s125 相比 default good seed 有上限损失.","保留为 trust-region 稳定基准, 不作为最终性能方案."
