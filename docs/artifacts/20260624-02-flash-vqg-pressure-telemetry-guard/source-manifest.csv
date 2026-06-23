@@ -1,0 +1,3 @@
+machine,source_path,mirror_path,sha256,bytes,mirrored
+2080ti,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/outputs/config-runtime-smoke-20260623T192042Z/summary.json,docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/smoke-summary-2080ti.json,3891608b082a82a7bd88e853e51bdffe35740eba69a2ed76a57947ec44d70c62,28240,yes
+3090,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/outputs/config-runtime-smoke-20260623T192404Z/summary.json,docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/smoke-summary-3090.json,dc86e5ebaa12676c3aef68cea2869c4abd942307924ff02fba7259784f3bdc1f,28249,yes

@@ -1,0 +1,30 @@
+{
+  "experiment_id": "20260624-02-flash-vqg-pressure-telemetry-guard",
+  "status": "stage-1-smoke-passed",
+  "zoology_commit": "adb74a1d56250e091702826025cebf36dbd57745",
+  "flash_vqg_commit": "eed5778f89561f53ab2eedf4d8ef9414f5d96e5b",
+  "machines": [
+    {
+      "machine": "2080ti",
+      "status": "passed",
+      "device": "NVIDIA GeForce RTX 2080 Ti",
+      "torch_version": "2.6.0+cu118",
+      "wall_clock_sec": "6.189654",
+      "output_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/outputs/config-runtime-smoke-20260623T192042Z"
+    },
+    {
+      "machine": "3090",
+      "status": "passed",
+      "device": "NVIDIA GeForce RTX 3090",
+      "torch_version": "2.6.0+cu118",
+      "wall_clock_sec": "5.397269",
+      "output_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/outputs/config-runtime-smoke-20260623T192404Z"
+    }
+  ],
+  "stage": "stage1 telemetry and config-to-runtime smoke",
+  "notes": [
+    "No long MQAR training was launched.",
+    "3090 summary was mirrored back to the 2080ti base workspace as lightweight raw evidence.",
+    "Large raw outputs remain in each machine scripts outputs directory and are ignored by git."
+  ]
+}

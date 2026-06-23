@@ -1,0 +1,601 @@
+{
+  "cases": [
+    {
+      "case_id": "hard04",
+      "config_checks": [
+        {
+          "actual": 0.04,
+          "expected": 0.04,
+          "key": "fox_gd_residual_write_strength_cap",
+          "passed": true
+        },
+        {
+          "actual": "hard",
+          "expected": "hard",
+          "key": "fox_gd_residual_write_strength_cap_mode",
+          "passed": true
+        },
+        {
+          "actual": null,
+          "expected": null,
+          "key": "fox_gd_residual_update_norm_cap",
+          "passed": true
+        }
+      ],
+      "flash_kwargs_subset": {
+        "fox_gd_residual_update_norm_cap": null,
+        "fox_gd_residual_write_strength_cap": 0.04,
+        "fox_gd_residual_write_strength_cap_mode": "hard"
+      },
+      "passed": true,
+      "run_id": "flash_vqg_h2_torch-block4-dmodel64-cb8-lr1.0e-04-local1-remote1-sampler-seq-rformula-gdr1-r2-wk2-gctref-semivec-wcap0p04-rwrite-additive-global-wk4-rread-top2-seed123-tbs2-ebs2-ga1",
+      "runtime": {
+        "finite_checks_failed": [],
+        "metric_checks": [
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_write_strength_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.03999999910593033,
+            "expected": 0.04,
+            "key": "attn/gd_residual_write_strength_effective_cap",
+            "passed": true
+          },
+          {
+            "actual": 0.03999999910593033,
+            "expected": 0.04,
+            "key": "attn/gd_residual_write_strength_scheduled_cap",
+            "passed": true
+          },
+          {
+            "actual": 0.0,
+            "expected": 0.0,
+            "key": "attn/gd_residual_write_strength_cap_release_progress",
+            "passed": true
+          },
+          {
+            "actual": 0.0,
+            "expected": 0.0,
+            "key": "attn/gd_residual_update_norm_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.0,
+            "expected": 0.0,
+            "key": "attn/gd_residual_update_norm_effective_cap",
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "attn/gd_residual_beta_bounded_active": 0.0,
+          "attn/gd_residual_beta_cap_active": 0.0,
+          "attn/gd_residual_beta_effective_cap": 0.0,
+          "attn/gd_residual_beta_effective_high": 1.0,
+          "attn/gd_residual_beta_effective_low": 0.0,
+          "attn/gd_residual_beta_logits_abs_max": 0.0,
+          "attn/gd_residual_beta_logits_abs_mean": 0.0,
+          "attn/gd_residual_beta_max": 0.5,
+          "attn/gd_residual_beta_mean": 0.5,
+          "attn/gd_residual_beta_near_high_ratio": 0.0,
+          "attn/gd_residual_beta_near_low_ratio": 0.0,
+          "attn/gd_residual_beta_sigmoid_slope_mean": 0.25,
+          "attn/gd_residual_beta_sigmoid_temp": 1.0,
+          "attn/gd_residual_inject_ratio": 0.7024580836296082,
+          "attn/gd_residual_lambda_mean": 0.05000000074505806,
+          "attn/gd_residual_m_norm_max": 0.03173055499792099,
+          "attn/gd_residual_m_norm_mean": 0.0094315679743886,
+          "attn/gd_residual_mu_valid_ratio": 0.75,
+          "attn/gd_residual_raw_topk_mass_mean": 0.4702662229537964,
+          "attn/gd_residual_raw_topk_mass_p05": 0.3714141547679901,
+          "attn/gd_residual_read_entropy_mean": 1.2432258129119873,
+          "attn/gd_residual_read_margin_top1_top2_mean": 0.5446033477783203,
+          "attn/gd_residual_read_margin_top1_top2_p05": 0.0,
+          "attn/gd_residual_read_selected_mass_mean": 0.3266303837299347,
+          "attn/gd_residual_read_selected_mass_p05": 0.0,
+          "attn/gd_residual_remote_read_topk_effective": 2.0,
+          "attn/gd_residual_sum_zeta_max": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_mean": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_p95": 0.07999999821186066,
+          "attn/gd_residual_uncapped_sum_zeta_max": 0.5000000596046448,
+          "attn/gd_residual_uncapped_sum_zeta_mean": 0.5,
+          "attn/gd_residual_uncapped_sum_zeta_p95": 0.5,
+          "attn/gd_residual_uncapped_write_strength_max": 0.3943342864513397,
+          "attn/gd_residual_uncapped_write_strength_mean": 0.25,
+          "attn/gd_residual_uncapped_write_strength_p95": 0.3453485667705536,
+          "attn/gd_residual_update_norm_cap_active": 0.0,
+          "attn/gd_residual_update_norm_cap_hit_ratio": 0.0,
+          "attn/gd_residual_update_norm_effective_cap": 0.0,
+          "attn/gd_residual_update_norm_max": 0.017570000141859055,
+          "attn/gd_residual_update_norm_mean": 0.01309925876557827,
+          "attn/gd_residual_update_norm_p95": 0.01657578907907009,
+          "attn/gd_residual_write_budget_active": 0.0,
+          "attn/gd_residual_write_budget_effective": 0.0,
+          "attn/gd_residual_write_budget_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scale": 0.0,
+          "attn/gd_residual_write_budget_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_budget_scaled_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_total_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_q_alpha": 1.0,
+          "attn/gd_residual_write_q_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_q_smoothing_active": 0.0,
+          "attn/gd_residual_write_q_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_strength_cap_active": 1.0,
+          "attn/gd_residual_write_strength_cap_hit_ratio": 1.0,
+          "attn/gd_residual_write_strength_cap_release_progress": 0.0,
+          "attn/gd_residual_write_strength_effective_cap": 0.03999999910593033,
+          "attn/gd_residual_write_strength_max": 0.03999999910593033,
+          "attn/gd_residual_write_strength_mean": 0.03999999910593033,
+          "attn/gd_residual_write_strength_p95": 0.03999999910593033,
+          "attn/gd_residual_write_strength_scheduled_cap": 0.03999999910593033,
+          "attn/gd_residual_write_top1_mass_mean": 0.5,
+          "attn/gd_residual_write_total_cap_active": 0.0,
+          "attn/gd_residual_write_total_effective_cap": 0.0
+        },
+        "missing_required_metrics": [],
+        "passed": true,
+        "train_forward_count": 1
+      }
+    },
+    {
+      "case_id": "caprel0406late-progress",
+      "config_checks": [
+        {
+          "actual": 0.04,
+          "expected": 0.04,
+          "key": "fox_gd_residual_write_strength_cap",
+          "passed": true
+        },
+        {
+          "actual": 0.06,
+          "expected": 0.06,
+          "key": "fox_gd_residual_write_strength_cap_final",
+          "passed": true
+        },
+        {
+          "actual": 1,
+          "expected": 1,
+          "key": "fox_gd_residual_write_strength_cap_release_start_train_steps",
+          "passed": true
+        },
+        {
+          "actual": 3,
+          "expected": 3,
+          "key": "fox_gd_residual_write_strength_cap_release_end_train_steps",
+          "passed": true
+        }
+      ],
+      "flash_kwargs_subset": {
+        "fox_gd_residual_write_strength_cap": 0.04,
+        "fox_gd_residual_write_strength_cap_final": 0.06,
+        "fox_gd_residual_write_strength_cap_release_end_train_steps": 3,
+        "fox_gd_residual_write_strength_cap_release_start_train_steps": 1
+      },
+      "passed": true,
+      "run_id": "flash_vqg_h2_torch-block4-dmodel64-cb8-lr1.0e-04-local1-remote1-sampler-seq-rformula-gdr1-r2-wk2-gctref-semivec-wcap0p04-wcapfinal0p06-wcaprelstart1-wcaprelend3-rwrite-additive-global-wk4-rread-top2-seed123-tbs2-ebs2-ga1",
+      "runtime": {
+        "finite_checks_failed": [],
+        "metric_checks": [
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_write_strength_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.05000000074505806,
+            "expected": 0.05,
+            "key": "attn/gd_residual_write_strength_effective_cap",
+            "passed": true
+          },
+          {
+            "actual": 0.05000000074505806,
+            "expected": 0.05,
+            "key": "attn/gd_residual_write_strength_scheduled_cap",
+            "passed": true
+          },
+          {
+            "actual": 0.5,
+            "expected": 0.5,
+            "key": "attn/gd_residual_write_strength_cap_release_progress",
+            "passed": true
+          },
+          {
+            "actual": 0.0,
+            "expected": 0.0,
+            "key": "attn/gd_residual_update_norm_cap_active",
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "attn/gd_residual_beta_bounded_active": 0.0,
+          "attn/gd_residual_beta_cap_active": 0.0,
+          "attn/gd_residual_beta_effective_cap": 0.0,
+          "attn/gd_residual_beta_effective_high": 1.0,
+          "attn/gd_residual_beta_effective_low": 0.0,
+          "attn/gd_residual_beta_logits_abs_max": 0.0,
+          "attn/gd_residual_beta_logits_abs_mean": 0.0,
+          "attn/gd_residual_beta_max": 0.5,
+          "attn/gd_residual_beta_mean": 0.5,
+          "attn/gd_residual_beta_near_high_ratio": 0.0,
+          "attn/gd_residual_beta_near_low_ratio": 0.0,
+          "attn/gd_residual_beta_sigmoid_slope_mean": 0.25,
+          "attn/gd_residual_beta_sigmoid_temp": 1.0,
+          "attn/gd_residual_inject_ratio": 0.7008129954338074,
+          "attn/gd_residual_lambda_mean": 0.05000000074505806,
+          "attn/gd_residual_m_norm_max": 0.04808805510401726,
+          "attn/gd_residual_m_norm_mean": 0.013241395354270935,
+          "attn/gd_residual_mu_valid_ratio": 0.75,
+          "attn/gd_residual_raw_topk_mass_mean": 0.4768357574939728,
+          "attn/gd_residual_raw_topk_mass_p05": 0.3771854639053345,
+          "attn/gd_residual_read_entropy_mean": 1.2659062147140503,
+          "attn/gd_residual_read_margin_top1_top2_mean": 0.5174724459648132,
+          "attn/gd_residual_read_margin_top1_top2_p05": 0.0,
+          "attn/gd_residual_read_selected_mass_mean": 0.3136194348335266,
+          "attn/gd_residual_read_selected_mass_p05": 0.0,
+          "attn/gd_residual_remote_read_topk_effective": 2.0,
+          "attn/gd_residual_sum_zeta_max": 0.10000000149011612,
+          "attn/gd_residual_sum_zeta_mean": 0.10000000149011612,
+          "attn/gd_residual_sum_zeta_p95": 0.10000000149011612,
+          "attn/gd_residual_uncapped_sum_zeta_max": 0.5000000596046448,
+          "attn/gd_residual_uncapped_sum_zeta_mean": 0.5,
+          "attn/gd_residual_uncapped_sum_zeta_p95": 0.5,
+          "attn/gd_residual_uncapped_write_strength_max": 0.3845951557159424,
+          "attn/gd_residual_uncapped_write_strength_mean": 0.25,
+          "attn/gd_residual_uncapped_write_strength_p95": 0.3524458408355713,
+          "attn/gd_residual_update_norm_cap_active": 0.0,
+          "attn/gd_residual_update_norm_cap_hit_ratio": 0.0,
+          "attn/gd_residual_update_norm_effective_cap": 0.0,
+          "attn/gd_residual_update_norm_max": 0.024894792586565018,
+          "attn/gd_residual_update_norm_mean": 0.016541726887226105,
+          "attn/gd_residual_update_norm_p95": 0.021428197622299194,
+          "attn/gd_residual_write_budget_active": 0.0,
+          "attn/gd_residual_write_budget_effective": 0.0,
+          "attn/gd_residual_write_budget_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scale": 0.0,
+          "attn/gd_residual_write_budget_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_budget_scaled_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_total_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_q_alpha": 1.0,
+          "attn/gd_residual_write_q_entropy_mean": 0.6618685126304626,
+          "attn/gd_residual_write_q_raw_entropy_mean": 0.6618685126304626,
+          "attn/gd_residual_write_q_raw_top1_mean": 0.5956681966781616,
+          "attn/gd_residual_write_q_smoothing_active": 0.0,
+          "attn/gd_residual_write_q_top1_mean": 0.5956681966781616,
+          "attn/gd_residual_write_strength_cap_active": 1.0,
+          "attn/gd_residual_write_strength_cap_hit_ratio": 1.0,
+          "attn/gd_residual_write_strength_cap_release_progress": 0.5,
+          "attn/gd_residual_write_strength_effective_cap": 0.05000000074505806,
+          "attn/gd_residual_write_strength_max": 0.05000000074505806,
+          "attn/gd_residual_write_strength_mean": 0.05000000074505806,
+          "attn/gd_residual_write_strength_p95": 0.05000000074505806,
+          "attn/gd_residual_write_strength_scheduled_cap": 0.05000000074505806,
+          "attn/gd_residual_write_top1_mass_mean": 0.5,
+          "attn/gd_residual_write_total_cap_active": 0.0,
+          "attn/gd_residual_write_total_effective_cap": 0.0
+        },
+        "missing_required_metrics": [],
+        "passed": true,
+        "train_forward_count": 3
+      }
+    },
+    {
+      "case_id": "update-norm-cap",
+      "config_checks": [
+        {
+          "actual": 0.04,
+          "expected": 0.04,
+          "key": "fox_gd_residual_write_strength_cap",
+          "passed": true
+        },
+        {
+          "actual": 0.02,
+          "expected": 0.02,
+          "key": "fox_gd_residual_update_norm_cap",
+          "passed": true
+        }
+      ],
+      "flash_kwargs_subset": {
+        "fox_gd_residual_update_norm_cap": 0.02,
+        "fox_gd_residual_write_strength_cap": 0.04
+      },
+      "passed": true,
+      "run_id": "flash_vqg_h2_torch-block4-dmodel64-cb8-lr1.0e-04-local1-remote1-sampler-seq-rformula-gdr1-r2-wk2-gctref-semivec-wcap0p04-ucap0p02-rwrite-additive-global-wk4-rread-top2-seed123-tbs2-ebs2-ga1",
+      "runtime": {
+        "finite_checks_failed": [],
+        "metric_checks": [
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_write_strength_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.03999999910593033,
+            "expected": 0.04,
+            "key": "attn/gd_residual_write_strength_effective_cap",
+            "passed": true
+          },
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_update_norm_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.019999999552965164,
+            "expected": 0.02,
+            "key": "attn/gd_residual_update_norm_effective_cap",
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "attn/gd_residual_beta_bounded_active": 0.0,
+          "attn/gd_residual_beta_cap_active": 0.0,
+          "attn/gd_residual_beta_effective_cap": 0.0,
+          "attn/gd_residual_beta_effective_high": 1.0,
+          "attn/gd_residual_beta_effective_low": 0.0,
+          "attn/gd_residual_beta_logits_abs_max": 0.0,
+          "attn/gd_residual_beta_logits_abs_mean": 0.0,
+          "attn/gd_residual_beta_max": 0.5,
+          "attn/gd_residual_beta_mean": 0.5,
+          "attn/gd_residual_beta_near_high_ratio": 0.0,
+          "attn/gd_residual_beta_near_low_ratio": 0.0,
+          "attn/gd_residual_beta_sigmoid_slope_mean": 0.25,
+          "attn/gd_residual_beta_sigmoid_temp": 1.0,
+          "attn/gd_residual_inject_ratio": 0.7024580836296082,
+          "attn/gd_residual_lambda_mean": 0.05000000074505806,
+          "attn/gd_residual_m_norm_max": 0.03173055499792099,
+          "attn/gd_residual_m_norm_mean": 0.0094315679743886,
+          "attn/gd_residual_mu_valid_ratio": 0.75,
+          "attn/gd_residual_raw_topk_mass_mean": 0.4702662229537964,
+          "attn/gd_residual_raw_topk_mass_p05": 0.3714141547679901,
+          "attn/gd_residual_read_entropy_mean": 1.2432258129119873,
+          "attn/gd_residual_read_margin_top1_top2_mean": 0.5446033477783203,
+          "attn/gd_residual_read_margin_top1_top2_p05": 0.0,
+          "attn/gd_residual_read_selected_mass_mean": 0.3266303837299347,
+          "attn/gd_residual_read_selected_mass_p05": 0.0,
+          "attn/gd_residual_remote_read_topk_effective": 2.0,
+          "attn/gd_residual_sum_zeta_max": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_mean": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_p95": 0.07999999821186066,
+          "attn/gd_residual_uncapped_sum_zeta_max": 0.5000000596046448,
+          "attn/gd_residual_uncapped_sum_zeta_mean": 0.5,
+          "attn/gd_residual_uncapped_sum_zeta_p95": 0.5,
+          "attn/gd_residual_uncapped_write_strength_max": 0.3943342864513397,
+          "attn/gd_residual_uncapped_write_strength_mean": 0.25,
+          "attn/gd_residual_uncapped_write_strength_p95": 0.3453485667705536,
+          "attn/gd_residual_update_norm_cap_active": 1.0,
+          "attn/gd_residual_update_norm_cap_hit_ratio": 0.0,
+          "attn/gd_residual_update_norm_effective_cap": 0.019999999552965164,
+          "attn/gd_residual_update_norm_max": 0.017570000141859055,
+          "attn/gd_residual_update_norm_mean": 0.01309925876557827,
+          "attn/gd_residual_update_norm_p95": 0.01657578907907009,
+          "attn/gd_residual_write_budget_active": 0.0,
+          "attn/gd_residual_write_budget_effective": 0.0,
+          "attn/gd_residual_write_budget_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scale": 0.0,
+          "attn/gd_residual_write_budget_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_budget_scaled_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_total_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_q_alpha": 1.0,
+          "attn/gd_residual_write_q_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_q_smoothing_active": 0.0,
+          "attn/gd_residual_write_q_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_strength_cap_active": 1.0,
+          "attn/gd_residual_write_strength_cap_hit_ratio": 1.0,
+          "attn/gd_residual_write_strength_cap_release_progress": 0.0,
+          "attn/gd_residual_write_strength_effective_cap": 0.03999999910593033,
+          "attn/gd_residual_write_strength_max": 0.03999999910593033,
+          "attn/gd_residual_write_strength_mean": 0.03999999910593033,
+          "attn/gd_residual_write_strength_p95": 0.03999999910593033,
+          "attn/gd_residual_write_strength_scheduled_cap": 0.03999999910593033,
+          "attn/gd_residual_write_top1_mass_mean": 0.5,
+          "attn/gd_residual_write_total_cap_active": 0.0,
+          "attn/gd_residual_write_total_effective_cap": 0.0
+        },
+        "missing_required_metrics": [],
+        "passed": true,
+        "train_forward_count": 1
+      }
+    },
+    {
+      "case_id": "update-norm-cap-hit",
+      "config_checks": [
+        {
+          "actual": 0.04,
+          "expected": 0.04,
+          "key": "fox_gd_residual_write_strength_cap",
+          "passed": true
+        },
+        {
+          "actual": 0.001,
+          "expected": 0.001,
+          "key": "fox_gd_residual_update_norm_cap",
+          "passed": true
+        }
+      ],
+      "flash_kwargs_subset": {
+        "fox_gd_residual_update_norm_cap": 0.001,
+        "fox_gd_residual_write_strength_cap": 0.04
+      },
+      "passed": true,
+      "run_id": "flash_vqg_h2_torch-block4-dmodel64-cb8-lr1.0e-04-local1-remote1-sampler-seq-rformula-gdr1-r2-wk2-gctref-semivec-wcap0p04-ucap0p001-rwrite-additive-global-wk4-rread-top2-seed123-tbs2-ebs2-ga1",
+      "runtime": {
+        "finite_checks_failed": [],
+        "metric_checks": [
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_write_strength_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.03999999910593033,
+            "expected": 0.04,
+            "key": "attn/gd_residual_write_strength_effective_cap",
+            "passed": true
+          },
+          {
+            "actual": 1.0,
+            "expected": 1.0,
+            "key": "attn/gd_residual_update_norm_cap_active",
+            "passed": true
+          },
+          {
+            "actual": 0.0010000000474974513,
+            "expected": 0.001,
+            "key": "attn/gd_residual_update_norm_effective_cap",
+            "passed": true
+          },
+          {
+            "actual": 1.0,
+            "expected": ">0",
+            "key": "attn/gd_residual_update_norm_cap_hit_ratio",
+            "passed": true
+          }
+        ],
+        "metrics": {
+          "attn/gd_residual_beta_bounded_active": 0.0,
+          "attn/gd_residual_beta_cap_active": 0.0,
+          "attn/gd_residual_beta_effective_cap": 0.0,
+          "attn/gd_residual_beta_effective_high": 1.0,
+          "attn/gd_residual_beta_effective_low": 0.0,
+          "attn/gd_residual_beta_logits_abs_max": 0.0,
+          "attn/gd_residual_beta_logits_abs_mean": 0.0,
+          "attn/gd_residual_beta_max": 0.5,
+          "attn/gd_residual_beta_mean": 0.5,
+          "attn/gd_residual_beta_near_high_ratio": 0.0,
+          "attn/gd_residual_beta_near_low_ratio": 0.0,
+          "attn/gd_residual_beta_sigmoid_slope_mean": 0.25,
+          "attn/gd_residual_beta_sigmoid_temp": 1.0,
+          "attn/gd_residual_inject_ratio": 0.08081536740064621,
+          "attn/gd_residual_lambda_mean": 0.05000000074505806,
+          "attn/gd_residual_m_norm_max": 0.002469703322276473,
+          "attn/gd_residual_m_norm_mean": 0.0007758528226986527,
+          "attn/gd_residual_mu_valid_ratio": 0.75,
+          "attn/gd_residual_raw_topk_mass_mean": 0.4702662229537964,
+          "attn/gd_residual_raw_topk_mass_p05": 0.3714141547679901,
+          "attn/gd_residual_read_entropy_mean": 1.2432258129119873,
+          "attn/gd_residual_read_margin_top1_top2_mean": 0.5446033477783203,
+          "attn/gd_residual_read_margin_top1_top2_p05": 0.0,
+          "attn/gd_residual_read_selected_mass_mean": 0.3266303837299347,
+          "attn/gd_residual_read_selected_mass_p05": 0.0,
+          "attn/gd_residual_remote_read_topk_effective": 2.0,
+          "attn/gd_residual_sum_zeta_max": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_mean": 0.07999999821186066,
+          "attn/gd_residual_sum_zeta_p95": 0.07999999821186066,
+          "attn/gd_residual_uncapped_sum_zeta_max": 0.5000000596046448,
+          "attn/gd_residual_uncapped_sum_zeta_mean": 0.5,
+          "attn/gd_residual_uncapped_sum_zeta_p95": 0.5,
+          "attn/gd_residual_uncapped_write_strength_max": 0.3943342864513397,
+          "attn/gd_residual_uncapped_write_strength_mean": 0.25,
+          "attn/gd_residual_uncapped_write_strength_p95": 0.3453485667705536,
+          "attn/gd_residual_update_norm_cap_active": 1.0,
+          "attn/gd_residual_update_norm_cap_hit_ratio": 1.0,
+          "attn/gd_residual_update_norm_effective_cap": 0.0010000000474974513,
+          "attn/gd_residual_update_norm_max": 0.017611941322684288,
+          "attn/gd_residual_update_norm_mean": 0.013104979880154133,
+          "attn/gd_residual_update_norm_p95": 0.016445346176624298,
+          "attn/gd_residual_write_budget_active": 0.0,
+          "attn/gd_residual_write_budget_effective": 0.0,
+          "attn/gd_residual_write_budget_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scale": 0.0,
+          "attn/gd_residual_write_budget_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_budget_scaled_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_active": 0.0,
+          "attn/gd_residual_write_budget_scaled_total_cap_hit_ratio": 0.0,
+          "attn/gd_residual_write_budget_total_scale_factor_mean": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_min": 1.0,
+          "attn/gd_residual_write_budget_total_scale_factor_p05": 1.0,
+          "attn/gd_residual_write_q_alpha": 1.0,
+          "attn/gd_residual_write_q_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_entropy_mean": 0.6629698276519775,
+          "attn/gd_residual_write_q_raw_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_q_smoothing_active": 0.0,
+          "attn/gd_residual_write_q_top1_mean": 0.5964627861976624,
+          "attn/gd_residual_write_strength_cap_active": 1.0,
+          "attn/gd_residual_write_strength_cap_hit_ratio": 1.0,
+          "attn/gd_residual_write_strength_cap_release_progress": 0.0,
+          "attn/gd_residual_write_strength_effective_cap": 0.03999999910593033,
+          "attn/gd_residual_write_strength_max": 0.03999999910593033,
+          "attn/gd_residual_write_strength_mean": 0.03999999910593033,
+          "attn/gd_residual_write_strength_p95": 0.03999999910593033,
+          "attn/gd_residual_write_strength_scheduled_cap": 0.03999999910593033,
+          "attn/gd_residual_write_top1_mass_mean": 0.5,
+          "attn/gd_residual_write_total_cap_active": 0.0,
+          "attn/gd_residual_write_total_effective_cap": 0.0
+        },
+        "missing_required_metrics": [],
+        "passed": true,
+        "train_forward_count": 1
+      }
+    }
+  ],
+  "cuda_available": true,
+  "cuda_device": "NVIDIA GeForce RTX 2080 Ti",
+  "device": "cuda",
+  "metric_controls": {
+    "enable_layer_metrics": true,
+    "fox_phase2_metrics_mode": "lite"
+  },
+  "metrics_white_list": [
+    "attn/gd_residual_remote_read_topk_effective",
+    "attn/gd_residual_write_strength_mean",
+    "attn/gd_residual_uncapped_write_strength_mean",
+    "attn/gd_residual_sum_zeta_mean",
+    "attn/gd_residual_uncapped_sum_zeta_mean",
+    "attn/gd_residual_write_strength_cap_active",
+    "attn/gd_residual_write_strength_effective_cap",
+    "attn/gd_residual_write_strength_scheduled_cap",
+    "attn/gd_residual_write_strength_cap_release_progress",
+    "attn/gd_residual_write_strength_cap_hit_ratio",
+    "attn/gd_residual_update_norm_mean",
+    "attn/gd_residual_update_norm_p95",
+    "attn/gd_residual_update_norm_max",
+    "attn/gd_residual_update_norm_cap_hit_ratio",
+    "attn/gd_residual_update_norm_cap_active",
+    "attn/gd_residual_update_norm_effective_cap",
+    "attn/gd_residual_m_norm_mean",
+    "attn/gd_residual_m_norm_max",
+    "attn/gd_residual_lambda_mean",
+    "attn/gd_residual_inject_ratio",
+    "attn/gd_residual_read_margin_top1_top2_mean",
+    "attn/gd_residual_read_entropy_mean",
+    "attn/gd_residual_read_selected_mass_mean"
+  ],
+  "output_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/outputs/config-runtime-smoke-20260623T192042Z",
+  "status": "passed",
+  "torch_version": "2.6.0+cu118",
+  "wall_clock_sec": 6.189654350280762
+}
