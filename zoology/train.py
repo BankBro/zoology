@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import random
 import json
 import signal
@@ -167,6 +168,13 @@ class Trainer:
         read_churn_probe_valid_batches: List[int] = [0],
         read_churn_probe_max_samples: int = 16,
         read_churn_probe_query_only: bool = True,
+        read_trace_enabled: bool = False,
+        read_trace_valid_batches: List[int] = [0],
+        read_trace_max_samples: int = 4,
+        read_trace_query_only: bool = True,
+        read_trace_max_queries_per_sample: int = 8,
+        read_trace_output_dir: str | None = None,
+        run_id: str | None = None,
         device: Union[str, int] = "cuda",
         logger: LoggerProtocol = None,
         checkpoint_manager: CheckpointManager = None,
@@ -198,6 +206,19 @@ class Trainer:
         self.read_churn_probe_max_samples = int(read_churn_probe_max_samples)
         self.read_churn_probe_query_only = bool(read_churn_probe_query_only)
         self._read_churn_probe_prev_top_idx_by_key: dict = {}
+        self.read_trace_enabled = bool(read_trace_enabled)
+        self.read_trace_valid_batches = {
+            int(idx) for idx in (read_trace_valid_batches or [])
+        }
+        self.read_trace_max_samples = int(read_trace_max_samples)
+        self.read_trace_query_only = bool(read_trace_query_only)
+        self.read_trace_max_queries_per_sample = int(read_trace_max_queries_per_sample)
+        self.read_trace_output_dir = (
+            Path(read_trace_output_dir)
+            if read_trace_output_dir is not None and str(read_trace_output_dir).strip()
+            else None
+        )
+        self.run_id = run_id
 
     def _set_dense_teacher_runtime(self, targets: torch.Tensor) -> None:
         if self.input_type != "discrete":
@@ -225,28 +246,55 @@ class Trainer:
         self,
         *,
         batch_idx: int,
+        inputs: torch.Tensor,
         targets: torch.Tensor,
         epoch_idx: int,
     ) -> bool:
-        if not self.read_churn_probe_enabled:
-            return False
-        if batch_idx not in self.read_churn_probe_valid_batches:
+        churn_enabled = self.read_churn_probe_enabled and batch_idx in self.read_churn_probe_valid_batches
+        trace_enabled = self.read_trace_enabled and batch_idx in self.read_trace_valid_batches
+        if not churn_enabled and not trace_enabled:
             return False
         if self.input_type != "discrete":
             return False
-        max_samples = min(self.read_churn_probe_max_samples, int(targets.size(0)))
+        max_samples = min(
+            max(self.read_churn_probe_max_samples if churn_enabled else 0, self.read_trace_max_samples if trace_enabled else 0),
+            int(targets.size(0)),
+        )
         if max_samples <= 0:
             return False
-        query_mask = (targets[:max_samples] != -100).detach()
+        churn_query_mask = (targets[:max_samples] != -100).detach()
         if not self.read_churn_probe_query_only:
-            query_mask = torch.ones_like(query_mask, dtype=torch.bool)
+            churn_query_mask = torch.ones_like(churn_query_mask, dtype=torch.bool)
+        trace_query_mask = (targets[:max_samples] != -100).detach()
+        if not self.read_trace_query_only:
+            trace_query_mask = torch.ones_like(trace_query_mask, dtype=torch.bool)
+
+        input_hashes: list[str] = []
+        target_hashes: list[str] = []
+        for sample_idx in range(max_samples):
+            input_hashes.append(
+                hashlib.sha1(inputs[sample_idx].detach().cpu().numpy().tobytes()).hexdigest()
+            )
+            target_hashes.append(
+                hashlib.sha1(targets[sample_idx].detach().cpu().numpy().tobytes()).hexdigest()
+            )
+
         runtime = {
             "enabled": True,
+            "churn_enabled": bool(churn_enabled),
+            "trace_enabled": bool(trace_enabled),
             "valid_batch_idx": int(batch_idx),
             "epoch_idx": int(epoch_idx),
             "global_step": int(self.global_step),
             "max_samples": int(max_samples),
-            "query_mask": query_mask,
+            "query_mask": churn_query_mask,
+            "trace_query_mask": trace_query_mask,
+            "trace_max_samples": int(self.read_trace_max_samples),
+            "trace_max_queries_per_sample": int(self.read_trace_max_queries_per_sample),
+            "trace_output_dir": str(self.read_trace_output_dir) if self.read_trace_output_dir is not None else None,
+            "run_id": getattr(self, "run_id", None),
+            "input_hashes": input_hashes,
+            "target_hashes": target_hashes,
             "_prev_top_idx_by_key": self._read_churn_probe_prev_top_idx_by_key,
         }
 
@@ -460,6 +508,7 @@ class Trainer:
                 self._set_dense_teacher_runtime(targets)
                 read_probe_active = self._set_read_candidate_probe_runtime(
                     batch_idx=batch_idx,
+                    inputs=inputs,
                     targets=targets,
                     epoch_idx=epoch_idx,
                 )
@@ -621,6 +670,13 @@ def train(config: TrainConfig):
             read_churn_probe_valid_batches=config.read_churn_probe_valid_batches,
             read_churn_probe_max_samples=config.read_churn_probe_max_samples,
             read_churn_probe_query_only=config.read_churn_probe_query_only,
+            read_trace_enabled=config.read_trace_enabled,
+            read_trace_valid_batches=config.read_trace_valid_batches,
+            read_trace_max_samples=config.read_trace_max_samples,
+            read_trace_query_only=config.read_trace_query_only,
+            read_trace_max_queries_per_sample=config.read_trace_max_queries_per_sample,
+            read_trace_output_dir=config.read_trace_output_dir,
+            run_id=config.run_id,
             device="cuda" if torch.cuda.is_available() else "cpu",
             logger=logger,
             checkpoint_manager=checkpoint_manager,

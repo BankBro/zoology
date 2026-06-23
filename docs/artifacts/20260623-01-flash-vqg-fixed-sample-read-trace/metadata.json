@@ -1,0 +1,591 @@
+{
+  "launch_prefix": "flash-vqg-20260623-01-read-trace",
+  "launch_id_contains": "2026-06-23-07-19-43",
+  "generated_root": "zoology/experiments/flash_vqg/generated",
+  "trace_root": "zoology/experiments/flash_vqg/scripts/20260623-01-flash-vqg-fixed-sample-read-trace/outputs/traces",
+  "num_runs": 3,
+  "targets": [
+    "cb128r8-readk4-s125-trace",
+    "cb256r8-readk2-s125-trace",
+    "cb256r8-readk4-s125-trace"
+  ],
+  "trace_rows": [
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "num_codebook_vectors": 128,
+      "gd_rank": 8,
+      "read_topk": 4,
+      "model_seed": 125,
+      "trace_exists": true,
+      "trace_records": 1024,
+      "trace_groups": 64,
+      "global_steps": "[176, 353, 530, 707, 884, 1061, 1238, 1415, 1592, 1769, 1946, 2123, 2300, 2477, 2654, 2831]",
+      "num_global_steps": 16,
+      "read_topk_values": "[4]",
+      "retention_mean": 0.7794270833333333,
+      "churn_mean": 0.22057291666666667,
+      "top1_flip_rate": 0.16041666666666668,
+      "rank_displacement_mean": 0.20982292014700968,
+      "top2_shadow_retention_mean": 0.8265625,
+      "top2_shadow_churn_mean": 0.17343750000000002,
+      "margin_mean": 1.3397836613003165,
+      "entropy_mean": 2.24275440776546,
+      "selected_mass_mean": 0.6827366060679196
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "num_codebook_vectors": 256,
+      "gd_rank": 8,
+      "read_topk": 2,
+      "model_seed": 125,
+      "trace_exists": true,
+      "trace_records": 1024,
+      "trace_groups": 64,
+      "global_steps": "[176, 353, 530, 707, 884, 1061, 1238, 1415, 1592, 1769, 1946, 2123, 2300, 2477, 2654, 2831]",
+      "num_global_steps": 16,
+      "read_topk_values": "[2]",
+      "retention_mean": 0.8010416666666667,
+      "churn_mean": 0.19895833333333332,
+      "top1_flip_rate": 0.15104166666666666,
+      "rank_displacement_mean": 0.08842652795838751,
+      "top2_shadow_retention_mean": 0.8010416666666667,
+      "top2_shadow_churn_mean": 0.19895833333333335,
+      "margin_mean": 1.6260968635324389,
+      "entropy_mean": 2.7680832711230323,
+      "selected_mass_mean": 0.5131343846660457
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "num_codebook_vectors": 256,
+      "gd_rank": 8,
+      "read_topk": 4,
+      "model_seed": 125,
+      "trace_exists": true,
+      "trace_records": 1024,
+      "trace_groups": 64,
+      "global_steps": "[176, 353, 530, 707, 884, 1061, 1238, 1415, 1592, 1769, 1946, 2123, 2300, 2477, 2654, 2831]",
+      "num_global_steps": 16,
+      "read_topk_values": "[4]",
+      "retention_mean": 0.7765625,
+      "churn_mean": 0.2234375,
+      "top1_flip_rate": 0.19583333333333333,
+      "rank_displacement_mean": 0.34305835010060365,
+      "top2_shadow_retention_mean": 0.790625,
+      "top2_shadow_churn_mean": 0.20937499999999998,
+      "margin_mean": 1.519736093468964,
+      "entropy_mean": 3.2919476962215413,
+      "selected_mass_mean": 0.47458142385585234
+    }
+  ],
+  "trace_step_rows": [
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 176,
+      "records": 64,
+      "selected_mass_mean": 0.5580774997361004,
+      "selected_mass_min": 0.1306072622537613,
+      "selected_mass_max": 0.971968948841095,
+      "margin_mean": 1.933271687477827,
+      "entropy_mean": 2.5704883076250553
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 353,
+      "records": 64,
+      "selected_mass_mean": 0.7918645171448588,
+      "selected_mass_min": 0.3733177185058594,
+      "selected_mass_max": 0.9814420938491821,
+      "margin_mean": 3.3516122475266457,
+      "entropy_mean": 1.5204455615021288
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 530,
+      "records": 64,
+      "selected_mass_mean": 0.6856464002048597,
+      "selected_mass_min": 0.10669362545013428,
+      "selected_mass_max": 0.9765164852142334,
+      "margin_mean": 2.708019431680441,
+      "entropy_mean": 1.8658946172799915
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 707,
+      "records": 64,
+      "selected_mass_mean": 0.600424581207335,
+      "selected_mass_min": 0.256588876247406,
+      "selected_mass_max": 0.9471254944801331,
+      "margin_mean": 1.5324539244174957,
+      "entropy_mean": 2.5490909097716212
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 884,
+      "records": 64,
+      "selected_mass_mean": 0.6280893264338374,
+      "selected_mass_min": 0.38829493522644043,
+      "selected_mass_max": 0.9144954085350037,
+      "margin_mean": 1.095772448927164,
+      "entropy_mean": 2.5172199364751577
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1061,
+      "records": 64,
+      "selected_mass_mean": 0.6680060126818717,
+      "selected_mass_min": 0.47262370586395264,
+      "selected_mass_max": 0.8870043754577637,
+      "margin_mean": 0.9696342647075653,
+      "entropy_mean": 2.3715222626924515
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1238,
+      "records": 64,
+      "selected_mass_mean": 0.6862487699836493,
+      "selected_mass_min": 0.467820405960083,
+      "selected_mass_max": 0.8513170480728149,
+      "margin_mean": 1.1616182178258896,
+      "entropy_mean": 2.3092393819242716
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1415,
+      "records": 64,
+      "selected_mass_mean": 0.7025531381368637,
+      "selected_mass_min": 0.4870319366455078,
+      "selected_mass_max": 0.852109432220459,
+      "margin_mean": 1.1196352913975716,
+      "entropy_mean": 2.2420872393995523
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1592,
+      "records": 64,
+      "selected_mass_mean": 0.6986818015575409,
+      "selected_mass_min": 0.5887550115585327,
+      "selected_mass_max": 0.8175862431526184,
+      "margin_mean": 0.8609878197312355,
+      "entropy_mean": 2.2761245351284742
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1769,
+      "records": 64,
+      "selected_mass_mean": 0.6967833917587996,
+      "selected_mass_min": 0.5615136027336121,
+      "selected_mass_max": 0.8329652547836304,
+      "margin_mean": 0.8559166416525841,
+      "entropy_mean": 2.272239413112402
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 1946,
+      "records": 64,
+      "selected_mass_mean": 0.6978746606037021,
+      "selected_mass_min": 0.5764868259429932,
+      "selected_mass_max": 0.8167404532432556,
+      "margin_mean": 0.7904006615281105,
+      "entropy_mean": 2.274016935378313
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 2123,
+      "records": 64,
+      "selected_mass_mean": 0.6958834631368518,
+      "selected_mass_min": 0.5441732406616211,
+      "selected_mass_max": 0.8070292472839355,
+      "margin_mean": 0.8085784539580345,
+      "entropy_mean": 2.2806356716901064
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 2300,
+      "records": 64,
+      "selected_mass_mean": 0.7051892960444093,
+      "selected_mass_min": 0.5642063617706299,
+      "selected_mass_max": 0.8101856112480164,
+      "margin_mean": 0.9880075007677078,
+      "entropy_mean": 2.204309519380331
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 2477,
+      "records": 64,
+      "selected_mass_mean": 0.7059837365522981,
+      "selected_mass_min": 0.5747533440589905,
+      "selected_mass_max": 0.8024155497550964,
+      "margin_mean": 1.085789941251278,
+      "entropy_mean": 2.189673190936446
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 2654,
+      "records": 64,
+      "selected_mass_mean": 0.7026265794411302,
+      "selected_mass_min": 0.5895366668701172,
+      "selected_mass_max": 0.7992671728134155,
+      "margin_mean": 1.0856413170695305,
+      "entropy_mean": 2.2109978776425123
+    },
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "global_step": 2831,
+      "records": 64,
+      "selected_mass_mean": 0.6998525224626064,
+      "selected_mass_min": 0.584481954574585,
+      "selected_mass_max": 0.7892383933067322,
+      "margin_mean": 1.0891987308859825,
+      "entropy_mean": 2.230085164308548
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 176,
+      "records": 64,
+      "selected_mass_mean": 0.5085151566891,
+      "selected_mass_min": 0.035147152841091156,
+      "selected_mass_max": 0.9898776412010193,
+      "margin_mean": 2.570572404190898,
+      "entropy_mean": 2.71275439549936
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 353,
+      "records": 64,
+      "selected_mass_mean": 0.9400415783748031,
+      "selected_mass_min": 0.9076067805290222,
+      "selected_mass_max": 0.9821357131004333,
+      "margin_mean": 4.245752885937691,
+      "entropy_mean": 0.4171883784001693
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 530,
+      "records": 64,
+      "selected_mass_mean": 0.6566239539533854,
+      "selected_mass_min": 0.07054489850997925,
+      "selected_mass_max": 0.9600716829299927,
+      "margin_mean": 2.2310179099440575,
+      "entropy_mean": 1.9734025264624506
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 707,
+      "records": 64,
+      "selected_mass_mean": 0.6321591851301491,
+      "selected_mass_min": 0.17390033602714539,
+      "selected_mass_max": 0.9451318979263306,
+      "margin_mean": 1.5875495485961437,
+      "entropy_mean": 2.2035253131762147
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 884,
+      "records": 64,
+      "selected_mass_mean": 0.6034323922358453,
+      "selected_mass_min": 0.16842001676559448,
+      "selected_mass_max": 0.9843510985374451,
+      "margin_mean": 1.6605860032141209,
+      "entropy_mean": 2.410044165328145
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1061,
+      "records": 64,
+      "selected_mass_mean": 0.5694053734187037,
+      "selected_mass_min": 0.17673632502555847,
+      "selected_mass_max": 0.9822085499763489,
+      "margin_mean": 1.5724925622344017,
+      "entropy_mean": 2.5628700661472976
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1238,
+      "records": 64,
+      "selected_mass_mean": 0.5534692802466452,
+      "selected_mass_min": 0.13125991821289062,
+      "selected_mass_max": 0.974973201751709,
+      "margin_mean": 1.4926436208188534,
+      "entropy_mean": 2.6376536241732538
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1415,
+      "records": 64,
+      "selected_mass_mean": 0.49064715520944446,
+      "selected_mass_min": 0.10925251990556717,
+      "selected_mass_max": 0.9545626044273376,
+      "margin_mean": 1.2992804907262325,
+      "entropy_mean": 2.9377471255138516
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1592,
+      "records": 64,
+      "selected_mass_mean": 0.45417938684113324,
+      "selected_mass_min": 0.08690135926008224,
+      "selected_mass_max": 0.9504917860031128,
+      "margin_mean": 1.2556401453912258,
+      "entropy_mean": 3.1063665850088
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1769,
+      "records": 64,
+      "selected_mass_mean": 0.4500713262241334,
+      "selected_mass_min": 0.0844670832157135,
+      "selected_mass_max": 0.9516594409942627,
+      "margin_mean": 1.2085752077400684,
+      "entropy_mean": 3.118217767216265
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 1946,
+      "records": 64,
+      "selected_mass_mean": 0.4234562498750165,
+      "selected_mass_min": 0.08461999893188477,
+      "selected_mass_max": 0.9303056001663208,
+      "margin_mean": 1.15876373834908,
+      "entropy_mean": 3.227338927797973
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 2123,
+      "records": 64,
+      "selected_mass_mean": 0.3845051774987951,
+      "selected_mass_min": 0.06711964309215546,
+      "selected_mass_max": 0.8794212937355042,
+      "margin_mean": 1.1238771583884954,
+      "entropy_mean": 3.4017812050879
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 2300,
+      "records": 64,
+      "selected_mass_mean": 0.3898883949732408,
+      "selected_mass_min": 0.0688355416059494,
+      "selected_mass_max": 0.8946223855018616,
+      "margin_mean": 1.1562410090118647,
+      "entropy_mean": 3.3810622515156865
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 2477,
+      "records": 64,
+      "selected_mass_mean": 0.3850427446886897,
+      "selected_mass_min": 0.06681729853153229,
+      "selected_mass_max": 0.8921528458595276,
+      "margin_mean": 1.1461369581520557,
+      "entropy_mean": 3.3980517191812396
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 2654,
+      "records": 64,
+      "selected_mass_mean": 0.3804254732094705,
+      "selected_mass_min": 0.0638357400894165,
+      "selected_mass_max": 0.8905588388442993,
+      "margin_mean": 1.1350713148713112,
+      "entropy_mean": 3.422786253504455
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "global_step": 2831,
+      "records": 64,
+      "selected_mass_mean": 0.3882873260881752,
+      "selected_mass_min": 0.06446634978055954,
+      "selected_mass_max": 0.8834113478660583,
+      "margin_mean": 1.1733488589525223,
+      "entropy_mean": 3.378542033955455
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 176,
+      "records": 64,
+      "selected_mass_mean": 0.623475543805398,
+      "selected_mass_min": 0.07034184783697128,
+      "selected_mass_max": 0.9938413500785828,
+      "margin_mean": 3.0998750776052475,
+      "entropy_mean": 2.320283133885823
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 353,
+      "records": 64,
+      "selected_mass_mean": 0.9577068313956261,
+      "selected_mass_min": 0.9353627562522888,
+      "selected_mass_max": 0.9911823868751526,
+      "margin_mean": 5.098911851644516,
+      "entropy_mean": 0.32375907272216864
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 530,
+      "records": 64,
+      "selected_mass_mean": 0.3060603551566601,
+      "selected_mass_min": 0.1330636441707611,
+      "selected_mass_max": 0.6341454386711121,
+      "margin_mean": 0.7523149363696575,
+      "entropy_mean": 4.053460564464331
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 707,
+      "records": 64,
+      "selected_mass_mean": 0.273175316513516,
+      "selected_mass_min": 0.11570190638303757,
+      "selected_mass_max": 0.5120110511779785,
+      "margin_mean": 0.7594928573817015,
+      "entropy_mean": 4.247243162244558
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 884,
+      "records": 64,
+      "selected_mass_mean": 0.3098488738760352,
+      "selected_mass_min": 0.09497413784265518,
+      "selected_mass_max": 0.5653116703033447,
+      "margin_mean": 1.0557075534015894,
+      "entropy_mean": 4.110946852713823
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1061,
+      "records": 64,
+      "selected_mass_mean": 0.34893131349235773,
+      "selected_mass_min": 0.1237538754940033,
+      "selected_mass_max": 0.7340302467346191,
+      "margin_mean": 1.2235296834260225,
+      "entropy_mean": 3.926207695156336
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1238,
+      "records": 64,
+      "selected_mass_mean": 0.3733007530681789,
+      "selected_mass_min": 0.14555689692497253,
+      "selected_mass_max": 0.7107412815093994,
+      "margin_mean": 1.4014012664556503,
+      "entropy_mean": 3.830604210495949
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1415,
+      "records": 64,
+      "selected_mass_mean": 0.3867981212679297,
+      "selected_mass_min": 0.15328159928321838,
+      "selected_mass_max": 0.7329389452934265,
+      "margin_mean": 1.1807964034378529,
+      "entropy_mean": 3.789796121418476
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1592,
+      "records": 64,
+      "selected_mass_mean": 0.40743607305921614,
+      "selected_mass_min": 0.17799344658851624,
+      "selected_mass_max": 0.7610206604003906,
+      "margin_mean": 1.1798624489456415,
+      "entropy_mean": 3.693551130592823
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1769,
+      "records": 64,
+      "selected_mass_mean": 0.44965616916306317,
+      "selected_mass_min": 0.23452015221118927,
+      "selected_mass_max": 0.7907525897026062,
+      "margin_mean": 1.2717198096215725,
+      "entropy_mean": 3.514005895704031
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 1946,
+      "records": 64,
+      "selected_mass_mean": 0.4777437043376267,
+      "selected_mass_min": 0.2739582657814026,
+      "selected_mass_max": 0.8020938038825989,
+      "margin_mean": 1.3088087774813175,
+      "entropy_mean": 3.3789834044873714
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 2123,
+      "records": 64,
+      "selected_mass_mean": 0.49755496717989445,
+      "selected_mass_min": 0.299067884683609,
+      "selected_mass_max": 0.8080401420593262,
+      "margin_mean": 1.356964286416769,
+      "entropy_mean": 3.283384582027793
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 2300,
+      "records": 64,
+      "selected_mass_mean": 0.522581270430237,
+      "selected_mass_min": 0.2997562289237976,
+      "selected_mass_max": 0.8162614703178406,
+      "margin_mean": 1.2436557598412037,
+      "entropy_mean": 3.1623754277825356
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 2477,
+      "records": 64,
+      "selected_mass_mean": 0.5414854236878455,
+      "selected_mass_min": 0.2831585109233856,
+      "selected_mass_max": 0.8095122575759888,
+      "margin_mean": 1.157785926014185,
+      "entropy_mean": 3.069241264835
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 2654,
+      "records": 64,
+      "selected_mass_mean": 0.5543274316005409,
+      "selected_mass_min": 0.29512810707092285,
+      "selected_mass_max": 0.8249058127403259,
+      "margin_mean": 1.1278150863945484,
+      "entropy_mean": 3.006311170756817
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "global_step": 2831,
+      "records": 64,
+      "selected_mass_mean": 0.5632206336595118,
+      "selected_mass_min": 0.2987420856952667,
+      "selected_mass_max": 0.8222005367279053,
+      "margin_mean": 1.0971357710659504,
+      "entropy_mean": 2.9610094502568245
+    }
+  ],
+  "archive_rows": [
+    {
+      "target": "cb128r8-readk4-s125-trace",
+      "source_path": "zoology/experiments/flash_vqg/scripts/20260623-01-flash-vqg-fixed-sample-read-trace/outputs/traces/cb128r8-readk4-s125-trace/read_trace.jsonl",
+      "archive_path": "docs/artifacts/20260623-01-flash-vqg-fixed-sample-read-trace/traces/cb128r8-readk4-s125-trace.jsonl.gz",
+      "source_size_bytes": 806564,
+      "archive_size_bytes": 134778,
+      "source_sha256": "491aed9fe4eadafbdbfb70df371130b7a72e91d46642d422515a0e6d26c5b924",
+      "archive_sha256": "e1c1cd15d448255eb6301d0d745fd157a4bab965200842842bc5673ed523e9f7"
+    },
+    {
+      "target": "cb256r8-readk2-s125-trace",
+      "source_path": "zoology/experiments/flash_vqg/scripts/20260623-01-flash-vqg-fixed-sample-read-trace/outputs/traces/cb256r8-readk2-s125-trace/read_trace.jsonl",
+      "archive_path": "docs/artifacts/20260623-01-flash-vqg-fixed-sample-read-trace/traces/cb256r8-readk2-s125-trace.jsonl.gz",
+      "source_size_bytes": 721495,
+      "archive_size_bytes": 92754,
+      "source_sha256": "0e0d4d2cef3d5e3ae7315edf44c3a8a02d3e60870d13804c0ac49b5863f0d767",
+      "archive_sha256": "527ea0aae2dc1cbf1dd200bc5093298d7f45819d686b81122327bdf4be576ac1"
+    },
+    {
+      "target": "cb256r8-readk4-s125-trace",
+      "source_path": "zoology/experiments/flash_vqg/scripts/20260623-01-flash-vqg-fixed-sample-read-trace/outputs/traces/cb256r8-readk4-s125-trace/read_trace.jsonl",
+      "archive_path": "docs/artifacts/20260623-01-flash-vqg-fixed-sample-read-trace/traces/cb256r8-readk4-s125-trace.jsonl.gz",
+      "source_size_bytes": 808880,
+      "archive_size_bytes": 136280,
+      "source_sha256": "e810de326e176548cc5d7e51cb2e5cb0a8f7624ffc646593de9878f31c2ae3bd",
+      "archive_sha256": "2af20dd1c9e5eccebe7103190d787023b22ea367fb8b11bbd9ecdb0719f794f2"
+    }
+  ]
+}

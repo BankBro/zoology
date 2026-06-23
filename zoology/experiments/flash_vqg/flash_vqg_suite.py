@@ -1189,6 +1189,12 @@ def build_configs(
     read_churn_probe_valid_batches: Iterable[int] | None = None,
     read_churn_probe_max_samples: int = 16,
     read_churn_probe_query_only: bool = True,
+    read_trace_enabled: bool = False,
+    read_trace_valid_batches: Iterable[int] | None = None,
+    read_trace_max_samples: int = 4,
+    read_trace_query_only: bool = True,
+    read_trace_max_queries_per_sample: int = 8,
+    read_trace_output_dir: str | None = None,
 ) -> list[TrainConfig]:
     flash_backend = str(flash_backend).lower()
     if flash_backend not in {"accel", "torch"}:
@@ -2398,6 +2404,14 @@ def build_configs(
                                             read_churn_probe_valid_batches=read_churn_probe_valid_batches,
                                             read_churn_probe_max_samples=read_churn_probe_max_samples,
                                             read_churn_probe_query_only=read_churn_probe_query_only,
+                                            read_trace_enabled=read_trace_enabled,
+                                            read_trace_valid_batches=read_trace_valid_batches,
+                                            read_trace_max_samples=read_trace_max_samples,
+                                            read_trace_query_only=read_trace_query_only,
+                                            read_trace_max_queries_per_sample=(
+                                                read_trace_max_queries_per_sample
+                                            ),
+                                            read_trace_output_dir=read_trace_output_dir,
                                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                                             sweep_id=sweep_id,
                                             seed=current_seed,
@@ -2435,6 +2449,14 @@ def build_configs(
                             read_churn_probe_valid_batches=read_churn_probe_valid_batches,
                             read_churn_probe_max_samples=read_churn_probe_max_samples,
                             read_churn_probe_query_only=read_churn_probe_query_only,
+                            read_trace_enabled=read_trace_enabled,
+                            read_trace_valid_batches=read_trace_valid_batches,
+                            read_trace_max_samples=read_trace_max_samples,
+                            read_trace_query_only=read_trace_query_only,
+                            read_trace_max_queries_per_sample=(
+                                read_trace_max_queries_per_sample
+                            ),
+                            read_trace_output_dir=read_trace_output_dir,
                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                             sweep_id=sweep_id,
                             seed=current_seed,

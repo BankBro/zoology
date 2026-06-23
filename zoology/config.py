@@ -159,6 +159,12 @@ class TrainConfig(BaseConfig):
     read_churn_probe_valid_batches: List[int] = [0]
     read_churn_probe_max_samples: int = 16
     read_churn_probe_query_only: bool = True
+    read_trace_enabled: bool = False
+    read_trace_valid_batches: List[int] = [0]
+    read_trace_max_samples: int = 4
+    read_trace_query_only: bool = True
+    read_trace_max_queries_per_sample: int = 8
+    read_trace_output_dir: Optional[str] = None
 
     launch_id: Optional[str] = None
     sweep_id: Optional[str] = None

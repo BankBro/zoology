@@ -362,6 +362,12 @@ def _render_generated_config(
     read_churn_probe_valid_batches: list[int] | None = None,
     read_churn_probe_max_samples: int = 16,
     read_churn_probe_query_only: bool = True,
+    read_trace_enabled: bool = False,
+    read_trace_valid_batches: list[int] | None = None,
+    read_trace_max_samples: int = 4,
+    read_trace_query_only: bool = True,
+    read_trace_max_queries_per_sample: int = 8,
+    read_trace_output_dir: str | None = None,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -513,6 +519,12 @@ def _render_generated_config(
         f"    read_churn_probe_valid_batches={read_churn_probe_valid_batches!r},",
         f"    read_churn_probe_max_samples={read_churn_probe_max_samples!r},",
         f"    read_churn_probe_query_only={read_churn_probe_query_only!r},",
+        f"    read_trace_enabled={read_trace_enabled!r},",
+        f"    read_trace_valid_batches={read_trace_valid_batches!r},",
+        f"    read_trace_max_samples={read_trace_max_samples!r},",
+        f"    read_trace_query_only={read_trace_query_only!r},",
+        f"    read_trace_max_queries_per_sample={read_trace_max_queries_per_sample!r},",
+        f"    read_trace_output_dir={read_trace_output_dir!r},",
         f"    early_stopping_metric={early_stopping_metric!r},",
         f"    early_stopping_threshold={early_stopping_threshold!r},",
         ")",
@@ -691,6 +703,12 @@ def _build_manifest_run_ids(
     read_churn_probe_valid_batches: list[int] | None = None,
     read_churn_probe_max_samples: int = 16,
     read_churn_probe_query_only: bool = True,
+    read_trace_enabled: bool = False,
+    read_trace_valid_batches: list[int] | None = None,
+    read_trace_max_samples: int = 4,
+    read_trace_query_only: bool = True,
+    read_trace_max_queries_per_sample: int = 8,
+    read_trace_output_dir: str | None = None,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -843,6 +861,12 @@ def _build_manifest_run_ids(
         read_churn_probe_valid_batches=read_churn_probe_valid_batches,
         read_churn_probe_max_samples=read_churn_probe_max_samples,
         read_churn_probe_query_only=read_churn_probe_query_only,
+        read_trace_enabled=read_trace_enabled,
+        read_trace_valid_batches=read_trace_valid_batches,
+        read_trace_max_samples=read_trace_max_samples,
+        read_trace_query_only=read_trace_query_only,
+        read_trace_max_queries_per_sample=read_trace_max_queries_per_sample,
+        read_trace_output_dir=read_trace_output_dir,
         early_stopping_metric=early_stopping_metric,
         early_stopping_threshold=early_stopping_threshold,
     )
@@ -1344,6 +1368,12 @@ def main():
     parser.add_argument("--read-churn-probe-valid-batches", type=str, default="0")
     parser.add_argument("--read-churn-probe-max-samples", type=int, default=16)
     parser.add_argument("--read-churn-probe-query-only", choices=["true", "false"], default="true")
+    parser.add_argument("--read-trace-enabled", choices=["true", "false"], default="false")
+    parser.add_argument("--read-trace-valid-batches", type=str, default="0")
+    parser.add_argument("--read-trace-max-samples", type=int, default=4)
+    parser.add_argument("--read-trace-query-only", choices=["true", "false"], default="true")
+    parser.add_argument("--read-trace-max-queries-per-sample", type=int, default=8)
+    parser.add_argument("--read-trace-output-dir", type=str, default=None)
     parser.add_argument("--project", type=str, default="flash_vqg_vs_gdn")
     parser.add_argument("--entity", type=str, default="scu-mclab")
     parser.add_argument("--max-epochs", type=int, default=32)
@@ -1519,6 +1549,19 @@ def main():
     )
     if args.read_churn_probe_max_samples <= 0:
         raise ValueError("read_churn_probe_max_samples 必须是正整数.")
+    read_trace_enabled = _parse_bool_flag(
+        args.read_trace_enabled,
+        field_name="read_trace_enabled",
+    )
+    read_trace_valid_batches = _parse_csv_ints(args.read_trace_valid_batches)
+    read_trace_query_only = _parse_bool_flag(
+        args.read_trace_query_only,
+        field_name="read_trace_query_only",
+    )
+    if args.read_trace_max_samples <= 0:
+        raise ValueError("read_trace_max_samples 必须是正整数.")
+    if args.read_trace_max_queries_per_sample <= 0:
+        raise ValueError("read_trace_max_queries_per_sample 必须是正整数.")
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
     generated_launch_dir = GENERATED_DIR / launch_id
@@ -1699,6 +1742,12 @@ def main():
             read_churn_probe_valid_batches=read_churn_probe_valid_batches,
             read_churn_probe_max_samples=args.read_churn_probe_max_samples,
             read_churn_probe_query_only=read_churn_probe_query_only,
+            read_trace_enabled=read_trace_enabled,
+            read_trace_valid_batches=read_trace_valid_batches,
+            read_trace_max_samples=args.read_trace_max_samples,
+            read_trace_query_only=read_trace_query_only,
+            read_trace_max_queries_per_sample=args.read_trace_max_queries_per_sample,
+            read_trace_output_dir=args.read_trace_output_dir,
             early_stopping_metric=early_stopping_metric,
             early_stopping_threshold=early_stopping_threshold,
         )
@@ -1870,6 +1919,12 @@ def main():
                 read_churn_probe_valid_batches=read_churn_probe_valid_batches,
                 read_churn_probe_max_samples=args.read_churn_probe_max_samples,
                 read_churn_probe_query_only=read_churn_probe_query_only,
+                read_trace_enabled=read_trace_enabled,
+                read_trace_valid_batches=read_trace_valid_batches,
+                read_trace_max_samples=args.read_trace_max_samples,
+                read_trace_query_only=read_trace_query_only,
+                read_trace_max_queries_per_sample=args.read_trace_max_queries_per_sample,
+                read_trace_output_dir=args.read_trace_output_dir,
                 early_stopping_metric=early_stopping_metric,
                 early_stopping_threshold=early_stopping_threshold,
             ),

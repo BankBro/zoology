@@ -308,6 +308,14 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         "read_churn_probe_valid_batches": config_dict.get("read_churn_probe_valid_batches"),
         "read_churn_probe_max_samples": config_dict.get("read_churn_probe_max_samples"),
         "read_churn_probe_query_only": config_dict.get("read_churn_probe_query_only"),
+        "read_trace_enabled": config_dict.get("read_trace_enabled"),
+        "read_trace_valid_batches": config_dict.get("read_trace_valid_batches"),
+        "read_trace_max_samples": config_dict.get("read_trace_max_samples"),
+        "read_trace_query_only": config_dict.get("read_trace_query_only"),
+        "read_trace_max_queries_per_sample": config_dict.get(
+            "read_trace_max_queries_per_sample"
+        ),
+        "read_trace_output_dir": config_dict.get("read_trace_output_dir"),
         "init_checkpoint_path": config_dict.get("init_checkpoint_path"),
         "init_checkpoint_source_launch_id": config_dict.get("init_checkpoint_source_launch_id"),
         "init_checkpoint_source_run_id": config_dict.get("init_checkpoint_source_run_id"),
