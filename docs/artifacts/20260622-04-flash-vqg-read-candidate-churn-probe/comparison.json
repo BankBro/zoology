@@ -1,0 +1,18 @@
+[
+  {
+    "accuracy_delta": 0.0004663085937500755,
+    "churn_delta": 0.0,
+    "comparison": "cb256r8_readk4_minus_readk2_best",
+    "entropy_delta": 0.32607342350104496,
+    "hard_delta": -0.0007851562499999742,
+    "selected_mass_delta": -0.054170549122823625
+  },
+  {
+    "accuracy_delta": 0.0004663085937500755,
+    "churn_delta": 0.0,
+    "comparison": "cb256r8_readk4_minus_readk2_final",
+    "entropy_delta": 0.32607342350104496,
+    "hard_delta": -0.0007851562499999742,
+    "selected_mass_delta": -0.054170549122823625
+  }
+]

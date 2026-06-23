@@ -1,0 +1,11 @@
+{
+  "comparison_path": "zoology/experiments/flash_vqg/scripts/20260622-04-flash-vqg-read-candidate-churn-probe/outputs/summary/20260622T103609Z/comparison.json",
+  "generated_root": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/generated",
+  "log_dir": "zoology/experiments/flash_vqg/scripts/20260622-04-flash-vqg-read-candidate-churn-probe/outputs/logs/20260622T103609Z",
+  "metric_csv_path": "zoology/experiments/flash_vqg/scripts/20260622-04-flash-vqg-read-candidate-churn-probe/outputs/summary/20260622T103609Z/final_best_metrics.csv",
+  "num_metric_rows": 6,
+  "num_runs": 3,
+  "num_source_rows": 15,
+  "output_dir": "zoology/experiments/flash_vqg/scripts/20260622-04-flash-vqg-read-candidate-churn-probe/outputs/summary/20260622T103609Z",
+  "source_csv_path": "zoology/experiments/flash_vqg/scripts/20260622-04-flash-vqg-read-candidate-churn-probe/outputs/summary/20260622T103609Z/source_manifest.csv"
+}
