@@ -51,6 +51,25 @@ docs/artifacts/20260624-01-flash-vqg-write-control-failure-audit/
 
 ## 关键观察
 
+### 0. 旧实验能看的已整理, 但缺失指标不能事后补出
+
+本轮只读取已有 `history.csv` 和 manifest. 因此旧实验中已经记录的 scalar 已经被系统整理, 包括 hard accuracy, best/final gap, `m_norm`, write strength, cap-hit, lambda, inject ratio 和 beta 等.
+
+但部分现在最想看的指标在不少旧 run 中没有记录, 不能事后从 checkpoint 或最终 CSV 里恢复, 例如:
+
+```text
+read margin / entropy / selected mass 的完整早期轨迹
+read candidate churn
+update_norm p95
+update_norm cap-hit ratio
+cap guard reason
+release progress / hold / rollback 状态
+```
+
+所以本报告能确认的是: `cap0405` 失败不是单纯 `m_norm` 爆炸, `caprel0406late` 有明确 state overrun, 静态 `m_norm_cap=8` 不等于有效 guard. 本报告不能确认的是: read 侧是否就是最终直接原因, update norm 是否是关键触发器, 以及最优 guard 应该使用哪组指标.
+
+缺失指标明细见 `missing_metrics.csv`.
+
 ### 1. `hard04` 的价值和代价都明确
 
 `hard04` 把 `cb64-r16` 的 hard spread 从 default `0.167488` 压到 `0.018016`. 这说明 write trust-region 的因果干预证据仍然最强.

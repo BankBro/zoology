@@ -8,3 +8,5 @@ This directory contains a read-only audit of existing cb64-r16 write-control run
 - `failure_taxonomy.csv`: setting-level failure labels.
 - `missing_metrics.csv`: metrics absent from historical histories.
 - `source_manifest.csv`: source paths and sha256 hashes.
+
+Important limitation: this artifact can only analyze scalars that old runs wrote into `history.csv`. Missing read-side and update-norm telemetry cannot be reconstructed after the fact; see `missing_metrics.csv`.
