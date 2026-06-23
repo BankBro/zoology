@@ -2,7 +2,7 @@
 
 updated: 2026-06-24
 experiment_id: `20260624-02-flash-vqg-pressure-telemetry-guard`
-status: stage-1-smoke-passed
+status: stage-2-launching
 
 ## 摘要
 
@@ -61,3 +61,25 @@ bash zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-teleme
 第一阶段通过. 现在可以进入阶段 2: 最小 telemetry probe.
 
 阶段 2 不应直接实现 guard. 应先在 `cb64-r16` 的 `hard04`, `caprel0406late`, `cap0405` 小矩阵上跑短/完整可比 telemetry, 看失败先出现在 update pressure, cap-hit, m_norm, lambda/inject, 还是 read-side 指标.
+
+## 阶段 2 启动方案
+
+本阶段沿用同一个 experiment_id, 不新建目录. 新增 launcher 和 metrics:
+
+```text
+zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/metrics.yaml
+zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/run_stage2_probe_train.sh
+zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/run_stage2_probe_queue.sh
+zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/start_stage2_probe_queue.sh
+```
+
+矩阵:
+
+| machine | targets | 并发 |
+|---|---|---|
+| 3090 | `default-s123`, `hard04-s123`, `cap0405-s123`, `caprel0406late-s123` | 单卡最多 3 条 |
+| 2080ti | `default-s124`, `hard04-s124`, `cap0405-s124`, `caprel0406late-s124` | 两张卡各 1 条 |
+
+release 配置统一使用 `write_strength_cap_eval_policy=scheduled`. 这和部分历史 caprel 口径不完全相同, 但更适合定位 release 前后 pressure 曲线.
+
+观察退出条件: 至少观察 10 分钟, 且 3090 GPU0, 2080ti GPU0, 2080ti GPU1 都已经进入训练状态; 日志没有 `Traceback`, `CUDA out of memory`, `ValidationError`, `nan`, `inf`.

@@ -1,7 +1,7 @@
 # 20260624-02 Flash-VQG pressure telemetry and guard 规划
 
 updated: 2026-06-24
-status: stage-1 implementation
+status: stage-2 launch
 experiment_id: `20260624-02-flash-vqg-pressure-telemetry-guard`
 
 ## 目标
@@ -68,6 +68,8 @@ read_selected_mass_mean / p05, if available
 
 | layout | seed | setting | 目的 |
 |---|---:|---|---|
+| `cb64-r16` | `123` | `default` | 原始 good seed pressure 基线 |
+| `cb64-r16` | `124` | `default` | 原始 weak seed pressure 基线 |
 | `cb64-r16` | `123` | `hard04` | 稳定低税基准的 pressure 轨迹 |
 | `cb64-r16` | `124` | `hard04` | bad seed rescue 的 pressure 轨迹 |
 | `cb64-r16` | `123` | `caprel0406late` | m_norm overrun / release 风险轨迹 |
@@ -78,8 +80,47 @@ read_selected_mass_mean / p05, if available
 说明:
 
 - 这些 run 的目的不是重新证明 final 结果, 而是用新增 telemetry 比较 release window 前后发生了什么.
-- 如资源紧张, 可先跑 `s123` 三条和 `s124 cap0405`, 再补齐其余两条.
+- release 配置统一使用 `write_strength_cap_eval_policy=scheduled`, 让 validation 按当前训练进度读取 cap, 避免中途 valid 提前看到 final cap.
+- 3090 跑 seed123 四条, 单卡最多 3 条并发; 2080ti 跑 seed124 四条, 两张卡各 1 条 run, 不在单卡上叠两条 run.
 - 每条 run 需要输出 final/best hard, best-final gap, telemetry 曲线和 source manifest.
+
+阶段 2 统一训练口径:
+
+```text
+d_model=128
+num_codebook_vectors=64
+fox_gd_residual_rank=16
+data_seed=123
+read_topk=2
+write_topk=4
+mu_min_count=0.1
+beta_init=0.5
+lambda_init=0.05
+vq_score_mode=codebook_dot
+vq_weight_mode=dense_softmax
+vq_update_mode=grad
+vq_softmax_tau=0.25
+train_batch_size=64
+eval_batch_size=16
+gradient_accumulation_steps=4
+max_epochs=4
+validations_per_epoch=4
+disable_early_stopping=true
+read_churn_probe_enabled=true
+read_churn_probe_valid_batches=441
+read_trace_enabled=false
+```
+
+启动后退出会话的条件:
+
+```text
+1. 3090 GPU0 有训练显存占用, active run 数不超过 3.
+2. 2080ti GPU0 和 GPU1 都有训练显存占用, 且每卡只有 1 条 active run.
+3. active run 日志已越过配置生成和数据加载阶段, 进入训练循环.
+4. queue 主进程和 active 子进程仍在.
+5. 日志没有 Traceback, CUDA out of memory, ValidationError, nan 或 inf.
+6. 观察至少 10 分钟, 但 10 分钟不是唯一退出条件.
+```
 
 ## 阶段 3: 判读规则
 
@@ -136,4 +177,4 @@ report: docs/20260624-02-flash-vqg-pressure-telemetry-guard-report.md
 
 ## 当前决策
 
-当前执行第一阶段: telemetry 补齐和 config-to-runtime smoke. 只有 2080ti 与 3090 smoke 都确认新增指标可传出后, 才进入阶段 2 的最小 telemetry probe. 只有 telemetry probe 证明哪个 pressure 信号先出问题后, 才实现 pressure-aware guard.
+当前执行第二阶段: 最小 telemetry probe 启动和稳定性观察. 只有 telemetry probe 证明哪个 pressure 信号先出问题后, 才实现 pressure-aware guard.
