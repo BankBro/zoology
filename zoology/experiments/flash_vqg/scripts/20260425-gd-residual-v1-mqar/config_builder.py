@@ -105,6 +105,15 @@ def _resolve_remote_read_topk_values(args) -> list[int | None]:
     return _parse_remote_read_topk_values(str(raw))
 
 
+def _parse_csv_ints_arg(args, name: str, *, default: str) -> list[int]:
+    value = getattr(args, name, default)
+    if value is None:
+        value = default
+    if isinstance(value, (list, tuple)):
+        return [int(item) for item in value]
+    return _parse_csv_ints(str(value))
+
+
 def _common_builder_kwargs(args, *, experiment_mode: str):
     resolved_experiment_mode = getattr(args, "experiment_mode", None) or experiment_mode
     dmodels = _parse_csv_ints(args.dmodels)
@@ -140,6 +149,43 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
         getattr(args, "disable_early_stopping", "false"),
         field_name="disable_early_stopping",
     )
+    read_churn_probe_enabled = _parse_bool_arg(
+        getattr(args, "read_churn_probe_enabled", "false"),
+        field_name="read_churn_probe_enabled",
+    )
+    read_churn_probe_valid_batches = _parse_csv_ints_arg(
+        args,
+        "read_churn_probe_valid_batches",
+        default="0",
+    )
+    read_churn_probe_max_samples = int(getattr(args, "read_churn_probe_max_samples", 16))
+    if read_churn_probe_max_samples <= 0:
+        raise ValueError("read_churn_probe_max_samples 必须是正整数.")
+    read_churn_probe_query_only = _parse_bool_arg(
+        getattr(args, "read_churn_probe_query_only", "true"),
+        field_name="read_churn_probe_query_only",
+    )
+    read_trace_enabled = _parse_bool_arg(
+        getattr(args, "read_trace_enabled", "false"),
+        field_name="read_trace_enabled",
+    )
+    read_trace_valid_batches = _parse_csv_ints_arg(
+        args,
+        "read_trace_valid_batches",
+        default="0",
+    )
+    read_trace_max_samples = int(getattr(args, "read_trace_max_samples", 4))
+    if read_trace_max_samples <= 0:
+        raise ValueError("read_trace_max_samples 必须是正整数.")
+    read_trace_query_only = _parse_bool_arg(
+        getattr(args, "read_trace_query_only", "true"),
+        field_name="read_trace_query_only",
+    )
+    read_trace_max_queries_per_sample = int(
+        getattr(args, "read_trace_max_queries_per_sample", 8)
+    )
+    if read_trace_max_queries_per_sample <= 0:
+        raise ValueError("read_trace_max_queries_per_sample 必须是正整数.")
 
     return (
         dict(
@@ -386,6 +432,16 @@ def _common_builder_kwargs(args, *, experiment_mode: str):
             wandb_entity=args.entity,
             max_epochs=int(args.max_epochs),
             metrics_white_list=metrics_white_list,
+            read_churn_probe_enabled=read_churn_probe_enabled,
+            read_churn_probe_valid_batches=read_churn_probe_valid_batches,
+            read_churn_probe_max_samples=read_churn_probe_max_samples,
+            read_churn_probe_query_only=read_churn_probe_query_only,
+            read_trace_enabled=read_trace_enabled,
+            read_trace_valid_batches=read_trace_valid_batches,
+            read_trace_max_samples=read_trace_max_samples,
+            read_trace_query_only=read_trace_query_only,
+            read_trace_max_queries_per_sample=read_trace_max_queries_per_sample,
+            read_trace_output_dir=getattr(args, "read_trace_output_dir", None),
             experiment_part="gd_residual_v1_mqar",
             experiment_mode=resolved_experiment_mode,
             validations_per_epoch=int(getattr(args, "validations_per_epoch", 1)),

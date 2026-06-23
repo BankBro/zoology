@@ -83,3 +83,13 @@ zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-g
 release 配置统一使用 `write_strength_cap_eval_policy=scheduled`. 这和部分历史 caprel 口径不完全相同, 但更适合定位 release 前后 pressure 曲线.
 
 观察退出条件: 至少观察 10 分钟, 且 3090 GPU0, 2080ti GPU0, 2080ti GPU1 都已经进入训练状态; 日志没有 `Traceback`, `CUDA out of memory`, `ValidationError`, `nan`, `inf`.
+
+## 阶段 2 启动修正
+
+首次启动尝试在配置生成后进入 checkpoint 目录创建阶段失败, 原因是 launcher 没有传入实验专用 `config-builder`, 导致通用 run id 生成路径过长. 该尝试没有形成有效训练结果, outputs 只保留为 ignored raw log.
+
+已修正:
+
+- `run_stage2_probe_train.sh` 现在显式使用 `20260425-gd-residual-v1-mqar/config_builder.py:build_gd_residual_v1_train_configs`.
+- `launch_id_prefix` 和 `run_id` 改为短名, 避免 checkpoint 路径过长.
+- queue status 的完成行记录实际子进程 pid, 方便后续审计.

@@ -81,9 +81,10 @@ case "${SETTING}" in
 esac
 
 METRICS_YAML="${METRICS_YAML:-${SCRIPT_DIR}/metrics.yaml}"
-LAUNCH_ID_PREFIX="${LAUNCH_ID_PREFIX:-flash-vqg-20260624-02-pressure-tel-${TARGET}}"
-RUN_ID_OVERRIDE="gd-cb64-r16-${TARGET}-d123-b64-ga4-fp32-noearly4ep-pressure-tel"
-EXPERIMENT_MODE_OVERRIDE="gd_cb64_r16_${SETTING}_s${SEED_VALUES}_d123_noearly4ep_pressure_tel"
+BUILDER_SPEC="${BUILDER_SPEC:-${SCRIPT_DIR}/../20260425-gd-residual-v1-mqar/config_builder.py:build_gd_residual_v1_train_configs}"
+LAUNCH_ID_PREFIX="${LAUNCH_ID_PREFIX:-fvqg-20260624-02-ptel-${TARGET}}"
+RUN_ID_OVERRIDE="ptel-cb64r16-${TARGET}-d123-b64ga4"
+EXPERIMENT_MODE_OVERRIDE="ptel_cb64r16_${SETTING}_s${SEED_VALUES}_d123_b64ga4"
 
 cd "${ROOT_DIR}"
 
@@ -136,5 +137,6 @@ exec "${PYTHON_BIN}" -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
   --launch-id-prefix "${LAUNCH_ID_PREFIX}" \
   --run-id "${RUN_ID_OVERRIDE}" \
   --experiment-mode "${EXPERIMENT_MODE_OVERRIDE}" \
+  --config-builder "${BUILDER_SPEC}" \
   --gpus "${GPU_ID}" \
   "$@"

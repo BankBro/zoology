@@ -67,6 +67,7 @@ for item in "${TARGETS[@]}"; do
   started_at="$(date -Iseconds)"
   (
     set +e
+    child_pid="${BASHPID:-$$}"
     export GPU_ID="${gpu}"
     bash "${SCRIPT_DIR}/run_stage2_probe_train.sh" "${target}" >"${log_path}" 2>&1
     status=$?
@@ -77,7 +78,7 @@ for item in "${TARGETS[@]}"; do
       final_status="failed:${status}"
     fi
     printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-      "${QUEUE_NAME}" "${target}" "${gpu}" "$$" "${final_status}" "${log_path}" "${started_at}" "${finished_at}" \
+      "${QUEUE_NAME}" "${target}" "${gpu}" "${child_pid}" "${final_status}" "${log_path}" "${started_at}" "${finished_at}" \
       >> "${STATUS_FILE}"
     exit "${status}"
   ) &
