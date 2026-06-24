@@ -137,6 +137,47 @@ release 配置统一使用 `write_strength_cap_eval_policy=scheduled`. 这和部
 
 第五, read 指标不能单独解释本轮结果. 例如 `default-s123` final `read_margin_mean=1.218576`, 反而高于 `default-s124` 的 `0.700348`; capped runs 中 `s123` 的 read entropy 更高, selected mass 更低. 这说明 read-side 仍需要早期窗口和 per-step 对齐分析, 不能只靠 final aggregate 断言根因.
 
+## 已定位的候选控制信号
+
+本轮已经把下一步需要观察和控制的信号范围收窄了, 但还没有得到可以直接实现的最终 guard 规则.
+
+已经确认有价值的信号:
+
+| 信号 | 本轮证据 | 当前定位 |
+|---|---|---|
+| `update_norm_p95/max` | `s123 default` final `update_norm_p95=0.706640`, `hard04` 后降到 `0.234283`, 同时 hard acc 从 `0.776699` 提到 `0.852586`. | 这是本轮最有价值的新 pressure 指标之一, 应作为 guard 主观测量. |
+| `m_norm_max` / `m_norm` slope | `hard04` 能把 `s123` 的 `m_norm_max` 从 `7.122381` 压到 `3.451890`. 但最差 run 的 `m_norm_max` 也没过 `8/12` 红线. | 适合防 state 过冲, 但不能单独识别所有低盆地. |
+| `uncapped_write_strength`, `uncapped_sum_zeta`, write cap hit ratio | capped run 能显示 cap 是否持续压制原始 write pressure; `hard04` 和 release 配置都留下了 cap hit telemetry. | 用来判断 cap 是偶发保护, 还是长期在救火; 后者可能对应 ceiling tax 或早期写入边界. |
+| `lambda_mean`, `inject_ratio` | 本轮没有证明它们单独决定坏 seed, 但它们描述 residual read 注入强度. | 作为 residual amplification 的配套监控项, 需要和 write/read 指标一起看. |
+| read margin, entropy, selected mass | final aggregate 不能单独解释结果; `default-s123` 的 final read margin 反而高于 `default-s124`, 但 capped runs 中 `s123` entropy 更高, selected mass 更低. | 不能只看 final 平均值, 需要 early-window 和 per-step 对齐. |
+
+尚未找到的东西是一个可直接落地的规则, 例如:
+
+```text
+if m_norm > X:
+    hold release
+```
+
+当前证据反而说明这种单指标规则太粗. 坏 seed 不一定表现为 `m_norm` 爆炸; 它可能在早期 write/update pressure, residual injection 和 read-side confidence 的组合边界上进入低盆地.
+
+因此下一步 guard 设计应先按组合信号分析:
+
+```text
+state health:
+    m_norm_max, m_norm slope
+
+write/update pressure:
+    update_norm_p95/max, uncapped_sum_zeta, uncapped_write_strength, cap hit ratio
+
+residual injection:
+    lambda_mean, inject_ratio
+
+read-side confidence:
+    read_margin, read_entropy, read_selected_mass
+```
+
+只有 early-window trace 证明这些信号能提前区分低盆地, 才应该把它们写成 guarded cap release 或 read/write gate.
+
 ## 限制
 
 本轮是最小 telemetry probe, 不是正式稳定性验证. 它只有 `s123` 和 `s124`, 且两个 seed 分别跑在不同机器上: `s123` 在 3090, `s124` 在 2080ti. 之前 smoke 已确认两边 torch/CUDA 链路一致, 但这仍然不是 cross-machine matched repeat. 因此本轮可以用来判断 pressure 指标是否有信号, 不能用来给出最终 seed spread 结论.
