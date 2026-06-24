@@ -1,0 +1,40 @@
+{
+  "experiment_id": "20260624-02-flash-vqg-pressure-telemetry-guard",
+  "status": "stage2-completed",
+  "updated_at": "2026-06-24T18:18:54+08:00",
+  "zoology_commit": "437761125a0cf72501165cebd8246039d0d32bae",
+  "flash_vqg_commit": "eed5778",
+  "stage1": "telemetry config-to-runtime smoke passed on 2080ti and 3090",
+  "stage2": {
+    "purpose": "minimal cb64-r16 pressure telemetry probe before implementing guard",
+    "valid_runs": 8,
+    "invalid_excluded_runs": 1,
+    "machines": [
+      "mclab-3090/Flash-VQG-tun",
+      "mclab-2080ti/Flash-VQG-tun"
+    ],
+    "variants": [
+      "default",
+      "hard04",
+      "cap0405",
+      "caprel0406late"
+    ],
+    "seeds": [
+      123,
+      124
+    ],
+    "notes": [
+      "3090 generated/analysis/log evidence was mirrored back to the 2080ti base workspace under the same relative paths.",
+      "cap0405-s124 first attempt is excluded due to scheduler/GPU OOM overlap and replaced by a standalone rerun.",
+      "Large checkpoints and swanlog backups remain in source machine local directories and are not committed."
+    ]
+  },
+  "artifact_files": [
+    "stage2-key-metrics.csv",
+    "stage2-run-summary.csv",
+    "stage2-variant-summary.csv",
+    "stage2-invalid-runs.csv",
+    "stage2-source-manifest.csv"
+  ],
+  "zoology_stage2_commit": "437761125a0cf72501165cebd8246039d0d32bae"
+}

@@ -1,14 +1,17 @@
-# 20260624-02 Flash-VQG pressure telemetry guard 第一阶段报告
+# 20260624-02 Flash-VQG pressure telemetry guard 阶段报告
 
 updated: 2026-06-24
 experiment_id: `20260624-02-flash-vqg-pressure-telemetry-guard`
-status: stage-2-launching
+status: stage-2-completed
 
 ## 摘要
 
-本阶段完成 telemetry 补齐和 config-to-runtime smoke. 没有启动完整 MQAR 训练, 没有实现 guarded release.
+本报告覆盖两个阶段:
 
-目标是把后续判断 guard 应该防什么所需的观测链路先打通: update norm, update cap hit, write cap effective/scheduled value, release progress, 以及已有 write/read/state 指标.
+- 阶段 1 完成 telemetry 补齐和 config-to-runtime smoke, 确认 update norm, update cap hit, write cap effective/scheduled value, release progress 以及已有 write/read/state 指标能从 runtime 传出.
+- 阶段 2 完成 `cb64-r16` 最小 telemetry probe, 在 `s123` 和 `s124` 上观察 `default`, `hard04`, `cap0405`, `caprel0406late` 的 pressure 曲线.
+
+本实验没有实现 guarded release, 也不是 official MQAR 结果. 它的目标是先判断 guard 实现前应该重点防什么.
 
 ## 代码变更
 
@@ -56,9 +59,9 @@ python -m py_compile zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg
 bash zoology/experiments/flash_vqg/scripts/20260624-02-flash-vqg-pressure-telemetry-guard/run_config_runtime_smoke.sh --device cuda
 ```
 
-## 判定
+## 阶段 1 判定
 
-第一阶段通过. 现在可以进入阶段 2: 最小 telemetry probe.
+第一阶段通过, 可以进入阶段 2: 最小 telemetry probe.
 
 阶段 2 不应直接实现 guard. 应先在 `cb64-r16` 的 `hard04`, `caprel0406late`, `cap0405` 小矩阵上跑短/完整可比 telemetry, 看失败先出现在 update pressure, cap-hit, m_norm, lambda/inject, 还是 read-side 指标.
 
@@ -93,3 +96,65 @@ release 配置统一使用 `write_strength_cap_eval_policy=scheduled`. 这和部
 - `run_stage2_probe_train.sh` 现在显式使用 `20260425-gd-residual-v1-mqar/config_builder.py:build_gd_residual_v1_train_configs`.
 - `launch_id_prefix` 和 `run_id` 改为短名, 避免 checkpoint 路径过长.
 - queue status 的完成行记录实际子进程 pid, 方便后续审计.
+
+## 阶段 2 收尾结果
+
+完成 8 条有效训练:
+
+| machine | seed | targets |
+|---|---:|---|
+| 3090 | 123 | `default`, `hard04`, `cap0405`, `caprel0406late` |
+| 2080ti | 124 | `default`, `hard04`, `cap0405`, `caprel0406late` |
+
+2080ti 上 `cap0405-s124` 首次尝试在 `2026-06-24T08:40:26+08:00` 启动后 OOM, 原因是 GPU0 上 `default-s124` 尚未结束, 两条 run 重叠占用同一张 2080Ti. 该失败 run 已标记为 excluded, 后续 `cap0405-s124-rerun` 单独运行完成.
+
+关键结果:
+
+| variant | s123 final / best | s124 final / best | two-seed final spread | max `m_norm_max` | max final `update_norm_p95` |
+|---|---:|---:|---:|---:|---:|
+| `default` | `0.776699 / 0.776699` | `0.963559 / 0.963559` | `0.186859` | `7.122381` | `0.706640` |
+| `hard04` | `0.852586 / 0.874480` | `0.965418 / 0.965418` | `0.112832` | `4.108659` | `0.234283` |
+| `cap0405` | `0.812492 / 0.821961` | `0.965113 / 0.965859` | `0.152621` | `4.157090` | `0.303398` |
+| `caprel0406late` | `0.821625 / 0.839250` | `0.965742 / 0.965742` | `0.144117` | `4.284737` | `0.350590` |
+
+详细 CSV:
+
+- `docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/stage2-key-metrics.csv`
+- `docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/stage2-run-summary.csv`
+- `docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/stage2-variant-summary.csv`
+- `docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/stage2-invalid-runs.csv`
+- `docs/artifacts/20260624-02-flash-vqg-pressure-telemetry-guard/stage2-source-manifest.csv`
+
+## 阶段 2 判断
+
+第一, pressure 控制确实改变了低 seed 的轨迹. 在 `s123`, `hard04` 把 final hard 从 `0.776699` 提到 `0.852586`, 同时把 `m_norm_max` 从 `7.122381` 压到 `3.451890`, 把 final `update_norm_p95` 从 `0.706640` 压到 `0.234283`.
+
+第二, 这还不是一个足够的稳定方案. `hard04` 是 `s123` 本轮最好配置, 但 final 仍只有 `0.852586`, best-final gap 为 `0.021895`. `cap0405` 和 `caprel0406late` 没有把 `s123` 拉到高位, final 分别是 `0.812492` 和 `0.821625`.
+
+第三, 当前失败不能简化成 “只防 `m_norm` 爆”. `s123 default` 是最差 run, 但 `m_norm_max=7.122381`, 没过 `m_norm_max > 12` 红线, 也低于 roadmap 中 `8` 的高风险阈值. 所以后续 guard 如果只看 `m_norm_max`, 很可能放过这类低盆地.
+
+第四, release 本身在本轮没有触发 state 红线. `cap0405` 和 `caprel0406late` 的 two-seed 最大 `m_norm_max` 分别是 `4.157090` 和 `4.284737`; 这说明更保守的 release 在本轮是 state-safe 的. 但它没有解决 `s123` 的低盆地问题.
+
+第五, read 指标不能单独解释本轮结果. 例如 `default-s123` final `read_margin_mean=1.218576`, 反而高于 `default-s124` 的 `0.700348`; capped runs 中 `s123` 的 read entropy 更高, selected mass 更低. 这说明 read-side 仍需要早期窗口和 per-step 对齐分析, 不能只靠 final aggregate 断言根因.
+
+## 限制
+
+本轮是最小 telemetry probe, 不是正式稳定性验证. 它只有 `s123` 和 `s124`, 且两个 seed 分别跑在不同机器上: `s123` 在 3090, `s124` 在 2080ti. 之前 smoke 已确认两边 torch/CUDA 链路一致, 但这仍然不是 cross-machine matched repeat. 因此本轮可以用来判断 pressure 指标是否有信号, 不能用来给出最终 seed spread 结论.
+
+`cap0405-s124` 首次 OOM 是调度问题, 不是模型配置失败. 报告和 artifact 只使用单独 rerun 的完成结果.
+
+## 下一步
+
+不要直接实现复杂 guard. 先做两个收紧动作:
+
+1. 对 `s123` 做 early-window pressure/read trace, 对齐 step `130`, `203`, `352`, `448` 附近的 `m_norm`, `update_norm`, write cap hit, lambda/inject, read margin/entropy/selected mass. 目标是找出低盆地是在 pressure 降下来之后仍然形成, 还是早期已被写入锁定.
+2. 补一个最小 seed/machine 复核: 至少补 `s125` 的同矩阵, 或者把 `s123`/`s124` 做 cross-machine repeat. 目标是拆开 seed 效应和机器效应.
+
+guard 设计上, 当前证据支持 “不能只看 `m_norm`”. 更合理的候选应至少同时观察:
+
+- state health: `m_norm_max`, `m_norm` slope.
+- write/update pressure: `update_norm_p95/max`, `uncapped_sum_zeta`, write cap hit ratio.
+- residual injection: `lambda_mean`, `inject_ratio`.
+- read-side aggregate: read margin, entropy, selected mass.
+
+只有在 early-window trace 证明这些指标能提前区分低盆地后, 再实现 guarded cap release.
