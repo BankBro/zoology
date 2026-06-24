@@ -24,6 +24,7 @@ mkdir -p "${OUTPUT_ROOT}/logs"
 case "${QUEUE_NAME}" in
   2080ti-smoke)
     MACHINE_NAME="${MACHINE_NAME:-2080ti}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-none}"
     MAX_PARALLEL="${MAX_PARALLEL:-1}"
     TARGETS=(
       "smoke-default-s123:0"
@@ -32,6 +33,7 @@ case "${QUEUE_NAME}" in
     ;;
   3090-smoke)
     MACHINE_NAME="${MACHINE_NAME:-3090}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-none}"
     MAX_PARALLEL="${MAX_PARALLEL:-1}"
     TARGETS=(
       "smoke-default-s123:0"
@@ -40,6 +42,7 @@ case "${QUEUE_NAME}" in
     ;;
   2080ti-wave1)
     MACHINE_NAME="${MACHINE_NAME:-2080ti}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
     MAX_PARALLEL="${MAX_PARALLEL:-2}"
     TARGETS=(
       "default-s124:0"
@@ -48,6 +51,7 @@ case "${QUEUE_NAME}" in
     ;;
   3090-wave1)
     MACHINE_NAME="${MACHINE_NAME:-3090}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
     MAX_PARALLEL="${MAX_PARALLEL:-3}"
     TARGETS=(
       "default-s123:0"
@@ -64,15 +68,30 @@ esac
 STATUS_FILE="${OUTPUT_ROOT}/queue-status.tsv"
 printf "queue\ttarget\tgpu\tpid\tstatus\tlog\ttrace_output_dir\tstarted_at\tfinished_at\n" > "${STATUS_FILE}"
 
-active_count=0
 overall_status=0
+RUNNING_PIDS=()
 
-_wait_for_slot() {
-  while (( active_count >= MAX_PARALLEL )); do
-    if ! wait -n; then
+_reap_finished() {
+  local pid
+  local remaining=()
+  for pid in "${RUNNING_PIDS[@]}"; do
+    if kill -0 "${pid}" 2>/dev/null; then
+      remaining+=("${pid}")
+      continue
+    fi
+    if ! wait "${pid}"; then
       overall_status=1
     fi
-    active_count=$((active_count - 1))
+  done
+  RUNNING_PIDS=("${remaining[@]}")
+}
+
+_wait_for_slot() {
+  while (( ${#RUNNING_PIDS[@]} >= MAX_PARALLEL )); do
+    _reap_finished
+    if (( ${#RUNNING_PIDS[@]} >= MAX_PARALLEL )); then
+      sleep 5
+    fi
   done
 }
 
@@ -88,6 +107,7 @@ for item in "${TARGETS[@]}"; do
     child_pid="${BASHPID:-$$}"
     export GPU_ID="${gpu}"
     export MACHINE_NAME
+    export LOGGER_BACKEND
     export TRACE_OUTPUT_DIR="${trace_output_dir}"
     bash "${SCRIPT_DIR}/run_early_trace_train.sh" "${target}" >"${log_path}" 2>&1
     status=$?
@@ -103,7 +123,7 @@ for item in "${TARGETS[@]}"; do
     exit "${status}"
   ) &
   pid="$!"
-  active_count=$((active_count + 1))
+  RUNNING_PIDS+=("${pid}")
   printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
     "${QUEUE_NAME}" "${target}" "${gpu}" "${pid}" "started" "${log_path}" "${trace_output_dir}" "${started_at}" "" \
     >> "${STATUS_FILE}"
@@ -111,11 +131,11 @@ for item in "${TARGETS[@]}"; do
   sleep 5
 done
 
-while (( active_count > 0 )); do
-  if ! wait -n; then
-    overall_status=1
+while (( ${#RUNNING_PIDS[@]} > 0 )); do
+  _reap_finished
+  if (( ${#RUNNING_PIDS[@]} > 0 )); then
+    sleep 5
   fi
-  active_count=$((active_count - 1))
 done
 
 exit "${overall_status}"

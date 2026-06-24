@@ -32,6 +32,7 @@ shift
 
 GPU_ID="${GPU_ID:-0}"
 ANALYSIS_SOURCE="${ANALYSIS_SOURCE:-off}"
+LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
 PROJECT="${PROJECT:-flash_vqg_early_window_trace}"
 ENTITY="${ENTITY:-scu-mclab}"
 MACHINE_NAME="${MACHINE_NAME:-unknown}"
@@ -106,7 +107,7 @@ fi
 
 exec "${PYTHON_BIN}" -m zoology.experiments.flash_vqg.run_flash_vqg_suite \
   --flash-only \
-  --logger-backend swanlab \
+  --logger-backend "${LOGGER_BACKEND}" \
   --analysis "${ANALYSIS_SOURCE}" \
   --backend torch \
   --block-len 32 \
