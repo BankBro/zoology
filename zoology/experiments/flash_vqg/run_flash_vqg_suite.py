@@ -357,6 +357,8 @@ def _render_generated_config(
     wandb_project: str,
     wandb_entity: str,
     max_epochs: int,
+    max_train_steps: int | None,
+    max_validation_batches: int | None,
     metrics_white_list: list[str],
     read_churn_probe_enabled: bool = False,
     read_churn_probe_valid_batches: list[int] | None = None,
@@ -368,6 +370,7 @@ def _render_generated_config(
     read_trace_query_only: bool = True,
     read_trace_max_queries_per_sample: int = 8,
     read_trace_output_dir: str | None = None,
+    read_trace_train_steps: list[int] | None = None,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -514,6 +517,8 @@ def _render_generated_config(
         f"    wandb_project={wandb_project!r},",
         f"    wandb_entity={wandb_entity!r},",
         f"    max_epochs={max_epochs!r},",
+        f"    max_train_steps={max_train_steps!r},",
+        f"    max_validation_batches={max_validation_batches!r},",
         f"    metrics_white_list={metrics_white_list!r},",
         f"    read_churn_probe_enabled={read_churn_probe_enabled!r},",
         f"    read_churn_probe_valid_batches={read_churn_probe_valid_batches!r},",
@@ -525,6 +530,7 @@ def _render_generated_config(
         f"    read_trace_query_only={read_trace_query_only!r},",
         f"    read_trace_max_queries_per_sample={read_trace_max_queries_per_sample!r},",
         f"    read_trace_output_dir={read_trace_output_dir!r},",
+        f"    read_trace_train_steps={read_trace_train_steps!r},",
         f"    early_stopping_metric={early_stopping_metric!r},",
         f"    early_stopping_threshold={early_stopping_threshold!r},",
         ")",
@@ -698,6 +704,8 @@ def _build_manifest_run_ids(
     project: str,
     entity: str,
     max_epochs: int,
+    max_train_steps: int | None,
+    max_validation_batches: int | None,
     metrics_white_list: list[str],
     read_churn_probe_enabled: bool = False,
     read_churn_probe_valid_batches: list[int] | None = None,
@@ -709,6 +717,7 @@ def _build_manifest_run_ids(
     read_trace_query_only: bool = True,
     read_trace_max_queries_per_sample: int = 8,
     read_trace_output_dir: str | None = None,
+    read_trace_train_steps: list[int] | None = None,
     validations_per_epoch: int = 1,
     early_stopping_metric: str | None = "valid/accuracy",
     early_stopping_threshold: float | None = 0.99,
@@ -856,6 +865,8 @@ def _build_manifest_run_ids(
         wandb_project=project,
         wandb_entity=entity,
         max_epochs=max_epochs,
+        max_train_steps=max_train_steps,
+        max_validation_batches=max_validation_batches,
         metrics_white_list=metrics_white_list,
         read_churn_probe_enabled=read_churn_probe_enabled,
         read_churn_probe_valid_batches=read_churn_probe_valid_batches,
@@ -867,6 +878,7 @@ def _build_manifest_run_ids(
         read_trace_query_only=read_trace_query_only,
         read_trace_max_queries_per_sample=read_trace_max_queries_per_sample,
         read_trace_output_dir=read_trace_output_dir,
+        read_trace_train_steps=read_trace_train_steps,
         early_stopping_metric=early_stopping_metric,
         early_stopping_threshold=early_stopping_threshold,
     )
@@ -1374,9 +1386,12 @@ def main():
     parser.add_argument("--read-trace-query-only", choices=["true", "false"], default="true")
     parser.add_argument("--read-trace-max-queries-per-sample", type=int, default=8)
     parser.add_argument("--read-trace-output-dir", type=str, default=None)
+    parser.add_argument("--read-trace-train-steps", type=str, default="")
     parser.add_argument("--project", type=str, default="flash_vqg_vs_gdn")
     parser.add_argument("--entity", type=str, default="scu-mclab")
     parser.add_argument("--max-epochs", type=int, default=32)
+    parser.add_argument("--max-train-steps", type=int, default=None)
+    parser.add_argument("--max-validation-batches", type=int, default=None)
     parser.add_argument("--launch-id-prefix", type=str, default="flash-vqg-suite")
     parser.add_argument("--run-id", type=str, default=None, help="实验专用 builder 可用的显式 run_id 覆盖.")
     parser.add_argument("--experiment-mode", type=str, default=None, help="实验专用 builder 可用的 experiment_mode 覆盖.")
@@ -1562,6 +1577,15 @@ def main():
         raise ValueError("read_trace_max_samples 必须是正整数.")
     if args.read_trace_max_queries_per_sample <= 0:
         raise ValueError("read_trace_max_queries_per_sample 必须是正整数.")
+    if args.max_train_steps is not None and args.max_train_steps < 0:
+        raise ValueError("max_train_steps 必须是非负整数或空.")
+    if args.max_validation_batches is not None and args.max_validation_batches <= 0:
+        raise ValueError("max_validation_batches 必须是正整数或空.")
+    read_trace_train_steps = (
+        _parse_csv_ints(args.read_trace_train_steps)
+        if str(args.read_trace_train_steps).strip()
+        else []
+    )
     launch_id_prefix = _normalize_launch_id_prefix(args.launch_id_prefix)
     launch_id = _build_launch_id(launch_id_prefix)
     generated_launch_dir = GENERATED_DIR / launch_id
@@ -1737,6 +1761,8 @@ def main():
             project=args.project,
             entity=args.entity,
             max_epochs=args.max_epochs,
+            max_train_steps=args.max_train_steps,
+            max_validation_batches=args.max_validation_batches,
             metrics_white_list=metrics_white_list,
             read_churn_probe_enabled=read_churn_probe_enabled,
             read_churn_probe_valid_batches=read_churn_probe_valid_batches,
@@ -1748,6 +1774,7 @@ def main():
             read_trace_query_only=read_trace_query_only,
             read_trace_max_queries_per_sample=args.read_trace_max_queries_per_sample,
             read_trace_output_dir=args.read_trace_output_dir,
+            read_trace_train_steps=read_trace_train_steps,
             early_stopping_metric=early_stopping_metric,
             early_stopping_threshold=early_stopping_threshold,
         )
@@ -1914,6 +1941,8 @@ def main():
                 wandb_project=args.project,
                 wandb_entity=args.entity,
                 max_epochs=args.max_epochs,
+                max_train_steps=args.max_train_steps,
+                max_validation_batches=args.max_validation_batches,
                 metrics_white_list=metrics_white_list,
                 read_churn_probe_enabled=read_churn_probe_enabled,
                 read_churn_probe_valid_batches=read_churn_probe_valid_batches,
@@ -1925,6 +1954,7 @@ def main():
                 read_trace_query_only=read_trace_query_only,
                 read_trace_max_queries_per_sample=args.read_trace_max_queries_per_sample,
                 read_trace_output_dir=args.read_trace_output_dir,
+                read_trace_train_steps=read_trace_train_steps,
                 early_stopping_metric=early_stopping_metric,
                 early_stopping_threshold=early_stopping_threshold,
             ),

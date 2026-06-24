@@ -141,6 +141,8 @@ class TrainConfig(BaseConfig):
     init_checkpoint_strict: bool = True
 
     max_epochs: int = 100
+    max_train_steps: Optional[int] = None
+    max_validation_batches: Optional[int] = None
     loss_type: Literal["ce", "mse", "ce_embed"] = "ce"
     input_type: Literal["discrete", "continuous"] = "discrete"
 
@@ -165,6 +167,7 @@ class TrainConfig(BaseConfig):
     read_trace_query_only: bool = True
     read_trace_max_queries_per_sample: int = 8
     read_trace_output_dir: Optional[str] = None
+    read_trace_train_steps: List[int] = []
 
     launch_id: Optional[str] = None
     sweep_id: Optional[str] = None

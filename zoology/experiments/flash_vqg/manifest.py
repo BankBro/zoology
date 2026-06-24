@@ -316,6 +316,7 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
             "read_trace_max_queries_per_sample"
         ),
         "read_trace_output_dir": config_dict.get("read_trace_output_dir"),
+        "read_trace_train_steps": config_dict.get("read_trace_train_steps"),
         "init_checkpoint_path": config_dict.get("init_checkpoint_path"),
         "init_checkpoint_source_launch_id": config_dict.get("init_checkpoint_source_launch_id"),
         "init_checkpoint_source_run_id": config_dict.get("init_checkpoint_source_run_id"),

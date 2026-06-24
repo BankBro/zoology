@@ -6,7 +6,7 @@ import signal
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, List, Union
+from typing import Any, Callable, List, Union
 import pandas as pd
 
 import torch
@@ -156,6 +156,8 @@ class Trainer:
         test_dataloader: DataLoader,
         input_type: str = "discrete",
         max_epochs: int = 100,
+        max_train_steps: int | None = None,
+        max_validation_batches: int | None = None,
         learning_rate: float = 1e-3,
         weight_decay: float = 0.1,
         gradient_accumulation_steps: int = 1,
@@ -174,6 +176,7 @@ class Trainer:
         read_trace_query_only: bool = True,
         read_trace_max_queries_per_sample: int = 8,
         read_trace_output_dir: str | None = None,
+        read_trace_train_steps: List[int] | None = None,
         run_id: str | None = None,
         device: Union[str, int] = "cuda",
         logger: LoggerProtocol = None,
@@ -188,6 +191,15 @@ class Trainer:
 
         self.device = device
         self.max_epochs = max_epochs
+        self.max_train_steps = None if max_train_steps is None else int(max_train_steps)
+        if self.max_train_steps is not None and self.max_train_steps < 0:
+            raise ValueError("max_train_steps must be non-negative or None.")
+        self.max_validation_batches = (
+            None if max_validation_batches is None else int(max_validation_batches)
+        )
+        if self.max_validation_batches is not None and self.max_validation_batches <= 0:
+            raise ValueError("max_validation_batches must be positive or None.")
+        self._max_train_steps_reached = False
         self.early_stopping_metric = early_stopping_metric
         self.early_stopping_threshold = early_stopping_threshold
         self.learning_rate = learning_rate
@@ -199,6 +211,7 @@ class Trainer:
         self.slice_keys = slice_keys
         self.loss_type = loss_type
         self.global_step = 0
+        self.optimizer_step = 0
         self.read_churn_probe_enabled = bool(read_churn_probe_enabled)
         self.read_churn_probe_valid_batches = {
             int(idx) for idx in (read_churn_probe_valid_batches or [])
@@ -216,6 +229,17 @@ class Trainer:
         self.read_trace_output_dir = (
             Path(read_trace_output_dir)
             if read_trace_output_dir is not None and str(read_trace_output_dir).strip()
+            else None
+        )
+        self.read_trace_train_steps = {
+            int(step) for step in (read_trace_train_steps or [])
+        }
+        if any(step < 0 for step in self.read_trace_train_steps):
+            raise ValueError("read_trace_train_steps must contain non-negative integers.")
+        self._completed_read_trace_train_steps: set[int] = set()
+        self.early_window_metrics_path = (
+            self.read_trace_output_dir / "early_window_metrics.jsonl"
+            if self.read_trace_output_dir is not None and self.read_trace_train_steps
             else None
         )
         self.run_id = run_id
@@ -249,9 +273,16 @@ class Trainer:
         inputs: torch.Tensor,
         targets: torch.Tensor,
         epoch_idx: int,
+        trace_output_dir: Path | None = None,
+        global_step: int | None = None,
+        force_trace_enabled: bool | None = None,
     ) -> bool:
         churn_enabled = self.read_churn_probe_enabled and batch_idx in self.read_churn_probe_valid_batches
-        trace_enabled = self.read_trace_enabled and batch_idx in self.read_trace_valid_batches
+        trace_enabled = (
+            bool(force_trace_enabled)
+            if force_trace_enabled is not None
+            else self.read_trace_enabled and batch_idx in self.read_trace_valid_batches
+        )
         if not churn_enabled and not trace_enabled:
             return False
         if self.input_type != "discrete":
@@ -285,13 +316,19 @@ class Trainer:
             "trace_enabled": bool(trace_enabled),
             "valid_batch_idx": int(batch_idx),
             "epoch_idx": int(epoch_idx),
-            "global_step": int(self.global_step),
+            "global_step": int(self.global_step if global_step is None else global_step),
             "max_samples": int(max_samples),
             "query_mask": churn_query_mask,
             "trace_query_mask": trace_query_mask,
             "trace_max_samples": int(self.read_trace_max_samples),
             "trace_max_queries_per_sample": int(self.read_trace_max_queries_per_sample),
-            "trace_output_dir": str(self.read_trace_output_dir) if self.read_trace_output_dir is not None else None,
+            "trace_output_dir": (
+                str(trace_output_dir)
+                if trace_output_dir is not None
+                else str(self.read_trace_output_dir)
+                if self.read_trace_output_dir is not None
+                else None
+            ),
             "run_id": getattr(self, "run_id", None),
             "input_hashes": input_hashes,
             "target_hashes": target_hashes,
@@ -401,9 +438,115 @@ class Trainer:
             prefixed[prefixed_key] = float(value)
         return prefixed
 
+    @staticmethod
+    def _json_safe_metric(value: Any) -> Any:
+        if isinstance(value, torch.Tensor):
+            if value.numel() == 1:
+                return float(value.detach().cpu().item())
+            return value.detach().cpu().tolist()
+        if isinstance(value, np.generic):
+            return value.item()
+        if isinstance(value, (float, int, str, bool)) or value is None:
+            return value
+        return str(value)
+
+    def _append_early_window_metrics(self, payload: dict[str, Any]) -> None:
+        if self.early_window_metrics_path is None:
+            return
+        self.early_window_metrics_path.parent.mkdir(parents=True, exist_ok=True)
+        safe_payload = {
+            str(key): self._json_safe_metric(value)
+            for key, value in payload.items()
+        }
+        with self.early_window_metrics_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(safe_payload, ensure_ascii=False, sort_keys=True) + "\n")
+
     def _log_metrics(self, metrics: dict[str, float | int]):
         self.logger.log(metrics, step=self.global_step)
         self.global_step += 1
+
+    def _maybe_run_train_step_read_trace(self, *, epoch_idx: int) -> None:
+        if not self.read_trace_train_steps:
+            return
+        train_step = int(self.optimizer_step)
+        if train_step not in self.read_trace_train_steps:
+            return
+        if train_step in self._completed_read_trace_train_steps:
+            return
+        if not self.read_trace_enabled:
+            return
+        if not self.read_trace_valid_batches:
+            return
+        self._completed_read_trace_train_steps.add(train_step)
+        self._run_train_step_read_trace(epoch_idx=epoch_idx, train_step=train_step)
+
+    def _run_train_step_read_trace(self, *, epoch_idx: int, train_step: int) -> None:
+        if self.input_type != "discrete":
+            return
+        if self.read_trace_output_dir is None:
+            return
+
+        was_training = self.model.training
+        self.model.eval()
+        target_batches = set(self.read_trace_valid_batches)
+        trace_output_dir = self.read_trace_output_dir / f"train_step_{int(train_step)}"
+        scalar_metric_buckets: dict[str, list[float]] = defaultdict(list)
+        processed_batches = 0
+        total_loss = 0.0
+        total_examples = 0
+
+        with torch.no_grad():
+            for batch_idx, (inputs, targets, slices) in enumerate(self.test_dataloader):
+                if batch_idx not in target_batches:
+                    continue
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
+                self._set_dense_teacher_runtime(targets)
+                read_probe_active = self._set_read_candidate_probe_runtime(
+                    batch_idx=batch_idx,
+                    inputs=inputs,
+                    targets=targets,
+                    epoch_idx=epoch_idx,
+                    trace_output_dir=trace_output_dir,
+                    global_step=train_step,
+                    force_trace_enabled=True,
+                )
+                try:
+                    loss, preds = self.compute_loss(inputs, targets)
+                finally:
+                    self._clear_dense_teacher_runtime()
+                    if read_probe_active:
+                        self._clear_read_candidate_probe_runtime()
+
+                processed_batches += 1
+                batch_size = int(targets.size(0))
+                total_examples += batch_size
+                total_loss += float(loss.detach().cpu().item()) * batch_size
+                for key, value in self._collect_model_scalar_metrics().items():
+                    scalar_metric_buckets[key].append(float(value))
+
+                if target_batches.issubset(set(range(batch_idx + 1))):
+                    break
+
+        aggregated_scalar_metrics = {
+            key: float(np.mean(values))
+            for key, values in scalar_metric_buckets.items()
+            if values
+        }
+        payload: dict[str, Any] = {
+            "run_id": self.run_id,
+            "epoch": int(epoch_idx),
+            "train_step": int(train_step),
+            "valid_batches": sorted(int(idx) for idx in target_batches),
+            "processed_batches": int(processed_batches),
+            "examples": int(total_examples),
+            "loss": (total_loss / total_examples) if total_examples else None,
+            "trace_output_dir": str(trace_output_dir),
+        }
+        payload.update(self._prefix_phase_metrics(aggregated_scalar_metrics, "early_window/"))
+        self._append_early_window_metrics(payload)
+
+        if was_training:
+            self.model.train()
 
     def _validation_boundaries(self, num_optimizer_steps: int) -> set[int]:
         if self.validations_per_epoch <= 1:
@@ -441,6 +584,7 @@ class Trainer:
         self.optimizer.zero_grad()
         accum_loss = 0.0
         optimizer_step_idx = 0
+        self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
 
         for step_idx, (inputs, targets, slices) in enumerate(iterator):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -481,9 +625,17 @@ class Trainer:
                     if mqar_case is not None:
                         metrics[f"train/mqar_case/loss-{mqar_case}"] = avg_loss
                 metrics.update(self._collect_model_scalar_metrics())
+                self.optimizer_step += 1
                 self._log_metrics(metrics)
                 accum_loss = 0.0
                 optimizer_step_idx += 1
+                self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
+                if (
+                    self.max_train_steps is not None
+                    and self.optimizer_step >= self.max_train_steps
+                ):
+                    self._max_train_steps_reached = True
+                    return
 
                 if (
                     validation_callback is not None
@@ -494,7 +646,8 @@ class Trainer:
 
     def test(self, epoch_idx: int):
         self.model.eval()
-        test_loss = 0
+        test_loss = 0.0
+        processed_batches = 0
         results = []
         scalar_metric_buckets: dict[str, list[float]] = defaultdict(list)
 
@@ -504,6 +657,11 @@ class Trainer:
             postfix={"loss": "-", "acc": "-"},
         ) as iterator:
             for batch_idx, (inputs, targets, slices) in enumerate(self.test_dataloader):
+                if (
+                    self.max_validation_batches is not None
+                    and batch_idx >= self.max_validation_batches
+                ):
+                    break
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 self._set_dense_teacher_runtime(targets)
                 read_probe_active = self._set_read_candidate_probe_runtime(
@@ -511,6 +669,7 @@ class Trainer:
                     inputs=inputs,
                     targets=targets,
                     epoch_idx=epoch_idx,
+                    force_trace_enabled=False if self.read_trace_train_steps else None,
                 )
                 try:
                     loss, preds = self.compute_loss(inputs, targets)
@@ -518,18 +677,21 @@ class Trainer:
                     self._clear_dense_teacher_runtime()
                     if read_probe_active:
                         self._clear_read_candidate_probe_runtime()
-                test_loss += loss / len(self.test_dataloader)
+                test_loss += float(loss.detach().cpu().item())
+                processed_batches += 1
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
                 for key, value in self._collect_model_scalar_metrics().items():
                     scalar_metric_buckets[key].append(float(value))
                 iterator.update(1)
 
             results = pd.DataFrame(results)
+            if processed_batches <= 0 or results.empty:
+                raise RuntimeError("Validation produced no batches.")
             test_accuracy = results["accuracy"].mean()
 
             # logging and printing
             metrics = {
-                "valid/loss": test_loss.item(),
+                "valid/loss": test_loss / processed_batches,
                 "valid/accuracy": test_accuracy.item(),
             }
 
@@ -588,6 +750,8 @@ class Trainer:
                     f"Early stopping triggered at epoch {epoch_idx} with "
                     f"{self.early_stopping_metric} {metrics[self.early_stopping_metric]} > {self.early_stopping_threshold}"
                 )
+                break
+            if self._max_train_steps_reached:
                 break
 
             self.scheduler.step()
@@ -658,6 +822,8 @@ def train(config: TrainConfig):
             test_dataloader=test_dataloader,
             input_type=config.input_type,
             max_epochs=config.max_epochs,
+            max_train_steps=config.max_train_steps,
+            max_validation_batches=config.max_validation_batches,
             learning_rate=config.learning_rate,
             weight_decay=config.weight_decay,
             gradient_accumulation_steps=config.gradient_accumulation_steps,
@@ -676,6 +842,7 @@ def train(config: TrainConfig):
             read_trace_query_only=config.read_trace_query_only,
             read_trace_max_queries_per_sample=config.read_trace_max_queries_per_sample,
             read_trace_output_dir=config.read_trace_output_dir,
+            read_trace_train_steps=config.read_trace_train_steps,
             run_id=config.run_id,
             device="cuda" if torch.cuda.is_available() else "cpu",
             logger=logger,

@@ -304,6 +304,21 @@ def _normalize_validations_per_epoch(validations_per_epoch: int | None) -> int:
     return parsed
 
 
+def _normalize_train_steps(train_steps: Iterable[int] | None) -> list[int]:
+    if train_steps is None:
+        return []
+    normalized: list[int] = []
+    seen: set[int] = set()
+    for value in train_steps:
+        parsed = int(value)
+        if parsed < 0:
+            raise ValueError(f"train step 必须是非负整数, 当前收到: {value}")
+        if parsed not in seen:
+            normalized.append(parsed)
+            seen.add(parsed)
+    return normalized
+
+
 def _normalize_train_batch_orders(
     train_batch_orders: Iterable[str] | None = None,
     train_batch_order: str | None = None,
@@ -1084,6 +1099,8 @@ def build_configs(
     wandb_entity: str = DEFAULT_WANDB_ENTITY,
     vocab_size: int = DEFAULT_VOCAB_SIZE,
     max_epochs: int = DEFAULT_MAX_EPOCHS,
+    max_train_steps: int | None = None,
+    max_validation_batches: int | None = None,
     train_batch_orders: Iterable[str] | None = None,
     train_batch_order: str | None = None,
     seed_values: Iterable[int] | None = None,
@@ -1195,6 +1212,7 @@ def build_configs(
     read_trace_query_only: bool = True,
     read_trace_max_queries_per_sample: int = 8,
     read_trace_output_dir: str | None = None,
+    read_trace_train_steps: Iterable[int] | None = None,
 ) -> list[TrainConfig]:
     flash_backend = str(flash_backend).lower()
     if flash_backend not in {"accel", "torch"}:
@@ -1241,6 +1259,12 @@ def build_configs(
         if read_churn_probe_valid_batches is None
         else [int(idx) for idx in read_churn_probe_valid_batches]
     )
+    read_trace_valid_batches = (
+        [0]
+        if read_trace_valid_batches is None
+        else [int(idx) for idx in read_trace_valid_batches]
+    )
+    read_trace_train_steps = _normalize_train_steps(read_trace_train_steps)
     normalized_num_codebook_vectors_values = _normalize_num_codebook_vectors_values(
         num_codebook_vectors_values
     )
@@ -2394,6 +2418,8 @@ def build_configs(
                                             data=data,
                                             learning_rate=lr,
                                             max_epochs=max_epochs,
+                                            max_train_steps=max_train_steps,
+                                            max_validation_batches=max_validation_batches,
                                             gradient_accumulation_steps=resolved_gradient_accumulation_steps,
                                             validations_per_epoch=resolved_validations_per_epoch,
                                             early_stopping_metric=early_stopping_metric,
@@ -2412,6 +2438,7 @@ def build_configs(
                                                 read_trace_max_queries_per_sample
                                             ),
                                             read_trace_output_dir=read_trace_output_dir,
+                                            read_trace_train_steps=read_trace_train_steps,
                                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                                             sweep_id=sweep_id,
                                             seed=current_seed,
@@ -2439,6 +2466,8 @@ def build_configs(
                             data=data,
                             learning_rate=lr,
                             max_epochs=max_epochs,
+                            max_train_steps=max_train_steps,
+                            max_validation_batches=max_validation_batches,
                             gradient_accumulation_steps=resolved_gradient_accumulation_steps,
                             validations_per_epoch=resolved_validations_per_epoch,
                             early_stopping_metric=early_stopping_metric,
@@ -2457,6 +2486,7 @@ def build_configs(
                                 read_trace_max_queries_per_sample
                             ),
                             read_trace_output_dir=read_trace_output_dir,
+                            read_trace_train_steps=read_trace_train_steps,
                             slice_keys=["num_kv_pairs", "input_seq_len", "mqar_case"],
                             sweep_id=sweep_id,
                             seed=current_seed,
