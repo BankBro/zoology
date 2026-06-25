@@ -14,6 +14,7 @@ HOST_HF_CACHE="${HOST_HF_CACHE:-/home/lyj/.cache/huggingface}"
 HOST_DATA_ROOT="${HOST_DATA_ROOT:-/home/lyj/docker/Flash-VQG-tun/data}"
 HOST_UID="${HOST_UID:-$(id -u)}"
 HOST_GID="${HOST_GID:-$(id -g)}"
+HOST_USER_NAME="${HOST_USER_NAME:-lyj}"
 PYTHON_BIN="${PYTHON_BIN:-/home/lyj/miniconda3/envs/flash-vqg/bin/python}"
 
 usage() {
@@ -104,6 +105,7 @@ run_preflight() {
   local timestamp="${RSCREEN_TIMESTAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
   local host_output_dir="${SCRIPT_DIR}/outputs/${machine_name}-preflight-${timestamp}"
   local container_output_json="${CONTAINER_SCRIPT_DIR}/outputs/${machine_name}-preflight-${timestamp}/preflight-${preflight_mode}.json"
+  local container_inductor_cache="${CONTAINER_SCRIPT_DIR}/outputs/torchinductor/${machine_name}/preflight-${preflight_mode}"
   local gpu_spec
   gpu_spec="$(gpu_spec_from_arg "${gpu_device}")"
 
@@ -112,13 +114,17 @@ run_preflight() {
 
   local inner_cmd
   printf -v inner_cmd \
-    'chmod o+rx /home/lyj && cd %q && export ZOOLOGY_REPO_ROOT=%q FLASH_VQG_ROOT=%q && exec setpriv --reuid=%q --regid=%q --clear-groups env HOME=%q %q %q --machine-name %q --mode %q --output-json %q' \
+    'chmod o+rx /home/lyj && mkdir -p %q && cd %q && export ZOOLOGY_REPO_ROOT=%q FLASH_VQG_ROOT=%q && exec setpriv --reuid=%q --regid=%q --clear-groups env HOME=%q USER=%q LOGNAME=%q TORCHINDUCTOR_CACHE_DIR=%q %q %q --machine-name %q --mode %q --output-json %q' \
+    "${container_inductor_cache}" \
     "${CONTAINER_REPO_ROOT}" \
     "${CONTAINER_REPO_ROOT}" \
     "${CONTAINER_FLASH_VQG_ROOT}" \
     "${HOST_UID}" \
     "${HOST_GID}" \
     "${CONTAINER_MNT_ROOT}" \
+    "${HOST_USER_NAME}" \
+    "${HOST_USER_NAME}" \
+    "${container_inductor_cache}" \
     "${PYTHON_BIN}" \
     "${CONTAINER_SCRIPT_DIR}/preflight_repro_screen.py" \
     "${machine_name}" \
@@ -145,6 +151,7 @@ run_queue() {
   local timestamp="${RSCREEN_TIMESTAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
   local host_output_root="${SCRIPT_DIR}/outputs/${queue_name}-${timestamp}"
   local container_output_root="${CONTAINER_SCRIPT_DIR}/outputs/${queue_name}-${timestamp}"
+  local container_inductor_cache="${CONTAINER_SCRIPT_DIR}/outputs/torchinductor/${queue_name}"
   local queue_log="${host_output_root}/queue.log"
   local host_runner_log="${host_output_root}/host-runner.log"
   local pid_file="${host_output_root}/host-runner.pid"
@@ -179,7 +186,7 @@ run_queue() {
     READ_CHURN_PROBE_MAX_SAMPLES
   )
 
-  local inner_cmd="chmod o+rx /home/lyj && cd ${CONTAINER_REPO_ROOT} && mkdir -p ${container_output_root@Q}/logs && env"
+  local inner_cmd="chmod o+rx /home/lyj && cd ${CONTAINER_REPO_ROOT} && mkdir -p ${container_output_root@Q}/logs ${container_inductor_cache@Q} && env"
   local env_key
   for env_key in "${env_keys[@]}"; do
     local env_value=""
@@ -210,11 +217,14 @@ run_queue() {
     "${inner_cmd}" \
     "ZOOLOGY_REPO_ROOT" "${CONTAINER_REPO_ROOT}" \
     "FLASH_VQG_ROOT" "${CONTAINER_FLASH_VQG_ROOT}"
-  printf -v inner_cmd '%s setpriv --reuid=%q --regid=%q --clear-groups env HOME=%q bash %q %q >%q 2>&1' \
+  printf -v inner_cmd '%s setpriv --reuid=%q --regid=%q --clear-groups env HOME=%q USER=%q LOGNAME=%q TORCHINDUCTOR_CACHE_DIR=%q bash %q %q >%q 2>&1' \
     "${inner_cmd}" \
     "${HOST_UID}" \
     "${HOST_GID}" \
     "${CONTAINER_MNT_ROOT}" \
+    "${HOST_USER_NAME}" \
+    "${HOST_USER_NAME}" \
+    "${container_inductor_cache}" \
     "${CONTAINER_SCRIPT_DIR}/run_repro_screen_queue.sh" \
     "${queue_name}" \
     "${container_output_root}/queue.log"
