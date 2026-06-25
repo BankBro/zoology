@@ -1,7 +1,7 @@
 # 20260625-02 Flash-VQG 1-Epoch Repro Screen Plan
 
 updated: 2026-06-25
-status: implementation-and-launch; 2080ti restart recovery pending main queue
+status: launched; container-side main queues running; stable-training gate satisfied
 experiment_id: `20260625-02-flash-vqg-1epoch-repro-screen`
 
 ## 目标
@@ -40,7 +40,8 @@ experiment_id: `20260625-02-flash-vqg-1epoch-repro-screen`
 - 启动任何需要 GPU 的 preflight, smoke 或 main queue 前, 必须在目标机器的 `Flash-VQG-tun` 容器内确认 `nvidia-smi` / NVML 和 `torch.cuda.is_available()` 均可用。
 - 若容器内 NVML/CUDA 不可用, 必须提醒用户并暂停实验启动, 不得自动改用宿主机直接运行, 临时 `docker run --gpus`, host-side runner 或其他绕过路径。
 - `run_repro_screen_host.sh` 只作为用户明确授权后的应急入口, 默认拒绝执行。
-- 2026-06-25 早先因 `2080ti` 常驻容器 GPU runtime 失效曾临时使用 host-side runner; 用户随后要求暂停并重启容器。重启后 `2080ti` 容器内 `runtime_ready=true`, 后续 2080ti 主实验应改回常驻容器路径。
+- 2026-06-25 早先因 `2080ti` 常驻容器 GPU runtime 失效曾临时使用 host-side runner; 用户随后要求暂停并重启容器。重启后 `2080ti` 容器内 `runtime_ready=true`, 后续 2080ti 主实验改回常驻容器路径。
+- 为避免混用执行路径, 用户随后要求 3090 也重启。本轮两个早先 host-side queue 均已停止, partial trace 移入 `outputs/interrupted-traces/`, 后续正式 screen 只采用从 `Flash-VQG-tun` 容器启动的 `20260625T145800Z` queues。
 
 ## Smoke
 
@@ -124,6 +125,12 @@ zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/
 
 ```text
 zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/outputs/interrupted-traces/2080ti-hostrunner-20260625T135615Z/
+```
+
+暂停前的 3090 host-side partial trace 归档为:
+
+```text
+zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/outputs/interrupted-traces/3090-hostrunner-20260625T135615Z/
 ```
 
 report:
