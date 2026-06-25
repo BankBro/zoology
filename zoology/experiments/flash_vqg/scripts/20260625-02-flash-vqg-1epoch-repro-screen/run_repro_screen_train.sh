@@ -32,10 +32,43 @@ shift
 
 GPU_ID="${GPU_ID:-0}"
 ANALYSIS_SOURCE="${ANALYSIS_SOURCE:-off}"
-LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
+LOGGER_BACKEND="${LOGGER_BACKEND:-none}"
 PROJECT="${PROJECT:-flash_vqg_1epoch_repro_screen}"
 ENTITY="${ENTITY:-scu-mclab}"
 MACHINE_NAME="${MACHINE_NAME:-unknown}"
+
+check_container_gpu_ready() {
+  if ! command -v nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia-smi is not available inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+  if ! nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia-smi/NVML failed inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+  if ! "${PYTHON_BIN}" - "${GPU_ID}" <<'PY'
+import sys
+import torch
+
+gpu_id = int(sys.argv[1])
+device_count = torch.cuda.device_count()
+if not torch.cuda.is_available() or device_count < 1:
+    print(
+        f"torch cuda unavailable: cuda_available={torch.cuda.is_available()} "
+        f"device_count={device_count}",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+if gpu_id < 0 or gpu_id >= device_count:
+    print(f"GPU_ID={gpu_id} outside available device range 0..{device_count - 1}", file=sys.stderr)
+    raise SystemExit(1)
+print(f"container_gpu_ready=true device_count={device_count} gpu_id={gpu_id}")
+PY
+  then
+    echo "torch.cuda readiness check failed inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+}
 
 SMOKE_MODE="false"
 SETTING=""
@@ -85,6 +118,8 @@ fi
 
 mkdir -p "${TRACE_OUTPUT_DIR}"
 cd "${ROOT_DIR}"
+
+check_container_gpu_ready
 
 LIMIT_ARGS=()
 if [[ -n "${MAX_TRAIN_STEPS}" ]]; then

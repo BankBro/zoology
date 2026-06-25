@@ -1,7 +1,7 @@
 # 20260625-02 Flash-VQG 1-Epoch Repro Screen Plan
 
 updated: 2026-06-25
-status: implementation-and-launch
+status: implementation-and-launch; 2080ti restart recovery pending main queue
 experiment_id: `20260625-02-flash-vqg-1epoch-repro-screen`
 
 ## 目标
@@ -34,11 +34,13 @@ experiment_id: `20260625-02-flash-vqg-1epoch-repro-screen`
   - `num_optimizer_steps=704`
 - preflight 不通过则本轮中止.
 
-当前执行适配:
+执行约束:
 
-- `2080ti` 常驻 `Flash-VQG-tun` 容器内 GPU runtime 当前失效, 表现为 `nvidia-smi` NVML init failure 与 `torch.cuda.is_available() == False`.
-- 同镜像新起 runner 容器 GPU runtime 正常。
-- 因此本轮执行统一改为 host-side runner 容器, 不直接复用两台机器的常驻容器。
+- 默认执行路径必须是目标机器的常驻 `Flash-VQG-tun` 容器。
+- 启动任何需要 GPU 的 preflight, smoke 或 main queue 前, 必须在目标机器的 `Flash-VQG-tun` 容器内确认 `nvidia-smi` / NVML 和 `torch.cuda.is_available()` 均可用。
+- 若容器内 NVML/CUDA 不可用, 必须提醒用户并暂停实验启动, 不得自动改用宿主机直接运行, 临时 `docker run --gpus`, host-side runner 或其他绕过路径。
+- `run_repro_screen_host.sh` 只作为用户明确授权后的应急入口, 默认拒绝执行。
+- 2026-06-25 早先因 `2080ti` 常驻容器 GPU runtime 失效曾临时使用 host-side runner; 用户随后要求暂停并重启容器。重启后 `2080ti` 容器内 `runtime_ready=true`, 后续 2080ti 主实验应改回常驻容器路径。
 
 ## Smoke
 
@@ -110,6 +112,18 @@ artifact:
 
 ```text
 docs/artifacts/20260625-02-flash-vqg-1epoch-repro-screen/
+```
+
+脚本旁 raw / 临时 / 中断输出:
+
+```text
+zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/outputs/
+```
+
+其中暂停前的 2080ti host-side partial trace 归档为:
+
+```text
+zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/outputs/interrupted-traces/2080ti-hostrunner-20260625T135615Z/
 ```
 
 report:

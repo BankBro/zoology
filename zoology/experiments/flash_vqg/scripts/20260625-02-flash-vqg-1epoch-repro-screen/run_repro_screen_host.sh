@@ -20,12 +20,12 @@ PYTHON_BIN="${PYTHON_BIN:-/home/lyj/miniconda3/envs/flash-vqg/bin/python}"
 usage() {
   cat >&2 <<'USAGE'
 用法:
-  run_repro_screen_host.sh preflight <machine-name> <train|smoke> [gpu-device]
-  run_repro_screen_host.sh queue <queue-name> [gpu-device]
+  ALLOW_HOST_SIDE_RUNNER=1 run_repro_screen_host.sh preflight <machine-name> <train|smoke> [gpu-device]
+  ALLOW_HOST_SIDE_RUNNER=1 run_repro_screen_host.sh queue <queue-name> [gpu-device]
 
-示例:
-  bash run_repro_screen_host.sh preflight 2080ti train 0
-  bash run_repro_screen_host.sh queue 2080ti-gpu0 0
+说明:
+  这是 host-side runner 应急入口, 默认拒绝执行。
+  只有用户明确要求绕过 Flash-VQG-tun 容器路径时才能设置 ALLOW_HOST_SIDE_RUNNER=1。
 USAGE
   exit 2
 }
@@ -36,6 +36,19 @@ fi
 
 MODE="$1"
 shift
+
+if [[ "${ALLOW_HOST_SIDE_RUNNER:-}" != "1" ]]; then
+  cat >&2 <<'EOF'
+Refusing to start host-side runner by default.
+
+AGENTS.md requires GPU experiments to run through the target machine's
+Flash-VQG-tun container after confirming in-container NVML/CUDA readiness.
+Use the container-side start_repro_screen_queue.sh / run_repro_screen_queue.sh
+path instead. Set ALLOW_HOST_SIDE_RUNNER=1 only after the user explicitly
+approves this bypass.
+EOF
+  exit 2
+fi
 
 ensure_host_paths() {
   for path in "${HOST_MNT_ROOT}" "${HOST_HF_CACHE}" "${HOST_DATA_ROOT}"; do

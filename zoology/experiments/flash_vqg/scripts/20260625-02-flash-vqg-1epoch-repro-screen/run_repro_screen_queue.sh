@@ -19,7 +19,38 @@ QUEUE_NAME="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP="${RSCREEN_TIMESTAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/outputs/${QUEUE_NAME}-${TIMESTAMP}}"
+PYTHON_BIN="${PYTHON_BIN:-/home/lyj/miniconda3/envs/flash-vqg/bin/python}"
 mkdir -p "${OUTPUT_ROOT}/logs"
+
+check_container_gpu_ready() {
+  if ! command -v nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia-smi is not available inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+  if ! nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia-smi/NVML failed inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+  if ! "${PYTHON_BIN}" - <<'PY'
+import sys
+import torch
+
+if not torch.cuda.is_available() or torch.cuda.device_count() < 1:
+    print(
+        f"torch cuda unavailable: cuda_available={torch.cuda.is_available()} "
+        f"device_count={torch.cuda.device_count()}",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+print(f"container_gpu_ready=true device_count={torch.cuda.device_count()}")
+PY
+  then
+    echo "torch.cuda readiness check failed inside the current container; pause experiment launch." >&2
+    exit 1
+  fi
+}
+
+check_container_gpu_ready
 
 case "${QUEUE_NAME}" in
   2080ti-smoke)
@@ -38,7 +69,7 @@ case "${QUEUE_NAME}" in
     ;;
   2080ti-gpu0)
     MACHINE_NAME="${MACHINE_NAME:-2080ti}"
-    LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-none}"
     TARGETS=(
       "default-s123-r1:0"
       "default-s124-r1:0"
@@ -48,7 +79,7 @@ case "${QUEUE_NAME}" in
     ;;
   3090-gpu0)
     MACHINE_NAME="${MACHINE_NAME:-3090}"
-    LOGGER_BACKEND="${LOGGER_BACKEND:-swanlab}"
+    LOGGER_BACKEND="${LOGGER_BACKEND:-none}"
     TARGETS=(
       "default-s123-r1:0"
       "default-s124-r1:0"

@@ -295,6 +295,8 @@ def _collect_source_manifest(outputs_dir: Path) -> list[dict[str, Any]]:
     candidates.extend(sorted(outputs_dir.glob("*/logs/*.log")))
     candidates.extend(sorted((outputs_dir / "traces").glob("*/*/early_window_metrics.jsonl")))
     candidates.extend(sorted((outputs_dir / "traces").glob("*/*/train_step_*/read_trace.jsonl*")))
+    candidates.extend(sorted((outputs_dir / "interrupted-traces").glob("*/*/early_window_metrics.jsonl")))
+    candidates.extend(sorted((outputs_dir / "interrupted-traces").glob("*/*/train_step_*/read_trace.jsonl*")))
     generated_dir = REPO_ROOT / "zoology/experiments/flash_vqg/generated"
     candidates.extend(sorted(generated_dir.glob("fvqg-20260625-02-rscreen-*/manifest.json")))
     candidates.extend(sorted(generated_dir.glob("fvqg-20260625-02-rscreen-*/launch_configs.py")))

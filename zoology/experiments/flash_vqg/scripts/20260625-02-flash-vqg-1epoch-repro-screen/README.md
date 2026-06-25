@@ -9,36 +9,37 @@
 - 每条 run 单独进程, 单卡串行, 不并发, 不跨卡混跑。
 - 统一保留 trace steps `0,64,130,203,352,448,704`。
 
-## Host Runner
+## 执行路径
 
-本轮默认通过 host-side runner 容器执行, 不直接复用常驻 `Flash-VQG-tun` 容器。
+默认执行路径是目标机器的常驻 `Flash-VQG-tun` 容器。
 
-原因:
+启动任何需要 GPU 的 preflight, smoke 或 main queue 前, 必须先在目标机器的 `Flash-VQG-tun` 容器内确认:
 
-- `2080ti` 当前常驻容器内 `nvidia-smi` / `torch.cuda` 不可用, 但同镜像新起 runner 容器 GPU runtime 正常。
-- `3090` 常驻容器当前是健康的, 但为了执行口径一致, 本轮两机统一走同一个 runner 入口。
+- `nvidia-smi` / NVML 可用
+- `torch.cuda.is_available() == True`
+- `torch.cuda.device_count() > 0`
 
-入口脚本:
-
-```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh
-```
+`start_repro_screen_queue.sh`, `run_repro_screen_queue.sh` 和 `run_repro_screen_train.sh` 已包含容器内 GPU ready 检查。`run_repro_screen_host.sh` 只作为显式授权后的应急绕过入口, 默认拒绝执行; 只有用户知情并明确要求时才允许设置 `ALLOW_HOST_SIDE_RUNNER=1`。
 
 ## Preflight
 
-2080ti:
+在对应机器的 `Flash-VQG-tun` 容器内执行:
 
 ```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  preflight 2080ti train 0
+cd /home/lyj/mnt/project/zoology
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+OUT=zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/outputs/${MACHINE_NAME}-container-preflight-${TS}
+mkdir -p "${OUT}"
+ZOOLOGY_REPO_ROOT=/home/lyj/mnt/project/zoology \
+FLASH_VQG_ROOT=/home/lyj/mnt/project/Flash-VQG \
+/home/lyj/miniconda3/envs/flash-vqg/bin/python \
+  zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/preflight_repro_screen.py \
+  --machine-name "${MACHINE_NAME}" \
+  --mode train \
+  --output-json "${OUT}/preflight-train.json"
 ```
 
-3090 宿主机:
-
-```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  preflight 3090 train 0
-```
+其中 `MACHINE_NAME` 为 `2080ti` 或 `3090`。
 
 preflight 必须确认:
 
@@ -49,36 +50,56 @@ preflight 必须确认:
 
 ## Smoke
 
-2080ti:
+在对应机器的 `Flash-VQG-tun` 容器内执行:
 
 ```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  queue 2080ti-smoke 0
+cd /home/lyj/mnt/project/zoology
+MACHINE_NAME=2080ti \
+LOGGER_BACKEND=none \
+PYTHON_BIN=/home/lyj/miniconda3/envs/flash-vqg/bin/python \
+ZOOLOGY_REPO_ROOT=/home/lyj/mnt/project/zoology \
+FLASH_VQG_ROOT=/home/lyj/mnt/project/Flash-VQG \
+bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/start_repro_screen_queue.sh \
+  2080ti-smoke
 ```
 
-3090 宿主机:
-
 ```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  queue 3090-smoke 0
+cd /home/lyj/mnt/project/zoology
+MACHINE_NAME=3090 \
+LOGGER_BACKEND=none \
+PYTHON_BIN=/home/lyj/miniconda3/envs/flash-vqg/bin/python \
+ZOOLOGY_REPO_ROOT=/home/lyj/mnt/project/zoology \
+FLASH_VQG_ROOT=/home/lyj/mnt/project/Flash-VQG \
+bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/start_repro_screen_queue.sh \
+  3090-smoke
 ```
 
 smoke 成功后用 `config_runtime_smoke.py` 检查 `early_window_metrics.jsonl` 和 `train_step_*/read_trace.jsonl`。
 
 ## Main Queues
 
-2080ti:
+在对应机器的 `Flash-VQG-tun` 容器内执行:
 
 ```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  queue 2080ti-gpu0 0
+cd /home/lyj/mnt/project/zoology
+MACHINE_NAME=2080ti \
+LOGGER_BACKEND=none \
+PYTHON_BIN=/home/lyj/miniconda3/envs/flash-vqg/bin/python \
+ZOOLOGY_REPO_ROOT=/home/lyj/mnt/project/zoology \
+FLASH_VQG_ROOT=/home/lyj/mnt/project/Flash-VQG \
+bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/start_repro_screen_queue.sh \
+  2080ti-gpu0
 ```
 
-3090 宿主机:
-
 ```bash
-bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/run_repro_screen_host.sh \
-  queue 3090-gpu0 0
+cd /home/lyj/mnt/project/zoology
+MACHINE_NAME=3090 \
+LOGGER_BACKEND=none \
+PYTHON_BIN=/home/lyj/miniconda3/envs/flash-vqg/bin/python \
+ZOOLOGY_REPO_ROOT=/home/lyj/mnt/project/zoology \
+FLASH_VQG_ROOT=/home/lyj/mnt/project/Flash-VQG \
+bash zoology/experiments/flash_vqg/scripts/20260625-02-flash-vqg-1epoch-repro-screen/start_repro_screen_queue.sh \
+  3090-gpu0
 ```
 
 两个 queue 都是固定顺序:
