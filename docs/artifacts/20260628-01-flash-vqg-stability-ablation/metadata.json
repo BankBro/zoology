@@ -1,0 +1,22 @@
+{
+  "artifact_dir": "docs/artifacts/20260628-01-flash-vqg-stability-ablation",
+  "expected_cache_combined_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "expected_init_state_sha256": "dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf",
+  "experiment_id": "20260628-01-flash-vqg-stability-ablation",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "1e7ed33",
+  "ledger": "not written; diagnostic/exploratory screen",
+  "outputs_dir": "zoology/experiments/flash_vqg/scripts/20260628-01-flash-vqg-stability-ablation/outputs",
+  "status": "collected",
+  "summary": {
+    "all_1024x256_within_4pp": true,
+    "cache_hash_records": 2,
+    "comparison_count": 2,
+    "completed_count": 3,
+    "init_verify_records": 2,
+    "invalid_count": 0,
+    "run_count": 3
+  },
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "f41acb0"
+}

@@ -1,0 +1,3 @@
+reference_machine,reference_target,reference_1024x256_accuracy,candidate_machine,candidate_target,candidate_1024x256_accuracy,absolute_gap,gap_percentage_points,within_4pp
+2080ti,no-embed-dropout-s123-r1,0.606,3090,no-embed-dropout-s123-r1,0.62,0.014000000000000012,1.4000000000000012,True
+2080ti,no-embed-dropout-s123-r1,0.606,3090,no-embed-dropout-s123-r2,0.626,0.020000000000000018,2.0000000000000018,True
