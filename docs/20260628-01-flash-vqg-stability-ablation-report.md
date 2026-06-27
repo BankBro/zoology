@@ -48,13 +48,15 @@
 
 这轮结果支持一个很具体的判断: 在 cache 和 init 都锁住之后, 关闭 dropout 可以把当前 `s123, cb64-r16, 1 epoch` 的 `1024x256` 跨机器差距压到 4pp 内. 这说明之前 first-divergence probe 找到的 dropout 分叉不是无关细节, 它确实会被训练过程放大到 hard slice 指标上.
 
+更具体地说, cache 和 init 只能保证两边从相同数据和相同权重起步, 不能保证训练轨迹相同. 当前最合理的解释是: baseline 配置里的 early dropout mask 跨 GPU 不一致, 这类早期随机路径差异进入 Flash-VQG 后, 会被 VQ routing, GD residual 的离散 read/write 选择和 state 累积过程继续放大, 最后体现为 `1024x256` hard slice 的明显差距. no-dropout 后跨机器 gap 明显缩小, 说明这个 dropout/RNG 扰动链条是真实影响因素, 不是单纯的日志或测量噪声.
+
 但这还不是最终训练方案. 原因有三点:
 
 1. 本轮只跑 1 epoch, 没有验证 4 epoch final checkpoint.
 2. 本轮把 `embed_dropout`, `resid_dropout`, `drop_path` 全部设为 0.0, 还没有区分到底主要是 embed dropout, residual dropout, 还是 drop path 的贡献.
 3. 本轮只覆盖 `s123` 和当前 canonical cache/init, 不能直接外推到所有 seed 和所有容量布局.
 
-更稳妥的结论是: dropout/RNG 路径是当前跨 GPU 效果差异的优先处理方向. 如果下一步要找解决方案, 应优先做 dropout policy 的最小改动, 而不是继续盲目查 cache 或 init.
+更稳妥的结论是: dropout/RNG 路径是当前跨 GPU 效果差异的优先处理方向. 如果下一步要找解决方案, 应优先做 dropout policy 的最小改动, 而不是继续盲目查 cache 或 init. 但 no-dropout 只是诊断成功, 还不能直接当作最终方案, 因为本轮 1 epoch 的绝对 `1024x256` 分数低于上一轮 default good run, 可能存在学习速度或 ceiling tax.
 
 ## 下一步建议
 
@@ -74,4 +76,3 @@ Artifact:
 - `docs/artifacts/20260628-01-flash-vqg-stability-ablation/queue-summary.csv`
 - `docs/artifacts/20260628-01-flash-vqg-stability-ablation/source-manifest.csv`
 - `docs/artifacts/20260628-01-flash-vqg-stability-ablation/metadata.json`
-
