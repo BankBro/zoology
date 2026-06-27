@@ -352,6 +352,9 @@ def _prepare_config(args: argparse.Namespace, repo: Path):
     config.read_trace_enabled = False
     config.read_trace_train_steps = []
     config.read_trace_output_dir = None
+    if args.init_checkpoint_path is not None:
+        config.init_checkpoint_path = args.init_checkpoint_path
+        config.init_checkpoint_strict = True
     return config
 
 
@@ -532,6 +535,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--launch-id", default="20260627-01-flash-vqg-early-step-hash-probe")
     parser.add_argument("--output", required=True)
     parser.add_argument("--device", default=None)
+    parser.add_argument("--init-checkpoint-path", default=None)
     parser.add_argument("--max-optimizer-steps", type=int, default=2)
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--disable-cudnn-tf32", action="store_true")
