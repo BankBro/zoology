@@ -1,0 +1,30 @@
+{
+  "experiment_id": "20260626-01-flash-vqg-cache-sync-rerun",
+  "purpose": "Canonical-cache 3090 rerun and r1-r4 cross-machine summary against 2080ti canonical runs.",
+  "canonical_cache_machine": "2080ti",
+  "target_machine": "3090",
+  "cache_content_match": "13/13",
+  "quarantine_path_3090_container": "data/flash_vqg/quarantine-20260626-01-cache-sync-rerun-20260626-133919",
+  "run_count_3090_canonical": 8,
+  "completed_count_3090_canonical": 8,
+  "error_pattern_found_3090_canonical": false,
+  "cache_set_matches_canonical_all_3090_logs": true,
+  "started_at_cn_3090_canonical": "2026-06-26T13:42:40+08:00",
+  "finished_at_cn_3090_canonical": "2026-06-27T05:37:41+08:00",
+  "wall_minutes_total_3090_canonical_two_queues": "501.1",
+  "artifact_files": [
+    "README.md",
+    "cache-content-cross-machine-summary.csv",
+    "canonical-3090-run-summary.csv",
+    "canonical-cross-machine-repeat-summary.csv",
+    "canonical-cross-machine-run-summary.csv",
+    "canonical-cross-machine-seed-summary.csv",
+    "metadata.json",
+    "noncanonical-vs-canonical-comparison.csv",
+    "run-summary.csv",
+    "source-manifest.csv"
+  ],
+  "source_manifest_rows": 109,
+  "r3r4_base_target_note": "r3/r4 used the same seed/config train entry as r1 via base_target mapping; run_id/launch_id/trace target identify independent same-seed reruns.",
+  "large_raw_policy": "checkpoints and swanlog backups remain on source machine if present; light logs/generated/traces are mirrored."
+}

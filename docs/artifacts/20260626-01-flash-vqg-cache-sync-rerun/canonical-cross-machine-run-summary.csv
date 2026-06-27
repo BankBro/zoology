@@ -1,0 +1,17 @@
+experiment_id,machine,cache_scope,seed,repeat,target,mqar_1024x256,valid_accuracy,wall_minutes,source
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,123,r1,default-s123-r1,0.935,0.986,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,123,r2,default-s123-r2,0.937,0.986,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,123,r3,default-s123-r3,0.945,0.988,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,123,r4,default-s123-r4,0.95,0.989,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,123,r1,default-s123-r1,0.865,0.975,73.9,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,123,r2,default-s123-r2,0.554,0.908,73.3,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,123,r3,default-s123-r3,0.927,0.985,72.8,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,123,r4,default-s123-r4,0.756,0.954,72.8,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,124,r1,default-s124-r1,0.842,0.969,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,124,r2,default-s124-r2,0.716,0.95,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,124,r3,default-s124-r3,0.792,0.96,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,2080ti,2080ti_canonical,124,r4,default-s124-r4,0.871,0.975,,20260625-02 2080ti original canonical runs
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,124,r1,default-s124-r1,0.71,0.948,53.0,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,124,r2,default-s124-r2,0.871,0.977,54.1,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,124,r3,default-s124-r3,0.864,0.976,53.9,20260626-01 canonical rerun
+20260626-01-flash-vqg-cache-sync-rerun,3090,2080ti_canonical,124,r4,default-s124-r4,0.816,0.967,47.3,20260626-01 canonical rerun
