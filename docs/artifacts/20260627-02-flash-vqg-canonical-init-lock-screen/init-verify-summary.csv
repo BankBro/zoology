@@ -1,0 +1,3 @@
+machine,checkpoint,match,model_state_sha256,num_tensors
+2080ti,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260627-02-flash-vqg-canonical-init-lock-screen/outputs/canonical-init/cb64r16-s123-init.pt,True,dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf,27
+3090,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260627-02-flash-vqg-canonical-init-lock-screen/outputs/canonical-init/cb64r16-s123-init.pt,True,dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf,27

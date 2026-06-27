@@ -1,0 +1,3 @@
+machine,num_runs,valid_accuracy_mean,valid_accuracy_min,valid_accuracy_max,valid_loss_mean,key_1024x256_accuracy_mean,key_1024x256_accuracy_min,key_1024x256_accuracy_max
+2080ti,1,0.986,0.986,0.986,0.237,0.933,0.933,0.933
+3090,2,0.9684999999999999,0.966,0.971,0.3315,0.843,0.833,0.853

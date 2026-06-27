@@ -5,6 +5,7 @@
 - 术语与标题: 除必要专业词汇, 代码标识符, 文件路径, 命令和指标名外, 标题与解释性文本使用中文.
 - 最小适配: 允许为了完成任务进行最小化修改适配, 包括修复 bug 或增加外围开关/脚本/报告适配, 但不得改变原有语义和机制原理.
 - MQAR 正式实验: 完整跑到预期 final checkpoint 的 MQAR 正式实验和正式 longer-MQAR eval 必须记录 ledger, 时间, GPU, dtype policy 和状态; smoke/debug/失败/中断实验不写入正式 ledger, 但要在 artifact/status/report 中记录状态和原因.
+- 长任务监控: 对耗时较长的训练或评估任务, 通过启动自检后应继续监控到进入稳定运行阶段再退出会话等待. 稳定运行阶段至少包括: GPU/NVML 与 `torch.cuda.is_available()` 检查通过, 代码/配置/cache/init 等本轮硬门槛已通过, 日志显示已进入实际 train/eval loop 并持续推进, 队列/进程/日志/result 路径已明确记录. 退出前必须告知用户当前状态, 有效 run 数, 已知输出路径, 预计剩余时间和恢复检查命令; 不需要全程在线守到任务结束, 除非用户明确要求.
 - MQAR 细则: canonical ledger 字段, 时间字段, dtype 默认策略, GDN kernel dtype 和 official 对比口径详见 `docs/reference/mqar-official-recording-rules.md`.
 
 ## 当前活跃开发分支

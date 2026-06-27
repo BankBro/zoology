@@ -1,0 +1,47 @@
+{
+  "experiment_id": "20260627-02-flash-vqg-canonical-init-lock-screen",
+  "status": "completed_debug_screen",
+  "ledger_status": "not_written_debug_screen",
+  "created_at": "2026-06-27T10:03:10.730686+00:00",
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "bc4a4bc",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "eed5778",
+  "primary_metric_for_decision": "valid/mqar_case/accuracy-1024x256",
+  "canonical_init": {
+    "path": "zoology/experiments/flash_vqg/scripts/20260627-02-flash-vqg-canonical-init-lock-screen/outputs/canonical-init/cb64r16-s123-init.pt",
+    "file_sha256": "0ae97671e501887e6eacdf6af177565efb69e7213420b4ff9d3aae27717a61d0",
+    "model_state_sha256": "dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf",
+    "num_tensors": 27,
+    "verified_match_on_2080ti": true,
+    "verified_match_on_3090": true
+  },
+  "actual_cache_13": {
+    "file_count_2080ti": 13,
+    "file_count_3090": 13,
+    "combined_content_sha256_2080ti": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "combined_content_sha256_3090": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "match": true
+  },
+  "probe_interpretation": {
+    "batch_order_match": true,
+    "initial_model_params_match": true,
+    "first_inputs_match": true,
+    "first_targets_match": true,
+    "first_logits_match": false,
+    "first_grad_match": false,
+    "after_optimizer_step1_model_params_match": false,
+    "known_limit": "Difference is narrowed to GPU numeric execution after same input/init, but no specific layer or kernel is identified."
+  },
+  "tolerance_interpretation": {
+    "overall_valid_accuracy_gap_tolerance_percentage_points": 4.0,
+    "overall_gaps_within_tolerance": true,
+    "key_1024x256_gaps_within_tolerance": false,
+    "decision": "Overall accuracy gap is within 4pp, but the primary 1024x256 slice gap is 8-10pp and should be treated as not acceptable for the key target."
+  },
+  "notes": [
+    "All result JSON files have train_result=null; final metrics are extracted from logs.",
+    "3090 raw evidence was mirrored to 2080ti and sha256 verified.",
+    "This is not an official MQAR ledger result."
+  ]
+}

@@ -1,0 +1,3 @@
+reference,candidate,overall_valid_accuracy_ref,overall_valid_accuracy_candidate,overall_gap_percentage_points,overall_within_4pp_tolerance,key_metric,key_1024x256_ref,key_1024x256_candidate,key_1024x256_gap_percentage_points,key_1024x256_within_4pp_tolerance
+2080ti:default-s123-r1,3090:default-s123-r1,0.986,0.971,1.5000000000000013,True,valid/mqar_case/accuracy-1024x256,0.933,0.853,8.000000000000007,False
+2080ti:default-s123-r1,3090:default-s123-r2,0.986,0.966,2.0000000000000018,True,valid/mqar_case/accuracy-1024x256,0.933,0.833,10.000000000000009,False
