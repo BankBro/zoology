@@ -1,6 +1,15 @@
 {
+  "dtype_policy": "default torch/zoology runtime dtype; no explicit AMP, bf16, or fp16 override in launch configs; GD residual builder grouped_chunk_torch_ref with semivec_ref pack mode",
+  "early_window_metric_rows": 62,
   "experiment_id": "20260625-01-flash-vqg-early-window-trace",
-  "status": "planned",
-  "ledger": "not_applicable_diagnostic",
-  "notes": "Diagnostic early-window trace. Smoke and Wave 1 results will be filled after runs complete."
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "eed5778",
+  "invalid_rows": 0,
+  "official_ledger": "not recorded; diagnostic/exploratory run",
+  "outputs_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260625-01-flash-vqg-early-window-trace/outputs",
+  "queue_rows": 27,
+  "read_trace_summary_rows": 47,
+  "source_manifest_rows": 112,
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "75eb000"
 }

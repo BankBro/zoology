@@ -8,6 +8,8 @@ import csv
 import gzip
 import hashlib
 import json
+import re
+import subprocess
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -16,6 +18,16 @@ from typing import Any, Iterable
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARTIFACT_DIR = Path("/home/lyj/mnt/project/zoology/docs/artifacts/20260625-01-flash-vqg-early-window-trace")
 EXPERIMENT_ID = "20260625-01-flash-vqg-early-window-trace"
+REPO_ROOT = Path("/home/lyj/mnt/project/zoology")
+FLASH_VQG_ROOT = Path("/home/lyj/mnt/project/Flash-VQG")
+SOURCE_HOST_BY_MACHINE = {
+    "2080ti": "mclab-2080ti",
+    "3090": "mclab-3090",
+}
+
+
+def _is_smoke_target(target: str) -> bool:
+    return target.startswith("smoke-")
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -48,6 +60,17 @@ def _write_csv(path: Path, rows: Iterable[dict[str, Any]], fieldnames: list[str]
             writer.writerow({key: row.get(key, "") for key in fieldnames})
 
 
+def _git_value(repo: Path, args: list[str]) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(repo), *args],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -74,6 +97,44 @@ def _path_parts_from_trace_root(path: Path, outputs_dir: Path) -> tuple[str, str
         return rel.parts[0], rel.parts[1]
     except Exception:
         return "", ""
+
+
+def _machine_from_path(path: Path) -> str:
+    parts = path.parts
+    for machine in ("2080ti", "3090"):
+        if machine in parts:
+            return machine
+        if any(part.startswith(f"{machine}-") for part in parts):
+            return machine
+        if any(f"etrace-{machine}-" in part for part in parts):
+            return machine
+    return ""
+
+
+def _source_and_mirror_paths(path: Path) -> tuple[str, str, str, str]:
+    machine = _machine_from_path(path)
+    source_host = SOURCE_HOST_BY_MACHINE.get(machine, "")
+    mirror_path = str(path)
+    if machine == "3090":
+        return machine, source_host, f"{source_host}:{path}", mirror_path
+    if machine == "2080ti":
+        return machine, source_host, str(path), mirror_path
+    return machine, source_host, str(path), mirror_path
+
+
+def _parse_final_metrics(log_path: Path) -> dict[str, Any]:
+    if not log_path.exists():
+        return {}
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    accuracy_1024 = re.findall(r"valid/mqar_case/accuracy-1024x256=([0-9.]+)", text)
+    valid_accuracy = re.findall(r"valid/accuracy=([0-9.]+)", text)
+    valid_loss = re.findall(r"valid/loss=([0-9.]+)", text)
+    return {
+        "final_1024x256_accuracy": accuracy_1024[-1] if accuracy_1024 else "",
+        "final_valid_accuracy": valid_accuracy[-1] if valid_accuracy else "",
+        "final_valid_loss": valid_loss[-1] if valid_loss else "",
+        "n_validation_summaries": len(accuracy_1024),
+    }
 
 
 def _collect_queue_status(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -171,20 +232,26 @@ def _collect_source_manifest(outputs_dir: Path, artifact_dir: Path) -> list[dict
     candidates = []
     candidates.extend(sorted(outputs_dir.glob("*/queue-status.tsv")))
     candidates.extend(sorted(outputs_dir.glob("*/queue.log")))
+    candidates.extend(sorted(outputs_dir.glob("*/logs/*.log")))
     candidates.extend(sorted((outputs_dir / "traces").glob("*/*/early_window_metrics.jsonl")))
     candidates.extend(sorted((outputs_dir / "traces").glob("*/*/train_step_*/read_trace.jsonl*")))
+    generated_dir = REPO_ROOT / "zoology/experiments/flash_vqg/generated"
+    candidates.extend(sorted(generated_dir.glob("fvqg-20260625-01-etrace-*/manifest.json")))
+    candidates.extend(sorted(generated_dir.glob("fvqg-20260625-01-etrace-*/launch_configs.py")))
     for path in candidates:
         if not path.exists() or not path.is_file():
             continue
+        machine, source_host, source_path, mirror_path = _source_and_mirror_paths(path)
         rows.append(
             {
                 "experiment_id": EXPERIMENT_ID,
-                "source_machine": path.parts[-4] if "traces" in path.parts else "",
-                "source_path": str(path),
-                "mirror_path": "",
+                "source_machine": machine,
+                "source_host": source_host,
+                "source_path": source_path,
+                "mirror_path": mirror_path,
                 "sha256": _sha256(path),
                 "file_size": path.stat().st_size,
-                "status": "source-local",
+                "status": "mirrored-to-2080ti" if machine == "3090" else "source-local",
             }
         )
     return rows
@@ -194,6 +261,15 @@ def _write_metadata(path: Path, outputs_dir: Path, summary: dict[str, Any]) -> N
     payload = {
         "experiment_id": EXPERIMENT_ID,
         "outputs_dir": str(outputs_dir),
+        "zoology_branch": _git_value(REPO_ROOT, ["rev-parse", "--abbrev-ref", "HEAD"]),
+        "zoology_commit": _git_value(REPO_ROOT, ["rev-parse", "--short", "HEAD"]),
+        "flash_vqg_branch": _git_value(FLASH_VQG_ROOT, ["rev-parse", "--abbrev-ref", "HEAD"]),
+        "flash_vqg_commit": _git_value(FLASH_VQG_ROOT, ["rev-parse", "--short", "HEAD"]),
+        "dtype_policy": (
+            "default torch/zoology runtime dtype; no explicit AMP, bf16, or fp16 override in launch configs; "
+            "GD residual builder grouped_chunk_torch_ref with semivec_ref pack mode"
+        ),
+        "official_ledger": "not recorded; diagnostic/exploratory run",
         **summary,
     }
     path.write_text(
@@ -224,10 +300,14 @@ def main() -> int:
     for row in queue_rows:
         if row.get("status") == "started":
             continue
+        parsed_metrics = _parse_final_metrics(Path(str(row.get("log", ""))))
+        target = str(row.get("target", ""))
+        queue = str(row.get("queue", ""))
         run_rows.append(
             {
                 "experiment_id": EXPERIMENT_ID,
                 "queue": row.get("queue"),
+                "stage": "smoke" if _is_smoke_target(target) or "smoke" in queue else "wave1",
                 "target": row.get("target"),
                 "gpu": row.get("gpu"),
                 "pid": row.get("pid"),
@@ -236,9 +316,11 @@ def main() -> int:
                 "trace_output_dir": row.get("trace_output_dir"),
                 "started_at": row.get("started_at"),
                 "finished_at": row.get("finished_at"),
+                **parsed_metrics,
             }
         )
     _write_csv(args.artifact_dir / "run-summary.csv", run_rows)
+    _write_csv(args.artifact_dir / "stage3-run-summary.csv", [r for r in run_rows if r.get("stage") == "wave1"])
 
     step_rows = []
     for row in early_rows:
@@ -260,6 +342,43 @@ def main() -> int:
             }
         )
     _write_csv(args.artifact_dir / "early-window-step-summary.csv", step_rows)
+    stage3_step_rows = [r for r in step_rows if not _is_smoke_target(str(r.get("target", "")))]
+    _write_csv(args.artifact_dir / "stage3-step-window-summary.csv", stage3_step_rows)
+
+    stage3_read_rows = [r for r in read_trace_rows if not _is_smoke_target(str(r.get("target", "")))]
+    _write_csv(args.artifact_dir / "stage3-read-trace-summary.csv", stage3_read_rows)
+
+    read_by_key = {
+        (row.get("machine"), row.get("target"), row.get("run_id"), str(row.get("train_step"))): row
+        for row in stage3_read_rows
+    }
+    final_by_key = {
+        (row.get("queue", "").replace("-wave1", ""), row.get("target")): row
+        for row in run_rows
+        if row.get("stage") == "wave1"
+    }
+    key_rows = []
+    for row in stage3_step_rows:
+        read_row = read_by_key.get(
+            (row.get("machine"), row.get("target"), row.get("run_id"), str(row.get("train_step"))),
+            {},
+        )
+        final_row = final_by_key.get((row.get("machine"), row.get("target")), {})
+        key_rows.append(
+            {
+                **row,
+                "read_entropy_mean": read_row.get("entropy_mean", ""),
+                "read_selected_mass_mean": read_row.get("selected_mass_mean", ""),
+                "read_selected_mass_p05": read_row.get("selected_mass_p05", ""),
+                "read_margin_top1_top2_mean": read_row.get("margin_top1_top2_mean", ""),
+                "read_margin_top1_top2_p05": read_row.get("margin_top1_top2_p05", ""),
+                "read_unique_top1_ids": read_row.get("unique_top1_ids", ""),
+                "final_1024x256_accuracy": final_row.get("final_1024x256_accuracy", ""),
+                "final_valid_accuracy": final_row.get("final_valid_accuracy", ""),
+                "final_valid_loss": final_row.get("final_valid_loss", ""),
+            }
+        )
+    _write_csv(args.artifact_dir / "stage3-key-metrics.csv", key_rows)
 
     _write_metadata(
         args.artifact_dir / "metadata.json",
