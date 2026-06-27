@@ -1,0 +1,19 @@
+{
+  "batch_order_sha256": "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320",
+  "cache_combined_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "experiment_id": "20260627-03-flash-vqg-first-divergence-probe",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "1e7ed33",
+  "init_model_state_sha256": "dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf",
+  "key_findings": [
+    "baseline first mismatch is backbone.layers.0.dropout1 after identical embeddings/input/target/init/cache.",
+    "strict-fp32 does not remove the dropout first mismatch.",
+    "shadow-read is output-neutral for the first step and first-block shadow dense metrics are zero because remote residual state is still zero.",
+    "no-dropout pushes the first forward mismatch to backbone.layers.1.sequence_mixer.mixer; layer 0 is fully matched."
+  ],
+  "ledger_status": "not_written_debug_probe",
+  "recommended_next_step": "Run a low-cost no-dropout 1024x256-focused screen before more full-epoch experiments.",
+  "status": "completed_debug_probe",
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "d8ead20"
+}

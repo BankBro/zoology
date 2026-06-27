@@ -1,0 +1,5 @@
+variant,all_match,mismatch_row_count,first_mismatch_stage,first_mismatch_optimizer_step,first_mismatch_micro_step,first_mismatch_field,first_mismatch_module
+baseline,False,26,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+strict-fp32,False,26,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+shadow-read,False,26,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+no-dropout,False,14,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.1.sequence_mixer.mixer
