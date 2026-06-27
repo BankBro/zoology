@@ -41,9 +41,10 @@ experiment_id: `20260627-03-flash-vqg-first-divergence-probe`
 | `baseline` | 2080ti + 3090 | 复现 init/cache 已锁定后的第一分叉 |
 | `strict-fp32` | 2080ti + 3090 | 检查 TF32/deterministic policy 是否影响分叉 |
 | `shadow-read` | 2080ti + 3090 | 不改变训练输出, 只记录 full dense residual read shadow 指标 |
+| `no-dropout` | 2080ti + 3090, 定位补充 | 置零 dropout, 检查第一层前 CUDA dropout RNG 是否是首个 forward 分叉点 |
 | `ref-gd` | 2080ti + 3090, 可选补充 | 用慢速 `loop_ref` event pack 路径检查 semivec/chunk pack 数值路径 |
 
-首轮默认先跑 `baseline`, `strict-fp32`, `shadow-read`. `ref-gd` 本机 1 step 约 2 分多, 明显慢于其他路径; 只有前三个 variant 指向 state pack 路径时, 再补跨机 `ref-gd`.
+首轮默认先跑 `baseline`, `strict-fp32`, `shadow-read`. 如果 embeddings 后第一层 `norm1` 已分叉, 立即追加 `no-dropout`. `ref-gd` 本机 1 step 约 2 分多, 明显慢于其他路径; 只有前三个 variant 指向 state pack 路径时, 再补跨机 `ref-gd`.
 
 如果 1 step 看不出有用差别, 再追加 warmup probe:
 

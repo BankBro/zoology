@@ -357,6 +357,10 @@ def _build_probe_config(
     config.read_trace_output_dir = None
     _set_model_kwarg(config.model, "enable_layer_metrics", True, require=False)
     _set_model_kwarg(config.model, "fox_phase2_metrics_mode", "full", require=False)
+    if variant == "no-dropout":
+        config.model.embed_dropout = 0.0
+        config.model.resid_dropout = 0.0
+        config.model.drop_path = 0.0
     if variant == "ref-gd":
         _set_model_kwarg(config.model, "fox_gd_residual_builder", "grouped_chunk_torch_ref")
         _set_model_kwarg(config.model, "fox_gd_residual_pack_mode", "loop_ref")
@@ -624,6 +628,10 @@ class ForwardCapture:
         if name == "backbone.ln_f":
             return True
         suffixes = (
+            ".dropout1",
+            ".dropout2",
+            ".drop_path1",
+            ".drop_path2",
             ".norm1",
             ".norm2",
             ".sequence_mixer",
@@ -1195,6 +1203,74 @@ def run_compare(args: argparse.Namespace) -> int:
             writer.writeheader()
             writer.writerows(summary_rows)
 
+    def sort_key(row: dict[str, Any]) -> tuple[Any, ...]:
+        stage = str(row.get("stage", ""))
+        field = str(row.get("field", ""))
+        module = str(row.get("module", ""))
+        stage_rank = {
+            "preflight": 0,
+            "after_init_checkpoint_load_before_to_device": 1,
+            "after_model_to_device_before_optimizer_step": 2,
+        }.get(stage, 10)
+        if stage.startswith("forward_before_backward"):
+            stage_rank = 3
+        elif stage == "after_microbatch_backward":
+            stage_rank = 4
+        elif stage == "after_optimizer_step":
+            stage_rank = 5
+        def as_int(value: Any) -> int:
+            try:
+                return int(value)
+            except Exception:
+                return -1
+        field_rank = {
+            "cache_combined_content_sha256": 0,
+            "init_model_state_sha256": 1,
+            "batch_order_sha256": 2,
+            "model_params_sha256": 3,
+            "inputs_sha256": 4,
+            "targets_sha256": 5,
+            "module_output_sha256": 6,
+            "logits_sha256": 7,
+            "preds_sha256": 8,
+            "grad_sha256": 9,
+            "optimizer_state_sha256": 10,
+        }.get(field, 99)
+        module_rank = {
+            "backbone.embeddings": 0,
+            "backbone.layers.0.dropout1": 1,
+            "backbone.layers.0.drop_path1": 2,
+            "backbone.layers.0.norm1": 3,
+            "backbone.layers.0.sequence_mixer.mixer": 4,
+            "backbone.layers.0.sequence_mixer": 5,
+            "backbone.layers.0.dropout2": 6,
+            "backbone.layers.0.drop_path2": 7,
+            "backbone.layers.0.norm2": 8,
+            "backbone.layers.0.state_mixer": 9,
+            "backbone.layers.1.dropout1": 10,
+            "backbone.layers.1.drop_path1": 11,
+            "backbone.layers.1.norm1": 12,
+            "backbone.layers.1.sequence_mixer.mixer": 13,
+            "backbone.layers.1.sequence_mixer": 14,
+            "backbone.layers.1.dropout2": 15,
+            "backbone.layers.1.drop_path2": 16,
+            "backbone.layers.1.norm2": 17,
+            "backbone.layers.1.state_mixer": 18,
+            "backbone.ln_f": 19,
+        }.get(module, 999)
+        return (
+            str(row.get("variant", "")),
+            str(row.get("target", "")),
+            stage_rank,
+            as_int(row.get("optimizer_step")),
+            as_int(row.get("micro_step")),
+            field_rank,
+            module_rank,
+            field,
+            module,
+        )
+
+    summary_rows = sorted(summary_rows, key=sort_key)
     mismatch_rows = [row for row in summary_rows if not row["all_match"]]
     payload = {
         "schema_version": 1,
@@ -1230,7 +1306,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("probe")
     p.add_argument("--machine-name", required=True)
-    p.add_argument("--variant", choices=["baseline", "strict-fp32", "shadow-read", "ref-gd"], required=True)
+    p.add_argument(
+        "--variant",
+        choices=["baseline", "strict-fp32", "shadow-read", "ref-gd", "no-dropout"],
+        required=True,
+    )
     p.add_argument("--target", choices=["default-s123-r1", "default-s123-r2"], default="default-s123-r1")
     p.add_argument("--init-checkpoint", type=Path, default=DEFAULT_INIT_CHECKPOINT)
     p.add_argument("--output-json", type=Path, required=True)

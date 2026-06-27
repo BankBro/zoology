@@ -27,5 +27,6 @@ variants:
 - `strict-fp32`: 禁 TF32, `float32_matmul_precision=highest`, 开 PyTorch deterministic algorithms.
 - `shadow-read`: 训练输出仍使用 `read_topk=2`, 只额外记录 full dense residual read 和 top-k residual read 的差异指标.
 - `ref-gd`: 保持 `grouped_chunk_torch_ref` builder, 将 event pack 应用切到慢速 `loop_ref`, 用于检查 semivec/chunk pack 数值路径是否是放大点. `token_step_ref` 当前只适合 forward parity, 完整训练 backward 会触发 in-place autograd 错误, 不作为本轮跨机训练 probe. `ref-gd` 明显慢于其他 variant, 默认作为可选补充.
+- `no-dropout`: 仅用于定位, 将 `embed_dropout/resid_dropout/drop_path` 置 0, 检查第一层前的 dropout RNG 是否是首个 forward 分叉点.
 
 正式跨机器启动前必须先跑 `cache-hash` 和 `verify-init`, 两项不 match 直接停止.
