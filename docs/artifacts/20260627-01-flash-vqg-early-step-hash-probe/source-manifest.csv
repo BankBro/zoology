@@ -1,0 +1,5 @@
+role,machine,path,mirrored
+local_raw_dir,2080ti,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs,source
+remote_raw_dir,3090,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs,partial-to-3090-mirror
+remote_mirror_dir,2080ti,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/3090-mirror,yes
+summary_artifact_dir,2080ti,docs/artifacts/20260627-01-flash-vqg-early-step-hash-probe,tracked

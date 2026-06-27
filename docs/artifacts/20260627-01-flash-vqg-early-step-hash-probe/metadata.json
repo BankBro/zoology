@@ -1,0 +1,27 @@
+{
+  "branch": "flash-vqg",
+  "canonical_config_source": "zoology/experiments/flash_vqg/generated/fvqg-20260626-01-cache-sync-rerun-3090-default-s123-r1-2026-06-26-05-42-44/launch_configs.py",
+  "code_commit": "305c5729acf6523ff6ad46e88c880446d638a7b1",
+  "experiment_id": "20260627-01-flash-vqg-early-step-hash-probe",
+  "key_findings": [
+    "cache and first batch input/target hashes match across machines, but initial model parameter hash differs before forward/backward.",
+    "initial state differs only in tied embedding/lm_head and one Flash-VQG quantizer codebook tensor.",
+    "TokenEmbeddings CPU init hash matches across machines, while CUDA init hash differs between 2080ti and 3090 under the same seed.",
+    "Therefore canonical cache does not guarantee cross-machine identical training because current model init is GPU-local."
+  ],
+  "ledger_status": "not_written_debug_probe",
+  "machines": {
+    "2080ti": {
+      "container": "Flash-VQG-tun",
+      "gpu": "NVIDIA GeForce RTX 2080 Ti",
+      "host": "mclab-2080ti"
+    },
+    "3090": {
+      "container": "Flash-VQG-tun",
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "host": "mclab-3090"
+    }
+  },
+  "recommended_next_step": "Run an init-lock probe by constructing initial tensors on CPU or transplanting a saved init state, then rerun early-step hash comparison before any full-epoch experiment.",
+  "status": "debug_completed"
+}

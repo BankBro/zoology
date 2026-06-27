@@ -1,0 +1,7 @@
+comparison,total_hash_rows,mismatch_rows,all_match,first_mismatch_stage,first_mismatch_optimizer_step,first_mismatch_micro_step,first_mismatch_field,source_csv
+2080ti-baseline-same-machine,25,0,True,,,,,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/compare-2080ti-baseline-a-b.csv
+2080ti-deterministic-same-machine,25,8,False,after_microbatch_backward,0,3,grad_sha256,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/compare-2080ti-deterministic-a-b.csv
+3090-baseline-same-machine,25,4,False,after_microbatch_backward,1,6,grad_sha256,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/3090-mirror/compare-3090-baseline-a-b.csv
+3090-deterministic-same-machine,25,0,True,,,,,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/3090-mirror/compare-3090-deterministic-a-b.csv
+cross-machine-baseline-a,25,22,False,after_microbatch_backward,0,1,model_params_sha256,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/compare-cross-machine-baseline-a.csv
+cross-machine-deterministic-a,25,22,False,after_microbatch_backward,0,1,model_params_sha256,zoology/experiments/flash_vqg/scripts/20260627-01-flash-vqg-early-step-hash-probe/outputs/compare-cross-machine-deterministic-a.csv
