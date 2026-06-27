@@ -6,37 +6,28 @@
 
 当前状态:
 
-- zoology: 2080ti and 3090 host-side runs stopped; both machines restarted from persistent `Flash-VQG-tun` containers
-- Flash-VQG: both machines are running commit `020c1d4` from their `Flash-VQG-tun` container paths
-- dtype policy: default torch/zoology runtime dtype; no explicit AMP, bf16, or fp16 override in launch configs
-- execution path: default path is target machine `Flash-VQG-tun` container; host-side runner now requires explicit user authorization
-- preflight: passed on 3090; 2080ti host-side preflight passed earlier, container-side preflight passed after restart
-- smoke: passed on 3090; 2080ti host-side smoke passed earlier, container-side smoke passed after restart
-- main queues: previous host-side queues stopped before completion; container-side queues started with `RSCREEN_TIMESTAMP=20260625T145800Z`
+- 2080ti 和 3090 的 host-side partial runs 已停止并归档为 interrupted evidence。
+- 两台机器后续均从各自持久 `Flash-VQG-tun` 容器启动 container-side queue。
+- 主矩阵 `r1/r2` 与补充矩阵 `r3/r4` 均已完成。
+- 3090 轻量 raw evidence 已镜像回 2080ti 主工作区, `queue-status.tsv` 做过 sha256 对账。
+- artifact 已生成到 `docs/artifacts/20260625-02-flash-vqg-1epoch-repro-screen/`。
 
-## 2. 目标
+启动代码和记录代码需要分开看:
 
-本轮要回答:
+- 训练启动代码: `020c1d4`
+- 报告更新提交: `07a00cd`
+- 当前 collector 更新后本地工作区包含未提交变更。
 
-1. `2080ti GPU0` 上 `s123` / `s124` 的 `1 epoch` repeat 是否稳定.
-2. `3090 GPU0` 上 `s123` / `s124` 的 `1 epoch` repeat 是否稳定.
-3. 两机在 `1 epoch` 时的 seed 排序是否一致.
-4. early-window 异常是否能延续到 `1 epoch` 附近.
+## 2. 执行矩阵
 
-## 3. 执行矩阵
+正式判读使用以下 completed screen runs:
 
-主矩阵:
-
-| machine | gpu | target |
+| machine | gpu | targets |
 |---|---:|---|
-| 2080ti | 0 | `default-s123-r1` |
-| 2080ti | 0 | `default-s124-r1` |
-| 2080ti | 0 | `default-s123-r2` |
-| 2080ti | 0 | `default-s124-r2` |
-| 3090 | 0 | `default-s123-r1` |
-| 3090 | 0 | `default-s124-r1` |
-| 3090 | 0 | `default-s123-r2` |
-| 3090 | 0 | `default-s124-r2` |
+| 2080ti | 0 | `default-s123-r1` to `default-s123-r4` |
+| 2080ti | 0 | `default-s124-r1` to `default-s124-r4` |
+| 3090 | 0 | `default-s123-r1` to `default-s123-r4` |
+| 3090 | 0 | `default-s124-r1` to `default-s124-r4` |
 
 公共配置:
 
@@ -49,72 +40,95 @@
 - `max_epochs=1`
 - `validations_per_epoch=4`
 - `read_trace_train_steps=0,64,130,203,352,448,704`
+- logger: `LOGGER_BACKEND=none`
+- dtype policy: default torch/zoology runtime dtype, no explicit AMP, bf16, or fp16 override
 
-## 4. 结果
+## 3. Final Accuracy
 
-待 `collect_repro_screen_results.py` 汇总后回填:
+Metric: `valid/mqar_case/accuracy-1024x256`.
 
-- `preflight-summary.csv`
-- `run-summary.csv`
-- `repeat-summary.csv`
+| machine | seed | r1 | r2 | r3 | r4 | mean | gap | stable <= 0.02 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 2080ti | 123 | 0.935 | 0.937 | 0.945 | 0.950 | 0.941750 | 0.015000 | true |
+| 2080ti | 124 | 0.842 | 0.716 | 0.792 | 0.871 | 0.805250 | 0.155000 | false |
+| 3090 | 123 | 0.399 | 0.460 | 0.697 | 0.352 | 0.477000 | 0.345000 | false |
+| 3090 | 124 | 0.917 | 0.913 | 0.912 | 0.0113 | 0.688325 | 0.905700 | false |
+
+Per-run completed values:
+
+| machine | target | accuracy |
+|---|---|---:|
+| 2080ti | `default-s123-r1` | 0.935 |
+| 2080ti | `default-s123-r2` | 0.937 |
+| 2080ti | `default-s123-r3` | 0.945 |
+| 2080ti | `default-s123-r4` | 0.950 |
+| 2080ti | `default-s124-r1` | 0.842 |
+| 2080ti | `default-s124-r2` | 0.716 |
+| 2080ti | `default-s124-r3` | 0.792 |
+| 2080ti | `default-s124-r4` | 0.871 |
+| 3090 | `default-s123-r1` | 0.399 |
+| 3090 | `default-s123-r2` | 0.460 |
+| 3090 | `default-s123-r3` | 0.697 |
+| 3090 | `default-s123-r4` | 0.352 |
+| 3090 | `default-s124-r1` | 0.917 |
+| 3090 | `default-s124-r2` | 0.913 |
+| 3090 | `default-s124-r3` | 0.912 |
+| 3090 | `default-s124-r4` | 0.0113 |
+
+All completed screen logs were scanned for `Traceback`, `RuntimeError`, `CUDA out of memory`, `loss=nan`, and `loss=inf`; no hits were found.
+
+## 4. 判读
+
+1-epoch screen 已经有明显区分度, 但本轮不能支持一个干净的 cross-machine seed/path 结论。
+
+同机结果:
+
+- `2080ti s123` 很稳定且高, gap `0.015`.
+- `2080ti s124` 不稳定, 但整体中高, gap `0.155`.
+- `3090 s123` 不稳定且偏低, gap `0.345`.
+- `3090 s124` 前三次高且稳定, 但 `r4` 掉到 `0.0113`, gap `0.9057`.
+
+最重要的审计限制:
+
+- 13 个本轮实际加载的 cache 文件在 2080ti 与 3090 上文件级 sha256 全部不匹配。
+- 对 `.pt` 加载后做 tensor 内容级 hash, 13 个文件也全部不匹配。
+- 因此两台机器并未在同一训练数据内容上运行, 当前跨机器差异不能直接解释为 GPU, runtime, seed path, 或 machine effect。
+
+所以当前结论应收紧为:
+
+- `1 epoch` 作为 screen 是有效的, 能快速暴露 high/low 分叉和不稳定运行。
+- `2080ti s123` 是本轮唯一满足 same-card repeat 稳定标准的组合。
+- `2080ti s124`, `3090 s123`, `3090 s124` 都显示同机 repeat 不稳定。
+- 跨机器排序差异暂时不应作为主要科学结论, 因为 cache 内容不一致是硬 confound。
+
+## 5. 下一步建议
+
+不建议立刻做 `4 epoch` confirm。先修数据一致性:
+
+1. 选择一个 canonical cache 来源, 建议以 2080ti 主工作区或重新生成的 clean cache 为准。
+2. 将 13 个实际使用的 `data_*.pt` 同步到 3090, 或两台机器都清理并用同一代码和配置重新生成 cache。
+3. 重新跑 content-level cache hash, 要求 `cache-content-cross-machine-summary.csv` 全部 `content_match=true`。
+4. 在 cache 一致后, 先重跑轻量 `1 epoch` screen, 不直接进入 4 epoch。
+5. 若同机 repeat 稳定且跨机器排序仍有差异, 再进入 runtime/GPU robustness 或 4 epoch confirm。
+
+## 6. Artifact
+
+核心结果:
+
+- `run-summary.csv`: per-run final metrics and status.
+- `repeat-summary.csv`: per-machine, per-seed r1-r4 aggregation.
+- `invalid-runs.csv`: failed or interrupted attempts retained for audit.
+- `cache-content-cross-machine-summary.csv`: loaded `.pt` content-level cache comparison across 2080ti and 3090.
+- `cache-cross-machine-summary.csv`: file-level cache sha256 comparison across 2080ti and 3090.
+
+Trace and audit:
+
+- `early-window-metrics.csv`
 - `step-window-summary.csv`
 - `read-trace-summary.csv`
-- `cache-hash-summary.csv`
+- `preflight-summary.csv`
+- `machine-summary.csv`
+- `source-manifest.csv`
+- `metadata.json`
 
-## 5. 判读
-
-待回填:
-
-- same-card repeat 是否 stable
-- cross-machine seed 排序是否 flip
-- 是否建议进入 `4 epoch` confirm run
-
-## 6. 备注
-
-当前已确认的环境现象:
-
-- `2080ti` 宿主机 `nvidia-smi` 正常, 但重启前常驻 `Flash-VQG-tun` 容器内 `nvidia-smi` 报 `Failed to initialize NVML: Unknown Error`, `torch.cuda.is_available() == False`, `device_count == 0`.
-- `3090` 常驻容器内 `nvidia-smi` 与 `torch.cuda` 当前正常。
-- 两台机器使用同镜像 `flash-vqg-tun-snapshot:0.1` 新起 runner 容器时, `torch.cuda` 都正常。
-- `2080ti` 宿主机用户 uid/gid 为 `1002:1002`, `3090` 为 `1001:1001`. runner 容器内需要显式注入 `USER` / `LOGNAME` 与 `TORCHINDUCTOR_CACHE_DIR`, 否则 `torch.compile` 侧的用户名解析会因为 `getpwuid(uid)` 无记录而失败。
-- 主实验首次启动时默认 `LOGGER_BACKEND=swanlab`, 但 runner 容器内没有 cloud API key, 因此改为 `LOGGER_BACKEND=none` 重新启动主队列。该调整不影响本轮 diagnostic 所需的 trace, early-window metrics 和 final stdout metrics 抽取。
-- 用户要求后续遵守容器 GPU 可用性硬门槛: 若 `Flash-VQG-tun` 容器内 NVML/CUDA 不可用, 必须提醒用户并暂停, 不得自动改用 host-side runner。
-- 2080ti 常驻容器已重启并恢复 GPU runtime: `nvidia-smi` 可见两张 `NVIDIA GeForce RTX 2080 Ti`, `torch.cuda.is_available() == True`, `device_count == 2`。
-- 用户决定采用严格方案: 3090 早先 host-side run 也停止, 后续 2080ti 和 3090 都从各自常驻 `Flash-VQG-tun` 容器重新启动主队列。
-
-当前运行状态:
-
-- commit: `020c1d4`
-- 2080ti preflight: passed, output `outputs/2080ti-preflight-20260625T134932Z/`
-- 2080ti container-side preflight after restart: passed, output `outputs/2080ti-container-preflight-20260625T144118Z/`
-- 3090 preflight: passed, output `outputs/3090-preflight-20260625T135155Z/`
-- 2080ti smoke: passed, output `outputs/2080ti-smoke-20260625T135329Z/`
-- 2080ti container-side smoke after restart: passed, output `outputs/2080ti-smoke-20260625T144200Z/`
-- 3090 smoke: passed, output `outputs/3090-smoke-20260625T135155Z/`
-- 2080ti container main queue: `outputs/2080ti-gpu0-20260625T145800Z/`, tmux session `rscreen-2080ti-gpu0-20260625T145800Z`, active target `default-s123-r1`, pid `2285`
-- 3090 container main queue: `outputs/3090-gpu0-20260625T145800Z/`, tmux session `rscreen-3090-gpu0-20260625T145800Z`, active target `default-s123-r1`, pid `3457013`
-- 两台当前 active run 均已进入训练循环并写出 `train_step_0/read_trace.jsonl`
-- 3090 `default-s123-r1` 已写出 `train_step_64/read_trace.jsonl`
-- 2080ti `default-s123-r1` 已写出 `train_step_64/read_trace.jsonl`
-- 2026-06-25 23:05 CST 检查时, 两台 tmux supervisor 均存活; 两台当前 active run 错误扫描未见 `Traceback`, `RuntimeError`, `CUDA out of memory`, `loss=nan`, `loss=inf` 或独立 `nan` / `inf` token
-- 两台日志显示训练 loss 持续下降, 且数据均从 `./data/flash_vqg/*.pt` on-disk cache 读取
-
-稳定阶段检查结论:
-
-- 本轮设定的退出门槛为: queue supervisor 已启动, `queue-status.tsv` 已写入全量 target, 当前 active run 已进入训练循环, 无 traceback / OOM / nan / inf, 且至少写出 `train_step_0`, 优先等到 `train_step_64`
-- 截至本次检查, 2080ti 与 3090 均满足上述门槛
-- 因此当前从常驻 `Flash-VQG-tun` 容器启动的主实验已进入稳定阶段训练
-- 2026-06-25 22:31 CST 左右, 2080ti 本次 host-side runner container `10e7799877c0` 已执行 `docker stop --time 30`; `host-runner.pid=3470811` 随后退出, 未清理输出目录
-- 2080ti `queue-status.tsv` 仍保留暂停前的 `started` 行, 后续判读时应按本报告外部状态视为 interrupted / paused, 不是 completed
-- 2080ti 暂停前的 partial trace 已从正式 trace 路径移入 `outputs/interrupted-traces/2080ti-hostrunner-20260625T135615Z/`, 只进入 source manifest 审计, 不进入正式 metrics 汇总
-- 2080ti 重启后的 container-side smoke 已完成且没有残留训练进程
-- 2026-06-25 22:55 CST 左右, 3090 早先 host-side runner container `da45fc19e440` 已执行 `docker stop --time 30`; tmux 会话 `hrscreen-3090-gpu0-20260625T135615Z` 已停止
-- 3090 暂停前的 partial trace 已从正式 trace 路径移入 `outputs/interrupted-traces/3090-hostrunner-20260625T135615Z/`, 只进入 source manifest 审计, 不进入正式 metrics 汇总
-- 2080ti 和 3090 主队列已从 container-side 路径重启, 本轮正式 screen 判读只使用 `20260625T145800Z` container queues; earlier host-side partials 仅作审计记录
-
-本报告必须在训练完成后补齐:
-
-- final `1024x256` 精度表
-- repeat gap 表
-- cache hash 对照
-- source manifest 审计说明
+Large raw files, checkpoints, and swanlog are not committed. 3090 queue/log/trace/generated lightweight evidence was mirrored back to the 2080ti main workspace under the same relative paths.

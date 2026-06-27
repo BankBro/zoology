@@ -130,7 +130,7 @@ def _parse_final_metrics(log_path: Path) -> dict[str, Any]:
     accuracy_1024 = re.findall(r"valid/mqar_case/accuracy-1024x256=([0-9.]+)", text)
     valid_accuracy = re.findall(r"valid/accuracy=([0-9.]+)", text)
     valid_loss = re.findall(r"valid/loss=([0-9.]+)", text)
-    cache_paths = sorted(set(re.findall(r"Loading data from on-disk cache at (.+?\\.pt)\\.\\.\\.", text)))
+    cache_paths = sorted(set(re.findall(r"Loading data from on-disk cache at (.+?\.pt)\.\.\.", text)))
     return {
         "final_1024x256_accuracy": accuracy_1024[-1] if accuracy_1024 else "",
         "final_valid_accuracy": valid_accuracy[-1] if valid_accuracy else "",
@@ -146,12 +146,19 @@ def _target_seed(target: str) -> str:
 
 
 def _target_repeat(target: str) -> str:
-    match = re.search(r"-(r[12])$", target)
+    match = re.search(r"-(r\d+)$", target)
     return match.group(1) if match else ""
 
 
+def _machine_from_queue(queue: str) -> str:
+    for machine in ("2080ti", "3090"):
+        if queue == machine or queue.startswith(f"{machine}-"):
+            return machine
+    return queue.replace("-gpu0", "").replace("-smoke", "")
+
+
 def _collect_queue_status(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    rows_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+    rows_by_key: dict[tuple[str, str, str], dict[str, Any]] = {}
     invalid: list[dict[str, Any]] = []
     status_rank = {"pending": 0, "started": 1, "completed": 2}
     for status_path in sorted(outputs_dir.glob("*/queue-status.tsv")):
@@ -160,7 +167,7 @@ def _collect_queue_status(outputs_dir: Path) -> tuple[list[dict[str, Any]], list
             for row in reader:
                 queue = str(row.get("queue", ""))
                 target = str(row.get("target", ""))
-                key = (queue, target)
+                key = (str(status_path), queue, target)
                 row = dict(row)
                 row["status_path"] = str(status_path)
                 prev = rows_by_key.get(key)
@@ -172,7 +179,14 @@ def _collect_queue_status(outputs_dir: Path) -> tuple[list[dict[str, Any]], list
                     prev_rank = status_rank.get(prev_status, 99 if prev_status.startswith("failed") else -1)
                 if prev is None or current_rank >= prev_rank:
                     rows_by_key[key] = row
-    rows = sorted(rows_by_key.values(), key=lambda row: (str(row.get("queue", "")), str(row.get("target", ""))))
+    rows = sorted(
+        rows_by_key.values(),
+        key=lambda row: (
+            str(row.get("queue", "")),
+            str(row.get("target", "")),
+            str(row.get("status_path", "")),
+        ),
+    )
     for row in rows:
         status = str(row.get("status", ""))
         if status.startswith("failed") or status in {"interrupted", "oom"}:
@@ -364,6 +378,17 @@ def _write_metadata(path: Path, outputs_dir: Path, summary: dict[str, Any]) -> N
     )
 
 
+def _existing_match_summary(path: Path, match_column: str) -> dict[str, int]:
+    if not path.exists():
+        return {"rows": 0, "matches": 0}
+    with path.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    return {
+        "rows": len(rows),
+        "matches": sum(str(row.get(match_column, "")).lower() == "true" for row in rows),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--outputs-dir", type=Path, default=SCRIPT_DIR / "outputs")
@@ -387,7 +412,7 @@ def main() -> int:
             {
                 "experiment_id": EXPERIMENT_ID,
                 "queue": row.get("queue"),
-                "machine": str(row.get("queue", "")).replace("-gpu0", "").replace("-smoke", ""),
+                "machine": _machine_from_queue(str(row.get("queue", ""))),
                 "stage": "smoke" if target.startswith("smoke-") else "screen",
                 "target": target,
                 "seed": _target_seed(target),
@@ -404,6 +429,11 @@ def main() -> int:
         )
 
     cache_rows = _build_cache_hash_summary(run_rows)
+    cache_cross = _existing_match_summary(args.artifact_dir / "cache-cross-machine-summary.csv", "match")
+    cache_content_cross = _existing_match_summary(
+        args.artifact_dir / "cache-content-cross-machine-summary.csv",
+        "content_match",
+    )
 
     _write_csv(args.artifact_dir / "preflight-summary.csv", preflight_rows)
     _write_csv(args.artifact_dir / "machine-summary.csv", queue_rows)
@@ -443,8 +473,13 @@ def main() -> int:
 
     repeat_rows = []
     for (machine, seed), rows in sorted(repeat_groups.items()):
-        accs = [float(row["final_1024x256_accuracy"]) for row in rows if row.get("final_1024x256_accuracy")]
-        repeats = {str(row.get("repeat", "")): row.get("final_1024x256_accuracy", "") for row in rows}
+        valid_rows = [
+            row
+            for row in rows
+            if row.get("status") == "completed" and row.get("final_1024x256_accuracy")
+        ]
+        accs = [float(row["final_1024x256_accuracy"]) for row in valid_rows]
+        repeats = {str(row.get("repeat", "")): row.get("final_1024x256_accuracy", "") for row in valid_rows}
         gap = ""
         stable = ""
         if len(accs) >= 2:
@@ -456,9 +491,11 @@ def main() -> int:
                 "experiment_id": EXPERIMENT_ID,
                 "machine": machine,
                 "seed": seed,
-                "num_runs": len(rows),
+                "num_runs": len(valid_rows),
                 "r1_1024x256_accuracy": repeats.get("r1", ""),
                 "r2_1024x256_accuracy": repeats.get("r2", ""),
+                "r3_1024x256_accuracy": repeats.get("r3", ""),
+                "r4_1024x256_accuracy": repeats.get("r4", ""),
                 "mean_1024x256_accuracy": f"{statistics.fmean(accs):.6f}" if accs else "",
                 "repeat_gap": gap,
                 "stable_le_0p02": stable,
@@ -478,6 +515,15 @@ def main() -> int:
             "early_window_metric_rows": len(early_rows),
             "read_trace_summary_rows": len(read_trace_rows),
             "cache_hash_rows": len(cache_rows),
+            "cache_cross_machine_rows": cache_cross["rows"],
+            "cache_cross_machine_byte_matches": cache_cross["matches"],
+            "cache_content_cross_machine_rows": cache_content_cross["rows"],
+            "cache_content_cross_machine_matches": cache_content_cross["matches"],
+            "cache_hash_summary_scope": (
+                "cache-hash-summary.csv hashes local 2080ti filesystem paths for cache names parsed from logs; "
+                "use cache-cross-machine-summary.csv and cache-content-cross-machine-summary.csv for source-machine "
+                "cache comparison."
+            ),
             "source_manifest_rows": len(source_rows),
         },
     )

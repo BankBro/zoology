@@ -1,0 +1,5 @@
+experiment_id,machine,seed,num_runs,r1_1024x256_accuracy,r2_1024x256_accuracy,r3_1024x256_accuracy,r4_1024x256_accuracy,mean_1024x256_accuracy,repeat_gap,stable_le_0p02
+20260625-02-flash-vqg-1epoch-repro-screen,2080ti,123,4,0.935,0.937,0.945,0.95,0.941750,0.015000,true
+20260625-02-flash-vqg-1epoch-repro-screen,2080ti,124,4,0.842,0.716,0.792,0.871,0.805250,0.155000,false
+20260625-02-flash-vqg-1epoch-repro-screen,3090,123,4,0.399,0.46,0.697,0.352,0.477000,0.345000,false
+20260625-02-flash-vqg-1epoch-repro-screen,3090,124,4,0.917,0.913,0.912,0.0113,0.688325,0.905700,false
