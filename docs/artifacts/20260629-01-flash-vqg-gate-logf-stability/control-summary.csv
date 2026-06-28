@@ -1,0 +1,5 @@
+variant,first_mismatch,mismatch_rows,step0_logf_match,step16_logf_match,step16_state_G_match,step16_state_L_match,step16_state_M_match,step16_top_idx_match,step16_loss_match,opt_step1_param_match,opt_step17_param_match,opt_step17_loss_gap
+baseline,0:0:1:fox_gate/logits_cuda,96,False,False,False,False,False,False,False,False,False,0.0
+fp32-linear,0:0:1:fox_gate/logits_cuda,96,False,False,False,False,False,False,False,False,False,2.384185791015625e-07
+round1e-6,0:0:1:fox_gate/logits_cuda,94,False,False,False,False,False,True,True,False,False,0.0
+round1e-5,0:0:1:fox_gate/logits_cuda,89,False,False,False,False,False,True,True,False,False,0.0

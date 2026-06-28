@@ -1,0 +1,5 @@
+bytes,path,sha256
+30390,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/round1e-6/2080ti/preflight.json,e30243f00d24776eee26081c2b6671007b1e7f440592fe3a83c65e1b26ed21e2
+194821,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/round1e-6/2080ti/probe.json,20a7378604a18d9221a681a5a517dd24ed051a1eae44fea8221a024449b615a6
+30375,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/round1e-6/3090/preflight.json,450627f91da5fbd994703ba794db0c3f1305a5342c69542387bf48e19fe299c1
+194329,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/round1e-6/3090/probe.json,71c2eaee10c8c05390af60b0943bdec2b6ebd21009511c3d94278c374b95b398

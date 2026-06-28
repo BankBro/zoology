@@ -1,0 +1,5 @@
+bytes,path,sha256
+30404,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/fp32-linear/2080ti/preflight.json,839b8355590f3f695528d724f7ebeca5cecb4aa0c63ce62440bf4285adfe3fb4
+194820,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/fp32-linear/2080ti/probe.json,7c9d8a6e788eb39938f711d8e7e6bff5adcfd905d99f9b40199f54573f9b153f
+30389,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/fp32-linear/3090/preflight.json,aacbd392c345f8a2ee263a01920ad54208285a179d6c6153281b54481234e310
+194323,zoology/experiments/flash_vqg/scripts/20260629-01-flash-vqg-gate-logf-stability/outputs/fp32-linear/3090/probe.json,b6b5be1a89c40e2afb921eeb5a21ea60013e8708ad891840cc7646438ad8ad76

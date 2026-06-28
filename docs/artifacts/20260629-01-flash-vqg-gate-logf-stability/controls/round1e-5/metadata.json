@@ -1,0 +1,28 @@
+{
+  "collected_at": "2026-06-28T17:10:40.172561+00:00",
+  "comparison_row_count": 132,
+  "experiment_id": "20260629-01-flash-vqg-gate-logf-stability",
+  "first_mismatch": {
+    "abs_l2_norm_gap": 0.0,
+    "abs_mean_gap": 2.3283064365386963e-10,
+    "candidate_l2_norm": 20.328201293945312,
+    "candidate_mean": 0.00172038609161973,
+    "candidate_sample": "[-0.2620857357978821,0.4892271161079407,-0.0837068185210228,0.06343735009431839,-0.02092479169368744,0.2494209110736847,0.01649858057498932,-0.40035274624824524]",
+    "candidate_sha256": "be0245b0061825d2b513a21e0137351a8507f430eee14bdd9ac05a53ef302a18",
+    "dtype_match": true,
+    "layer_idx": "1",
+    "micro_step": "0",
+    "optimizer_step": "0",
+    "ref_l2_norm": 20.328201293945312,
+    "ref_mean": 0.0017203858587890863,
+    "ref_sample": "[-0.2620856761932373,0.48922717571258545,-0.083706796169281,0.06343737244606018,-0.020924754440784454,0.2494209110736847,0.016498565673828125,-0.4003526270389557]",
+    "ref_sha256": "1e06fe0ae90f69c777ede6c8ecc8174b8f99a55c59b9b3f13c31fb7c93c3deb7",
+    "sha256_match": false,
+    "shape_match": true,
+    "trace_name": "fox_gate/logits_cuda"
+  },
+  "gate_comparison_row_count": 48,
+  "mismatch_row_count": 89,
+  "payload_count": 2,
+  "trace_row_count": 264
+}
