@@ -61,7 +61,7 @@ Flash-VQG 和 zoology 项目可能运行在多台机器的 `Flash-VQG-tun` 容�
 |---|---|---|---|---|
 | `mclab-3090` (`192.168.2.114`) | `Flash-VQG-tun` | `/mnt/980pro/lyj` | `/home/lyj/mnt` | 已确认 |
 | `mclab-2080ti` (`192.168.2.131`) | `Flash-VQG-tun` | `/mnt/WD40EZRZ/lyj` | `/home/lyj/mnt` | 已确认 |
-| `mclab` (`192.168.2.188`) | `Flash-VQG-tun` | 待确认 | 待确认 | 未记录 |
+| `mclab` (`192.168.2.188`) | `Flash-VQG-tun` | `/home/lyj` | `/home/lyj` | 已确认 |
 
 已确认的项目路径映射:
 
@@ -69,6 +69,8 @@ Flash-VQG 和 zoology 项目可能运行在多台机器的 `Flash-VQG-tun` 容�
 |---|---|---|
 | `mclab-3090` | `/home/lyj/mnt/project` | `/mnt/980pro/lyj/project` |
 | `mclab-2080ti` | `/home/lyj/mnt/project` | `/mnt/WD40EZRZ/lyj/project` |
+| `mclab` | `/home/lyj/mnt/project` | `/home/lyj/mnt/project` |
+| `mclab` | `/home/lyj/project` | `/home/lyj/project` |
 
 项目子目录按项目根路径直接拼接, 例如容器内 `/home/lyj/mnt/project/zoology` 对应宿主机 `<宿主机项目根>/zoology`.
 
