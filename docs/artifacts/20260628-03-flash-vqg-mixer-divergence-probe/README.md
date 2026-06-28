@@ -9,3 +9,4 @@ First mismatch: optimizer step `0`, micro step `0`, layer `1`, `state_build/logf
 - `preflight-summary.csv`: cache/init/batch-order/code preflight evidence.
 - `source-manifest.csv`: raw JSON evidence hashes.
 - `metadata.json`: first mismatch metadata.
+- `m-state-note.md`: Markdown version of the temporary M_state / GDN comparison note, prepared for Web ChatGPT review.
