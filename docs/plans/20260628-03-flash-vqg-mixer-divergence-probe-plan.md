@@ -1,6 +1,6 @@
 # 20260628-03 Flash-VQG mixer divergence probe plan
 
-status: planned
+status: implementing
 experiment_id: `20260628-03-flash-vqg-mixer-divergence-probe`
 
 ## 背景
@@ -53,25 +53,24 @@ experiment_id: `20260628-03-flash-vqg-mixer-divergence-probe`
 
 ## 建议执行方式
 
-优先短窗口, 不做长训:
+优先短窗口, 不做长训. 本轮需要新增一个最小内部 trace runtime, 因为现有 `20260627-03` first-divergence probe 只能通过 forward hook 抓模块边界输出, 抓不到 Flash-VQG attention 内部局部变量.
 
-1. 复用 first-divergence probe 的 batch order 和 input/target hash 检查.
-2. 只跑前若干 optimizer step 或固定 trace step, 例如 `0, 1, 4, 16, 64, 130, 203, 352, 448, 704`.
-3. 在每个 trace point 保存 CPU tensor hash 和必要摘要, 不保存大 tensor 全量除非首次 mismatch 需要局部 dump.
-4. 对 2080ti 与 3090 的 trace 按 module path 和 step 做 join, 输出 first mismatch timeline.
+1. 复用 first-divergence probe 的模型构造, batch order 和 input/target hash 检查.
+2. 在 Flash-VQG 中新增只在 debug runtime 显式启用时生效的 `mixer_trace_runtime`.
+3. trace 只开 `layer_idx=1`, 只在指定 optimizer step 的第一个 microbatch 生效.
+4. 固定 trace steps 为 `0, 1, 4, 16, 64, 130, 203, 352, 448, 704`.
+5. 在每个 trace point 保存 CPU tensor hash 和必要摘要, 不保存大 tensor 全量.
+6. 对 2080ti 与 3090 的 trace 按 `optimizer_step, micro_step, layer_idx, trace_name` join, 输出 first mismatch timeline.
 
 ## Trace 范围
 
 最小 trace 面:
 
-- layer 1 mixer input/output.
-- q/k/v 或 mixer 内等价投影输出.
-- VQ routing: nearest code indices, code assignment mass, code usage summary.
-- GD residual write: write q/top1, write strength, sum zeta, beta, update norm.
-- GD residual state: `M`/`m` 的 norm/hash, state build 前后 hash.
-- GD residual read: read candidates, top-k indices, top1/top2 margin, selected mass, read output.
-- mixer output 和下一层输入.
-- loss/logits hash.
+- phase1: `q_all`, `k_all`, `v_all`, `g_raw_all`, `K_q_all`, `Delta_all` 或 `W_all`.
+- state build: `logf_all`, `beta_all`, `G_state`, `L_state`, `M_state`.
+- phase2 read: `S_far`, `O_base`, `top_idx`, `top_scores`, `top_probs`, `omega_sel`, `read_selected_mass`, `u_res`.
+- phase2/output: `O_res_added`, `Out_f32`, `O_heads`, `o_heads`, `res`.
+- final: logits hash, preds hash, loss.
 
 优先记录 hash, shape, dtype, mean/std/max/norm/top-k index digest. 只有 first mismatch 附近再 dump 少量 selected tensor slice.
 

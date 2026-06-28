@@ -500,6 +500,18 @@ class FlashVQGMixer(nn.Module):
             return
         clearer()
 
+    def set_mixer_trace_runtime(self, runtime) -> None:
+        setter = getattr(self.attn, "set_mixer_trace_runtime", None)
+        if setter is None:
+            raise RuntimeError("FlashVQGAttention does not support mixer trace runtime.")
+        setter(runtime)
+
+    def clear_mixer_trace_runtime(self) -> None:
+        clearer = getattr(self.attn, "clear_mixer_trace_runtime", None)
+        if clearer is None:
+            return
+        clearer()
+
     def get_auxiliary_loss(self) -> torch.Tensor:
         zero = self.attn.res_proj.weight.new_zeros(())
         if not self._last_aux:
