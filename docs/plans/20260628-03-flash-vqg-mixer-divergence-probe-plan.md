@@ -1,6 +1,6 @@
 # 20260628-03 Flash-VQG mixer divergence probe plan
 
-status: implementing
+status: completed_debug_probe
 experiment_id: `20260628-03-flash-vqg-mixer-divergence-probe`
 
 ## 背景

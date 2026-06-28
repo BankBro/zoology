@@ -1,0 +1,27 @@
+{
+  "collected_at": "2026-06-28T10:50:07.850468+00:00",
+  "comparison_row_count": 252,
+  "experiment_id": "20260628-03-flash-vqg-mixer-divergence-probe",
+  "first_mismatch": {
+    "abs_l2_norm_gap": 0.0,
+    "abs_mean_gap": 0.0,
+    "candidate_l2_norm": 4.002523899078369,
+    "candidate_mean": -0.04365961626172066,
+    "candidate_sample": "[-0.05204698070883751,-0.02988486737012863,-0.04599225893616676,-0.04137071594595909,-0.04397901892662048,-0.036012064665555954,-0.04280824586749077,-0.05707665532827377]",
+    "candidate_sha256": "dceaec5c4111d88a580fc8425d7618b87f122679f07cfec4bf3151edaf2e8139",
+    "dtype_match": true,
+    "layer_idx": "1",
+    "micro_step": "0",
+    "optimizer_step": "0",
+    "ref_l2_norm": 4.002523899078369,
+    "ref_mean": -0.04365961626172066,
+    "ref_sample": "[-0.05204698070883751,-0.029884863644838333,-0.04599225893616676,-0.04137071594595909,-0.043979015201330185,-0.036012064665555954,-0.04280824586749077,-0.057076647877693176]",
+    "ref_sha256": "476c88d729d9555ba6a7c8401c79eed44a91fe0a5e52a7fbee01245d16a52b10",
+    "sha256_match": false,
+    "shape_match": true,
+    "trace_name": "state_build/logf_all"
+  },
+  "mismatch_row_count": 200,
+  "payload_count": 2,
+  "trace_row_count": 504
+}

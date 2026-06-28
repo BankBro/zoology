@@ -673,7 +673,8 @@ def run_collect(args: argparse.Namespace) -> int:
     mismatch_rows = [row for row in comparison_rows if str(row.get("sha256_match")) == "False"]
     preflight_rows = []
     source_rows = []
-    for path in sorted(output_dir.glob("*/*.json")):
+    source_paths = sorted(output_dir.glob("*/*.json")) + sorted(output_dir.glob("*.sha256"))
+    for path in source_paths:
         source_rows.append(
             {
                 "path": str(path),
@@ -714,6 +715,9 @@ def run_collect(args: argparse.Namespace) -> int:
     readme = (
         f"# {EXPERIMENT_ID} artifact\n\n"
         "This artifact contains the layer-1 Flash-VQG mixer divergence probe summaries.\n\n"
+        "First mismatch: optimizer step `0`, micro step `0`, layer `1`, "
+        "`state_build/logf_all`. Step 0 phase1 q/k/v and VQ routing matched, "
+        "so this probe points to the FoX gate/logf state-build path before read top-k diverges.\n\n"
         "- `trace-summary.csv`: per-machine trace hashes and summaries.\n"
         "- `cross-machine-trace-comparison.csv`: 2080ti vs 3090 joined trace comparison.\n"
         "- `preflight-summary.csv`: cache/init/batch-order/code preflight evidence.\n"
