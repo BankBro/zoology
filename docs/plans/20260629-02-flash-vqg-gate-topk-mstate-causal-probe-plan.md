@@ -25,7 +25,7 @@
 |---|---|---|
 | `baseline` | 无额外改动 | 复现当前 no-dropout 分叉链路 |
 | `constant-logf-f0.95` | `fox_gate_logf_constant_f=0.95` | 验证 learned/dynamic gate/logf 是否是必要触发入口 |
-| `dense-read` | `fox_remote_read_topk=64` | cb64 下等价 full-code read, 验证 read top-k 是否是主要离散放大器 |
+| `dense-read` | `fox_remote_read_topk=64`, `fox_gd_residual_dense_read_chunked=True` | cb64 下等价 full-code read, 验证 read top-k 是否是主要离散放大器 |
 | `residual-off` | `fox_gd_residual_residual_norm_mode=zero` | 验证 residual contribution 是否是主要输出放大器 |
 | `round1e-5-control` | `fox_gate_logf_round_quantum=1e-5` | 仅作为 diagnostic control, 不作为部署方案 |
 
@@ -33,6 +33,7 @@
 
 - `residual-off` 关闭的是 residual branch 对输出的贡献, 不是完全跳过 `M_state` 构建.
 - `dense-read=64` 只在当前 cb64 配置下等价 no-topk. 若换 cb128/cb256, 需要改为对应 codebook size.
+- `fox_gd_residual_dense_read_chunked=True` 仅用于本轮 dense-read 诊断, 目的是避免 full-code residual read 的展开张量 OOM. 默认关闭, 不改变普通训练语义.
 - `constant-logf-f0.95` 是诊断干预, 不是候选主方法.
 - `GDN-style gate` 暂不纳入第一轮. 它会引入新参数, 新 init, 新语义, 需要单独设计.
 

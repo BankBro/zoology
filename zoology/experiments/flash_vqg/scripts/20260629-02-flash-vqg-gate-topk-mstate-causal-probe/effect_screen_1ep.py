@@ -125,7 +125,9 @@ def _apply_overrides(config: Any, args: argparse.Namespace) -> dict[str, Any]:
     if args.fox_remote_read_topk is not None:
         value = int(args.fox_remote_read_topk)
         _set_flash_vqg_kwarg(config, "fox_remote_read_topk", value)
+        _set_flash_vqg_kwarg(config, "fox_gd_residual_dense_read_chunked", True)
         overrides["fox_remote_read_topk"] = value
+        overrides["fox_gd_residual_dense_read_chunked"] = True
     if args.fox_gd_residual_residual_norm_mode is not None:
         value = str(args.fox_gd_residual_residual_norm_mode)
         _set_flash_vqg_kwarg(config, "fox_gd_residual_residual_norm_mode", value)

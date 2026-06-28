@@ -1,0 +1,5 @@
+comparison_row_count,first_mismatch_layer_idx,first_mismatch_micro_step,first_mismatch_step,first_mismatch_trace_name,mismatch_row_count,step16_logf_match,step16_loss_match,step16_m_state_match,step16_top_idx_match,variant
+132,1,0,0,fox_gate/logits_cuda,96,False,False,False,False,baseline
+124,1,4,1,fox_gate/input_x,65,True,True,False,True,constant-logf-f0.95
+132,1,0,0,fox_gate/logits_cuda,95,False,True,False,True,dense-read
+132,1,0,0,fox_gate/logits_cuda,91,False,False,False,True,residual-off

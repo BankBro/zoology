@@ -246,7 +246,9 @@ def _apply_gate_overrides(config: Any, args: argparse.Namespace) -> dict[str, An
     if getattr(args, "fox_remote_read_topk", None) is not None:
         value = int(args.fox_remote_read_topk)
         _set_flash_vqg_kwarg(config, "fox_remote_read_topk", value)
+        _set_flash_vqg_kwarg(config, "fox_gd_residual_dense_read_chunked", True)
         overrides["fox_remote_read_topk"] = value
+        overrides["fox_gd_residual_dense_read_chunked"] = True
     if getattr(args, "fox_gd_residual_residual_norm_mode", None) is not None:
         value = str(args.fox_gd_residual_residual_norm_mode)
         _set_flash_vqg_kwarg(config, "fox_gd_residual_residual_norm_mode", value)
