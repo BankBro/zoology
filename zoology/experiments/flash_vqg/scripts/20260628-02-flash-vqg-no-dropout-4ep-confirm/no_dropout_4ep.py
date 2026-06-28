@@ -104,6 +104,14 @@ def _write_csv(path: Path, rows: Iterable[dict[str, Any]], fieldnames: list[str]
             writer.writerow({key: row.get(key, "") for key in fieldnames})
 
 
+def _dedupe_adjacent(values: list[str]) -> list[str]:
+    deduped: list[str] = []
+    for value in values:
+        if not deduped or value != deduped[-1]:
+            deduped.append(value)
+    return deduped
+
+
 def _sha_update_text(hasher: Any, value: str) -> None:
     encoded = value.encode("utf-8")
     hasher.update(len(encoded).to_bytes(8, "little"))
@@ -462,9 +470,14 @@ def _parse_final_metrics(log_path: Path) -> dict[str, Any]:
     if not log_path.exists():
         return {}
     text = log_path.read_text(encoding="utf-8", errors="replace")
-    accuracy_1024 = re.findall(r"valid/mqar_case/accuracy-1024x256=([0-9.]+)", text)
-    valid_accuracy = re.findall(r"valid/accuracy=([0-9.]+)", text)
-    valid_loss = re.findall(r"valid/loss=([0-9.]+)", text)
+    raw_accuracy_1024 = re.findall(r"valid/mqar_case/accuracy-1024x256=([0-9.]+)", text)
+    raw_valid_accuracy = re.findall(r"valid/accuracy=([0-9.]+)", text)
+    raw_valid_loss = re.findall(r"valid/loss=([0-9.]+)", text)
+    # tqdm can write the same validation summary twice. Adjacent de-duplication
+    # keeps final/best metrics stable while making the count reflect events.
+    accuracy_1024 = _dedupe_adjacent(raw_accuracy_1024)
+    valid_accuracy = _dedupe_adjacent(raw_valid_accuracy)
+    valid_loss = _dedupe_adjacent(raw_valid_loss)
     final_1024 = float(accuracy_1024[-1]) if accuracy_1024 else None
     best_1024 = max(float(value) for value in accuracy_1024) if accuracy_1024 else None
     return {
@@ -477,6 +490,7 @@ def _parse_final_metrics(log_path: Path) -> dict[str, Any]:
         "best_valid_accuracy": max(float(value) for value in valid_accuracy) if valid_accuracy else "",
         "final_valid_loss": valid_loss[-1] if valid_loss else "",
         "n_validation_summaries": len(accuracy_1024),
+        "n_validation_summary_lines": len(raw_accuracy_1024),
     }
 
 
@@ -737,6 +751,7 @@ def run_collect(args: argparse.Namespace) -> int:
                     "best_1024x256_accuracy": metrics.get("best_1024x256_accuracy", ""),
                     "best_final_1024x256_gap": metrics.get("best_final_1024x256_gap", ""),
                     "n_validation_summaries": metrics.get("n_validation_summaries", ""),
+                    "n_validation_summary_lines": metrics.get("n_validation_summary_lines", ""),
                     "log_path": str(log_path),
                     "log_sha256": _sha256(log_path) if log_path.exists() else "",
                     "result_json": str(result_path),
@@ -814,9 +829,13 @@ def run_collect(args: argparse.Namespace) -> int:
     source_candidates.extend(sorted(outputs_dir.glob("*/queue-status.tsv")))
     source_candidates.extend(sorted(outputs_dir.glob("*/cache-hash.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/init-verify.json")))
+    source_candidates.extend(sorted(outputs_dir.glob("*/preflight.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/configs/*.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/results/*.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/logs/*.log")))
+    source_candidates.extend(sorted(outputs_dir.glob("*.nohup.log")))
+    source_candidates.extend(sorted(outputs_dir.glob("*.setsid.log")))
+    source_candidates.extend(sorted(outputs_dir.glob("*.sha256")))
     for path in source_candidates:
         machine, source_host, source_path, mirror_path = _source_and_mirror_paths(path)
         source_rows.append(
@@ -834,8 +853,23 @@ def run_collect(args: argparse.Namespace) -> int:
     _write_csv(artifact_dir / "run-summary.csv", run_rows)
     _write_csv(artifact_dir / "cross-machine-comparison.csv", comparison_rows)
     _write_csv(artifact_dir / "cache-init-preflight-summary.csv", cache_rows + init_rows)
-    _write_csv(artifact_dir / "queue-summary.csv", queue_rows)
-    _write_csv(artifact_dir / "invalid-runs.csv", invalid_rows)
+    queue_fieldnames = [
+        "queue",
+        "machine",
+        "target",
+        "variant",
+        "gpu",
+        "pid",
+        "status",
+        "log",
+        "config_json",
+        "result_json",
+        "started_at",
+        "finished_at",
+        "status_path",
+    ]
+    _write_csv(artifact_dir / "queue-summary.csv", queue_rows, fieldnames=queue_fieldnames)
+    _write_csv(artifact_dir / "invalid-runs.csv", invalid_rows, fieldnames=queue_fieldnames)
     _write_csv(artifact_dir / "source-manifest.csv", source_rows)
     _save_json(
         artifact_dir / "metadata.json",
@@ -877,6 +911,10 @@ def run_collect(args: argparse.Namespace) -> int:
         "- `invalid-runs.csv`: failed/interrupted/pending run.\n"
         "- `source-manifest.csv`: raw evidence 路径和 sha256.\n"
         "- `metadata.json`: 收尾元数据.\n"
+        "\n"
+        "注: `n_validation_summaries` 对 tqdm 相邻重复 summary 做了去重; "
+        "`n_validation_summary_lines` 保留原始日志匹配行数. `best_*` 是日志观测到的 best validation metric, "
+        "不是 saved-best checkpoint 复评.\n"
     )
     (artifact_dir / "README.md").write_text(readme, encoding="utf-8")
     print(json.dumps({"artifact_dir": str(artifact_dir), "run_count": len(run_rows)}, ensure_ascii=False, indent=2))
