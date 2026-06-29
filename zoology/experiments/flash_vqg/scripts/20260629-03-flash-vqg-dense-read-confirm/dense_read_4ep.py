@@ -919,6 +919,8 @@ def run_collect(args: argparse.Namespace) -> int:
     source_candidates.extend(sorted(outputs_dir.glob("*/cache-hash.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/init-verify.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/preflight.json")))
+    source_candidates.extend(sorted(outputs_dir.glob("*/command.txt")))
+    source_candidates.extend(sorted(outputs_dir.glob("*/launch-train.sh")))
     source_candidates.extend(sorted(outputs_dir.glob("*/configs/*.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/results/*.json")))
     source_candidates.extend(sorted(outputs_dir.glob("*/logs/*.log")))
