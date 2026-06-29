@@ -1,0 +1,29 @@
+{
+  "experiment_id": "20260629-04-flash-vqg-eval-read-topk-sweep",
+  "generated_at": "2026-06-29T18:48:31+00:00",
+  "record_files": [
+    "zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-2080ti-source/eval-records.jsonl",
+    "zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-3090-mirror/eval-records.jsonl",
+    "zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-3090-source/eval-records.jsonl",
+    "zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-2080ti-mirror/eval-records.jsonl"
+  ],
+  "raw_records": 123,
+  "total_records": 112,
+  "completed_records": 112,
+  "failed_records": 0,
+  "expected_records": 112,
+  "all_expected_completed": true,
+  "eval_machines": [
+    "2080ti",
+    "3090"
+  ],
+  "topks": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ]
+}

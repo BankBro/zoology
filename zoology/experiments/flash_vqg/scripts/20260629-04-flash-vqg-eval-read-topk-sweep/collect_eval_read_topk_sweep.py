@@ -43,6 +43,24 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _dedupe_records(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    keyed: dict[tuple[str, str, int, str], dict[str, Any]] = {}
+    unkeyed: list[dict[str, Any]] = []
+    for row in rows:
+        try:
+            key = (
+                str(row["checkpoint_id"]),
+                str(row["checkpoint_kind"]),
+                int(row["eval_read_topk"]),
+                str(row["eval_machine"]),
+            )
+        except (KeyError, TypeError, ValueError):
+            unkeyed.append(row)
+            continue
+        keyed[key] = row
+    return unkeyed + [keyed[key] for key in sorted(keyed)]
+
+
 def _write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
@@ -273,6 +291,8 @@ def run(args: argparse.Namespace) -> int:
     rows: list[dict[str, Any]] = []
     for path in record_paths:
         rows.extend(_read_jsonl(path))
+    raw_record_count = len(rows)
+    rows = _dedupe_records(rows)
 
     summary = _summary_rows(rows)
     cross = _cross_machine_rows(rows)
@@ -389,6 +409,7 @@ def run(args: argparse.Namespace) -> int:
         "experiment_id": EXPERIMENT_ID,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "record_files": [str(p) for p in record_paths],
+        "raw_records": raw_record_count,
         "total_records": len(rows),
         "completed_records": len(completed),
         "failed_records": len(failed),

@@ -1,0 +1,9 @@
+path,bytes,sha256
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-2080ti-source/eval-records.jsonl,377947,ffd77cd6e917e9b94a7fce56f26548e6365b90ec68ef99afbaaeb65b275f31ec
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-2080ti-source/status.json,591,ef34578a52db5e6e6f00fd7a2ad76894b0c764758963657326107360ab2ce72f
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-3090-mirror/eval-records.jsonl,381529,93afdebcf867a28865d19727d8ba3c6fa852ffb70df46e037c861e5afe307167
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/2080ti-eval-3090-mirror/status.json,599,8a6882c4703e854c7d1bc07317562cddc354e34dd2c8f679de6a5a8cb25c7649
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-3090-source/eval-records.jsonl,526251,0e08535365b95cba00b929fc1d3848381586d037baf9214b1cd1a0d5270e48c8
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-3090-source/status.json,587,25408b8a9784f639a5345f142aeb3dfc4c5307002ed5841f1e6aebae61968f11
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-2080ti-mirror/eval-records.jsonl,381229,bceacce1bfb8c3fce4d0cd65feccee23287bb8f0a39de95ca89a9798e812a7c4
+zoology/experiments/flash_vqg/scripts/20260629-04-flash-vqg-eval-read-topk-sweep/outputs/full/3090-eval-2080ti-mirror/status.json,597,2196401fc15d026eceec6b39f91621e60b4fd6103d8321b931c35dde5282b4e9
