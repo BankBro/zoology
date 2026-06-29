@@ -12,11 +12,13 @@
 - checkpoint 来源: `2080ti-r1`, `2080ti-r2`, `3090-r1`, `3090-r2`.
 - eval machine: `2080ti`, `3090`.
 - eval read_topk: `1,2,4,8,16,32,64`.
-- 总有效记录: 8 x 2 x 7 = 112.
+- 总有效记录: 8 个 checkpoint/kind x 2 台 eval machine x 7 个 topk = 112.
 - 评估数据: 使用同一份 canonical MQAR cache. 本轮启动前做过跨机器 cache 内容 hash 校验, 13/13 match.
 - 训练代码 commit: `708180d Add eval read-topk sweep tooling`.
 
 本实验只读 checkpoint 和 validation cache, 不训练, 不保存新 checkpoint.
+
+cache preflight 的轻量汇总保存在 `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/cache-hash-summary.csv`. 13 个 cache 文件的 file sha256 与 tensor content sha256 均为 13/13 match.
 
 ## 运行状态
 
@@ -31,7 +33,9 @@
 
 ## 总体结果
 
-下面是 16 个组合上的 `valid/mqar_case/accuracy-1024x256` 汇总:
+下面按 eval read_topk 汇总 16 条 eval 记录, 即 8 个 checkpoint/kind 组合 x 2 台 eval machine. 注意这 16 条不是 16 个独立训练 run; 两台 eval machine 是用来验证同一 checkpoint 的 eval runtime 一致性.
+
+`delta vs topk64 mean` 的口径是: 同一 checkpoint, 同一 checkpoint kind, 同一 eval machine 下, 先计算 `topk - topk64`, 再对这些差值求平均.
 
 | eval read_topk | n | hard 1024x256 mean | min | max | delta vs topk64 mean |
 |---:|---:|---:|---:|---:|---:|
@@ -43,13 +47,29 @@
 | 32 | 16 | 0.917768 | 0.895910 | 0.936945 | -0.000014 |
 | 64 | 16 | 0.917781 | 0.895926 | 0.936984 | +0.000000 |
 
-结论很清楚:
+在本轮 checkpoint 和 canonical cache 上, 结论一致:
 
 - `topk=1` 明显不够, 平均比 `topk=64` 低 2.878pp.
 - `topk=2` 基本等于 `topk=64`.
 - `topk=4` 最好, 平均比 `topk=64` 高 0.447pp.
 - `topk=8` 也有小幅收益, 但弱于 `topk=4`.
 - `topk=16/32/64` 基本持平.
+
+`topk=4` 的胜出不是单个 checkpoint 拉高均值. 在 16 个 checkpoint/kind/eval-machine 组合中, `topk=4` 全部优于 `topk=64`; 单条 `topk=4 - topk64` 的 hard accuracy 提升范围是 +0.307pp 到 +0.607pp. 相对每个组合里的次优 topk, `topk=4` 的 margin 范围是 +0.148pp 到 +0.335pp.
+
+## 辅助指标
+
+下面补充 overall valid accuracy, loss 和 selected mass. selected mass 随 topk 增加而增加, 但 hard accuracy 和 loss 在 `topk=4` 最好, 说明读到更多 residual mass 不等价于更好的预测。
+
+| eval read_topk | n | valid accuracy mean | hard 1024x256 mean | valid loss mean | selected mass mean |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 16 | 0.980827 | 0.888998 | 0.175589 | 0.173698 |
+| 2 | 16 | 0.985994 | 0.917787 | 0.141790 | 0.250511 |
+| 4 | 16 | 0.986636 | 0.922252 | 0.137573 | 0.318467 |
+| 8 | 16 | 0.986261 | 0.919947 | 0.140887 | 0.358869 |
+| 16 | 16 | 0.985970 | 0.918023 | 0.143328 | 0.393043 |
+| 32 | 16 | 0.985931 | 0.917768 | 0.143784 | 0.415020 |
+| 64 | 16 | 0.985932 | 0.917781 | 0.143808 | 0.423879 |
 
 ## 分机器结果
 
@@ -114,9 +134,11 @@
 
 这次结果说明, dense-read 训练出来的模型在 eval 时并不一定需要 dense read。
 
-`topk=1` 太窄, 会漏掉必要 code, 所以明显掉分。`topk=2` 已经接近 dense read。`topk=4` 反而更好, 可能是因为它保留了足够候选, 同时过滤掉一部分低质量 residual contribution。`topk=64` 读全 code, selected mass 更高, 但不一定带来更高 accuracy。
+`topk=1` 太窄, 会漏掉必要 code, 所以明显掉分。`topk=2` 已经接近 dense read。`topk=4` 反而更好, 可能是因为它保留了足够候选, 同时过滤掉一部分低质量 residual contribution。`topk=64` 读全 code, 从 `valid_read_selected_mass_mean` 看 selected mass 更高, 但不一定带来更高 accuracy。
 
 这个结果不直接证明训练时也应该用 `read_topk=4`; 它只证明 eval/read 阶段存在一个可测的候选宽度效应。训练阶段的最优 read/write 支持还需要单独实验。
+
+因此, 报告中的 `topk=4` 应被理解为本轮 dense-read checkpoint 的 eval-time 最优点, 不是训练阶段默认配置, 也不是所有 seed/长度/容量下的通用结论。
 
 ## artifact
 
@@ -124,6 +146,9 @@
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/topk-vs-64.csv`
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/cross-machine-eval-comparison.csv`
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/aggregate-by-topk.csv`
+- `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/aggregate-by-topk-extended.csv`
+- `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/topk4-win-margins.csv`
+- `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/cache-hash-summary.csv`
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/checkpoint-manifest.csv`
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/source-manifest.csv`
 - `docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/metadata.json`

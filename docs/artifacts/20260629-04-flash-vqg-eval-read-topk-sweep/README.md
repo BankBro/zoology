@@ -10,6 +10,9 @@
 - `topk-vs-64.csv`: 同一 checkpoint 同一 eval machine 下, 各 topk 相对 topk=64 的差值.
 - `cross-machine-eval-comparison.csv`: 同一 checkpoint 同一 topk 在 2080ti 与 3090 eval 的差值.
 - `aggregate-by-topk.csv`: 按 eval machine 和 topk 聚合的均值/范围.
+- `aggregate-by-topk-extended.csv`: 按 topk 汇总 overall accuracy, hard accuracy, loss 和 selected mass.
+- `topk4-win-margins.csv`: `topk=4` 相对 `topk=64` 和相对次优 topk 的逐 checkpoint margin.
+- `cache-hash-summary.csv`: 2080ti 与 3090 的 MQAR cache file/content hash 对照.
 - `checkpoint-manifest.csv`: 本轮 checkpoint 输入清单.
 - `source-manifest.csv`: 原始 JSONL/status 文件的来源与 sha256.
 - `metadata.json`: 运行元信息.

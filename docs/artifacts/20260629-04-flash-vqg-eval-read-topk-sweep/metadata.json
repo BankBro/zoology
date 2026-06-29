@@ -25,5 +25,18 @@
     16,
     32,
     64
+  ],
+  "cache_hash_summary": {
+    "path": "docs/artifacts/20260629-04-flash-vqg-eval-read-topk-sweep/cache-hash-summary.csv",
+    "items": 13,
+    "file_sha256_matches": 13,
+    "content_sha256_matches": 13,
+    "all_file_sha256_match": true,
+    "all_content_sha256_match": true
+  },
+  "additional_summary_files": [
+    "aggregate-by-topk-extended.csv",
+    "topk4-win-margins.csv",
+    "cache-hash-summary.csv"
   ]
 }
