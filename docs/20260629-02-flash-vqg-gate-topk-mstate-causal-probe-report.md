@@ -85,6 +85,18 @@ preflight 全部通过. `preflight-summary.csv` 显示 4 个 variant 在 2080ti/
 - dense-read 1ep run 启动时, Flash-VQG `2743149` 对 `read_topk == num_codes` 自动使用 chunked dense residual read, 因此 `result.json` 的 `config_overrides` 只显示 `fox_remote_read_topk=64`.
 - 后续 Flash-VQG `bc391c0` 已把 chunked dense residual read 改成显式 opt-in `fox_gd_residual_dense_read_chunked=True`, zoology 脚本也已补充记录该 override. 这个修补是为了恢复普通默认语义, 不改变已完成 run 的记录版本.
 
+## 实验结论总表
+
+| 实验 | 类型 | 改了什么 | 主要观察 | 结论 | 是否是方案 |
+|---|---|---|---|---|---|
+| `baseline` | 17-step probe | 不改配置, 复现原始 no-dropout 条件 | 首个 mismatch 在 `step0/micro0/layer1/fox_gate/logits_cuda`; step16 的 `logf/M_state/top_idx/loss` 全都 mismatch | cache/init/batch order 不是首因. 低位差异最早进入 gate/logf 边界 | 否, 对照组 |
+| `constant-logf-f0.95` | 17-step probe | 固定 `f=0.95`, 不用 learned gate 生成动态 `logf` | step16 的 `logf/top_idx/loss` match, 但 `M_state` 仍 mismatch | learned/dynamic gate/logf 是重要扰动入口之一 | 否, 诊断 control |
+| `dense-read` | 17-step probe | `read_topk=64`, cb64 下读全部 code | `logf/M_state` 仍 mismatch, 但 step16 的 `top_idx/loss` match | read top-k candidate flip 是重要离散放大器 | 还不是, 但方向最值得继续 |
+| `residual-off` | 17-step probe | `fox_gd_residual_residual_norm_mode=zero`, 关闭 residual 输出贡献 | step16 `top_idx` match, 但 `loss` 仍 mismatch | residual 输出贡献不是唯一放大器, 只关 residual 不够 | 否, 诊断 ablation |
+| `constant-logf-f0.95` | 1ep screen | 同上, 跑完整 1 epoch | 2080ti `1024x256=0.000434`; 3090 `0.000367`; gap 很小但几乎没学起来 | 固定 logf 能稳定一部分路径, 但性能崩, 不能用 | 否 |
+| `dense-read` | 1ep screen | 同上, 跑完整 1 epoch | 2080ti `1024x256=0.892`; 3090 `0.894`; gap `0.002`; valid acc 两边都是 `0.979` | 本轮最强证据: 去掉 read top-k 硬选择后, 跨机器效果高度一致且没明显掉分 | 候选方向, 需 4ep confirm |
+| `round1e-5` | 引用旧 control | `fox_gate_logf_round_quantum=1e-5` | 旧实验中 step16 `top_idx/loss` 可 match, 但 state/grad/param/optimizer 仍 mismatch | 只能证明低位 logf 扰动会触发放大, 不是解决方案 | 否 |
+
 ## round1e-5 定位
 
 `fox_gate_logf_round_quantum=1e-5` 只作为此前 `20260629-01` 的 diagnostic control 引用. 它能让 step16 的 `phase2_read/top_idx` 和 `forward/loss` 回到 match, 但 `logf/state/grad/param/optimizer state` 仍 mismatch. 因此必须保持如下口径:
