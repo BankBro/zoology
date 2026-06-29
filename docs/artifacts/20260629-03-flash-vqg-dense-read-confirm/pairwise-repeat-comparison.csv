@@ -1,0 +1,5 @@
+pair,metric,2080ti,3090,absolute_gap,gap_percentage_points,within_4pp
+r1,final_1024x256_accuracy,0.916,0.896,0.020,2.0,True
+r1,best_1024x256_accuracy,0.947,0.941,0.006,0.6,True
+r2,final_1024x256_accuracy,0.937,0.901,0.036,3.6,True
+r2,best_1024x256_accuracy,0.948,0.953,0.005,0.5,True

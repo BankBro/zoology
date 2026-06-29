@@ -1,0 +1,4 @@
+reference_machine,reference_target,reference_1024x256_accuracy,candidate_machine,candidate_target,candidate_1024x256_accuracy,absolute_gap,gap_percentage_points,within_4pp
+2080ti,dense-read-4ep-s123-r1,0.916,2080ti,dense-read-4ep-s123-r2,0.937,0.02100000000000002,2.100000000000002,True
+2080ti,dense-read-4ep-s123-r1,0.916,3090,dense-read-4ep-s123-r1,0.896,0.020000000000000018,2.0000000000000018,True
+2080ti,dense-read-4ep-s123-r1,0.916,3090,dense-read-4ep-s123-r2,0.901,0.015000000000000013,1.5000000000000013,True

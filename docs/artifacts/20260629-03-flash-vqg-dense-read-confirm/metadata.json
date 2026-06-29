@@ -1,0 +1,25 @@
+{
+  "artifact_dir": "/home/lyj/mnt/project/zoology/docs/artifacts/20260629-03-flash-vqg-dense-read-confirm",
+  "expected_cache_combined_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "expected_fox_gd_residual_dense_read_chunked": true,
+  "expected_fox_remote_read_topk": 64,
+  "expected_init_state_sha256": "dd0b7bb57b8bbb1fd2bd6dbcfcaa82d609c318b9b1c9ead0e89032f17bf16edf",
+  "expected_num_codebook_vectors": 64,
+  "experiment_id": "20260629-03-flash-vqg-dense-read-confirm",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "bc391c0",
+  "ledger": "not written; diagnostic/exploratory screen",
+  "outputs_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260629-03-flash-vqg-dense-read-confirm/outputs",
+  "status": "collected",
+  "summary": {
+    "all_1024x256_within_4pp": true,
+    "cache_hash_records": 6,
+    "comparison_count": 3,
+    "completed_count": 4,
+    "init_verify_records": 6,
+    "invalid_count": 3,
+    "run_count": 4
+  },
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "6b172ab"
+}
