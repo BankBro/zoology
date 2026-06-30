@@ -25,7 +25,19 @@ PRIOR_INIT_META = PRIOR_INIT_CHECKPOINT.with_suffix(".meta.json")
 EXPERIMENT_ID = "20260630-04-flash-vqg-default-dropout-fixed-r4-1ep-screen"
 ARTIFACT_DIR = REPO_ROOT / "docs/artifacts" / EXPERIMENT_ID
 EXPECTED_INIT_STATE_SHA256 = "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"
-TARGETS = ("fixed-r4",)
+FIXED_R2_VARIANT = {
+    "kind": "fixed",
+    "description": "fixed train-time read_topk=2 baseline",
+    "fox_remote_read_topk": 2,
+    "fox_remote_read_topk_initial": None,
+    "fox_remote_read_topk_final": None,
+    "fox_remote_read_topk_release_start_train_steps": 0,
+    "fox_remote_read_topk_release_end_train_steps": 0,
+    "fox_remote_read_topk_schedule": "linear_int",
+    "fox_remote_read_topk_eval_policy": "scheduled",
+    "fox_gd_residual_dense_read_chunked": False,
+}
+TARGETS = ("fixed-r4", "fixed-r2-baseline")
 DEFAULT_MAX_EPOCHS = 1
 DEFAULT_EMBED_DROPOUT = 0.1
 DEFAULT_RESID_DROPOUT = 0.0
@@ -49,6 +61,7 @@ ORIGINAL_BUILD_CONFIG = BASE.build_config
 
 VARIANTS = {
     "fixed-r4": BASE.VARIANTS["fixed-r4"],
+    "fixed-r2-baseline": FIXED_R2_VARIANT,
 }
 
 
@@ -281,11 +294,13 @@ def run_collect(args: argparse.Namespace) -> int:
     code = BASE.run_collect(args)
     readme = (
         f"# {EXPERIMENT_ID}\n\n"
-        "本 artifact 收尾 `seed=124` default-dropout fixed-r4 1 epoch screen. "
+        "本 artifact 收尾 `seed=124` default-dropout fixed-r4 1 epoch screen, "
+        "并包含 2080ti fixed-r2 supplemental baseline. "
         "本轮是 diagnostic / exploratory screen, 不写 official MQAR ledger.\n\n"
         "共同配置: `seed=124`, `data_seed=123`, `cb64-r16`, `write_topk=4`, "
-        "train-time `read_topk=4`, canonical MQAR cache, seed124 canonical init, "
+        "canonical MQAR cache, seed124 canonical init, "
         "`max_epochs=1`, `embed_dropout=0.1`, `resid_dropout=0.0`, `drop_path=0.0`.\n\n"
+        "主跨机器 variant 是 `fixed-r4`; `fixed-r2-baseline` 只作为 2080ti 单机 supplemental read_topk baseline.\n\n"
         "## 文件\n\n"
         "- `run-summary.csv`: per-run final/best metrics.\n"
         "- `variant-summary.csv`: fixed-r4 的 2080ti/3090 成对结果.\n"

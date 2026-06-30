@@ -32,12 +32,17 @@
 - `embed_dropout=0.1`, `resid_dropout=0.0`, `drop_path=0.0`.
 - 2080ti x1 + 3090 x1.
 
+补充单机 baseline:
+
+- 在 2080ti GPU1 空闲时追加 `fixed-r2-baseline` 1 epoch。
+- 该 run 只用于同机比较 default-dropout 下 `read_topk=2` 与 `read_topk=4` 的差异, 不替代 fixed-r4 的跨机器判定。
+
 注意:
 
 ```text
 G/L coarse memory 使用 dense softmax 权重.
 M_state residual GD 写入仍是 top-k write, write_topk=4.
-本轮变量是 default dropout 加回.
+主变量是 default dropout 加回. 追加的 `fixed-r2-baseline` 是 supplemental read_topk baseline.
 ```
 
 ## 执行步骤
@@ -52,9 +57,10 @@ M_state residual GD 写入仍是 top-k write, write_topk=4.
    - total optimizer steps `704`.
    - `embed_dropout=0.1`, `resid_dropout=0.0`, `drop_path=0.0`.
    - `read_topk=4`, `write_topk=4`.
-6. 同时启动 2080ti 和 3090 训练。
-7. 训练进入稳定阶段后显式 `sleep 20m` 轮询日志, queue 状态和 GPU 状态。若未结束, 继续按 20 分钟粒度轮询。
-8. 完成后 collect artifact, 写 report, 提交并推送轻量产物。
+6. 同时启动 2080ti 和 3090 的 `fixed-r4` 训练。
+7. 如 2080ti GPU1 空闲, 启动 `fixed-r2-baseline` 1 epoch supplemental run。
+8. 训练进入稳定阶段后显式 `sleep 20m` 轮询日志, queue 状态和 GPU 状态。若未结束, 继续按 20 分钟粒度轮询。
+9. 完成后 collect artifact, 写 report, 提交并推送轻量产物。
 
 ## 判定
 
@@ -71,6 +77,8 @@ valid/mqar_case/accuracy-1024x256
 - final 1024x256 gap `<= 4pp`.
 
 如果通过, 下一步建议跑 default-dropout fixed-r4 4ep confirm。如果失败, 不继续 4ep, 转向 dropout 入口或 read candidate 稳定化拆解。
+
+`fixed-r2-baseline` 不参与 fixed-r4 跨机器通过标准, 只用于判断 default-dropout 下 `read_topk=4` 是否仍明显优于 `read_topk=2`。
 
 ## 产物
 

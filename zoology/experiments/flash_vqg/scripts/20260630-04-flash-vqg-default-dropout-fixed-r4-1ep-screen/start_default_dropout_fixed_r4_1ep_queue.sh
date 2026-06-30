@@ -8,6 +8,7 @@ Usage:
 
 Queues:
   2080ti-gpu0
+  2080ti-gpu1
   3090-gpu0
 USAGE
   exit 2

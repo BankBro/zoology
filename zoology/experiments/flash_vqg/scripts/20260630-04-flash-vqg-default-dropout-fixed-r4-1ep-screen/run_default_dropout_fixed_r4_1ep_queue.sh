@@ -8,6 +8,7 @@ Usage:
 
 Queues:
   2080ti-gpu0
+  2080ti-gpu1
   3090-gpu0
 USAGE
   exit 2
@@ -59,6 +60,12 @@ case "${QUEUE_NAME}" in
     TARGET="fixed-r4"
     VARIANT="fixed-r4"
     GPU="0"
+    ;;
+  2080ti-gpu1)
+    MACHINE_NAME="${MACHINE_NAME:-2080ti}"
+    TARGET="fixed-r2-baseline"
+    VARIANT="fixed-r2-baseline"
+    GPU="1"
     ;;
   3090-gpu0)
     MACHINE_NAME="${MACHINE_NAME:-3090}"
