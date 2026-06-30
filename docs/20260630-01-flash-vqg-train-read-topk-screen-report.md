@@ -1,6 +1,6 @@
 # 20260630-01 Flash-VQG 训练期 read_topk 渐进收缩实验报告
 
-status: running
+status: completed
 ledger: not written
 
 ## 目标
@@ -49,26 +49,58 @@ Variants:
 
 ## 结果
 
-待训练完成后从 artifact 回填。
-
 主指标是 `valid/mqar_case/accuracy-1024x256`。
 
 | variant | strategy | 2080ti final | 3090 final | gap | within 4pp | 2080ti best | 3090 best | best gap |
 |---|---|---:|---:|---:|---|---:|---:|---:|
-| `fixed-r2-baseline` | fixed 2 | pending | pending | pending | pending | pending | pending | pending |
-| `fixed-r4` | fixed 4 | pending | pending | pending | pending | pending | pending | pending |
-| `sched16to4` | 16 -> 4 | pending | pending | pending | pending | pending | pending | pending |
-| `sched64to4` | 64 -> 4 | pending | pending | pending | pending | pending | pending | pending |
+| `fixed-r2-baseline` | fixed 2 | 0.592 | 0.582 | 1.0pp | yes | 0.592 | 0.582 | 1.0pp |
+| `fixed-r4` | fixed 4 | 0.928 | 0.923 | 0.5pp | yes | 0.928 | 0.923 | 0.5pp |
+| `sched16to4` | 16 -> 4 | 0.923 | 0.895 | 2.8pp | yes | 0.923 | 0.895 | 2.8pp |
+| `sched64to4` | 64 -> 4 | failed | 0.907 | n/a | n/a | failed | 0.907 | n/a |
 
-## 初步判读
+`sched64to4` 在 2080ti 上失败, 记录为 `failed:1`. 错误是 CUDA OOM:
 
-待结果完成后更新。
+```text
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 7.88 GiB.
+```
 
-判定口径:
+3090 上 `sched64to4` 可以跑完, 但它没有超过 `fixed-r4`, 且同一配置在 2080ti 不可用。因此本轮不能把 `sched64to4` 当成实用方案。
 
-- 如果 `fixed-r4` 明显优于 `fixed-r2-baseline`, 下一步做 `fixed-r4` 4ep confirm。
-- 如果 `sched16to4` 或 `sched64to4` 优于固定 topk, 下一步只确认最好的 schedule。
-- 如果所有 variant 都不稳定, 不扩大 read_topk 网格, 回到 gate/logf 或 M_state/code-aware decay 机制分析。
+## 判读
+
+本轮最直接的结论是: 训练期固定 `read_topk=4` 是当前最干净的候选配置。
+
+相对默认 `read_topk=2`, 固定 `read_topk=4` 在两台机器上都显著提高 hard case:
+
+| machine | fixed-r2 | fixed-r4 | delta |
+|---|---:|---:|---:|
+| 2080ti | 0.592 | 0.928 | +33.6pp |
+| 3090 | 0.582 | 0.923 | +34.1pp |
+
+跨机器稳定性也更好看。`fixed-r4` 的 2080ti/3090 final gap 是 0.5pp, 在 4pp 容忍线内; `sched16to4` gap 是 2.8pp, 也在容忍线内, 但绝对准确率低于固定 r4。
+
+本轮没有看到“先大 topk, 后收缩到 4”比“直接固定 4”更好:
+
+- `sched16to4`: 两台都跑完, final 为 0.923/0.895, 不如 `fixed-r4` 的 0.928/0.923。
+- `sched64to4`: 3090 final 为 0.907, 不如 `fixed-r4`; 2080ti 直接 OOM。
+
+这说明本轮最值得继续确认的不是更大的 read_topk warmup, 而是更简单的 `fixed-r4`。它既提升效果, 又没有引入 `sched64to4` 那种显存风险。
+
+## 限制
+
+本轮只是 1 epoch screen, 不是最终正式结果。它能回答“下一步优先确认哪个方向”, 不能单独证明 `fixed-r4` 在 4 epoch 或更多 seed 上一定最优。
+
+另外, 本轮仍然是 no-dropout 条件。它延续前面为了定位跨机器不稳定而采用的诊断口径, 尚未回答“dropout 加回来后是否仍然稳定”。
+
+## 下一步
+
+建议下一步做 `fixed-r4` 4 epoch confirm:
+
+- 机器: 2080ti x1 + 3090 x1。
+- 配置: canonical cache/init, no-dropout, seed=123, cb64-r16, write_topk=4, train-time read_topk=4。
+- 判定: 重点看 1024x256 final/best 是否保持高位, 以及两机 gap 是否仍在 4pp 内。
+
+如果 4 epoch confirm 通过, 再考虑加回 dropout 做独立验证。不要现在继续扩大 `read_topk` schedule 网格; 本轮证据已经显示大 topk warmup 没有比固定 4 更有价值, 且 `64 -> 4` 有明显显存代价。
 
 ## 产物
 
