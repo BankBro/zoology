@@ -1,0 +1,51 @@
+{
+  "artifact_dir": "docs/artifacts/20260630-02-flash-vqg-s124-readk4-gate",
+  "expected_cache_combined_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "expected_init_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+  "expected_num_codebook_vectors": 64,
+  "expected_steps_per_epoch": 704,
+  "experiment_id": "20260630-02-flash-vqg-s124-readk4-gate",
+  "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+  "flash_vqg_commit": "bc391c0",
+  "ledger": "not written; diagnostic/exploratory screen",
+  "outputs_dir": "zoology/experiments/flash_vqg/scripts/20260630-02-flash-vqg-s124-readk4-gate/outputs",
+  "status": "collected",
+  "summary": {
+    "all_1024x256_within_4pp": false,
+    "cache_hash_records": 2,
+    "comparison_count": 2,
+    "completed_count": 4,
+    "init_verify_records": 2,
+    "invalid_count": 0,
+    "run_count": 4,
+    "variant_count": 2
+  },
+  "variants": {
+    "fixed-r2-baseline": {
+      "description": "fixed train-time read_topk=2 baseline",
+      "fox_gd_residual_dense_read_chunked": false,
+      "fox_remote_read_topk": 2,
+      "fox_remote_read_topk_eval_policy": "scheduled",
+      "fox_remote_read_topk_final": null,
+      "fox_remote_read_topk_initial": null,
+      "fox_remote_read_topk_release_end_train_steps": 0,
+      "fox_remote_read_topk_release_start_train_steps": 0,
+      "fox_remote_read_topk_schedule": "linear_int",
+      "kind": "fixed"
+    },
+    "fixed-r4": {
+      "description": "fixed train-time read_topk=4",
+      "fox_gd_residual_dense_read_chunked": false,
+      "fox_remote_read_topk": 4,
+      "fox_remote_read_topk_eval_policy": "scheduled",
+      "fox_remote_read_topk_final": null,
+      "fox_remote_read_topk_initial": null,
+      "fox_remote_read_topk_release_end_train_steps": 0,
+      "fox_remote_read_topk_release_start_train_steps": 0,
+      "fox_remote_read_topk_schedule": "linear_int",
+      "kind": "fixed"
+    }
+  },
+  "zoology_branch": "flash-vqg",
+  "zoology_commit": "df6cd6a"
+}
