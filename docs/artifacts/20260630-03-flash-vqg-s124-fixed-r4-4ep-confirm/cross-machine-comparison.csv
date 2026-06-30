@@ -1,0 +1,2 @@
+variant,reference_machine,reference_1024x256_accuracy,candidate_machine,candidate_1024x256_accuracy,absolute_gap,gap_percentage_points,within_4pp
+fixed-r4,2080ti,0.944,3090,0.953,0.009000000000000008,0.9000000000000008,True
