@@ -434,6 +434,12 @@ def _p05(values: list[float]) -> float | None:
     return float(values[idx])
 
 
+def _stable_key(value: Any) -> Any:
+    if isinstance(value, (list, dict)):
+        return json.dumps(value, sort_keys=True, separators=(",", ":"))
+    return value
+
+
 def _machine_target_from_trace(path: Path, outputs_dir: Path) -> tuple[str, str]:
     rel = path.relative_to(outputs_dir / "traces")
     return rel.parts[0], rel.parts[1]
@@ -529,8 +535,8 @@ def _collect_read_trace(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[d
             key = (
                 target,
                 int(r.get("global_step", -1)),
-                r.get("input_hash"),
-                r.get("target_hash"),
+                _stable_key(r.get("input_hash")),
+                _stable_key(r.get("target_hash")),
                 int(r.get("layer_idx", -1)),
                 int(r.get("head_idx", -1)),
                 int(r.get("block_idx", -1)),
@@ -539,7 +545,7 @@ def _collect_read_trace(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[d
             raw_rows_by_key[(machine, *key)] = r
 
     cross_rows: list[dict[str, Any]] = []
-    keys = sorted({key for machine, *key in raw_rows_by_key.keys()})
+    keys = sorted({tuple(key) for machine, *key in raw_rows_by_key.keys()})
     for key in keys:
         r2080 = raw_rows_by_key.get(("2080ti", *key))
         r3090 = raw_rows_by_key.get(("3090", *key))
