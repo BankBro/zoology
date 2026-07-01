@@ -1,0 +1,7 @@
+target,field,machine_count,unique_sha256_count,all_match,values_json
+baseline-r2,cache_combined_content_sha256,2,1,True,"{""2080ti"": ""d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"", ""3090"": ""d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8""}"
+baseline-r2,init_model_state_sha256,2,1,True,"{""2080ti"": ""2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"", ""3090"": ""2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0""}"
+baseline-r2,batch_order_sha256,2,1,True,"{""2080ti"": ""fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320"", ""3090"": ""fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320""}"
+ucap0p5-r2,cache_combined_content_sha256,2,1,True,"{""2080ti"": ""d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"", ""3090"": ""d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8""}"
+ucap0p5-r2,init_model_state_sha256,2,1,True,"{""2080ti"": ""2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"", ""3090"": ""2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0""}"
+ucap0p5-r2,batch_order_sha256,2,1,True,"{""2080ti"": ""fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320"", ""3090"": ""fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320""}"
