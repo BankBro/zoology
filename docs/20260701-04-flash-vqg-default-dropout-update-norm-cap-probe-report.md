@@ -110,6 +110,77 @@ step `704` 的 residual update/state 统计:
 - `cap=0.25` hit ratio 更高, 但性能明显被过度阻尼.
 - 这说明 `M_state` update 中少数大更新或早期关键更新可能很重要, 不一定需要全局大面积裁剪才会影响结果.
 
+## 为什么说 update 幅度是放大器
+
+这条结论来自三组结果的组合, 不是只看单个指标.
+
+第一, 不限制 update 时, default-dropout `r2` 出现严重跨机器分叉:
+
+```text
+baseline-r2:
+2080ti = 0.881
+3090   = 0.444
+gap    = 43.7pp
+```
+
+这说明在 cache/init/batch 都锁住后, 正常训练 dropout 加上当前 `gd_residual_v1` 路径, 足以把两台机器推到明显不同的训练结果.
+
+第二, 温和限制 update 到 `0.5` 后, 两边仍然能学, 但 gap 大幅缩小:
+
+```text
+ucap0p5-r2:
+2080ti = 0.807
+3090   = 0.779
+gap    = 2.8pp
+```
+
+这直接说明“限制 `M_state` residual update 幅度”切中了某个真实放大环节. 如果 update 幅度和分叉无关, 不应该把 `43.7pp` 的 gap 压到 `2.8pp`.
+
+第三, 继续压到 `0.25` 时, gap 更小, 但两边 hard slice 都明显变差:
+
+```text
+ucap0p25-r2:
+2080ti = 0.568
+3090   = 0.554
+gap    = 1.4pp
+```
+
+这说明不是“update 越小越好”. residual update 本身是有用的, 过强限制会把模型能力也压掉. 因此更合理的解释是:
+
+```text
+大部分 residual update 是有用的,
+但部分偏大或关键时刻的 update 会把早期扰动写进长期 M_state,
+后续被 recurrent state 和 residual read 反复使用,
+最终放大成明显训练效果差异.
+```
+
+这里还有一个重要边界: 本轮没有证明“两机变稳定是因为 read support 重新一致”. 后面的 read trace 显示, `cap=0.5` 时 step704 的 top-k exact match 仍约 `0.016`, 和 baseline 几乎一样低. 所以 cap 的作用更像是:
+
+```text
+不消灭路径分叉,
+但降低路径分叉写入 M_state 后的破坏性.
+```
+
+因此本轮可以直接说:
+
+```text
+update_norm_cap=0.5 显著缓解 default-dropout r2 的跨机器结果差异.
+```
+
+也可以较强地说:
+
+```text
+M_state residual update 幅度是重要放大器之一.
+```
+
+但还不能写成:
+
+```text
+已经证明最终 gap 一定由少数某几个大 update 直接触发.
+```
+
+要证明最后这一点, 下一步还需要补时间序列证据: 哪些 step/token/code 触发 cap, 触发前后 `M_state` norm, residual read output, loss 和 grad 是否开始明显分叉.
+
 ## read support trace
 
 跨机器 read support 对齐情况:
