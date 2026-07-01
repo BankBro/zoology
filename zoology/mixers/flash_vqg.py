@@ -63,6 +63,9 @@ class FlashVQGMixer(nn.Module):
         fox_gd_residual_write_q_alpha: float = 1.0,
         fox_gd_residual_m_norm_cap: float | None = None,
         fox_gd_residual_update_norm_cap: float | None = None,
+        fox_gd_residual_update_event_trace_enabled: bool = False,
+        fox_gd_residual_update_event_trace_topk: int = 64,
+        fox_gd_residual_update_event_trace_hypothetical_cap: float | None = None,
         fox_gd_residual_beta_init: float = 0.5,
         fox_gd_residual_beta_cap: float | None = None,
         fox_gd_residual_beta_cap_final: float | None = None,
@@ -236,6 +239,17 @@ class FlashVQGMixer(nn.Module):
             if fox_gd_residual_update_norm_cap is None
             else float(fox_gd_residual_update_norm_cap)
         )
+        self.fox_gd_residual_update_event_trace_enabled = bool(
+            fox_gd_residual_update_event_trace_enabled
+        )
+        self.fox_gd_residual_update_event_trace_topk = int(
+            fox_gd_residual_update_event_trace_topk
+        )
+        self.fox_gd_residual_update_event_trace_hypothetical_cap = (
+            None
+            if fox_gd_residual_update_event_trace_hypothetical_cap is None
+            else float(fox_gd_residual_update_event_trace_hypothetical_cap)
+        )
         self.fox_gd_residual_beta_init = float(fox_gd_residual_beta_init)
         self.fox_gd_residual_beta_cap = (
             None if fox_gd_residual_beta_cap is None else float(fox_gd_residual_beta_cap)
@@ -392,6 +406,15 @@ class FlashVQGMixer(nn.Module):
             fox_gd_residual_write_q_alpha=self.fox_gd_residual_write_q_alpha,
             fox_gd_residual_m_norm_cap=self.fox_gd_residual_m_norm_cap,
             fox_gd_residual_update_norm_cap=self.fox_gd_residual_update_norm_cap,
+            fox_gd_residual_update_event_trace_enabled=(
+                self.fox_gd_residual_update_event_trace_enabled
+            ),
+            fox_gd_residual_update_event_trace_topk=(
+                self.fox_gd_residual_update_event_trace_topk
+            ),
+            fox_gd_residual_update_event_trace_hypothetical_cap=(
+                self.fox_gd_residual_update_event_trace_hypothetical_cap
+            ),
             fox_gd_residual_beta_init=self.fox_gd_residual_beta_init,
             fox_gd_residual_beta_cap=self.fox_gd_residual_beta_cap,
             fox_gd_residual_beta_cap_final=self.fox_gd_residual_beta_cap_final,
