@@ -1082,7 +1082,7 @@ def _hash_probe_sort_key(row: dict[str, Any]) -> tuple[Any, ...]:
 
 
 def _collect_hash_probes(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    paths = sorted((outputs_dir / "hash-probes").glob("*/*/hash_probe.json"))
+    paths = sorted((outputs_dir / "hash-probes").glob("*/*/*/hash_probe.json"))
     rows: list[dict[str, Any]] = []
     for path in paths:
         payload = _read_json(path)
@@ -1136,6 +1136,191 @@ def _collect_hash_probes(outputs_dir: Path) -> tuple[list[dict[str, Any]], list[
     return summary_rows, first_rows
 
 
+def _latest_queue_status(status_path: Path) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    with status_path.open("r", encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            row["status_path"] = str(status_path)
+            rows.append(row)
+    return rows[-1] if rows else {"status_path": str(status_path)}
+
+
+def _execution_status_rows(outputs_dir: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for result_path in sorted(outputs_dir.glob("*/results/*.json")):
+        result = _read_json(result_path)
+        machine = str(result.get("machine_name", ""))
+        target = str(result.get("target", ""))
+        queue_dir = result_path.parents[1]
+        queue = queue_dir.name
+        config_path = queue_dir / "configs" / f"{target}.json"
+        log_path = queue_dir / "logs" / f"{target}.log"
+        status_path = queue_dir / "queue-status.tsv"
+        hash_paths = sorted((outputs_dir / "hash-probes" / machine / target).glob("*/hash_probe.json"))
+        hash_path = ""
+        hash_exists = False
+        for candidate in hash_paths:
+            # Prefer the hash probe emitted by the same run suffix / queue prefix.
+            if candidate.parent.name in queue:
+                hash_path = str(candidate)
+                hash_exists = True
+                break
+        if not hash_exists and hash_paths:
+            hash_path = str(hash_paths[0])
+            hash_exists = True
+
+        log_text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+        log_done = f"[done] target={target} train_status=0 hash_status=0" in log_text
+        queue_status = _latest_queue_status(status_path) if status_path.exists() else {}
+        wrapper_status = str(queue_status.get("status", ""))
+        effective_status = "completed" if hash_exists and log_done else wrapper_status or "unknown"
+        caveat = ""
+        if wrapper_status != "completed" and effective_status == "completed":
+            caveat = "wrapper_status_not_completed_but_result_log_hash_probe_confirm_success"
+        if "gpu0c" in queue and not result_path.exists():
+            caveat = "invalid_retry_without_result"
+        rows.append(
+            {
+                "experiment_id": EXPERIMENT_ID,
+                "machine": machine,
+                "target": target,
+                "queue": queue,
+                "wrapper_status": wrapper_status,
+                "effective_status": effective_status,
+                "execution_caveat": caveat,
+                "result_json": str(result_path),
+                "result_exists": result_path.exists(),
+                "config_json": str(config_path),
+                "config_exists": config_path.exists(),
+                "log_path": str(log_path),
+                "log_exists": log_path.exists(),
+                "log_done_marker": log_done,
+                "hash_probe_json": hash_path,
+                "hash_probe_exists": hash_exists,
+                "started_at": queue_status.get("started_at", ""),
+                "finished_at": queue_status.get("finished_at", ""),
+                "zoology_commit": (result.get("env") or {}).get("zoology_commit", ""),
+                "flash_vqg_commit": (result.get("env") or {}).get("flash_vqg_commit", ""),
+            }
+        )
+    return rows
+
+
+def _variant_decision_rows(execution_rows: list[dict[str, Any]], cross_summary: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_target: dict[str, list[dict[str, Any]]] = {}
+    for row in execution_rows:
+        by_target.setdefault(str(row.get("target", "")), []).append(row)
+    trace_by_target_step = {
+        (str(row.get("target", "")), int(row.get("train_step", -1))): row for row in cross_summary
+    }
+    rows: list[dict[str, Any]] = []
+    for target in TARGETS:
+        target_rows = by_target.get(target, [])
+        completed_machines = sorted(
+            str(row.get("machine"))
+            for row in target_rows
+            if row.get("effective_status") == "completed" and row.get("machine")
+        )
+        step128 = trace_by_target_step.get((target, 128), {})
+        step16 = trace_by_target_step.get((target, 16), {})
+        rows.append(
+            {
+                "target": target,
+                "machines_completed": ",".join(completed_machines),
+                "completed_pair": set(completed_machines) >= {"2080ti", "3090"},
+                "embed_dropout": _variant_config(target).get("embed_dropout", ""),
+                "read_topk": _variant_config(target).get("fox_remote_read_topk", ""),
+                "step16_top1_match_rate": step16.get("top1_match_rate", ""),
+                "step16_topk_exact_match_rate": step16.get("topk_exact_match_rate", ""),
+                "step16_topk_overlap_ratio_mean": step16.get("topk_overlap_ratio_mean", ""),
+                "step128_top1_match_rate": step128.get("top1_match_rate", ""),
+                "step128_topk_exact_match_rate": step128.get("topk_exact_match_rate", ""),
+                "step128_topk_overlap_ratio_mean": step128.get("topk_overlap_ratio_mean", ""),
+                "decision": (
+                    "usable_pair_diagnostic"
+                    if set(completed_machines) >= {"2080ti", "3090"}
+                    else "incomplete_pair_do_not_interpret"
+                ),
+            }
+        )
+    return rows
+
+
+def _preflight_effective_rows(hash_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for row in hash_rows:
+        if row.get("stage") != "preflight":
+            continue
+        rows.append(
+            {
+                "target": row.get("target", ""),
+                "field": row.get("field", ""),
+                "machine_count": row.get("machine_count", ""),
+                "unique_sha256_count": row.get("unique_sha256_count", ""),
+                "all_match": row.get("all_match", ""),
+                "values_json": row.get("values_json", ""),
+            }
+        )
+    return rows
+
+
+def _machine_from_output_path(path: Path) -> str:
+    parts = path.parts
+    for marker in ("preflight", "hash-probes", "traces"):
+        if marker in parts:
+            idx = parts.index(marker)
+            if idx + 1 < len(parts):
+                return parts[idx + 1]
+    return ""
+
+
+def _append_nested_source_manifest(artifact_dir: Path, outputs_dir: Path) -> int:
+    manifest = artifact_dir / "source-manifest.csv"
+    fieldnames = [
+        "machine",
+        "source_host",
+        "source_path",
+        "mirror_path",
+        "bytes",
+        "sha256",
+        "mirrored_to_main_workspace",
+    ]
+    rows: list[dict[str, Any]] = []
+    if manifest.exists():
+        with manifest.open("r", encoding="utf-8", newline="") as f:
+            rows.extend(csv.DictReader(f))
+    seen = {str(row.get("mirror_path", "")) for row in rows}
+    candidates: list[Path] = []
+    candidates.extend(sorted((outputs_dir / "preflight").glob("**/*.json")))
+    candidates.extend(sorted((outputs_dir / "hash-probes").glob("**/hash_probe.json")))
+    candidates.extend(sorted((outputs_dir / "traces").glob("**/early_window_metrics.jsonl")))
+    candidates.extend(sorted((outputs_dir / "traces").glob("**/read_trace.jsonl")))
+    added = 0
+    for path in candidates:
+        if not path.is_file():
+            continue
+        rel = str(path)
+        if rel in seen:
+            continue
+        machine = _machine_from_output_path(path)
+        host = "mclab-2080ti" if machine == "2080ti" else ("mclab-3090" if machine == "3090" else "")
+        rows.append(
+            {
+                "machine": machine,
+                "source_host": host,
+                "source_path": rel,
+                "mirror_path": rel,
+                "bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+                "mirrored_to_main_workspace": True,
+            }
+        )
+        seen.add(rel)
+        added += 1
+    _write_csv(manifest, rows, fieldnames=fieldnames)
+    return added
+
+
 def run_collect(args: argparse.Namespace) -> int:
     code = BASE.run_collect(args)
     artifact_dir = args.artifact_dir
@@ -1143,18 +1328,29 @@ def run_collect(args: argparse.Namespace) -> int:
     early_rows = _collect_early_window(outputs_dir)
     trace_rows, cross_rows, cross_summary = _collect_read_trace(outputs_dir)
     hash_rows, first_rows = _collect_hash_probes(outputs_dir)
+    execution_rows = _execution_status_rows(outputs_dir)
+    decision_rows = _variant_decision_rows(execution_rows, cross_summary)
+    preflight_effective_rows = _preflight_effective_rows(hash_rows)
     _write_csv(artifact_dir / "early-window-summary.csv", early_rows)
     _write_csv(artifact_dir / "read-trace-summary.csv", trace_rows)
     _write_csv(artifact_dir / "read-trace-cross-machine.csv", cross_rows)
     _write_csv(artifact_dir / "read-trace-cross-machine-summary.csv", cross_summary)
     _write_csv(artifact_dir / "hash-probe-comparison-summary.csv", hash_rows)
     _write_csv(artifact_dir / "first-mismatch-summary.csv", first_rows)
+    _write_csv(artifact_dir / "execution-status-summary.csv", execution_rows)
+    _write_csv(artifact_dir / "variant-decision-summary.csv", decision_rows)
+    _write_csv(artifact_dir / "preflight-effective-summary.csv", preflight_effective_rows)
+    nested_manifest_added = _append_nested_source_manifest(artifact_dir, outputs_dir)
     readme = (
         f"# {EXPERIMENT_ID}\n\n"
         "本 artifact 收尾 default-dropout amplifier trace diagnostic. "
         "本轮只定位放大链路, 不测试稳定化方案, 不写 official MQAR ledger.\n\n"
         "共同配置: `seed=124`, `data_seed=123`, `cb64-r16`, `write_topk=4`, "
         "canonical MQAR cache, seed124 canonical init, `resid_dropout=0`, `drop_path=0`.\n\n"
+        "执行说明: 部分后台 wrapper 在目标完成后未把 `queue-status.tsv` 写到 `completed`, "
+        "但对应 `result.json`, log `[done] ... train_status=0 hash_status=0`, 以及 `hash_probe.json` 均存在. "
+        "因此本实验判断有效运行时以 `execution-status-summary.csv` 的 `effective_status` 为准, "
+        "`queue-summary.csv` 保留原始 wrapper 状态用于审计.\n\n"
         "核心文件:\n\n"
         "- `run-summary.csv`: per-run final/best metrics.\n"
         "- `variant-summary.csv`: per-variant cross-machine summary.\n"
@@ -1163,6 +1359,9 @@ def run_collect(args: argparse.Namespace) -> int:
         "- `read-trace-cross-machine-summary.csv`: 2080ti/3090 trace support match summary.\n"
         "- `hash-probe-comparison-summary.csv`: train-mode forward/backward hash comparison.\n"
         "- `first-mismatch-summary.csv`: first cross-machine mismatch by target.\n"
+        "- `execution-status-summary.csv`: result/log/hash-probe based effective completion status.\n"
+        "- `variant-decision-summary.csv`: target-level completion and read-support summary.\n"
+        "- `preflight-effective-summary.csv`: cache/init/batch-order match summary from hash probes.\n"
         "- `cache-init-preflight-summary.csv`: cache/init hash evidence.\n"
         "- `queue-summary.csv`: queue status.\n"
         "- `source-manifest.csv`: mirrored lightweight raw evidence.\n"
@@ -1179,6 +1378,13 @@ def run_collect(args: argparse.Namespace) -> int:
             "read_trace_cross_machine_summary_rows": len(cross_summary),
             "hash_probe_comparison_rows": len(hash_rows),
             "first_mismatch_rows": len(first_rows),
+            "execution_status_rows": len(execution_rows),
+            "variant_decision_rows": len(decision_rows),
+            "preflight_effective_rows": len(preflight_effective_rows),
+            "nested_source_manifest_rows_added": nested_manifest_added,
+            "effective_completed_runs": sum(1 for row in execution_rows if row.get("effective_status") == "completed"),
+            "wrapper_status_caveats": sum(1 for row in execution_rows if row.get("execution_caveat")),
+            "execution_status_source": "effective_status requires result.json, log done marker, and hash_probe.json; queue-summary keeps raw wrapper status",
         }
     )
     _save_json(metadata_path, metadata)

@@ -1,6 +1,6 @@
 # 20260701-02 Flash-VQG default-dropout amplifier trace plan
 
-status: planned
+status: completed
 ledger: not written for diagnostic/probe runs
 
 ## 目标

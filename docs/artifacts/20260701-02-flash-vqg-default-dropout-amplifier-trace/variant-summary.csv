@@ -1,0 +1,4 @@
+variant,variant_kind,description,completed_machines,completed_count,final_1024x256_2080ti,final_1024x256_3090,final_gap,final_gap_percentage_points,final_within_4pp,best_1024x256_2080ti,best_1024x256_3090,best_gap,best_gap_percentage_points,best_within_4pp,fox_remote_read_topk,fox_remote_read_topk_initial,fox_remote_read_topk_final,release_start,release_end,schedule,dense_read_chunked
+default-r4,fixed,default-dropout fixed read_topk=4,,0,,,,,,,,,,,4,,,0,0,linear_int,False
+dropout005-r4,fixed,fixed read_topk=4 with embed_dropout=0.05 boundary control,,0,,,,,,,,,,,4,,,0,0,linear_int,False
+default-r2,fixed,default-dropout fixed read_topk=2,"2080ti,3090",2,,,,,,,,,,,2,,,0,0,linear_int,False
