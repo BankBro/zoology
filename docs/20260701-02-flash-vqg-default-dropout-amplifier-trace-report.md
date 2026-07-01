@@ -11,6 +11,19 @@ ledger: not written
 
 这轮更重要的新信号是: 这个早期 dropout 路径差异进入 `gd_residual_v1` 后, read support 在 128 step 内快速跨机器分叉. 但它没有直接证明 "read support 分叉本身足以导致 1ep 失败". 原因是 `dropout005-r4` 在 step128 同样有明显 read support 分叉, 但上一轮 1ep paired screen 仍然进入 4pp 容忍线. 所以下一步不能只盯 `read_topk`, 还要看 default dropout 强度下 residual injection, M_state/update 和写入轨迹如何在 128 step 之后继续放大。
 
+更直白地说, 本轮实验没有找到最终根因, 但把问题范围收窄了:
+
+```text
+不是 cache/init/batch 不一致.
+不是评估时误开 dropout.
+不是 read_topk=4 单独导致一切问题.
+
+更像是:
+正常训练 dropout 在 Flash-VQG 入口前制造早期路径差异,
+这个差异进入 gd_residual_v1 后被 residual read/write/M_state 路径持续放大,
+但真正从"路径分叉"变成"1ep 指标崩掉"的转折点还没有被抓到.
+```
+
 ## 实验口径
 
 - experiment id: `20260701-02-flash-vqg-default-dropout-amplifier-trace`.
@@ -118,6 +131,25 @@ step128 的 residual/read-write 指标:
 
 这张表的重点不是判断哪个 target 最好, 而是说明: 到 128 step 时, read support 和 residual state 指标已经明显不同, 但 loss 还没有明显分开. 因此早期 128-step trace 能证明"路径已经分叉", 不能单独证明"失败已经发生". 真正需要定位的是 128 step 之后, 这些 state/read/write 差异什么时候变成 1ep hard slice 崩溃。
 
+## 为什么这还不是最终根因
+
+这轮最容易被误读的点是 `top-k exact match` 很低, 特别是 `default-r4` step128 已经是 `0.0%`. 这个现象很重要, 但不能直接等价为最终根因。
+
+原因有两层:
+
+1. `dropout005-r4` 也出现明显 read support 分叉, step128 exact match 只有 `1.6%`, 但上一轮 1ep paired hard slice 是 `0.872` vs `0.841`, gap `3.1pp`, 仍在容忍线内.
+2. 本轮 step128 的 loss 仍然非常接近, 说明 read support/state 已经分叉, 但训练还没有在这个窗口表现出明显 loss 崩坏.
+
+所以当前证据更准确的表达是:
+
+```text
+read support 分叉是重要放大器信号,
+但从 read support 分叉到 1ep hard slice 崩溃之间,
+还缺少 128 -> 704 step 的中间证据.
+```
+
+这也是下一轮必须做 bridge trace 的原因。
+
 ## 和最近几轮实验合并判读
 
 已有 1ep 证据:
@@ -155,6 +187,14 @@ step128 的 residual/read-write 指标:
 - 不能说 `read_topk=2` 是最终方案. default dropout r2 paired 1ep 已经失败.
 - 不能说关掉 residual 是方案. residual zero hard slice 基本学不动.
 
+当前真正被收窄的问题是:
+
+```text
+正常 train dropout 导致的早期 hidden-state 分叉,
+在 gd_residual_v1 里通过 read/write support, M_state update, residual injection, lambda/beta 中的哪条路径,
+于 128 -> 704 step 之间被放大成最终 hard slice gap?
+```
+
 ## 下一步建议
 
 下一轮不要马上跑 4ep, 也不要直接做大网格. 应该先补一轮 "128 step 到 1ep 之间的桥接 trace":
@@ -164,6 +204,16 @@ step128 的 residual/read-write 指标:
 3. 跑到 1ep, 但在 optimizer step `128,256,384,512,704` 做稀疏 trace, 同时保留 final hard slice.
 4. 必须记录 read support, write support, M_state norm/update norm, residual injection ratio, lambda/beta, loss, grad/model/optimizer hash.
 5. 目标是找出: 128 step 时 loss 还接近, 但 1ep hard slice 已经崩, 中间是哪一类指标先出现异常增益.
+
+建议判定矩阵:
+
+| bridge trace 现象 | 说明 | 后续 |
+|---|---|---|
+| read support 继续分叉, 但 M/update/inject 平稳, final 仍崩 | 只看 support 不够, 需要查 residual contribution 或 optimizer 轨迹 | 加强 O_res/loss/grad trace |
+| M_state update norm 或 M_state norm 在 256/384 后明显拉开 | M_state 写入/累积是主要放大点 | 做 update norm cap 或 M_state norm control |
+| residual injection ratio 或 lambda/beta 明显拉开 | residual 注入强度是主要放大点 | 做 injection/lambda/beta warmup 或 cap |
+| write support 早于 read support 恶化 | 写入侧先污染 memory | 做 write support/margin guard |
+| dropout005-r4 的同类指标明显更温和 | default dropout 强度把当前机制推过稳定边界 | 继续在 `embed_dropout=0.1` 下做稳定化, `0.05` 只作为边界对照 |
 
 只有在这轮桥接 trace 找到明确转折点后, 再进入最小稳定化 probe:
 
@@ -175,4 +225,3 @@ step128 的 residual/read-write 指标:
 这些稳定化 probe 必须在 default `embed_dropout=0.1` 下验证. `dropout=0.05` 只能作为扰动边界诊断, 不能替代正常训练协议。
 
 Artifact 目录: `docs/artifacts/20260701-02-flash-vqg-default-dropout-amplifier-trace/`.
-
