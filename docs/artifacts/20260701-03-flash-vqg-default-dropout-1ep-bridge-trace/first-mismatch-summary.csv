@@ -1,0 +1,4 @@
+target,comparison_rows,mismatch_rows,first_mismatch_stage,first_mismatch_optimizer_step,first_mismatch_micro_step,first_mismatch_field,first_mismatch_module
+default-r2,1587,1561,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+default-r4,1587,1561,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+dropout005-r4,1587,1561,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1

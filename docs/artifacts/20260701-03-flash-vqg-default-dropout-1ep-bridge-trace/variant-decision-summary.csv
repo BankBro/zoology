@@ -1,0 +1,4 @@
+target,machines_completed,completed_pair,embed_dropout,read_topk,step16_top1_match_rate,step16_topk_exact_match_rate,step16_topk_overlap_ratio_mean,step128_top1_match_rate,step128_topk_exact_match_rate,step128_topk_overlap_ratio_mean,decision
+default-r2,"2080ti,3090",True,0.1,2,0.65625,0.3125,0.6875,0.53125,0.171875,0.4375,usable_pair_diagnostic
+default-r4,"2080ti,3090",True,0.1,4,0.65625,0.03125,0.7578125,0.578125,0.0,0.48046875,usable_pair_diagnostic
+dropout005-r4,"2080ti,3090",True,0.05,4,0.765625,0.09375,0.78125,0.53125,0.015625,0.51171875,usable_pair_diagnostic

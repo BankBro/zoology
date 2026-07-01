@@ -1,0 +1,7 @@
+target,machine,embed_dropout,read_topk,write_topk,final_1024x256_accuracy,final_valid_accuracy,final_valid_loss,best_1024x256_accuracy,n_validation_summaries,duration_minutes
+default-r2,2080ti,0.1,2,4,0.869,0.974,0.325,0.869,4,140.0
+dropout005-r4,2080ti,0.05,4,4,0.738,0.953,0.432,0.738,4,125.0
+default-r4,2080ti,0.1,4,4,0.818,0.958,0.698,0.818,4,95.0
+default-r2,3090,0.1,2,4,0.445,0.898,0.872,0.445,4,95.0
+default-r4,3090,0.1,4,4,0.128,0.688,2.83,0.128,3,80.0
+dropout005-r4,3090,0.05,4,4,0.859,0.97,0.336,0.859,4,95.0

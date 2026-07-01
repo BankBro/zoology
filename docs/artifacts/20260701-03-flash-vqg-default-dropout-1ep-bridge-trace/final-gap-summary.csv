@@ -1,0 +1,4 @@
+variant,reference_machine,reference_1024x256_accuracy,candidate_machine,candidate_1024x256_accuracy,absolute_gap,gap_percentage_points,within_4pp
+default-r2,2080ti,0.869,3090,0.445,0.424,42.4,False
+default-r4,2080ti,0.818,3090,0.128,0.69,69.0,False
+dropout005-r4,2080ti,0.738,3090,0.859,0.121,12.1,False
