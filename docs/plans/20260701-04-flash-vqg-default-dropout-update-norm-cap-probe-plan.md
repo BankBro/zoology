@@ -1,6 +1,6 @@
 # 20260701-04 Flash-VQG default-dropout update-norm-cap probe 计划
 
-status: planned
+status: completed
 ledger: not written for diagnostic/probe runs
 
 ## 目标
