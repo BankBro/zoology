@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import importlib.util
 import json
 import os
@@ -109,6 +110,7 @@ BASEMOD.VARIANTS = VARIANTS
 _ORIGINAL_BUILD_CONFIG = BASEMOD._ORIGINAL_BUILD_CONFIG
 _ORIGINAL_FLASH_SETTINGS = BASEMOD._ORIGINAL_FLASH_SETTINGS
 _ORIGINAL_VARIANT_MATCH = BASEMOD._ORIGINAL_VARIANT_MATCH
+_ORIGINAL_RUN_PREFLIGHT = BASEMOD.BASEMOD.run_preflight
 _ORIGINAL_RUN_COLLECT = BASEMOD._ORIGINAL_RUN_COLLECT
 
 
@@ -178,6 +180,21 @@ def _float_or_none(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _batch_order_hash(dataloader: Any) -> dict[str, Any]:
+    sampler = getattr(dataloader, "sampler", None)
+    if sampler is not None and hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(0)
+    order = list(iter(sampler)) if sampler is not None else list(range(len(dataloader)))
+    hasher = hashlib.sha256()
+    for item in order:
+        hasher.update(int(item).to_bytes(8, "little", signed=True))
+    return {
+        "num_batches": len(order),
+        "sha256": hasher.hexdigest(),
+        "first_16": order[:16],
+    }
 
 
 def _patch_injection_warmup_support() -> None:
@@ -256,6 +273,33 @@ def _patch_injection_warmup_support() -> None:
     BASEMOD.BASEMOD.BASE.build_config = build_config
     BASEMOD.BASEMOD.BASE._flash_vqg_settings = flash_vqg_settings
     BASEMOD.BASEMOD.BASE._variant_settings_match = variant_settings_match
+
+
+def run_preflight(args: argparse.Namespace) -> int:
+    code = _ORIGINAL_RUN_PREFLIGHT(args)
+    if args.output_json is None:
+        return code
+    path = Path(args.output_json)
+    payload = _read_json(path)
+    config = BASEMOD.BASEMOD.BASE.build_config(
+        target=args.target,
+        machine_name=args.machine_name,
+        variant=args.variant,
+        logger_backend="none",
+        trace_output_dir=SCRIPT_DIR / "outputs/preflight-traces" / args.machine_name / args.target,
+        max_epochs=args.max_epochs,
+        max_train_steps=args.max_train_steps,
+        max_validation_batches=args.max_validation_batches,
+    )
+    BASEMOD.BASEMOD._apply_run_suffix(config, args.run_suffix)
+    train_loader, _ = BASEMOD.BASEMOD.BASE.prepare_data(config.data)
+    batch_order = _batch_order_hash(train_loader)
+    payload["batch_order"] = batch_order
+    payload["batch_order_sha256"] = batch_order["sha256"]
+    payload["batch_order_first_16"] = batch_order["first_16"]
+    payload["batch_order_num_batches"] = batch_order["num_batches"]
+    _save_json(path, payload)
+    return code
 
 
 def _machine_target_from_trace(path: Path, outputs_dir: Path) -> tuple[str, str]:
@@ -402,6 +446,8 @@ def run_collect(args: argparse.Namespace) -> int:
 
 
 _patch_injection_warmup_support()
+BASEMOD.run_preflight = run_preflight
+BASEMOD.BASEMOD.run_preflight = run_preflight
 BASEMOD.run_collect = run_collect
 BASEMOD.BASEMOD.run_collect = run_collect
 
