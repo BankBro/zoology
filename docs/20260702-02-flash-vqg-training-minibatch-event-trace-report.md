@@ -179,6 +179,23 @@ read support 分叉发生得很早.
 
 这已经不是极少数单点 outlier.
 
+术语说明:
+
+| 指标 | 含义 |
+| --- | --- |
+| `actual_cap_hit` | 当前 run 真实启用了 `fox_gd_residual_update_norm_cap`, 该 update 在训练中实际被 cap 缩放 |
+| `hypothetical_cap_hit` | 当前 run 不一定启用 cap, 但 trace 事后假设阈值为 `0.5`, 计算如果启用这个 cap, 该 update 是否会被缩放 |
+
+因此 `baseline-r2` 的 `hypothetical_cap_hit_ratio=0.298` 不是说 baseline 训练真的被 cap 了, 而是说:
+
+```text
+baseline 真实训练没有 cap,
+但如果当时使用 cap=0.5,
+被记录的 top residual update event 中约 29.8% 会被截断.
+```
+
+这个指标的价值是估计 hard cap 会影响多少真实训练 event. 如果 hit ratio 很低, cap 更像 spike guard; 如果 hit ratio 很高, cap 更像大面积改变训练语义的 intervention.
+
 ## Cap Hit Timeline
 
 真实 training minibatch 中的 selected steps:
@@ -217,6 +234,112 @@ read support 分叉发生得很早.
 ```
 
 这提供了一个合理解释: 它在某些 run 里可能缓解下游破坏性, 但本轮显示这种 hard intervention 本身也会随轨迹变化而不稳.
+
+## Post-Hoc Observations
+
+在收尾后继续从已有 CSV 做了几项事后统计. 这些不是新的训练实验, 只是对本轮 artifact 的二次分析.
+
+### read support 早于大规模 cap hit 分叉
+
+跨机器 read support 的分叉很早:
+
+| 事件 | baseline-r2 | ucap0p5-r2 |
+| --- | ---: | ---: |
+| top-k exact match 低于 `50%` | step `8` | step `8` |
+| top-k exact match 低于 `25%` | step `64` | step `64` |
+| top-k exact match 接近 `0` | step `192` | step `192` |
+| cap/hypothetical cap 开始 hit | step `48` | step `48` |
+| 3090 cap hit 达到 `100%` | step `192` | step `192` |
+| 2080ti cap hit 达到 `100%` | step `384` | step `384` |
+
+这说明:
+
+```text
+read support 分叉早于大规模 cap hit.
+hard cap 主要处理下游 residual update/state 的破坏性,
+不是阻止早期 read path 分叉.
+```
+
+### cap 的早期影响不会立刻改变 read-support summary
+
+`baseline-r2` 和 `ucap0p5-r2` 在 step `0-128` 的 fixed validation snapshot read-support summary 完全一致. 但 training inline trace 显示 `ucap0p5-r2` 从 step `48` 开始已经出现 actual cap hit.
+
+这说明:
+
+```text
+早期少量 cap hit 没有立刻改变 fixed validation read-support summary.
+真正明显的轨迹重塑发生在 step192 以后,
+尤其是 cap hit 变成大面积之后.
+```
+
+### 3090 更早进入 cap-active update regime
+
+`ucap0p5-r2` 的 actual cap hit ratio:
+
+| step | 2080ti | 3090 |
+| ---: | ---: | ---: |
+| `48` | `0.023` | `0.215` |
+| `192` | `0.156` | `1.000` |
+| `256` | `0.480` | `1.000` |
+| `384` | `1.000` | `1.000` |
+| `512` | `0.000` | `1.000` |
+| `703` | `0.542` | `1.000` |
+
+这进一步说明 hard cap 不是在两台机器上提供相同训练语义. 3090 更早进入几乎所有 traced top update 都被 cap 的状态, 这会把两台机器推向不同的 residual write/state 轨迹.
+
+### loss 明显拉开集中在 step384 到 step512
+
+fixed validation snapshot loss gap:
+
+| variant | step384 gap | step512 gap | step704 gap |
+| --- | ---: | ---: | ---: |
+| `baseline-r2` | `0.044` | `1.939` | `0.705` |
+| `ucap0p5-r2` | `0.099` | `3.477` | `1.625` |
+
+读法:
+
+```text
+早期 read support 已经分叉, 但 loss 仍接近.
+真正可见的 loss 分叉集中出现在 step384 -> step512.
+```
+
+如果后续要做更细 event trace, 不需要全程高频 dump; 应优先盯 `step256-512` 这个窗口.
+
+### code/head hotspot 是轨迹现象, 不是固定 code bug
+
+top event 的主热点会迁移:
+
+| target | machine | 关键迁移 |
+| --- | --- | --- |
+| `baseline-r2` | 2080ti | early scattered -> head0/code39 -> head1/code50 -> head0/code39 |
+| `baseline-r2` | 3090 | early scattered -> head0/code39 -> head1/code50 -> head0/code39 |
+| `ucap0p5-r2` | 2080ti | early scattered -> head0/code39 -> head1/code50 -> head0/code39 -> head1/code50 |
+| `ucap0p5-r2` | 3090 | early scattered -> head0/code39 -> head1/code50 -> head1/code12 |
+
+所以本轮不能说 `code39`, `code50`, 或 `code12` 是固定 bug. 更合理的判断是:
+
+```text
+某些 code/head bucket 会在特定训练轨迹中成为 residual update pressure 的吸收点.
+```
+
+如果后续做 code-aware 控制, 应该按 bucket pressure 自适应, 不是手工处理某个 code.
+
+### lambda/inject 也是下一步应拆的环节
+
+step `512` 时, loss 已明显拉开, 同时 residual injection 相关指标也明显不同:
+
+| variant | metric | 2080ti | 3090 |
+| --- | --- | ---: | ---: |
+| `baseline-r2` | `lambda_mean` | `0.125` | `0.023` |
+| `baseline-r2` | `inject_ratio` | `0.696` | `0.114` |
+| `baseline-r2` | loss | `6.554` | `8.494` |
+| `ucap0p5-r2` | `lambda_mean` | `0.131` | `0.099` |
+| `ucap0p5-r2` | `inject_ratio` | `0.689` | `0.542` |
+| `ucap0p5-r2` | loss | `3.259` | `6.736` |
+
+这说明 final gap 不只是 write/update 的事. Residual branch 读出来以后如何通过 `lambda` 和 injection 加回主输出, 也在 loss 分叉窗口中表现出明显跨机器差异.
+
+因此下一步做 `residual injection / lambda warmup` 是有数据支撑的, 不是单纯调参.
 
 ## Validation Snapshot Scalar Metrics
 
