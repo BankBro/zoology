@@ -1,0 +1,4 @@
+target,comparison_rows,mismatch_rows,first_mismatch_stage,first_mismatch_optimizer_step,first_mismatch_micro_step,first_mismatch_field,first_mismatch_module
+baseline-r2,1803,1753,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+inj-warmup-linear512-r2,1803,1753,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1
+inj-warmup-silent64-linear512-r2,1803,1753,forward_before_backward_step0_micro0,0,0,module_output_sha256,backbone.layers.0.dropout1

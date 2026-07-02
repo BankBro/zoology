@@ -1,0 +1,4 @@
+variant,reference_machine,reference_1024x256_accuracy,candidate_machine,candidate_1024x256_accuracy,absolute_gap,gap_percentage_points,within_4pp
+baseline-r2,2080ti,0.818,3090,0.48,0.33799999999999997,33.8,False
+inj-warmup-linear512-r2,2080ti,0.871,3090,0.814,0.05700000000000005,5.700000000000005,False
+inj-warmup-silent64-linear512-r2,2080ti,0.775,3090,0.819,0.04399999999999993,4.399999999999993,False
