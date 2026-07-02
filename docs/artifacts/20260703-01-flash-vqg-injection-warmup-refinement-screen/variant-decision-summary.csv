@@ -1,0 +1,4 @@
+target,machines_completed,completed_pair,embed_dropout,read_topk,step16_top1_match_rate,step16_topk_exact_match_rate,step16_topk_overlap_ratio_mean,step128_top1_match_rate,step128_topk_exact_match_rate,step128_topk_overlap_ratio_mean,decision
+inj-warmup-linear704-r2,"2080ti,3090",True,0.1,2,0.671875,0.34375,0.703125,0.421875,0.046875,0.328125,usable_pair_diagnostic
+inj-warmup-linear1024-r2,"2080ti,3090",True,0.1,2,0.671875,0.34375,0.703125,0.421875,0.046875,0.328125,usable_pair_diagnostic
+inj-warmup-silent32-linear704-r2,"2080ti,3090",True,0.1,2,0.671875,0.34375,0.703125,0.421875,0.046875,0.34375,usable_pair_diagnostic
