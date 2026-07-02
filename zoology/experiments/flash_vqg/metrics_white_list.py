@@ -28,6 +28,7 @@ DEFAULT_ATTN_METRICS = [
     "attn/k_hat_rms_mean",
     "attn/clr_h_norm_mean",
     "attn/gd_residual_inject_ratio",
+    "attn/gd_residual_injection_warmup_factor",
     "attn/gd_residual_lambda_mean",
     "attn/gd_residual_remote_read_topk_effective",
     "attn/gd_residual_read_margin_top1_top2_mean",
@@ -184,6 +185,7 @@ REMOTE_FULL_ONLY_BASE_KEYS = {
 }
 GD_RESIDUAL_BASE_KEYS = {
     "attn/gd_residual_inject_ratio",
+    "attn/gd_residual_injection_warmup_factor",
     "attn/gd_residual_lambda_mean",
     "attn/gd_residual_remote_read_topk_effective",
     "attn/gd_residual_read_margin_top1_top2_mean",

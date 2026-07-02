@@ -407,6 +407,9 @@ def add_flash_vqg(
     fox_gd_residual_write_q_alpha=1.0,
     fox_gd_residual_m_norm_cap=None,
     fox_gd_residual_update_norm_cap=None,
+    fox_gd_residual_injection_warmup_start_train_steps=0,
+    fox_gd_residual_injection_warmup_end_train_steps=0,
+    fox_gd_residual_injection_warmup_eval_policy="scheduled",
     fox_gd_residual_norm_with_gain=False,
     fox_gd_residual_use_separate_addr_codebook=False,
     fox_gd_residual_addr_proj_orthogonal_init=False,
@@ -695,6 +698,15 @@ def add_flash_vqg(
                     None
                     if fox_gd_residual_update_norm_cap is None
                     else float(fox_gd_residual_update_norm_cap)
+                ),
+                "fox_gd_residual_injection_warmup_start_train_steps": int(
+                    fox_gd_residual_injection_warmup_start_train_steps
+                ),
+                "fox_gd_residual_injection_warmup_end_train_steps": int(
+                    fox_gd_residual_injection_warmup_end_train_steps
+                ),
+                "fox_gd_residual_injection_warmup_eval_policy": str(
+                    fox_gd_residual_injection_warmup_eval_policy
                 ),
                 "fox_gd_residual_norm_with_gain": bool(fox_gd_residual_norm_with_gain),
                 "fox_gd_residual_use_separate_addr_codebook": bool(
