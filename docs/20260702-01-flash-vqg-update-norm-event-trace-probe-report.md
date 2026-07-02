@@ -30,6 +30,24 @@ update_norm_cap=0.5 仍然是有效的稳定化方向,
 下一步应该做更原则的 soft/scheduled update control, 而不是直接长跑 cap=0.5.
 ```
 
+本轮实验定位需要明确:
+
+```text
+这是定位实验, 不是最终解决方案实验.
+update_norm_cap=0.5 是 diagnostic intervention,
+用来验证 M_state update 幅度是否是扰动放大器之一.
+```
+
+换句话说, 本轮不是在证明 "hard cap=0.5 可以落地", 而是在回答:
+
+```text
+如果限制 M_state 一次写入的幅度,
+跨机器效果差异是否会变小?
+如果会, 说明 residual update/write-state 这条链路确实是放大器.
+```
+
+答案是: 会变小, 但没缩到足够小.
+
 ## 实验设置
 
 共同条件:
@@ -81,6 +99,32 @@ cap 会命中哪些大 update?
 ```
 
 另外, event trace 中的 `update_norm_uncapped` / `update_norm_max` 是 cap 前的候选 update norm. `actual_cap_hit` 和 `actual_cap_scale` 才表示实际是否被 cap 缩放.
+
+## Plan 逐项验收
+
+原 plan 里的核心问题和本轮回答如下:
+
+| plan 问题 | 实验结果 | 判定 |
+| --- | --- | --- |
+| baseline-r2 中哪些 step/layer/code/token 的 uncapped update norm 最大? | 已记录到 `update-event-top.csv`. 2080ti 最大 event 在 step384, code39, token31, uncapped update `2.821`; 3090 最大 event 在 step704, code14, token763, uncapped update `2.249`. | 完成 |
+| baseline-r2 如果套 hypothetical cap=0.5, 会不会命中这些大 update? | 会. baseline 的 hypothetical cap hit ratio 为 2080ti `0.206`, 3090 `0.153`; final step704 两机 hypothetical cap hit ratio 都是 `1.000`. | 支持 |
+| cap0.5-r2 中实际 cap hit 是否和 baseline hypothetical hit 说明同类问题? | 部分支持. `ucap0p5-r2` actual cap hit ratio 为 2080ti `0.063`, 3090 `0.192`; 最大 event 被明显缩放, 例如 3090 step704 uncapped update `4.173`, scale `0.120`. | 支持实际命中, 但分布不完全等同 |
+| cap0.5 是否只是减少 top update 幅度, 而不是修复 read support mismatch? | 是. `ucap0p5-r2` step704 top-k exact match 仍为 `0.000`, top1 match 只有 `0.047`. | 支持 |
+| cap0.5 是否让 final gap 继续保持在 4pp 内? | 否. `ucap0p5-r2` final hard gap 为 `5.9pp`. | 不通过 |
+
+因此本轮是 **partial pass**:
+
+```text
+机制定位通过:
+  大 update 存在.
+  cap 会命中并缩放大 update.
+  cap 不靠修复 read support 起效.
+
+稳定性判定未通过:
+  cap=0.5 没有把 gap 稳定压到 4pp 内.
+```
+
+这就是为什么报告后续建议继续做 soft/scheduled update control, 而不是直接把 `cap=0.5` 当候选方案长跑.
 
 ## 前置一致性
 
@@ -287,4 +331,3 @@ P4: 只有通过 1ep paired screen 的候选才跑 4ep confirm
 - `read-trace-cross-machine-summary.csv`: read support 跨机器 match.
 - `hash-probe-comparison-summary.csv`: train-mode hash probe.
 - `source-manifest.csv`: 回收的轻量 raw evidence.
-
