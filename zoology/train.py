@@ -177,6 +177,9 @@ class Trainer:
         read_trace_max_queries_per_sample: int = 8,
         read_trace_output_dir: str | None = None,
         read_trace_train_steps: List[int] | None = None,
+        train_inline_event_trace_enabled: bool = False,
+        train_inline_event_trace_steps: List[int] | None = None,
+        train_inline_event_trace_output_dir: str | None = None,
         run_id: str | None = None,
         device: Union[str, int] = "cuda",
         logger: LoggerProtocol = None,
@@ -240,6 +243,18 @@ class Trainer:
         self.early_window_metrics_path = (
             self.read_trace_output_dir / "early_window_metrics.jsonl"
             if self.read_trace_output_dir is not None and self.read_trace_train_steps
+            else None
+        )
+        self.train_inline_event_trace_enabled = bool(train_inline_event_trace_enabled)
+        self.train_inline_event_trace_steps = {
+            int(step) for step in (train_inline_event_trace_steps or [])
+        }
+        if any(step < 0 for step in self.train_inline_event_trace_steps):
+            raise ValueError("train_inline_event_trace_steps must contain non-negative integers.")
+        self.train_inline_event_trace_output_dir = (
+            Path(train_inline_event_trace_output_dir)
+            if train_inline_event_trace_output_dir is not None
+            and str(train_inline_event_trace_output_dir).strip()
             else None
         )
         self.run_id = run_id
@@ -350,6 +365,73 @@ class Trainer:
                 clearer_fn()
 
         self.model.apply(clearer)
+
+    def _set_train_inline_event_trace_runtime(
+        self,
+        *,
+        epoch_idx: int,
+        optimizer_step_idx: int,
+        train_batch_idx: int,
+        micro_step_idx: int,
+        inputs: torch.Tensor,
+        targets: torch.Tensor,
+    ) -> bool:
+        if not self.train_inline_event_trace_enabled:
+            return False
+        if optimizer_step_idx not in self.train_inline_event_trace_steps:
+            return False
+        if self.train_inline_event_trace_output_dir is None:
+            return False
+        if self.input_type != "discrete":
+            return False
+
+        trace_output_dir = (
+            self.train_inline_event_trace_output_dir
+            / f"train_inline_step_{int(optimizer_step_idx)}"
+            / f"micro_{int(micro_step_idx)}"
+        )
+        max_samples = int(targets.size(0))
+        input_hashes: list[str] = []
+        target_hashes: list[str] = []
+        for sample_idx in range(max_samples):
+            input_hashes.append(
+                hashlib.sha1(inputs[sample_idx].detach().cpu().numpy().tobytes()).hexdigest()
+            )
+            target_hashes.append(
+                hashlib.sha1(targets[sample_idx].detach().cpu().numpy().tobytes()).hexdigest()
+            )
+
+        query_mask = (targets != -100).detach()
+        runtime = {
+            "enabled": True,
+            "churn_enabled": False,
+            "trace_enabled": True,
+            "trace_phase": "train_inline",
+            "epoch_idx": int(epoch_idx),
+            "global_step": int(optimizer_step_idx),
+            "optimizer_step": int(optimizer_step_idx),
+            "train_batch_idx": int(train_batch_idx),
+            "micro_step": int(micro_step_idx),
+            "valid_batch_idx": None,
+            "max_samples": int(max_samples),
+            "query_mask": query_mask,
+            "trace_query_mask": query_mask,
+            "trace_max_samples": int(max_samples),
+            "trace_max_queries_per_sample": -1,
+            "trace_output_dir": str(trace_output_dir),
+            "run_id": getattr(self, "run_id", None),
+            "input_hashes": input_hashes,
+            "target_hashes": target_hashes,
+            "_prev_top_idx_by_key": {},
+        }
+
+        def setter(module):
+            setter_fn = getattr(module, "set_read_candidate_probe_runtime", None)
+            if setter_fn is not None:
+                setter_fn(runtime)
+
+        self.model.apply(setter)
+        return True
 
     def compute_loss(self, inputs, targets):
         if self.input_type == "continuous":
@@ -588,11 +670,23 @@ class Trainer:
 
         for step_idx, (inputs, targets, slices) in enumerate(iterator):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
+            current_optimizer_step = int(self.optimizer_step)
+            micro_step_idx = int(step_idx % accum_steps)
             self._set_dense_teacher_runtime(targets)
+            inline_trace_active = self._set_train_inline_event_trace_runtime(
+                epoch_idx=epoch_idx,
+                optimizer_step_idx=current_optimizer_step,
+                train_batch_idx=step_idx,
+                micro_step_idx=micro_step_idx,
+                inputs=inputs,
+                targets=targets,
+            )
             try:
                 loss, preds = self.compute_loss(inputs, targets)
             finally:
                 self._clear_dense_teacher_runtime()
+                if inline_trace_active:
+                    self._clear_read_candidate_probe_runtime()
 
             # Auxiliary losses (discrete mode only)
             if self.input_type == "discrete":
@@ -843,6 +937,9 @@ def train(config: TrainConfig):
             read_trace_max_queries_per_sample=config.read_trace_max_queries_per_sample,
             read_trace_output_dir=config.read_trace_output_dir,
             read_trace_train_steps=config.read_trace_train_steps,
+            train_inline_event_trace_enabled=config.train_inline_event_trace_enabled,
+            train_inline_event_trace_steps=config.train_inline_event_trace_steps,
+            train_inline_event_trace_output_dir=config.train_inline_event_trace_output_dir,
             run_id=config.run_id,
             device="cuda" if torch.cuda.is_available() else "cpu",
             logger=logger,

@@ -168,6 +168,9 @@ class TrainConfig(BaseConfig):
     read_trace_max_queries_per_sample: int = 8
     read_trace_output_dir: Optional[str] = None
     read_trace_train_steps: List[int] = []
+    train_inline_event_trace_enabled: bool = False
+    train_inline_event_trace_steps: List[int] = []
+    train_inline_event_trace_output_dir: Optional[str] = None
 
     launch_id: Optional[str] = None
     sweep_id: Optional[str] = None
