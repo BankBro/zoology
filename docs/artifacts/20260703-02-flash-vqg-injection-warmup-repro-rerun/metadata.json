@@ -1,0 +1,50 @@
+{
+  "experiment_id": "20260703-02-flash-vqg-injection-warmup-repro-rerun",
+  "timestamp": "20260703T025329Z",
+  "created_at_utc": "2026-07-03T05:14:00.344804+00:00",
+  "zoology_commit": [
+    "3ba3e6e"
+  ],
+  "flash_vqg_commit": [
+    "a51b6b0"
+  ],
+  "machines": [
+    "2080ti",
+    "3090"
+  ],
+  "variants": [
+    "inj-warmup-linear512-r2",
+    "inj-warmup-silent64-linear512-r2"
+  ],
+  "strict_inputs": {
+    "cache_combined_content_sha256": [
+      "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"
+    ],
+    "init_model_state_sha256": [
+      "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"
+    ],
+    "batch_order_sha256": [
+      "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320"
+    ]
+  },
+  "read_trace_policy": {
+    "default_enabled": false,
+    "this_run_enabled": false,
+    "activation": "ENABLE_READ_TRACE=1 or --enable-read-trace"
+  },
+  "metrics_note": "result JSON train_result is null in this wrapper; final metrics were parsed from the final validation progress line in each log.",
+  "included_output_timestamp": "20260703T025329Z",
+  "excluded_aborted_timestamp": "20260703T022900Z",
+  "aborted_run_count": 3,
+  "artifact_files": [
+    "run-summary.csv",
+    "cross-machine-comparison.csv",
+    "preflight-summary.csv",
+    "prelaunch-consistency-summary.csv",
+    "trace-mode-summary.csv",
+    "previous-comparison.csv",
+    "source-manifest.csv",
+    "aborted-runs.csv",
+    "README.md"
+  ]
+}

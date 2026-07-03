@@ -1,0 +1,7 @@
+path,source_host,sha256,note,included_in_results
+zoology/experiments/flash_vqg/scripts/20260703-02-flash-vqg-injection-warmup-repro-rerun/outputs/reprowarm-2080ti-gpu0-linear512-20260703T022900Z/aborted-trace-on-run.txt,mclab-2080ti,36b38b222ae447d63704d4ae57fb7ee88a4c2864b4059e781fe119f06a362192,"aborted_at=2026-07-03T10:52:01+08:00
+reason=user requested read_trace_train_steps default off; trace-on rerun excluded",False
+zoology/experiments/flash_vqg/scripts/20260703-02-flash-vqg-injection-warmup-repro-rerun/outputs/reprowarm-2080ti-gpu1-silent64linear512-20260703T022900Z/aborted-trace-on-run.txt,mclab-2080ti,36b38b222ae447d63704d4ae57fb7ee88a4c2864b4059e781fe119f06a362192,"aborted_at=2026-07-03T10:52:01+08:00
+reason=user requested read_trace_train_steps default off; trace-on rerun excluded",False
+zoology/experiments/flash_vqg/scripts/20260703-02-flash-vqg-injection-warmup-repro-rerun/outputs/reprowarm-3090-gpu0-all-20260703T022900Z/aborted-trace-on-run.txt,mclab-3090,6de97a9a176fcc6c4f51aec3f39a37dc6e53166034594bb9a13bb711e5a469ca,"aborted_at=2026-07-03T02:52:11+00:00
+reason=user requested read_trace_train_steps default off; trace-on rerun excluded",False
