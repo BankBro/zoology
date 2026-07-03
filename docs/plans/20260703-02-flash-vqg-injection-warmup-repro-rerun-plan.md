@@ -25,9 +25,18 @@
    - 旧配置包含 `0,1,2,4,8,16,24,32,48,64,96,128,192,256,384,512,704` 共 17 个 step.
    - 实现是在指定 optimizer step 插入 eval-mode validation-batch snapshot, 使用 `model.eval()` 和 `torch.no_grad()`, 结束后恢复 `model.train()`.
    - 它会增加训练期间前向和 trace 写入开销.
-   - 为保持与旧结果可比, 本轮保留该设置.
+   - 本轮不保留该设置, 避免把定位快照混进复现训练路径.
 
-本轮去掉训练后的 `hash-probe`, 但保留训练中的 `read_trace_train_steps`, checkpoint 和完整 final validation. 这样训练语义尽量贴近旧实验, 同时避免把复现实验扩展成额外诊断重放.
+本轮去掉训练后的 `hash-probe`, 并把训练中的 `read_trace_train_steps` 做成默认关闭的定位开关. 本次正式 rerun 不启用 read trace, 只保留 checkpoint 和完整 final validation.
+
+`read_trace_train_steps` 的新口径:
+
+| 模式 | 启动方式 | 行为 |
+| --- | --- | --- |
+| default | 不传任何开关 | `read_trace_enabled=false`, `read_trace_train_steps=[]`, 不插入 train-step eval snapshot |
+| diagnostic | `ENABLE_READ_TRACE=1` 或 `--enable-read-trace` | 恢复旧 17 个 train-step read trace 快照 |
+
+这次实验使用 default no-trace 模式. 已经启动过的一批 trace-on rerun 只作为 aborted run 保留, 不进入结果解释.
 
 ## 实验问题
 
@@ -47,7 +56,8 @@
 共同配置复用 `20260702-03` 的 Python 入口:
 
 ```text
-script: zoology/experiments/flash_vqg/scripts/20260702-03-flash-vqg-injection-warmup-screen/injection_warmup_screen.py
+source variant definition: zoology/experiments/flash_vqg/scripts/20260702-03-flash-vqg-injection-warmup-screen/injection_warmup_screen.py
+rerun entry: zoology/experiments/flash_vqg/scripts/20260703-02-flash-vqg-injection-warmup-repro-rerun/injection_warmup_repro_rerun.py
 seed: 124
 data_seed: 123
 canonical MQAR cache: required
@@ -59,6 +69,7 @@ dropout: embed_dropout=0.1, resid_dropout=0.0, drop_path=0.0
 train length: 1 epoch, max_train_steps=704
 gradient_accumulation_steps: 4
 logger: none
+read trace: disabled by default for this rerun
 ```
 
 Variants:

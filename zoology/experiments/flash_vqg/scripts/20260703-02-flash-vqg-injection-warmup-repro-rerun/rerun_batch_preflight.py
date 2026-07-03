@@ -16,12 +16,12 @@ REPO_ROOT = Path(os.environ.get("ZOOLOGY_REPO_ROOT", "/home/lyj/mnt/project/zool
 SOURCE_SCRIPT = (
     REPO_ROOT
     / "zoology/experiments/flash_vqg/scripts/"
-    / "20260702-03-flash-vqg-injection-warmup-screen/injection_warmup_screen.py"
+    / "20260703-02-flash-vqg-injection-warmup-repro-rerun/injection_warmup_repro_rerun.py"
 )
 
 
 def _load_source():
-    spec = importlib.util.spec_from_file_location("injection_warmup_screen_source", SOURCE_SCRIPT)
+    spec = importlib.util.spec_from_file_location("injection_warmup_repro_rerun_source", SOURCE_SCRIPT)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load source script: {SOURCE_SCRIPT}")
     module = importlib.util.module_from_spec(spec)
@@ -63,6 +63,8 @@ def _batch_order_hash(dataloader: Any) -> dict[str, Any]:
 
 
 def run(args: argparse.Namespace) -> int:
+    SRC._patch_experiment_identity()
+    SRC._patch_read_trace_mode(enable_read_trace=bool(args.enable_read_trace))
     config = SRC.BASEMOD.BASEMOD.BASE.build_config(
         target=args.target,
         machine_name=args.machine_name,
@@ -92,6 +94,7 @@ def run(args: argparse.Namespace) -> int:
         "gradient_accumulation_steps": int(config.gradient_accumulation_steps),
         "read_trace_enabled": bool(config.read_trace_enabled),
         "read_trace_train_steps": list(config.read_trace_train_steps),
+        "read_trace_mode": "enabled" if args.enable_read_trace else "disabled",
         "train_inline_event_trace_enabled": bool(config.train_inline_event_trace_enabled),
         "checkpoint_enabled": bool(config.checkpoint.enabled),
         "checkpoint_save_best": bool(config.checkpoint.save_best),
@@ -111,6 +114,7 @@ def main() -> int:
     parser.add_argument("--run-suffix")
     parser.add_argument("--max-epochs", type=int, default=1)
     parser.add_argument("--max-train-steps", type=int, default=704)
+    parser.add_argument("--enable-read-trace", action="store_true")
     parser.add_argument("--output-json", type=Path)
     args = parser.parse_args()
     os.chdir(REPO_ROOT)

@@ -19,7 +19,7 @@ fi
 QUEUE_NAME="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${ZOOLOGY_REPO_ROOT:-/home/lyj/mnt/project/zoology}"
-SOURCE_SCRIPT_DIR="${REPO_ROOT}/zoology/experiments/flash_vqg/scripts/20260702-03-flash-vqg-injection-warmup-screen"
+SOURCE_SCRIPT_DIR="${REPO_ROOT}/zoology/experiments/flash_vqg/scripts/20260703-02-flash-vqg-injection-warmup-repro-rerun"
 PYTHON_BIN="${PYTHON_BIN:-/home/lyj/miniconda3/envs/flash-vqg/bin/python}"
 TIMESTAMP="${INJECTION_WARMUP_REPRO_RERUN_TIMESTAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/outputs/${QUEUE_NAME}-${TIMESTAMP}}"
@@ -27,6 +27,21 @@ INIT_CHECKPOINT="${INIT_CHECKPOINT:-${REPO_ROOT}/zoology/experiments/flash_vqg/s
 POLL_SECONDS="${POLL_SECONDS:-1200}"
 MAX_EPOCHS="${MAX_EPOCHS:-1}"
 MAX_TRAIN_STEPS="${MAX_TRAIN_STEPS:-704}"
+ENABLE_READ_TRACE="${ENABLE_READ_TRACE:-0}"
+
+READ_TRACE_ARGS=()
+case "${ENABLE_READ_TRACE}" in
+  1|true|TRUE|yes|YES|on|ON)
+    READ_TRACE_ARGS=("--enable-read-trace")
+    ;;
+  0|false|FALSE|no|NO|off|OFF|"")
+    READ_TRACE_ARGS=()
+    ;;
+  *)
+    echo "ENABLE_READ_TRACE must be one of 0/1/true/false; got ${ENABLE_READ_TRACE}" >&2
+    exit 2
+    ;;
+esac
 
 mkdir -p "${OUTPUT_ROOT}/logs" "${OUTPUT_ROOT}/configs" "${OUTPUT_ROOT}/results" "${OUTPUT_ROOT}/preflight"
 
@@ -126,7 +141,7 @@ monitor_pid() {
 
 check_container_gpu_ready
 
-"${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_screen.py" verify-init \
+"${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_repro_rerun.py" "${READ_TRACE_ARGS[@]}" verify-init \
   --machine-name "${MACHINE_NAME}" \
   --checkpoint "${INIT_CHECKPOINT}" \
   --output-json "${OUTPUT_ROOT}/init-verify.json"
@@ -138,13 +153,13 @@ overall_status=0
 for target in "${TARGETS[@]}"; do
   variant="${target}"
 
-  "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_screen.py" cache-hash \
+  "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_repro_rerun.py" "${READ_TRACE_ARGS[@]}" cache-hash \
     --machine-name "${MACHINE_NAME}" \
     --target "${target}" \
     --variant "${variant}" \
     --output-json "${OUTPUT_ROOT}/cache-hash-${target}.json"
 
-  "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_screen.py" preflight \
+  "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_repro_rerun.py" "${READ_TRACE_ARGS[@]}" preflight \
     --machine-name "${MACHINE_NAME}" \
     --target "${target}" \
     --variant "${variant}" \
@@ -154,6 +169,7 @@ for target in "${TARGETS[@]}"; do
     --output-json "${OUTPUT_ROOT}/preflight-${target}.json"
 
   "${PYTHON_BIN}" "${SCRIPT_DIR}/rerun_batch_preflight.py" \
+    "${READ_TRACE_ARGS[@]}" \
     --machine-name "${MACHINE_NAME}" \
     --target "${target}" \
     --variant "${variant}" \
@@ -163,7 +179,7 @@ for target in "${TARGETS[@]}"; do
     --output-json "${OUTPUT_ROOT}/preflight/batch-order-${target}.json"
 
   log_path="${OUTPUT_ROOT}/logs/${target}.log"
-  trace_output_dir="${SOURCE_SCRIPT_DIR}/outputs/traces/${MACHINE_NAME}/${target}/${QUEUE_NAME}"
+  trace_output_dir="${SCRIPT_DIR}/outputs/traces/${MACHINE_NAME}/${target}/${QUEUE_NAME}"
   config_json="${OUTPUT_ROOT}/configs/${target}.json"
   result_json="${OUTPUT_ROOT}/results/${target}.json"
   append_status "${QUEUE_NAME}" "${MACHINE_NAME}" "${target}" "${variant}" "${GPU}" "" "pending" "${log_path}" "${config_json}" "${result_json}" "" ""
@@ -171,7 +187,7 @@ for target in "${TARGETS[@]}"; do
   train_started_at="$(date -Iseconds)"
   (
     export CUDA_VISIBLE_DEVICES="${GPU}"
-    "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_screen.py" train \
+    "${PYTHON_BIN}" "${SOURCE_SCRIPT_DIR}/injection_warmup_repro_rerun.py" "${READ_TRACE_ARGS[@]}" train \
       --machine-name "${MACHINE_NAME}" \
       --target "${target}" \
       --variant "${variant}" \
