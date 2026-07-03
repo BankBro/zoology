@@ -1,0 +1,6 @@
+variant,description,completed_machines,completed_pair,final_1024x256_2080ti,final_1024x256_3090,final_gap,final_gap_percentage_points,final_within_4pp,passes_screen,read_topk,update_softcap,update_softcap_mode,injection_softcap_ratio,injection_softcap_mode,warmup_start_optimizer_step,warmup_end_optimizer_step
+baseline-r2-no-trace,"default-dropout fixed read_topk=2 baseline, no trace and no softcap","2080ti,3090",True,0.74,0.46,0.27999999999999997,27.999999999999996,False,False,2,,none,,none,0,0
+inject-softcap0p5-r2,default-dropout fixed read_topk=2 with injection smooth_p4 softcap ratio=0.5,"2080ti,3090",True,0.0,0.0,0.0,0.0,True,False,2,,none,0.5,smooth_p4,0,0
+inject-softcap0p5-linear512-r2,injection smooth_p4 softcap ratio=0.5 plus residual injection linear warmup 0->512 optimizer steps,"2080ti,3090",True,0.0,0.0,0.0,0.0,True,False,2,,none,0.5,smooth_p4,0,512
+update-softcap0p5-r2,default-dropout fixed read_topk=2 with M_state update_norm smooth_p4 softcap=0.5,"2080ti,3090",True,0.806,0.508,0.29800000000000004,29.800000000000004,False,False,2,0.5,smooth_p4,,none,0,0
+update-softcap0p5-linear512-r2,M_state update_norm smooth_p4 softcap=0.5 plus residual injection linear warmup 0->512 optimizer steps,"2080ti,3090",True,0.903,0.708,0.19500000000000006,19.500000000000007,False,False,2,0.5,smooth_p4,,none,0,512

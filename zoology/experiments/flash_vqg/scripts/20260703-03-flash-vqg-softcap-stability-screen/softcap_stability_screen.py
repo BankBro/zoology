@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import csv
+from datetime import datetime
 import importlib.util
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -334,27 +336,51 @@ def _latest_by_variant_machine_step(rows: list[dict[str, str]], step: int) -> di
     return out
 
 
-def _softcap_metrics_rows(early_rows: list[dict[str, str]]) -> list[dict[str, Any]]:
+_FINAL_SOFTCAP_KEYS = (
+    "gd_residual_inject_ratio",
+    "gd_residual_injection_softcap_hit_ratio",
+    "gd_residual_injection_softcap_scale_mean",
+    "gd_residual_injection_softcap_scale_min",
+    "gd_residual_injection_softcap_scale_p05",
+    "gd_residual_injection_softcap_pre_ratio_mean",
+    "gd_residual_injection_softcap_pre_ratio_max",
+    "gd_residual_injection_softcap_pre_ratio_p95",
+    "gd_residual_update_norm_softcap_hit_ratio",
+    "gd_residual_update_norm_softcap_scale_mean",
+    "gd_residual_update_norm_softcap_scale_min",
+    "gd_residual_update_norm_softcap_scale_p05",
+    "gd_residual_update_norm_max",
+    "gd_residual_update_norm_p95",
+    "gd_residual_m_norm_max",
+    "gd_residual_lambda_mean",
+)
+
+
+def _parse_last_validation_softcap_metrics(log_path: Path) -> dict[str, str]:
+    text = _tail_text(log_path, max_bytes=2 * 1024 * 1024)
+    metrics: dict[str, str] = {}
+    for key in _FINAL_SOFTCAP_KEYS:
+        matches = re.findall(rf"valid/attn/{re.escape(key)}=([^,\]\s]+)", text)
+        metrics[key] = matches[-1] if matches else ""
+    return metrics
+
+
+def _softcap_metrics_rows(
+    early_rows: list[dict[str, str]],
+    run_rows: list[dict[str, str]] | None = None,
+) -> list[dict[str, Any]]:
     by704 = _latest_by_variant_machine_step(early_rows, 704)
     rows: list[dict[str, Any]] = []
-    keys = (
-        "gd_residual_inject_ratio",
-        "gd_residual_injection_softcap_hit_ratio",
-        "gd_residual_injection_softcap_scale_mean",
-        "gd_residual_injection_softcap_scale_min",
-        "gd_residual_injection_softcap_pre_ratio_mean",
-        "gd_residual_update_norm_softcap_hit_ratio",
-        "gd_residual_update_norm_softcap_scale_mean",
-        "gd_residual_update_norm_softcap_scale_min",
-        "gd_residual_update_norm_max",
-        "gd_residual_update_norm_p95",
-        "gd_residual_m_norm_max",
-        "gd_residual_lambda_mean",
-    )
+    run_by_variant_machine: dict[tuple[str, str], dict[str, str]] = {}
+    if run_rows:
+        for row in run_rows:
+            run_by_variant_machine[(str(row.get("variant", "")), str(row.get("machine", "")))] = row
     for target in TARGETS:
         spec = VARIANTS[target]
         for machine in ("2080ti", "3090"):
             row = by704.get((target, machine), {})
+            run_row = run_by_variant_machine.get((target, machine), {})
+            final_metrics = _parse_last_validation_softcap_metrics(Path(str(run_row.get("log_path", ""))))
             out: dict[str, Any] = {
                 "variant": target,
                 "machine": machine,
@@ -362,22 +388,182 @@ def _softcap_metrics_rows(early_rows: list[dict[str, str]]) -> list[dict[str, An
                 "injection_softcap_ratio": spec.get("fox_gd_residual_injection_softcap_ratio"),
                 "warmup_end_optimizer_step": spec.get("warmup_end_optimizer_step", ""),
                 "loss_step704": row.get("loss", ""),
+                "final_valid_loss": run_row.get("final_valid_loss", ""),
+                "final_1024x256_accuracy": run_row.get("final_1024x256_accuracy", ""),
+                "log_path": run_row.get("log_path", ""),
             }
-            for key in keys:
-                out[key] = row.get(key, "")
+            for key in _FINAL_SOFTCAP_KEYS:
+                out[key] = row.get(key, "") or final_metrics.get(key, "")
             rows.append(out)
     return rows
 
 
+def _tail_text(path: Path, max_bytes: int = 256 * 1024) -> str:
+    if not path.exists():
+        return ""
+    with path.open("rb") as f:
+        size = path.stat().st_size
+        if size > max_bytes:
+            f.seek(size - max_bytes)
+        return f.read().decode("utf-8", errors="replace")
+
+
+def _completed_timestamp(path: Path) -> str:
+    if not path.exists():
+        return datetime.now().astimezone().isoformat(timespec="seconds")
+    return datetime.fromtimestamp(path.stat().st_mtime).astimezone().isoformat(timespec="seconds")
+
+
+def _repair_queue_status_for_collect(outputs_dir: Path) -> int:
+    """Make collect robust to stopped idle wrappers.
+
+    Some queues were intentionally stopped while sleeping after a target had already
+    written result/log evidence. The base collector only accepts a `completed`
+    queue-status row, so add a collect-only completed row when the run evidence is
+    already present. Interrupted duplicate runs are not repaired.
+    """
+    repaired = 0
+    for result_path in sorted(outputs_dir.glob("*/results/*.json")):
+        if not result_path.exists():
+            continue
+        try:
+            result = _read_json(result_path)
+        except Exception:
+            continue
+        target = str(result.get("target") or result_path.stem)
+        variant = str(result.get("variant") or target)
+        machine = str(result.get("machine_name") or "")
+        queue_dir = result_path.parents[1]
+        status_path = queue_dir / "queue-status.tsv"
+        config_path = queue_dir / "configs" / f"{target}.json"
+        log_path = queue_dir / "logs" / f"{target}.log"
+        if not status_path.exists() or not log_path.exists() or not config_path.exists():
+            continue
+        log_tail = _tail_text(log_path)
+        if "TrainingInterrupted" in log_tail or "Traceback" in log_tail:
+            continue
+        done_marker = f"[done] target={target} train_status=0" in log_tail
+        final_marker = "valid/mqar_case/accuracy-1024x256=" in log_tail
+        if not done_marker and not final_marker:
+            continue
+        rows: list[dict[str, str]] = []
+        with status_path.open("r", encoding="utf-8", newline="") as f:
+            rows = list(csv.DictReader(f, delimiter="\t"))
+        target_rows = [row for row in rows if row.get("target") == target]
+        if any(row.get("status") == "completed" for row in target_rows):
+            continue
+        if not target_rows:
+            continue
+        latest = target_rows[-1]
+        if str(latest.get("status", "")).startswith(("train-failed", "stopped", "failed")):
+            continue
+        repaired_row = dict(latest)
+        repaired_row["machine"] = machine or repaired_row.get("machine", "")
+        repaired_row["target"] = target
+        repaired_row["variant"] = variant
+        repaired_row["status"] = "completed"
+        repaired_row["log"] = str(log_path)
+        repaired_row["config_json"] = str(config_path)
+        repaired_row["result_json"] = str(result_path)
+        repaired_row["finished_at"] = repaired_row.get("finished_at") or _completed_timestamp(log_path)
+        fieldnames = [
+            "queue",
+            "machine",
+            "target",
+            "variant",
+            "gpu",
+            "pid",
+            "status",
+            "log",
+            "config_json",
+            "result_json",
+            "started_at",
+            "finished_at",
+        ]
+        with status_path.open("a", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
+            writer.writerow({key: repaired_row.get(key, "") for key in fieldnames})
+        repaired += 1
+    return repaired
+
+
+def _write_execution_status_from_runs(artifact_dir: Path, run_rows: list[dict[str, str]]) -> None:
+    rows: list[dict[str, Any]] = []
+    for row in run_rows:
+        rows.append(
+            {
+                "experiment_id": EXPERIMENT_ID,
+                "machine": row.get("machine", ""),
+                "target": row.get("target", ""),
+                "queue": row.get("queue", ""),
+                "wrapper_status": row.get("status", ""),
+                "effective_status": row.get("status", ""),
+                "execution_caveat": "rebuilt_from_run_summary",
+                "result_json": row.get("result_json", ""),
+                "result_exists": bool(row.get("result_json")),
+                "config_json": row.get("config_json", ""),
+                "config_exists": bool(row.get("config_json")),
+                "log_path": row.get("log_path", ""),
+                "log_exists": bool(row.get("log_path")),
+                "log_done_marker": "",
+                "hash_probe_json": "",
+                "hash_probe_exists": False,
+                "started_at": row.get("started_at", ""),
+                "finished_at": row.get("finished_at", ""),
+                "zoology_commit": row.get("zoology_commit", ""),
+                "flash_vqg_commit": row.get("flash_vqg_commit", ""),
+            }
+        )
+    _write_csv(artifact_dir / "execution-status-summary.csv", rows)
+
+
+def _write_variant_decision_from_runs(artifact_dir: Path, run_rows: list[dict[str, str]]) -> None:
+    rows: list[dict[str, Any]] = []
+    completed: dict[str, set[str]] = {target: set() for target in TARGETS}
+    for row in run_rows:
+        if row.get("status") == "completed" and row.get("variant") in completed:
+            completed[str(row["variant"])].add(str(row.get("machine", "")))
+    for target in TARGETS:
+        machines = sorted(machine for machine in completed.get(target, set()) if machine)
+        spec = VARIANTS[target]
+        rows.append(
+            {
+                "target": target,
+                "machines_completed": ",".join(machines),
+                "completed_pair": set(machines) >= {"2080ti", "3090"},
+                "embed_dropout": spec.get("embed_dropout", ""),
+                "read_topk": spec.get("fox_remote_read_topk", ""),
+                "decision": (
+                    "usable_pair_diagnostic"
+                    if set(machines) >= {"2080ti", "3090"}
+                    else "incomplete_pair_do_not_interpret"
+                ),
+            }
+        )
+    _write_csv(artifact_dir / "variant-decision-summary.csv", rows)
+
+
 def run_collect(args: Any) -> int:
+    repaired_queue_rows = _repair_queue_status_for_collect(args.outputs_dir)
     code = _ORIGINAL_RUN_COLLECT(args)
     artifact_dir = args.artifact_dir
     run_rows = _read_csv(artifact_dir / "run-summary.csv")
     early_rows = _read_csv(artifact_dir / "early-window-summary.csv")
     gap_rows = _variant_gap_rows(run_rows)
-    softcap_rows = _softcap_metrics_rows(early_rows)
+    softcap_rows = _softcap_metrics_rows(early_rows, run_rows)
     _write_csv(artifact_dir / "cross-machine-comparison.csv", gap_rows)
     _write_csv(artifact_dir / "softcap-metrics-summary.csv", softcap_rows)
+    _write_execution_status_from_runs(artifact_dir, run_rows)
+    _write_variant_decision_from_runs(artifact_dir, run_rows)
+    invalid_rows = _read_csv(artifact_dir / "invalid-runs.csv")
+    completed_run_count = sum(1 for row in run_rows if row.get("status") == "completed")
+    completed_variant_count = len(
+        {
+            row.get("variant", "")
+            for row in run_rows
+            if row.get("status") == "completed" and row.get("variant")
+        }
+    )
     readme = (
         f"# {EXPERIMENT_ID}\n\n"
         "本 artifact 收尾 default-dropout smooth cap 1ep stability screen. "
@@ -404,9 +590,27 @@ def run_collect(args: Any) -> int:
             "trace_mode": "read_trace_disabled",
             "cross_machine_rows": len(gap_rows),
             "softcap_metrics_rows": len(softcap_rows),
+            "execution_status_rows": len(run_rows),
+            "effective_completed_runs": completed_run_count,
+            "execution_status_source": (
+                "rebuilt from run-summary.csv after collect; invalid-runs.csv keeps stopped "
+                "or duplicate raw rows that are not counted as official completed runs"
+            ),
+            "repaired_queue_status_rows_for_collect": repaired_queue_rows,
             "diagnostic_note": "smooth_p4 softcaps are default-off candidate stabilization controls, not promoted defaults.",
         }
     )
+    summary = metadata.get("summary") if isinstance(metadata.get("summary"), dict) else {}
+    summary.update(
+        {
+            "run_count": len(run_rows),
+            "completed_count": completed_run_count,
+            "comparison_count": len(gap_rows),
+            "invalid_count": len(invalid_rows),
+            "variant_count": completed_variant_count,
+        }
+    )
+    metadata["summary"] = summary
     _save_json(metadata_path, metadata)
     return code
 
@@ -415,7 +619,6 @@ def main() -> int:
     _patch_identity()
     _patch_softcap_support()
     BASEMOD.run_collect = run_collect
-    BASEMOD.BASE.run_collect = run_collect
     os.environ["FLASH_VQG_READ_TRACE_MODE"] = "disabled"
     return BASEMOD.main()
 

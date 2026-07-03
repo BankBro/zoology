@@ -1,0 +1,6 @@
+target,machines_completed,completed_pair,embed_dropout,read_topk,decision
+baseline-r2-no-trace,"2080ti,3090",True,0.1,2,usable_pair_diagnostic
+inject-softcap0p5-r2,"2080ti,3090",True,0.1,2,usable_pair_diagnostic
+inject-softcap0p5-linear512-r2,"2080ti,3090",True,0.1,2,usable_pair_diagnostic
+update-softcap0p5-r2,"2080ti,3090",True,0.1,2,usable_pair_diagnostic
+update-softcap0p5-linear512-r2,"2080ti,3090",True,0.1,2,usable_pair_diagnostic

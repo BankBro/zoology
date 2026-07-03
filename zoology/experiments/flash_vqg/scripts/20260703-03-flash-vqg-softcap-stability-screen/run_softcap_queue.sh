@@ -97,7 +97,7 @@ monitor_pid() {
   while kill -0 "${pid}" >/dev/null 2>&1; do
     checks=$((checks + 1))
     if [[ -f "${log_path}" ]]; then
-      if grep -E "Traceback|RuntimeError|CUDA out of memory|(^|[^/])loss=nan|(^|[^/])loss=inf" "${log_path}" >/dev/null 2>&1; then
+      if grep -E "Traceback|RuntimeError|CUDA out of memory|loss=nan|loss=inf" "${log_path}" >/dev/null 2>&1; then
         echo "detected-error label=${label} log=${log_path}" >&2
         tail -n 80 "${log_path}" >&2 || true
         return 1
