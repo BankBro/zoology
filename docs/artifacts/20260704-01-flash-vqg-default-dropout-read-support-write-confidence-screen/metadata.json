@@ -1,0 +1,85 @@
+{
+  "experiment_id": "20260704-01-flash-vqg-default-dropout-read-support-write-confidence-screen",
+  "generated_at": "2026-07-04T15:55:00.619213+00:00",
+  "launch_timestamp": "20260704T065500Z",
+  "zoology_commit": "d27ca50",
+  "flash_vqg_commit": "94c1591",
+  "machines": [
+    "2080ti",
+    "3090"
+  ],
+  "variants": [
+    "baseline-r2",
+    "baseline-r4",
+    "fixed-r8",
+    "fixed-r16",
+    "fixed-r64",
+    "write-mass-r2",
+    "write-mass-injwarm512-r2"
+  ],
+  "formal_runs": 14,
+  "all_runs_completed": true,
+  "cache_combined_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "cache_match_expected": true,
+  "init_hash_actual": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+  "init_verify": {
+    "environment": {
+      "cuda_available": true,
+      "cuda_device_capability": [
+        7,
+        5
+      ],
+      "cuda_device_count": 2,
+      "cuda_device_name": "NVIDIA GeForce RTX 2080 Ti",
+      "cudnn_allow_tf32": true,
+      "cudnn_version": 90100,
+      "experiment_id": "20260704-01-flash-vqg-default-dropout-read-support-write-confidence-screen",
+      "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+      "flash_vqg_commit": "94c1591",
+      "float32_matmul_precision": "highest",
+      "hostname": "a0651c2c1c1f",
+      "machine_name": "2080ti",
+      "matmul_allow_tf32": false,
+      "platform": "Linux-6.8.0-49-generic-x86_64-with-glibc2.35",
+      "python": "3.12.11 | packaged by Anaconda, Inc. | (main, Jun  5 2025, 13:09:17) [GCC 11.2.0]",
+      "torch_cuda": "11.8",
+      "torch_version": "2.6.0+cu118",
+      "utc_time": "2026-07-04T06:53:47.124858+00:00",
+      "zoology_branch": "flash-vqg",
+      "zoology_commit": "d27ca50"
+    },
+    "experiment_id": "20260704-01-flash-vqg-default-dropout-read-support-write-confidence-screen",
+    "init_checkpoint": {
+      "actual_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+      "checkpoint": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260630-03-flash-vqg-s124-fixed-r4-4ep-confirm/outputs/canonical-init/cb64r16-s124-init.pt",
+      "embedded_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+      "expected_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+      "match_embedded": true,
+      "match_expected": true,
+      "mismatched_keys": [],
+      "num_tensors": 27
+    },
+    "machine_name": "2080ti",
+    "schema_version": 1
+  },
+  "batch_order_sha256": "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320",
+  "max_epochs": 1,
+  "max_train_steps": 704,
+  "seed": 124,
+  "data_seed": 123,
+  "dropout": {
+    "embed_dropout": 0.1,
+    "resid_dropout": 0.0,
+    "drop_path": 0.0
+  },
+  "notes": [
+    "Metrics are parsed from final validation progress lines in per-run logs because wrapper result_json stores train_result=null.",
+    "3090 lightweight raw evidence was mirrored into the main 2080ti workspace by tar stream.",
+    "No Traceback, RuntimeError, CUDA OOM, or loss NaN/Inf was found in per-run logs during closeout checks."
+  ],
+  "cache_file_count": 13,
+  "init_match_expected": true,
+  "recording_scope": "exploratory_1ep_screen",
+  "official_mqar_ledger_written": false,
+  "official_table_updated": false
+}
