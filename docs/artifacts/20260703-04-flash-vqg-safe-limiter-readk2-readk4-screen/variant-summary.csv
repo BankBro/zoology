@@ -1,0 +1,13 @@
+variant,variant_kind,description,completed_machines,completed_count,final_1024x256_2080ti,final_1024x256_3090,final_gap,final_gap_percentage_points,final_within_4pp,best_1024x256_2080ti,best_1024x256_3090,best_gap,best_gap_percentage_points,best_within_4pp,fox_remote_read_topk,fox_remote_read_topk_initial,fox_remote_read_topk_final,release_start,release_end,schedule,dense_read_chunked
+r2-baseline,fixed,"default-dropout fixed read_topk=2 baseline, no trace and no limiter","2080ti,3090",2,0.849,0.48,0.369,36.9,False,0.849,0.48,0.369,36.9,False,2,,,0,0,linear_int,False
+r2-safe-inj-ratio1p0,fixed,read_topk=2 with safe residual injection limit ratio=1.0,"2080ti,3090",2,0.56,0.01,0.55,55.00000000000001,False,0.56,0.01,0.55,55.00000000000001,False,2,,,0,0,linear_int,False
+r2-safe-inj-ratio2p0,fixed,read_topk=2 with safe residual injection limit ratio=2.0,"2080ti,3090",2,0.682,0.925,0.243,24.3,False,0.682,0.925,0.243,24.3,False,2,,,0,0,linear_int,False
+r2-updatecap-0p5to0p8-linear512,fixed,read_topk=2 with M_state update_norm hard cap released 0.5->0.8 over 512 optimizer steps,"2080ti,3090",2,0.435,0.497,0.062,6.2,False,0.435,0.497,0.062,6.2,False,2,,,0,0,linear_int,False
+r2-updatecap-0p5to1p0-linear512,fixed,read_topk=2 with M_state update_norm hard cap released 0.5->1.0 over 512 optimizer steps,"2080ti,3090",2,0.745,0.88,0.135,13.5,False,0.745,0.88,0.135,13.5,False,2,,,0,0,linear_int,False
+r4-baseline,fixed,"default-dropout fixed read_topk=4 baseline, no trace and no limiter","2080ti,3090",2,0.894,0.0134,0.8806,88.06,False,0.894,0.0134,0.8806,88.06,False,4,,,0,0,linear_int,False
+r4-safe-inj-ratio1p0,fixed,read_topk=4 with safe residual injection limit ratio=1.0,"2080ti,3090",2,0.11,0.44,0.33,33.0,False,0.11,0.44,0.33,33.0,False,4,,,0,0,linear_int,False
+r4-safe-inj-ratio2p0,fixed,read_topk=4 with safe residual injection limit ratio=2.0,"2080ti,3090",2,0.0842,0.487,0.4028,40.28,False,0.0842,0.487,0.4028,40.28,False,4,,,0,0,linear_int,False
+r4-updatecap-0p5to0p8-linear512,fixed,read_topk=4 with M_state update_norm hard cap released 0.5->0.8 over 512 optimizer steps,"2080ti,3090",2,0.0167,0.0992,0.08249999999999999,8.249999999999998,False,0.0167,0.0992,0.08249999999999999,8.249999999999998,False,4,,,0,0,linear_int,False
+r4-updatecap-0p5to1p0-linear512,fixed,read_topk=4 with M_state update_norm hard cap released 0.5->1.0 over 512 optimizer steps,"2080ti,3090",2,0.0252,0.165,0.1398,13.98,False,0.0252,0.165,0.1398,13.98,False,4,,,0,0,linear_int,False
+default-r2,fixed,compatibility alias used internally by the default-dropout wrapper,,0,,,,,,,,,,,2,,,0,0,linear_int,False
+fixed-r2-baseline,fixed,compatibility alias used internally by the train-read-topk wrapper,,0,,,,,,,,,,,2,,,0,0,linear_int,False
