@@ -1,0 +1,7 @@
+variant,variant_kind,description,completed_machines,completed_count,final_1024x256_2080ti,final_1024x256_3090,final_gap,final_gap_percentage_points,final_within_4pp,best_1024x256_2080ti,best_1024x256_3090,best_gap,best_gap_percentage_points,best_within_4pp,fox_remote_read_topk,fox_remote_read_topk_initial,fox_remote_read_topk_final,release_start,release_end,schedule,dense_read_chunked
+fixed-r16-baseline,fixed,"default-dropout fixed read_topk=16 baseline, no M_state control","2080ti,3090",2,0.803,0.261,0.542,54.2,False,0.803,0.261,0.542,54.2,False,16,,,0,0,linear_int,False
+r16-update-softcap0p5,fixed,read_topk=16 with smooth_p4 M_state update_norm softcap=0.5,"2080ti,3090",2,0.151,0.465,0.31400000000000006,31.400000000000006,False,0.151,0.465,0.31400000000000006,31.400000000000006,False,16,,,0,0,linear_int,False
+r16-mnorm-cap6,fixed,read_topk=16 with hard M_state norm cap=6.0 diagnostic,"2080ti,3090",2,0.7,0.0295,0.6705,67.05,False,0.7,0.0295,0.6705,67.05,False,16,,,0,0,linear_int,False
+r16-update-softcap0p5-injwarm512,fixed,read_topk=16 with smooth_p4 update_norm softcap=0.5 and residual injection warmup 0->512 optimizer steps,"2080ti,3090",2,0.901,0.923,0.02200000000000002,2.200000000000002,True,0.901,0.923,0.02200000000000002,2.200000000000002,True,16,,,0,0,linear_int,False
+default-r2,fixed,compatibility alias,,0,,,,,,,,,,,16,,,0,0,linear_int,False
+fixed-r2-baseline,fixed,compatibility alias,,0,,,,,,,,,,,16,,,0,0,linear_int,False
