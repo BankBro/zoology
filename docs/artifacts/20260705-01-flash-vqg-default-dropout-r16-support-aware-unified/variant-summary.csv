@@ -1,0 +1,18 @@
+variant,variant_kind,description,completed_machines,completed_count,final_1024x256_2080ti,final_1024x256_3090,final_gap,final_gap_percentage_points,final_within_4pp,best_1024x256_2080ti,best_1024x256_3090,best_gap,best_gap_percentage_points,best_within_4pp,fox_remote_read_topk,fox_remote_read_topk_initial,fox_remote_read_topk_final,release_start,release_end,schedule,dense_read_chunked
+p0-fixed-r16-repro,fixed,P0 same-seed fixed read_topk=16 repro,"2080ti,3090",2,0.861,0.725,0.136,13.600000000000001,False,0.861,0.725,0.136,13.600000000000001,False,16,,,0,0,linear_int,False
+fixed-r24,fixed,P1 fixed read_topk=24 r16-neighborhood screen,3090,1,,0.86,,,,,0.86,,,,24,,,0,0,linear_int,False
+fixed-r32,fixed,P1 fixed read_topk=32 r16-neighborhood screen,3090,1,,0.667,,,,,0.667,,,,32,,,0,0,linear_int,False
+sched32to16-linear512,fixed,P1 scheduled read_topk 32->16 over 512 optimizer steps,3090,1,,0.764,,,,,0.764,,,,,32,16,0,2048,linear_int,False
+sched16to8-linear512,fixed,P1 scheduled read_topk 16->8 over 512 optimizer steps,"2080ti,3090",2,0.863,0.503,0.36,36.0,False,0.863,0.503,0.36,36.0,False,,16,8,0,2048,linear_int,False
+trace-r2-readwrite-256,fixed,P2 read snapshot plus inline update trace for read_topk=2,"2080ti,3090",2,0.00025,0.00025,0.0,0.0,True,0.00025,0.00025,0.0,0.0,True,2,,,0,0,linear_int,False
+trace-r4-read-256,fixed,P2 read snapshot trace for read_topk=4,"2080ti,3090",2,0.00025,0.000254,3.999999999999989e-06,0.0003999999999999989,True,0.00025,0.000254,3.999999999999989e-06,0.0003999999999999989,True,4,,,0,0,linear_int,False
+trace-r16-readwrite-256,fixed,P2 read snapshot plus inline update trace for read_topk=16,"2080ti,3090",2,0.00025,0.000254,3.999999999999989e-06,0.0003999999999999989,True,0.00025,0.000258,7.999999999999978e-06,0.0007999999999999978,True,16,,,0,0,linear_int,False
+trace-r64-read-256,fixed,P2 read snapshot trace for read_topk=64,"2080ti,3090",2,0.00025,0.000254,3.999999999999989e-06,0.0003999999999999989,True,0.00025,0.000254,3.999999999999989e-06,0.0003999999999999989,True,64,,,0,0,linear_int,True
+r16-injconf,fixed,P3 r16 with read-confidence-gated residual injection,"2080ti,3090",2,0.618,0.568,0.050000000000000044,5.000000000000004,False,0.618,0.568,0.050000000000000044,5.000000000000004,False,16,,,0,0,linear_int,False
+r16-softread,fixed,P3 r16 with read softmargin inside selected topk,"2080ti,3090",2,0.0148,0.9,0.8852,88.52,False,0.0148,0.9,0.8852,88.52,False,16,,,0,0,linear_int,False
+r16-softread-injconf,fixed,P3 r16 with read softmargin and read-confidence-gated injection,"2080ti,3090",2,0.8,0.402,0.398,39.800000000000004,False,0.8,0.402,0.398,39.800000000000004,False,16,,,0,0,linear_int,False
+r2-injconf,fixed,P3 r2 rescue with read-confidence-gated residual injection,"2080ti,3090",2,0.42,0.897,0.47700000000000004,47.7,False,0.42,0.897,0.47700000000000004,47.7,False,2,,,0,0,linear_int,False
+r16-write-mass,fixed,P3 r16 with existing topk_mass_scaled write strength,"2080ti,3090",2,0.505,0.623,0.118,11.799999999999999,False,0.505,0.623,0.118,11.799999999999999,False,16,,,0,0,linear_int,False
+r16-write-mass-injconf,fixed,P3 r16 with topk_mass_scaled write strength and injection confidence,"2080ti,3090",2,0.376,0.643,0.267,26.700000000000003,False,0.376,0.643,0.267,26.700000000000003,False,16,,,0,0,linear_int,False
+default-r2,fixed,compatibility alias,,0,,,,,,,,,,,2,,,0,0,linear_int,False
+fixed-r2-baseline,fixed,compatibility alias,,0,,,,,,,,,,,2,,,0,0,linear_int,False

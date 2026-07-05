@@ -1,0 +1,16 @@
+target,machines_completed,completed_pair,embed_dropout,read_topk,step16_top1_match_rate,step16_topk_exact_match_rate,step16_topk_overlap_ratio_mean,step128_top1_match_rate,step128_topk_exact_match_rate,step128_topk_overlap_ratio_mean,decision
+p0-fixed-r16-repro,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+fixed-r24,3090,False,0.1,24,,,,,,,incomplete_pair_do_not_interpret
+fixed-r32,3090,False,0.1,32,,,,,,,incomplete_pair_do_not_interpret
+sched32to16-linear512,3090,False,0.1,,,,,,,,incomplete_pair_do_not_interpret
+sched16to8-linear512,"2080ti,3090",True,0.1,,,,,,,,usable_pair_diagnostic
+trace-r2-readwrite-256,"2080ti,3090",True,0.1,2,,,,,,,usable_pair_diagnostic
+trace-r4-read-256,"2080ti,3090",True,0.1,4,,,,,,,usable_pair_diagnostic
+trace-r16-readwrite-256,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+trace-r64-read-256,"2080ti,3090",True,0.1,64,,,,,,,usable_pair_diagnostic
+r16-injconf,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+r16-softread,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+r16-softread-injconf,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+r2-injconf,"2080ti,3090",True,0.1,2,,,,,,,usable_pair_diagnostic
+r16-write-mass,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
+r16-write-mass-injconf,"2080ti,3090",True,0.1,16,,,,,,,usable_pair_diagnostic
