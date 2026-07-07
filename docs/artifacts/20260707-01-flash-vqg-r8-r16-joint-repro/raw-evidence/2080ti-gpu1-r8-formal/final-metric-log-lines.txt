@@ -1,0 +1,10 @@
+final_loss=0.321
+final_accuracy=0.971
+final_1024x256=0.853
+update_norm_p95=0.71
+update_norm_max=3.73
+update_softcap_hit_ratio=0.0646
+m_norm_max=6.6
+lambda_mean=0.211
+inject_ratio=0.17
+read_topk_effective=8

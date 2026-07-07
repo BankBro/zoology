@@ -1,0 +1,41 @@
+{
+  "batch_order": {
+    "first_16": [
+      487,
+      968,
+      1599,
+      205,
+      1685,
+      1567,
+      1443,
+      72,
+      1336,
+      2219,
+      756,
+      2572,
+      1778,
+      2588,
+      2430,
+      2464
+    ],
+    "num_batches": 2815,
+    "sha256": "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320"
+  },
+  "cache_dir": "./data/flash_vqg",
+  "checkpoint_enabled": true,
+  "checkpoint_save_best": true,
+  "checkpoint_save_last": true,
+  "experiment_id": "20260707-01-flash-vqg-r8-r16-joint-repro",
+  "gradient_accumulation_steps": 4,
+  "launch_id": "fvqg-20260707-01-flash-vqg-r8-r16-joint-repro-3090-r16-update-softcap0p5-injwarm512-rerun-repro-3090-gpu0-formal",
+  "machine_name": "3090",
+  "max_epochs": 1,
+  "max_train_steps": 704,
+  "read_trace_enabled": false,
+  "read_trace_train_steps": [],
+  "run_id": "20260707-01-flash-vqg-r8-r16-joint-repro-r16-update-softcap0p5-injwarm512-rerun-s124-d123-b64ga4-3090-repro-3090-gpu0-formal",
+  "schema_version": 1,
+  "target": "r16-update-softcap0p5-injwarm512-rerun",
+  "train_inline_event_trace_enabled": false,
+  "variant": "r16-update-softcap0p5-injwarm512-rerun"
+}

@@ -1,0 +1,16 @@
+{
+  "experiment_id": "20260707-01-flash-vqg-r8-r16-joint-repro",
+  "generated_at": "2026-07-07T19:48:09.356471+08:00",
+  "zoology_commit": "4a92405",
+  "flash_vqg_commit": "0eba390",
+  "formal_intent": "same-seed repeat of r8/r16 joint control on 3090 and two 2080ti GPUs",
+  "actual_execution": "r8 completed on 3090 and 2080ti GPU1; 2080ti GPU0 hung and NVML/CUDA failed; r16 was subsequently run on 3090 only",
+  "hardware_failure": {
+    "machine": "2080ti",
+    "symptom": "nvidia-smi unable to determine the device handle for GPU0000:01:00.0 and torch.cuda.is_available() false in container",
+    "effect": "paired formal experiment aborted before 2080ti r16 runs"
+  },
+  "important_caveat": "wrapper result JSON has train_result=null for completed runs; final metrics in summary were extracted from training logs and mirrored as compact final-metric-log-lines.txt evidence",
+  "screen_rule": "pass requires both machines final 1024x256 >= 0.85 and paired gap <= 4pp; incomplete or single-machine evidence cannot pass",
+  "best_metric_note": "For the available logs in this 1-epoch run, best validation accuracy and best 1024x256 equal the final validation values extracted from logs."
+}

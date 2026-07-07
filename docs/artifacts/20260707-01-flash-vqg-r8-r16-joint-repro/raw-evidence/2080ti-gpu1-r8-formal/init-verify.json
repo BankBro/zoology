@@ -1,0 +1,40 @@
+{
+  "environment": {
+    "cuda_available": true,
+    "cuda_device_capability": [
+      7,
+      5
+    ],
+    "cuda_device_count": 2,
+    "cuda_device_name": "NVIDIA GeForce RTX 2080 Ti",
+    "cudnn_allow_tf32": true,
+    "cudnn_version": 90100,
+    "experiment_id": "20260707-01-flash-vqg-r8-r16-joint-repro",
+    "flash_vqg_branch": "20260428-gd-residual-v1-sync",
+    "flash_vqg_commit": "0eba390",
+    "float32_matmul_precision": "highest",
+    "hostname": "a0651c2c1c1f",
+    "machine_name": "2080ti",
+    "matmul_allow_tf32": false,
+    "platform": "Linux-6.8.0-49-generic-x86_64-with-glibc2.35",
+    "python": "3.12.11 | packaged by Anaconda, Inc. | (main, Jun  5 2025, 13:09:17) [GCC 11.2.0]",
+    "torch_cuda": "11.8",
+    "torch_version": "2.6.0+cu118",
+    "utc_time": "2026-07-07T06:51:07.426722+00:00",
+    "zoology_branch": "flash-vqg",
+    "zoology_commit": "4a92405"
+  },
+  "experiment_id": "20260707-01-flash-vqg-r8-r16-joint-repro",
+  "init_checkpoint": {
+    "actual_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+    "checkpoint": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260630-03-flash-vqg-s124-fixed-r4-4ep-confirm/outputs/canonical-init/cb64r16-s124-init.pt",
+    "embedded_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+    "expected_model_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+    "match_embedded": true,
+    "match_expected": true,
+    "mismatched_keys": [],
+    "num_tensors": 27
+  },
+  "machine_name": "2080ti",
+  "schema_version": 1
+}

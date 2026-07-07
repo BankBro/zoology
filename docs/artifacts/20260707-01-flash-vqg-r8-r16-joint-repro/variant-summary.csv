@@ -1,0 +1,3 @@
+variant,read_topk,completed_available_runs,planned_runs_observed,machines_completed,final_1024x256_min,final_1024x256_max,available_gap_percentage_points,screen_pass_from_available_results,notes
+r16-update-softcap0p5-injwarm512-rerun,16,1,1,3090:gpu0,0.936,0.936,,unknown_single_machine,3090-only supplemental result; no paired conclusion
+r8-update-softcap0p5-injwarm512-rerun,8,2,3,3090:gpu0;2080ti:gpu1,0.853,0.931,7.800,false,incomplete paired evidence because 2080ti GPU0/NVML failed
