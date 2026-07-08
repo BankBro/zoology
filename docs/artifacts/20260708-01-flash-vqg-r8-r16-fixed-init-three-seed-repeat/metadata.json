@@ -1,0 +1,212 @@
+{
+  "artifact_files": [
+    "README.md",
+    "batch-order-summary.csv",
+    "cache-init-preflight-summary.csv",
+    "cross-machine-comparison.csv",
+    "execution-status-summary.csv",
+    "formal-ledger.csv",
+    "master-status-summary.csv",
+    "mechanism-metrics-summary.csv",
+    "metadata.json",
+    "queue-summary.csv",
+    "run-summary.csv",
+    "source-manifest.csv",
+    "variant-decision-summary.csv",
+    "variant-seed-repeat-summary.csv",
+    "variant-summary.csv",
+    "within-machine-repeat-summary.csv"
+  ],
+  "data_seed": 123,
+  "dropout": {
+    "drop_path": 0.0,
+    "embed_dropout": 0.1,
+    "resid_dropout": 0.0
+  },
+  "expected_cache_combined_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "expected_init_state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+  "experiment_id": "20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat",
+  "fixed_init_checkpoint": "zoology/experiments/flash_vqg/scripts/20260630-03-flash-vqg-s124-fixed-r4-4ep-confirm/outputs/canonical-init/cb64r16-s124-init.pt",
+  "fixed_init_seed": 124,
+  "formal_pair_count": 12,
+  "formal_run_count": 24,
+  "formal_timestamp": "20260707T172212Z",
+  "fox_gd_residual_rank": 16,
+  "gradient_accumulation_steps": 4,
+  "injection_warmup_end_train_steps": 2048,
+  "injection_warmup_start_train_steps": 0,
+  "invalid_run_count": 0,
+  "machines": [
+    "2080ti",
+    "3090"
+  ],
+  "max_epochs": 1,
+  "max_train_steps": 704,
+  "model": "cb64-r16",
+  "note": "s123/s124/s125 are training RNG seeds; model initialization remains the canonical seed124 checkpoint for every run.",
+  "num_codebook_vectors": 64,
+  "outputs": {
+    "2080ti_local": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/outputs/fixed-2080ti-gpu1-20260707T172212Z-formal",
+    "3090_mirrored": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/outputs/fixed-3090-gpu0-20260707T172212Z-formal",
+    "formal_only_collect": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/outputs/formal-only-20260707T172212Z",
+    "master": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/outputs/master-20260707T172212Z-formal"
+  },
+  "queues": {
+    "2080ti": "fixed-2080ti-gpu1",
+    "3090": "fixed-3090-gpu0"
+  },
+  "read_topks": [
+    8,
+    16
+  ],
+  "repeats": [
+    1,
+    2
+  ],
+  "screen_pass_rule": "paired final 1024x256 >= 0.85 on both machines and gap <= 4 percentage points",
+  "seed_read_topk_screen": [
+    {
+      "all_above_0p85": "False",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.83",
+      "gap_percentage_points": "83.0",
+      "max_1024x256": "0.948",
+      "min_1024x256": "0.118",
+      "passes_screen": "False",
+      "read_topk": "8",
+      "training_seed": "123",
+      "values": "0.118000,0.713000,0.918000,0.948000"
+    },
+    {
+      "all_above_0p85": "False",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.127",
+      "gap_percentage_points": "12.7",
+      "max_1024x256": "0.96",
+      "min_1024x256": "0.833",
+      "passes_screen": "False",
+      "read_topk": "16",
+      "training_seed": "123",
+      "values": "0.958000,0.960000,0.924000,0.833000"
+    },
+    {
+      "all_above_0p85": "True",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.07299999999999995",
+      "gap_percentage_points": "7.299999999999995",
+      "max_1024x256": "0.948",
+      "min_1024x256": "0.875",
+      "passes_screen": "False",
+      "read_topk": "8",
+      "training_seed": "124",
+      "values": "0.899000,0.875000,0.948000,0.941000"
+    },
+    {
+      "all_above_0p85": "True",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.051999999999999935",
+      "gap_percentage_points": "5.199999999999994",
+      "max_1024x256": "0.938",
+      "min_1024x256": "0.886",
+      "passes_screen": "False",
+      "read_topk": "16",
+      "training_seed": "124",
+      "values": "0.886000,0.896000,0.938000,0.933000"
+    },
+    {
+      "all_above_0p85": "False",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.2919999999999999",
+      "gap_percentage_points": "29.199999999999992",
+      "max_1024x256": "0.96",
+      "min_1024x256": "0.668",
+      "passes_screen": "False",
+      "read_topk": "8",
+      "training_seed": "125",
+      "values": "0.960000,0.943000,0.668000,0.710000"
+    },
+    {
+      "all_above_0p85": "False",
+      "completed_runs": "4",
+      "expected_runs": "4",
+      "gap": "0.12",
+      "gap_percentage_points": "12.0",
+      "max_1024x256": "0.962",
+      "min_1024x256": "0.842",
+      "passes_screen": "False",
+      "read_topk": "16",
+      "training_seed": "125",
+      "values": "0.842000,0.843000,0.949000,0.962000"
+    }
+  ],
+  "smoke_timestamp": "20260707T171900Z",
+  "source_files": [
+    {
+      "path": "docs/plans/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat-plan.md",
+      "sha256": "c26dbe9b109ca0bc8b68d1fb4a4411ef9b67676ca5403bfe04f2e45cf5a5c133"
+    },
+    {
+      "path": "docs/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat-report.md",
+      "sha256": "995ce63054d5a48cac156ed3872e13a5a30afd1ff3d728d1d7fd8660f9cd204d"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/fixed_init_three_seed_repeat.py",
+      "sha256": "85df0f282c1c584e5f99f5adee3971d303f935ade8edaad59f59d4ced765fb7b"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/run_queue.sh",
+      "sha256": "5aa308ee27cdc5e910b493fedd16f36a2ff6b188a4006de034fd60746bb4df1d"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/run_master.sh",
+      "sha256": "69f8b07c01347738a83dc23ca5d742f1137f9bd1af088a366e0815f857f85087"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/start_master.sh",
+      "sha256": "fa06a4d6dd02ca91f8e61e2e4f610919694b591e742f671b9870a944d4066fc9"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/batch_preflight.py",
+      "sha256": "b71ced962d9baddb31772df302111234adc739a6fb28cf5962ba4aec1e8fabb7"
+    },
+    {
+      "path": "zoology/experiments/flash_vqg/scripts/20260708-01-flash-vqg-r8-r16-fixed-init-three-seed-repeat/metrics.yaml",
+      "sha256": "52bb63c1d38111b6c047be2d1bc9842b2f185d50b6123511eb1f34eb264fb0e3"
+    }
+  ],
+  "stability_rule": "for each seed/read_topk, four final 1024x256 values across 2 machines x 2 repeats all >= 0.85 and max-min gap <= 4 percentage points",
+  "status": "collected",
+  "summary_by_read_topk": {
+    "16": {
+      "max_gap_percentage_points": 12.7,
+      "mean_2080ti_final_1024x256": 0.8975,
+      "mean_3090_final_1024x256": 0.923167,
+      "mean_gap_percentage_points": 7.9333,
+      "pairs": 6,
+      "passed_pairs": 2
+    },
+    "8": {
+      "max_gap_percentage_points": 80.0,
+      "mean_2080ti_final_1024x256": 0.751333,
+      "mean_3090_final_1024x256": 0.8555,
+      "mean_gap_percentage_points": 27.9167,
+      "pairs": 6,
+      "passed_pairs": 0
+    }
+  },
+  "trace_policy": "formal training has heavy read_trace, hash_probe, train inline event trace, and D-geometry trace disabled",
+  "training_seeds": [
+    123,
+    124,
+    125
+  ],
+  "update_norm_softcap": 0.5,
+  "update_norm_softcap_mode": "smooth_p4",
+  "warmup_end_optimizer_step": 512,
+  "write_topk": 4
+}

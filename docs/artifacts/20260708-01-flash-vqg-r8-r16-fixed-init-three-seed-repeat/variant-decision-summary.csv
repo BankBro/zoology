@@ -1,0 +1,13 @@
+variant,machines_completed,completed_pair,final_1024x256_2080ti,final_1024x256_3090,final_gap_percentage_points,passes_screen,decision
+s123-r8-rep1,"2080ti,3090",True,0.118,0.918,80.0,False,do_not_promote; inspect mechanism metrics or redesign
+s123-r8-rep2,"2080ti,3090",True,0.713,0.948,23.5,False,do_not_promote; inspect mechanism metrics or redesign
+s123-r16-rep1,"2080ti,3090",True,0.958,0.924,3.399999999999992,True,same_seed_pair_rerun_candidate
+s123-r16-rep2,"2080ti,3090",True,0.96,0.833,12.7,False,do_not_promote; inspect mechanism metrics or redesign
+s124-r8-rep1,"2080ti,3090",True,0.899,0.948,4.899999999999993,False,do_not_promote; inspect mechanism metrics or redesign
+s124-r8-rep2,"2080ti,3090",True,0.875,0.941,6.599999999999994,False,do_not_promote; inspect mechanism metrics or redesign
+s124-r16-rep1,"2080ti,3090",True,0.886,0.938,5.199999999999994,False,do_not_promote; inspect mechanism metrics or redesign
+s124-r16-rep2,"2080ti,3090",True,0.896,0.933,3.7000000000000033,True,same_seed_pair_rerun_candidate
+s125-r8-rep1,"2080ti,3090",True,0.96,0.668,29.199999999999992,False,do_not_promote; inspect mechanism metrics or redesign
+s125-r8-rep2,"2080ti,3090",True,0.943,0.71,23.299999999999997,False,do_not_promote; inspect mechanism metrics or redesign
+s125-r16-rep1,"2080ti,3090",True,0.842,0.949,10.7,False,do_not_promote; inspect mechanism metrics or redesign
+s125-r16-rep2,"2080ti,3090",True,0.843,0.962,11.899999999999999,False,do_not_promote; inspect mechanism metrics or redesign

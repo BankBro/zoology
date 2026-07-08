@@ -42,6 +42,7 @@ def _load_source():
 
 BASE = _load_source()
 BASEMOD = BASE.BASEMOD
+_ORIGINAL_BASE_RUN_COLLECT = BASE.run_collect
 
 
 def _target(seed: int, read_topk: int, repeat: int) -> str:
@@ -392,15 +393,31 @@ def _write_master_summary(artifact_dir: Path, outputs_dir: Path) -> None:
         with path.open("r", encoding="utf-8", newline="") as f:
             for row in csv.DictReader(f, delimiter="\t"):
                 row = dict(row)
+                if row.get("mode") != "formal":
+                    continue
                 row["status_path"] = str(path)
                 rows.append(row)
     _write_csv(artifact_dir / "master-status-summary.csv", rows)
 
 
+def _is_formal_row(row: dict[str, Any]) -> bool:
+    haystack = " ".join(
+        str(row.get(key, ""))
+        for key in ("run_id", "launch_id", "log_path", "result_json", "config_json")
+    )
+    return "-formal" in haystack
+
+
 def _post_collect(args: Any, code: int) -> int:
     artifact_dir = args.artifact_dir if args.artifact_dir.is_absolute() else (SCRIPT_DIR / args.artifact_dir)
     outputs_dir = args.outputs_dir if args.outputs_dir.is_absolute() else (SCRIPT_DIR / args.outputs_dir)
-    run_rows = [_add_target_meta(dict(row)) for row in _read_csv(artifact_dir / "run-summary.csv")]
+    run_rows = []
+    for raw_row in _read_csv(artifact_dir / "run-summary.csv"):
+        row = _add_target_meta(dict(raw_row))
+        if not _is_formal_row(row):
+            continue
+        row["experiment_id"] = EXPERIMENT_ID
+        run_rows.append(row)
     _write_csv(artifact_dir / "run-summary.csv", run_rows)
     _write_csv(artifact_dir / "variant-seed-repeat-summary.csv", _summarize_variant_seed_repeat(run_rows))
     _write_csv(artifact_dir / "cross-machine-comparison.csv", _summarize_cross_machine(run_rows))
@@ -447,7 +464,7 @@ def _post_collect(args: Any, code: int) -> int:
 
 
 def run_collect(args: Any) -> int:
-    code = BASE.run_collect(args)
+    code = _ORIGINAL_BASE_RUN_COLLECT(args)
     return _post_collect(args, code)
 
 
