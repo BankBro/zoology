@@ -496,7 +496,8 @@ def run_collect(args: Any) -> int:
 def main() -> int:
     _patch_identity()
     _patch_support()
-    BASE.BASEMOD.run_train = BASE.BASE.run_train
+    # Training is inherited from the fixed-init wrapper stack; this experiment
+    # only replaces target/config injection and the final collection summaries.
     BASE.BASEMOD.run_collect = run_collect
     BASE.run_collect = run_collect
     os.environ["FLASH_VQG_READ_TRACE_MODE"] = "disabled"
