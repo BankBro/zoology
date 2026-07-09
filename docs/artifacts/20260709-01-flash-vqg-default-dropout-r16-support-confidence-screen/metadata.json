@@ -1,0 +1,31 @@
+{
+  "completed_run_count": 16,
+  "experiment_id": "20260709-01-flash-vqg-default-dropout-r16-support-confidence-screen",
+  "fixed_conditions": {
+    "batch_order_sha256": "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320",
+    "cache_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "canonical_init_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+    "dropout": {
+      "drop_path": 0.0,
+      "embed_dropout": 0.1,
+      "resid_dropout": 0.0
+    },
+    "heavy_trace": "disabled",
+    "injection_warmup": "0->512 optimizer steps",
+    "model": "cb64-r16",
+    "read_topk": 16,
+    "update_norm_softcap": 0.5,
+    "update_norm_softcap_mode": "smooth_p4",
+    "write_topk": 4
+  },
+  "flash_vqg_commit": "0eba390",
+  "formal_run_count": 16,
+  "generated_at": "2026-07-09T10:21:15.000850+00:00",
+  "machines": [
+    "2080ti",
+    "3090"
+  ],
+  "screen_rule": "pass if both machines final 1024x256 >= 0.85 and paired gap <= 0.04",
+  "timestamp": "20260708T195358Z",
+  "zoology_commit": "1240b93"
+}

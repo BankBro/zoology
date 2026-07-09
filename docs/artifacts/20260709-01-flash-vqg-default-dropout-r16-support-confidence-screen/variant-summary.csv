@@ -1,0 +1,5 @@
+support_variant,completed_pairs,expected_pairs,passed_pairs,mean_gap_percentage_points,max_gap_percentage_points,min_1024x256,mean_1024x256,max_1024x256,all_values_above_0p85,passes_two_seed_screen
+baseline-r16-joint,2,2,2,3.049999999999992,3.699999999999992,0.902,0.93075,0.953,True,True
+read-gate-r16,2,2,0,4.199999999999992,4.299999999999993,0.916,0.9385,0.962,True,False
+read-softmargin-r16,2,2,1,20.749999999999996,39.69999999999999,0.546,0.83475,0.943,False,False
+read-gate-softmargin-r16,2,2,1,9.799999999999997,19.399999999999995,0.745,0.8959999999999999,0.951,False,False
