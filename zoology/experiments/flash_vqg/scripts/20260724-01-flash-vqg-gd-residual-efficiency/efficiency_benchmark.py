@@ -1244,9 +1244,11 @@ def _gdn_compatibility(args: argparse.Namespace) -> int:
         "elapsed_seconds": time.perf_counter() - started,
         "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
         "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
-        "gpu_shared_memory_per_block": int(properties.shared_memory_per_block),
-        "gpu_shared_memory_per_block_optin": int(
-            getattr(properties, "shared_memory_per_block_optin", 0)
+        "gpu_shared_memory_per_block": getattr(
+            properties, "shared_memory_per_block", None
+        ),
+        "gpu_shared_memory_per_block_optin": getattr(
+            properties, "shared_memory_per_block_optin", None
         ),
         "model": _model_metadata(model, "gdn", state_hash),
         "batch": {
