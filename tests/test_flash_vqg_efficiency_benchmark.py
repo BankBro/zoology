@@ -189,3 +189,18 @@ def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
         ]
     )
     assert compatibility.phase == "train"
+
+    epoch = bench._parser().parse_args(
+        [
+            "epoch",
+            "--model",
+            "flash",
+            "--output",
+            str(tmp_path / "epoch.json"),
+            "--repeat-id",
+            "2",
+        ]
+    )
+    assert epoch.precompile is True
+    assert epoch.repeat_id == 2
+    assert epoch.flash_grouped_chunk_backend == "triton"

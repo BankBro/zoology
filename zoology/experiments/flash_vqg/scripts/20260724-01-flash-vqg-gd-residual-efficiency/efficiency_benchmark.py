@@ -1264,6 +1264,254 @@ def _gdn_compatibility(args: argparse.Namespace) -> int:
     return 0
 
 
+def _epoch_validation(
+    model: LanguageModel,
+    test_loader: Any,
+    max_batches: int | None = None,
+) -> dict[str, Any]:
+    was_training = model.training
+    model.eval()
+    correct = torch.zeros((), device="cuda", dtype=torch.float64)
+    total = torch.zeros((), device="cuda", dtype=torch.float64)
+    loss_sum = torch.zeros((), device="cuda", dtype=torch.float64)
+    batches = 0
+    torch.cuda.synchronize()
+    started = time.perf_counter()
+    with torch.no_grad():
+        for batch_idx, (inputs_cpu, targets_cpu, _) in enumerate(test_loader):
+            if max_batches is not None and batch_idx >= max_batches:
+                break
+            inputs = inputs_cpu.to("cuda")
+            targets = targets_cpu.to("cuda")
+            _set_dense_teacher(model, targets)
+            try:
+                logits = model(inputs)
+            finally:
+                _clear_dense_teacher(model)
+            flat_targets = targets.flatten()
+            loss_sum += nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)),
+                flat_targets,
+            ).double()
+            valid = targets != -100
+            correct += ((logits.argmax(dim=-1) == targets) & valid).sum().double()
+            total += valid.sum().double()
+            batches += 1
+    torch.cuda.synchronize()
+    elapsed = time.perf_counter() - started
+    values = torch.stack((loss_sum, correct, total)).cpu().tolist()
+    if was_training:
+        model.train()
+    return {
+        "wall_seconds": elapsed,
+        "batches": batches,
+        "mean_batch_loss": values[0] / max(1, batches),
+        "accuracy": values[1] / max(1.0, values[2]),
+    }
+
+
+def _precompile_epoch_model(
+    args: argparse.Namespace,
+    flash: Any,
+    gdn: Any,
+    train_loader: Any,
+    test_loader: Any,
+) -> None:
+    model, _, _ = _model_and_hash(args.model, flash, gdn, args.gdn_init)
+    model = model.to("cuda").train()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.1)
+    train_shapes = set()
+    sampler = getattr(train_loader, "sampler", None)
+    if sampler is not None and hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(0)
+    for inputs_cpu, targets_cpu, _ in train_loader:
+        sequence_length = int(inputs_cpu.shape[1])
+        if sequence_length in train_shapes:
+            continue
+        inputs = inputs_cpu.to("cuda")
+        targets = targets_cpu.to("cuda")
+        optimizer.zero_grad(set_to_none=True)
+        _set_dense_teacher(model, targets)
+        try:
+            logits = model(inputs)
+            loss = nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)), targets.flatten()
+            )
+            loss = loss + _auxiliary_loss(model, inputs.device)
+        finally:
+            _clear_dense_teacher(model)
+        loss.backward()
+        optimizer.step()
+        torch.cuda.synchronize()
+        train_shapes.add(sequence_length)
+        print(
+            json.dumps(
+                {"event": "epoch_precompile", "phase": "train", "shape": list(inputs.shape)}
+            ),
+            flush=True,
+        )
+        if train_shapes == {64, 128, 256}:
+            break
+
+    model.eval()
+    eval_shapes = set()
+    with torch.no_grad():
+        for inputs_cpu, targets_cpu, _ in test_loader:
+            sequence_length = int(inputs_cpu.shape[1])
+            if sequence_length in eval_shapes:
+                continue
+            inputs = inputs_cpu.to("cuda")
+            targets = targets_cpu.to("cuda")
+            _set_dense_teacher(model, targets)
+            try:
+                model(inputs)
+            finally:
+                _clear_dense_teacher(model)
+            torch.cuda.synchronize()
+            eval_shapes.add(sequence_length)
+            print(
+                json.dumps(
+                    {"event": "epoch_precompile", "phase": "eval", "shape": list(inputs.shape)}
+                ),
+                flush=True,
+            )
+            if eval_shapes == {64, 128, 256, 512, 1024}:
+                break
+    del model, optimizer
+    gc.collect()
+    torch.cuda.empty_cache()
+
+
+def _epoch(args: argparse.Namespace) -> int:
+    _configure_numerics()
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable in the target container.")
+    flash = _build_flash_config(
+        "core",
+        args.flash_grouped_chunk_backend,
+        args.flash_selected_read_backend,
+    )
+    gdn = _build_gdn_config(flash.data)
+    train_loader, test_loader = prepare_data(flash.data)
+    batch_order = _batch_order_hash(train_loader)
+    if not batch_order["match"]:
+        raise RuntimeError("Canonical train batch order hash does not match.")
+
+    if args.precompile:
+        _precompile_epoch_model(args, flash, gdn, train_loader, test_loader)
+
+    model, _, state_hash = _model_and_hash(args.model, flash, gdn, args.gdn_init)
+    model = model.to("cuda").train()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.1)
+    sampler = getattr(train_loader, "sampler", None)
+    if sampler is not None and hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(0)
+    set_determinism(args.seed, deterministic=False)
+    total_microbatches = len(train_loader)
+    accumulation = 4
+    remainder = total_microbatches % accumulation
+    partial_start = total_microbatches - remainder if remainder else total_microbatches
+    optimizer_steps_expected = (total_microbatches + accumulation - 1) // accumulation
+    if args.max_optimizer_steps is not None:
+        optimizer_steps_expected = min(optimizer_steps_expected, args.max_optimizer_steps)
+    boundaries = {176, 352, 528}
+    validations = []
+    optimizer_step = 0
+    optimizer.zero_grad(set_to_none=True)
+    torch.cuda.synchronize()
+    torch.cuda.reset_peak_memory_stats()
+    started = time.perf_counter()
+    validation_seconds = 0.0
+
+    for microbatch_idx, (inputs_cpu, targets_cpu, _) in enumerate(train_loader):
+        inputs = inputs_cpu.to("cuda")
+        targets = targets_cpu.to("cuda")
+        _set_dense_teacher(model, targets)
+        try:
+            logits = model(inputs)
+            loss = nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)), targets.flatten()
+            )
+            loss = loss + _auxiliary_loss(model, inputs.device)
+        finally:
+            _clear_dense_teacher(model)
+        effective_accumulation = (
+            remainder if remainder and microbatch_idx >= partial_start else accumulation
+        )
+        (loss / effective_accumulation).backward()
+        at_boundary = (microbatch_idx + 1) % accumulation == 0
+        at_last = (microbatch_idx + 1) == total_microbatches
+        if not (at_boundary or at_last):
+            continue
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+        optimizer_step += 1
+        if optimizer_step in boundaries:
+            result = _epoch_validation(model, test_loader, args.max_validation_batches)
+            validations.append({"optimizer_step": optimizer_step, **result})
+            validation_seconds += result["wall_seconds"]
+        if optimizer_step == 1 or optimizer_step % 64 == 0:
+            torch.cuda.synchronize()
+            print(
+                json.dumps(
+                    {
+                        "event": "epoch_progress",
+                        "model": args.model,
+                        "optimizer_step": optimizer_step,
+                        "optimizer_steps_expected": optimizer_steps_expected,
+                        "elapsed_seconds": time.perf_counter() - started,
+                    },
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+        if optimizer_step >= optimizer_steps_expected:
+            break
+
+    final_validation = _epoch_validation(model, test_loader, args.max_validation_batches)
+    validations.append({"optimizer_step": optimizer_step, "final": True, **final_validation})
+    validation_seconds += final_validation["wall_seconds"]
+    torch.cuda.synchronize()
+    total_seconds = time.perf_counter() - started
+    payload = {
+        "experiment_id": EXPERIMENT_ID,
+        "environment": _environment(),
+        "model": _model_metadata(model, args.model, state_hash),
+        "seed": args.seed,
+        "repeat_id": args.repeat_id,
+        "precompiled": args.precompile,
+        "metrics_mode": "core",
+        "batch_order": batch_order,
+        "train_microbatches": total_microbatches,
+        "gradient_accumulation_steps": accumulation,
+        "optimizer_steps": optimizer_step,
+        "max_optimizer_steps": args.max_optimizer_steps,
+        "max_validation_batches": args.max_validation_batches,
+        "total_wall_seconds": total_seconds,
+        "validation_wall_seconds": validation_seconds,
+        "train_wall_seconds_excluding_validation": total_seconds - validation_seconds,
+        "validations": validations,
+        "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
+        "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
+        "flash_implementation": {
+            "grouped_chunk_backend": args.flash_grouped_chunk_backend,
+            "selected_read_backend": args.flash_selected_read_backend,
+        },
+    }
+    _write_json(args.output, payload)
+    print(
+        json.dumps(
+            {
+                "output": str(args.output),
+                "model": args.model,
+                "total_wall_seconds": total_seconds,
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
 def _run(args: argparse.Namespace) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model, optimizer, batch, metadata = _prepare_run(args)
@@ -1371,6 +1619,35 @@ def _parser() -> argparse.ArgumentParser:
     compatibility.add_argument("--output", type=Path, required=True)
     compatibility.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
     compatibility.set_defaults(func=_gdn_compatibility)
+
+    epoch = sub.add_parser("epoch")
+    epoch.add_argument("--model", choices=("flash", "gdn"), required=True)
+    epoch.add_argument("--output", type=Path, required=True)
+    epoch.add_argument("--seed", type=int, default=124)
+    epoch.add_argument("--repeat-id", type=int, default=1)
+    epoch.add_argument("--max-optimizer-steps", type=int)
+    epoch.add_argument("--max-validation-batches", type=int)
+    epoch.add_argument("--precompile", action=argparse.BooleanOptionalAction, default=True)
+    epoch.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
+    epoch.add_argument(
+        "--flash-grouped-chunk-backend", choices=("torch", "triton"), default="triton"
+    )
+    epoch.add_argument(
+        "--flash-selected-read-backend",
+        choices=("materialized", "triton_remat"),
+        default="triton_remat",
+    )
+    epoch.set_defaults(
+        func=_epoch,
+        phase="train",
+        metrics_mode="core",
+        run_kind="timing",
+        warmup=0,
+        active=1,
+        output_dir=Path("."),
+        capture_scalar_metrics=False,
+        formal_loop_policy="optimized",
+    )
 
     run = sub.add_parser("run")
     run.add_argument("--model", choices=("flash", "gdn"), required=True)
