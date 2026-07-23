@@ -124,7 +124,11 @@ def _find_flash_kwargs(model_config: Any) -> dict[str, Any]:
     raise KeyError("Could not find gd_residual_v1 mixer kwargs.")
 
 
-def _build_flash_config(metrics_mode: str):
+def _build_flash_config(
+    metrics_mode: str,
+    grouped_chunk_backend: str = "torch",
+    selected_read_backend: str = "materialized",
+):
     module = _support_module()
     config = module.BASE.BASEMOD.BASE.build_config(
         target=FLASH_TARGET,
@@ -140,6 +144,8 @@ def _build_flash_config(metrics_mode: str):
     config.init_checkpoint_path = str(CANONICAL_INIT)
     config.init_checkpoint_strict = True
     kwargs = _find_flash_kwargs(config.model)
+    kwargs["fox_gd_residual_grouped_chunk_backend"] = str(grouped_chunk_backend)
+    kwargs["fox_gd_residual_selected_read_backend"] = str(selected_read_backend)
     if metrics_mode == "core":
         kwargs["enable_layer_metrics"] = False
         kwargs["fox_phase2_metrics_mode"] = "off"
@@ -610,13 +616,13 @@ def _saved_tensor_hook(rows: list[dict[str, Any]]):
     return pack
 
 
-def _profiler_context(output_dir: Path):
+def _profiler_context(output_dir: Path, *, detailed: bool):
     activities = [torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
     return torch.profiler.profile(
         activities=activities,
-        record_shapes=True,
-        profile_memory=True,
-        with_stack=True,
+        record_shapes=detailed,
+        profile_memory=detailed,
+        with_stack=detailed,
     )
 
 
@@ -723,7 +729,11 @@ def _prepare_run(args: argparse.Namespace):
     _configure_numerics()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is unavailable in the target container.")
-    flash = _build_flash_config(args.metrics_mode)
+    flash = _build_flash_config(
+        args.metrics_mode,
+        args.flash_grouped_chunk_backend,
+        args.flash_selected_read_backend,
+    )
     gdn = _build_gdn_config(flash.data)
     model, config, state_hash = _model_and_hash(args.model, flash, gdn, args.gdn_init)
     train_loader, test_loader = prepare_data(flash.data)
@@ -740,6 +750,10 @@ def _prepare_run(args: argparse.Namespace):
         "phase": args.phase,
         "metrics_mode": args.metrics_mode,
         "run_kind": args.run_kind,
+        "flash_implementation": {
+            "grouped_chunk_backend": args.flash_grouped_chunk_backend,
+            "selected_read_backend": args.flash_selected_read_backend,
+        },
         "repeat_id": args.repeat_id,
         "warmup": args.warmup,
         "active": args.active,
@@ -786,6 +800,212 @@ def _make_gdn_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _flash_model_from_config(config: Any) -> LanguageModel:
+    set_determinism(124, deterministic=False)
+    model = LanguageModel(config.model)
+    payload = torch.load(CANONICAL_INIT, map_location="cpu")
+    model.load_state_dict(payload["model_state_dict"], strict=True)
+    return model.to("cuda")
+
+
+def _cpu_tensor_map(values: Iterable[tuple[str, torch.Tensor]]) -> dict[str, torch.Tensor]:
+    return {name: value.detach().float().cpu().clone() for name, value in values}
+
+
+def _run_flash_equivalence_variant(
+    config: Any,
+    train_batch: tuple[torch.Tensor, torch.Tensor],
+    eval_batch: tuple[torch.Tensor, torch.Tensor],
+) -> dict[str, Any]:
+    model = _flash_model_from_config(config)
+    eval_inputs = eval_batch[0].to("cuda")
+    eval_targets = eval_batch[1].to("cuda")
+    model.eval()
+    torch.manual_seed(20260724)
+    torch.cuda.manual_seed_all(20260724)
+    _set_dense_teacher(model, eval_targets)
+    try:
+        with torch.no_grad():
+            eval_hidden = model.backbone(eval_inputs)
+            eval_logits = model.lm_head(eval_hidden)
+            eval_loss = nn.functional.cross_entropy(
+                eval_logits.reshape(-1, eval_logits.size(-1)),
+                eval_targets.flatten(),
+            )
+    finally:
+        _clear_dense_teacher(model)
+    eval_payload = {
+        "hidden": eval_hidden.detach().float().cpu(),
+        "loss": float(eval_loss.detach().cpu().item()),
+    }
+    del eval_hidden, eval_logits, eval_loss, eval_inputs, eval_targets
+
+    model.train()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.1)
+    train_inputs = train_batch[0].to("cuda")
+    train_targets = train_batch[1].to("cuda")
+    torch.manual_seed(20260724)
+    torch.cuda.manual_seed_all(20260724)
+    optimizer.zero_grad(set_to_none=True)
+    loss_values = []
+    last_hidden = None
+    for _ in range(4):
+        _set_dense_teacher(model, train_targets)
+        try:
+            hidden = model.backbone(train_inputs)
+            logits = model.lm_head(hidden)
+            loss = nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)),
+                train_targets.flatten(),
+            )
+            loss = loss + _auxiliary_loss(model, train_inputs.device)
+        finally:
+            _clear_dense_teacher(model)
+        (loss / 4).backward()
+        loss_values.append(loss.detach())
+        last_hidden = hidden.detach()
+    gradients = _cpu_tensor_map(
+        (name, parameter.grad)
+        for name, parameter in model.named_parameters()
+        if parameter.grad is not None
+    )
+    optimizer.step()
+    parameters = _cpu_tensor_map(model.named_parameters())
+    optimizer_tensors = {}
+    for name, parameter in model.named_parameters():
+        for state_name, value in optimizer.state.get(parameter, {}).items():
+            if torch.is_tensor(value):
+                optimizer_tensors[f"{name}/{state_name}"] = value.detach().float().cpu().clone()
+    torch.cuda.synchronize()
+    train_payload = {
+        "hidden": last_hidden.float().cpu(),
+        "losses": torch.stack(loss_values).float().cpu(),
+        "gradients": gradients,
+        "parameters": parameters,
+        "optimizer": optimizer_tensors,
+    }
+    del model, optimizer, train_inputs, train_targets, hidden, logits, loss, last_hidden
+    torch.cuda.empty_cache()
+    return {"eval": eval_payload, "train": train_payload}
+
+
+def _tensor_comparison(reference: torch.Tensor, candidate: torch.Tensor) -> dict[str, float]:
+    reference_f32 = reference.float()
+    candidate_f32 = candidate.float()
+    difference = candidate_f32 - reference_f32
+    reference_norm = reference_f32.norm().clamp_min(1e-24)
+    return {
+        "max_abs": float(difference.abs().max().item()) if difference.numel() else 0.0,
+        "relative_l2": float((difference.norm() / reference_norm).item()),
+    }
+
+
+def _tensor_map_comparison(
+    reference: dict[str, torch.Tensor],
+    candidate: dict[str, torch.Tensor],
+) -> dict[str, Any]:
+    reference_keys = set(reference)
+    candidate_keys = set(candidate)
+    rows = []
+    for key in sorted(reference_keys & candidate_keys):
+        rows.append({"name": key, **_tensor_comparison(reference[key], candidate[key])})
+    return {
+        "missing_from_candidate": sorted(reference_keys - candidate_keys),
+        "missing_from_reference": sorted(candidate_keys - reference_keys),
+        "max_abs": max((row["max_abs"] for row in rows), default=0.0),
+        "max_relative_l2": max((row["relative_l2"] for row in rows), default=0.0),
+        "worst_max_abs": sorted(rows, key=lambda row: row["max_abs"], reverse=True)[:10],
+        "worst_relative_l2": sorted(
+            rows,
+            key=lambda row: row["relative_l2"],
+            reverse=True,
+        )[:10],
+    }
+
+
+def _equivalence(args: argparse.Namespace) -> int:
+    _configure_numerics()
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable in the target container.")
+    reference_config = _build_flash_config("core", "torch", "materialized")
+    candidate_config = _build_flash_config("core", "triton", "triton_remat")
+    train_loader, test_loader = prepare_data(reference_config.data)
+    train = _select_batch(train_loader, TRAIN_SHAPE)
+    valid = _select_batch(test_loader, EVAL_SHAPE)
+    train_batch = (train[0], train[1])
+    eval_batch = (valid[0], valid[1])
+
+    reference = _run_flash_equivalence_variant(
+        reference_config,
+        train_batch,
+        eval_batch,
+    )
+    candidate = _run_flash_equivalence_variant(
+        candidate_config,
+        train_batch,
+        eval_batch,
+    )
+    comparisons = {
+        "eval_hidden": _tensor_comparison(
+            reference["eval"]["hidden"], candidate["eval"]["hidden"]
+        ),
+        "eval_loss_abs": abs(reference["eval"]["loss"] - candidate["eval"]["loss"]),
+        "train_hidden": _tensor_comparison(
+            reference["train"]["hidden"], candidate["train"]["hidden"]
+        ),
+        "train_losses": _tensor_comparison(
+            reference["train"]["losses"], candidate["train"]["losses"]
+        ),
+        "gradients": _tensor_map_comparison(
+            reference["train"]["gradients"], candidate["train"]["gradients"]
+        ),
+        "parameters_after_step": _tensor_map_comparison(
+            reference["train"]["parameters"], candidate["train"]["parameters"]
+        ),
+        "optimizer_after_step": _tensor_map_comparison(
+            reference["train"]["optimizer"], candidate["train"]["optimizer"]
+        ),
+    }
+    passed = all(
+        (
+            comparisons["eval_hidden"]["max_abs"] <= 1e-5,
+            comparisons["eval_hidden"]["relative_l2"] <= 1e-5,
+            comparisons["eval_loss_abs"] <= 1e-6,
+            comparisons["train_hidden"]["max_abs"] <= 2e-5,
+            comparisons["train_hidden"]["relative_l2"] <= 1e-5,
+            comparisons["train_losses"]["max_abs"] <= 1e-5,
+            comparisons["gradients"]["max_relative_l2"] <= 1e-4,
+            comparisons["gradients"]["max_abs"] <= 2e-5,
+            comparisons["parameters_after_step"]["max_abs"] <= 2e-6,
+            not comparisons["gradients"]["missing_from_candidate"],
+            not comparisons["gradients"]["missing_from_reference"],
+        )
+    )
+    payload = {
+        "experiment_id": EXPERIMENT_ID,
+        "environment": _environment(),
+        "reference": {
+            "grouped_chunk_backend": "torch",
+            "selected_read_backend": "materialized",
+        },
+        "candidate": {
+            "grouped_chunk_backend": "triton",
+            "selected_read_backend": "triton_remat",
+        },
+        "fixed_batches": {
+            "train_inputs_sha256": _tensor_hash(train[0]),
+            "train_targets_sha256": _tensor_hash(train[1]),
+            "eval_inputs_sha256": _tensor_hash(valid[0]),
+            "eval_targets_sha256": _tensor_hash(valid[1]),
+        },
+        "comparisons": comparisons,
+        "passed": passed,
+    }
+    _write_json(args.output, payload)
+    print(json.dumps({"output": str(args.output), "passed": passed, "comparisons": comparisons}))
+    return 0 if passed else 1
+
+
 def _run(args: argparse.Namespace) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model, optimizer, batch, metadata = _prepare_run(args)
@@ -812,7 +1032,11 @@ def _run(args: argparse.Namespace) -> int:
     }
     saved_tensors: list[dict[str, Any]] = []
     profiler_paths = {}
-    profile_ctx = _profiler_context(args.output_dir) if args.run_kind == "profile" else nullcontext(None)
+    profile_ctx = (
+        _profiler_context(args.output_dir, detailed=args.run_kind == "profile")
+        if args.run_kind in {"profile", "op-profile"}
+        else nullcontext(None)
+    )
     saved_ctx = (
         torch.autograd.graph.saved_tensors_hooks(_saved_tensor_hook(saved_tensors), lambda tensor: tensor)
         if args.run_kind == "profile" and args.phase == "train"
@@ -824,6 +1048,10 @@ def _run(args: argparse.Namespace) -> int:
             records.append(run_one())
             if prof is not None:
                 prof.step()
+    # Capture the last forward's scalar diagnostics outside the timed region.
+    # This is intentionally opt-in because get_scalar_metrics() synchronizes
+    # each scalar to the host and is itself one of the costs under audit.
+    last_scalar_metrics = _collect_metrics(model) if args.capture_scalar_metrics else {}
     if prof is not None:
         profiler_paths = _write_profiler(prof, args.output_dir)
     snapshot_path = None
@@ -846,6 +1074,7 @@ def _run(args: argparse.Namespace) -> int:
         "memory": memory,
         "profiler": profiler_paths,
         "saved_tensors": saved_tensors,
+        "last_scalar_metrics": last_scalar_metrics,
     }
     output = args.output_dir / "summary.json"
     _write_json(output, summary)
@@ -870,16 +1099,39 @@ def _parser() -> argparse.ArgumentParser:
     make_init.add_argument("--force", action="store_true")
     make_init.set_defaults(func=_make_gdn_init)
 
+    equivalence = sub.add_parser("equivalence")
+    equivalence.add_argument("--output", type=Path, required=True)
+    equivalence.set_defaults(func=_equivalence)
+
     run = sub.add_parser("run")
     run.add_argument("--model", choices=("flash", "gdn"), required=True)
     run.add_argument("--phase", choices=("train", "eval"), required=True)
     run.add_argument("--metrics-mode", choices=("core", "formal"), default="core")
-    run.add_argument("--run-kind", choices=("timing", "memory", "profile"), required=True)
+    run.add_argument(
+        "--run-kind",
+        choices=("timing", "memory", "profile", "op-profile"),
+        required=True,
+    )
     run.add_argument("--warmup", type=int, default=5)
     run.add_argument("--active", type=int, default=10)
     run.add_argument("--repeat-id", type=int, default=0)
     run.add_argument("--output-dir", type=Path, required=True)
     run.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
+    run.add_argument(
+        "--flash-grouped-chunk-backend",
+        choices=("torch", "triton"),
+        default="torch",
+    )
+    run.add_argument(
+        "--flash-selected-read-backend",
+        choices=("materialized", "triton_remat"),
+        default="materialized",
+    )
+    run.add_argument(
+        "--capture-scalar-metrics",
+        action="store_true",
+        help="Capture the last forward's scalar metrics after the timed region.",
+    )
     run.set_defaults(func=_run)
     return parser
 

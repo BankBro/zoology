@@ -66,6 +66,17 @@ def test_core_only_disables_metrics(configs, bench):
     assert formal_kwargs["fox_phase2_metrics_mode"] == "lite"
     assert core_kwargs["enable_layer_metrics"] is False
     assert core_kwargs["fox_phase2_metrics_mode"] == "off"
+    assert core_kwargs["fox_gd_residual_grouped_chunk_backend"] == "torch"
+    assert core_kwargs["fox_gd_residual_selected_read_backend"] == "materialized"
+
+    optimized = bench._build_flash_config(
+        "core",
+        grouped_chunk_backend="triton",
+        selected_read_backend="triton_remat",
+    )
+    optimized_kwargs = bench._find_flash_kwargs(optimized.model)
+    assert optimized_kwargs["fox_gd_residual_grouped_chunk_backend"] == "triton"
+    assert optimized_kwargs["fox_gd_residual_selected_read_backend"] == "triton_remat"
 
 
 def test_same_scale_model_accounting(configs, bench):
@@ -96,3 +107,42 @@ def test_cache_manifest_and_percentile(configs, bench):
     assert bench._percentile([1.0, 2.0, 3.0, 4.0], 50) == 2.5
     assert bench._percentile([1.0, 2.0, 3.0, 4.0], 90) == pytest.approx(3.7)
     assert bench.os.environ["TRITON_F32_DEFAULT"] == "ieee"
+
+
+def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
+    args = bench._parser().parse_args(
+        [
+            "run",
+            "--model",
+            "flash",
+            "--phase",
+            "eval",
+            "--run-kind",
+            "timing",
+            "--output-dir",
+            str(tmp_path),
+            "--capture-scalar-metrics",
+            "--flash-grouped-chunk-backend",
+            "triton",
+            "--flash-selected-read-backend",
+            "triton_remat",
+        ]
+    )
+    assert args.capture_scalar_metrics is True
+    assert args.flash_grouped_chunk_backend == "triton"
+    assert args.flash_selected_read_backend == "triton_remat"
+
+    op_profile = bench._parser().parse_args(
+        [
+            "run",
+            "--model",
+            "flash",
+            "--phase",
+            "eval",
+            "--run-kind",
+            "op-profile",
+            "--output-dir",
+            str(tmp_path),
+        ]
+    )
+    assert op_profile.run_kind == "op-profile"

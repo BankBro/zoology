@@ -175,6 +175,15 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         "fox_gd_residual_rank": flash_kwargs.get("fox_gd_residual_rank"),
         "fox_gd_residual_write_topk": flash_kwargs.get("fox_gd_residual_write_topk"),
         "fox_gd_residual_builder": flash_kwargs.get("fox_gd_residual_builder"),
+        "fox_gd_residual_grouped_chunk_backend": flash_kwargs.get(
+            "fox_gd_residual_grouped_chunk_backend"
+        ),
+        "fox_gd_residual_selected_read_backend": flash_kwargs.get(
+            "fox_gd_residual_selected_read_backend"
+        ),
+        "fox_gd_residual_selected_read_chunk_size": flash_kwargs.get(
+            "fox_gd_residual_selected_read_chunk_size"
+        ),
         "fox_gd_residual_pack_mode": flash_kwargs.get("fox_gd_residual_pack_mode"),
         "fox_gd_residual_chunk_size": flash_kwargs.get("fox_gd_residual_chunk_size"),
         "fox_gd_residual_mu_min_count": flash_kwargs.get("fox_gd_residual_mu_min_count"),

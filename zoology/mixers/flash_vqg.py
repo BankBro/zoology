@@ -32,6 +32,9 @@ class FlashVQGMixer(nn.Module):
         fox_gd_residual_rank: int = 16,
         fox_gd_residual_write_topk: int = 4,
         fox_gd_residual_builder: str = "grouped_chunk_torch_ref",
+        fox_gd_residual_grouped_chunk_backend: str = "torch",
+        fox_gd_residual_selected_read_backend: str = "materialized",
+        fox_gd_residual_selected_read_chunk_size: int = 2048,
         fox_gd_residual_pack_mode: str = "semivec_ref",
         fox_gd_residual_chunk_size: int = 64,
         fox_gd_residual_mu_min_count: float = 1.0,
@@ -146,6 +149,15 @@ class FlashVQGMixer(nn.Module):
         self.fox_gd_residual_rank = int(fox_gd_residual_rank)
         self.fox_gd_residual_write_topk = int(fox_gd_residual_write_topk)
         self.fox_gd_residual_builder = str(fox_gd_residual_builder)
+        self.fox_gd_residual_grouped_chunk_backend = str(
+            fox_gd_residual_grouped_chunk_backend
+        )
+        self.fox_gd_residual_selected_read_backend = str(
+            fox_gd_residual_selected_read_backend
+        )
+        self.fox_gd_residual_selected_read_chunk_size = int(
+            fox_gd_residual_selected_read_chunk_size
+        )
         self.fox_gd_residual_pack_mode = str(fox_gd_residual_pack_mode)
         self.fox_gd_residual_chunk_size = int(fox_gd_residual_chunk_size)
         self.fox_gd_residual_mu_min_count = float(fox_gd_residual_mu_min_count)
@@ -345,6 +357,15 @@ class FlashVQGMixer(nn.Module):
             fox_gd_residual_rank=self.fox_gd_residual_rank,
             fox_gd_residual_write_topk=self.fox_gd_residual_write_topk,
             fox_gd_residual_builder=self.fox_gd_residual_builder,
+            fox_gd_residual_grouped_chunk_backend=(
+                self.fox_gd_residual_grouped_chunk_backend
+            ),
+            fox_gd_residual_selected_read_backend=(
+                self.fox_gd_residual_selected_read_backend
+            ),
+            fox_gd_residual_selected_read_chunk_size=(
+                self.fox_gd_residual_selected_read_chunk_size
+            ),
             fox_gd_residual_pack_mode=self.fox_gd_residual_pack_mode,
             fox_gd_residual_chunk_size=self.fox_gd_residual_chunk_size,
             fox_gd_residual_mu_min_count=self.fox_gd_residual_mu_min_count,
