@@ -1,0 +1,9 @@
+tensor,reference_shape,dtype,reference_bytes,reference_mib,active_gd_layers,final_global_materialization,note
+M_state,64x2x8x64x64x16,float32,268435456,256.0,1,retained,retained recurrent boundary state
+M_remote,64x2x8x64x64x16,float32,268435456,256.0,1,eliminated,direct indexed reads from M_state
+M_sel,64x2x8x32x16x64x16,float32,2147483648,2048.0,1,eliminated,never written to global HBM
+C_sel,64x2x8x32x16x64,float32,134217728,128.0,1,eliminated,loaded inside selected-read kernel
+z,64x2x8x32x16x16,float32,33554432,32.0,1,eliminated,computed in kernel/rematerialized in backward
+d_read,64x2x8x32x16x16,float32,33554432,32.0,1,eliminated,computed in kernel/rematerialized in backward
+proposal,64x2x8x32x16x64,float32,134217728,128.0,1,eliminated,reduced before global write
+logits,64x256x8192,float32,536870912,512.0,1,retained,LM head was not the measured primary bottleneck

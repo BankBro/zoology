@@ -1,0 +1,5 @@
+machine,phase,metric,flash_bytes,gdn_bytes,flash_over_gdn,threshold,pass,status
+2080ti,eval,max_memory_allocated,1095573504,1096258560,0.9993750963276401,2.0,True,measured
+2080ti,train,max_memory_allocated,3276562944,2013742080,1.6271015918781415,2.0,True,measured
+3090,eval,max_memory_allocated,1095573504,,,2.0,False,missing frozen GDN measurement
+3090,train,max_memory_allocated,3276248064,,,2.0,False,missing frozen GDN measurement

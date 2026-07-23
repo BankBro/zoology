@@ -1,0 +1,5 @@
+machine,phase,metric,flash,gdn,flash_over_gdn,threshold,pass,status
+2080ti,eval,wall_p50_ms,108.58371295034885,43.25226112268865,2.5104748314161447,2.0,False,measured
+2080ti,train,wall_p50_ms,984.9857359658927,606.8361354991794,1.6231494440515641,2.0,True,measured
+3090,eval,wall_p50_ms,74.77982668206096,,,2.0,False,missing frozen GDN measurement
+3090,train,wall_p50_ms,730.7780380360782,,,2.0,False,missing frozen GDN measurement

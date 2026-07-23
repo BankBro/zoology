@@ -1,0 +1,7 @@
+machine,model,phase,peak_allocated_bytes,peak_allocated_gib,peak_reserved_bytes,peak_reserved_gib,source
+2080ti,flash,eval,3441325568,3.204984188079834,3565158400,3.3203125,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/2080ti/baseline/flash-eval-core-r1/summary.json
+2080ti,flash,train,7205588992,6.710727691650391,10448011264,9.73046875,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/2080ti/baseline/flash-train-core-r1/summary.json
+2080ti,gdn,eval,1096258560,1.020970344543457,2034237440,1.89453125,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/2080ti/baseline/gdn-eval-core-r1/summary.json
+2080ti,gdn,train,2013742080,1.875443458557129,2617245696,2.4375,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/2080ti/baseline/gdn-train-core-r1/summary.json
+3090,flash,eval,3441325568,3.204984188079834,3565158400,3.3203125,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/3090/baseline/flash-eval-core-r1/summary.json
+3090,flash,train,7203213312,6.708515167236328,10468982784,9.75,zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/3090/baseline-current/flash-train-core-r1/summary.json

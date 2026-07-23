@@ -1,0 +1,3 @@
+machine,gpu_scope,flash_seconds,gdn_seconds,flash_over_gdn,flash_repeat_count,gdn_repeat_count,aggregation,threshold,within_threshold,hard_eligible,pass,status
+2080ti,epoch-gpu0-preliminary,422.1891352131497,350.8218570461031,1.2034288250109453,1,1,median of independent repeats,2.0,True,False,False,preliminary-only
+2080ti,epoch-gpu1,386.91597972391173,273.3560287579894,1.4154287413447189,3,3,median of independent repeats,2.0,True,True,True,measured-3-repeat

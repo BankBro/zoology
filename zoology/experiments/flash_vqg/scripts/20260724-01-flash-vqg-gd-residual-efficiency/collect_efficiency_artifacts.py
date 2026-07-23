@@ -57,26 +57,53 @@ def _metric(summary: dict[str, Any], name: str, field: str = "p50") -> float | N
 def _timing_row(path: Path, *, machine: str, stage: str, reused: bool = False) -> dict[str, Any]:
     summary = _read_json(path)
     model = summary["model"]
+    phase = summary["phase"]
+    wall_p50_ms = _metric(summary, "wall_ms", "p50")
+    optimizer_step_p50_ms = _metric(summary, "optimizer_step", "p50")
+    gradient_accumulation_steps = 4 if phase == "train" else 1
+    batch_shape = summary.get("batch", {}).get("shape", [])
+    tokens_per_microbatch = (
+        int(batch_shape[0]) * int(batch_shape[1]) if len(batch_shape) == 2 else None
+    )
+    tokens_per_timed_unit = (
+        tokens_per_microbatch * gradient_accumulation_steps
+        if tokens_per_microbatch is not None
+        else None
+    )
     return {
         "machine": machine,
         "stage": stage,
         "model": model["name"],
-        "phase": summary["phase"],
+        "phase": phase,
         "repeat_id": summary.get("repeat_id"),
         "metrics_mode": summary.get("metrics_mode"),
         "warmup": summary.get("warmup"),
         "active": summary.get("active"),
-        "wall_p50_ms": _metric(summary, "wall_ms", "p50"),
+        "wall_p50_ms": wall_p50_ms,
         "wall_p90_ms": _metric(summary, "wall_ms", "p90"),
         "cuda_p50_ms": _metric(summary, "cuda_total_ms", "p50"),
         "backbone_p50_ms": _metric(summary, "backbone", "p50"),
         "backward_p50_ms": _metric(summary, "backward", "p50"),
-        "optimizer_step_p50_ms": _metric(summary, "optimizer_step", "p50"),
+        "optimizer_step_p50_ms": optimizer_step_p50_ms,
         "lm_head_p50_ms": _metric(summary, "lm_head", "p50"),
         "cross_entropy_p50_ms": _metric(summary, "cross_entropy", "p50"),
+        "argmax_p50_ms": _metric(summary, "argmax", "p50"),
         "metrics_wall_p50_ms": _metric(summary, "metrics_wall_ms", "p50"),
         "loss_sync_wall_p50_ms": _metric(summary, "loss_sync_wall_ms", "p50"),
         "metric_count": _metric(summary, "metric_count", "p50"),
+        "gradient_accumulation_steps": gradient_accumulation_steps,
+        "tokens_per_timed_unit": tokens_per_timed_unit,
+        "tokens_per_second": (
+            tokens_per_timed_unit / (wall_p50_ms / 1000.0)
+            if tokens_per_timed_unit is not None and wall_p50_ms
+            else None
+        ),
+        "microbatch_equivalent_wall_ms": (
+            (wall_p50_ms - (optimizer_step_p50_ms or 0.0))
+            / gradient_accumulation_steps
+            if phase == "train" and wall_p50_ms is not None
+            else None
+        ),
         "peak_allocated_bytes": summary["memory"]["peak_allocated_bytes"],
         "peak_reserved_bytes": summary["memory"]["peak_reserved_bytes"],
         "trainable_parameters": model["trainable_parameters"],
@@ -99,6 +126,8 @@ def _aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "stage": "final-3-repeat-median",
         "model": first["model"],
         "phase": first["phase"],
+        "gradient_accumulation_steps": first["gradient_accumulation_steps"],
+        "tokens_per_timed_unit": first["tokens_per_timed_unit"],
         "repeat_count": len(rows),
         "repeat_ids": ";".join(str(row["repeat_id"]) for row in rows),
         "sources": ";".join(row["source"] for row in rows),
@@ -112,6 +141,12 @@ def _aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "optimizer_step_p50_ms",
         "lm_head_p50_ms",
         "cross_entropy_p50_ms",
+        "argmax_p50_ms",
+        "metrics_wall_p50_ms",
+        "loss_sync_wall_p50_ms",
+        "metric_count",
+        "tokens_per_second",
+        "microbatch_equivalent_wall_ms",
         "peak_allocated_bytes",
         "peak_reserved_bytes",
     ):
@@ -121,21 +156,32 @@ def _aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _baseline_timing() -> list[dict[str, Any]]:
-    rows = []
+    selected: dict[tuple[str, str, str], dict[str, Any]] = {}
     for machine in ("2080ti", "3090"):
-        for path in sorted((OUTPUTS / machine / "baseline").glob("*/summary.json")):
-            rows.append(_timing_row(path, machine=machine, stage="reference-baseline"))
-    return rows
+        for group in ("baseline", "baseline-current"):
+            for path in sorted((OUTPUTS / machine / group).glob("*/summary.json")):
+                row = _timing_row(
+                    path,
+                    machine=machine,
+                    stage=(
+                        "reference-baseline-current"
+                        if group == "baseline-current"
+                        else "reference-baseline"
+                    ),
+                )
+                selected[(machine, row["model"], row["phase"])] = row
+    return [selected[key] for key in sorted(selected)]
 
 
 def _final_timing() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     run_rows: list[dict[str, Any]] = []
     aggregates: list[dict[str, Any]] = []
     for machine in ("2080ti", "3090"):
-        final_dir = OUTPUTS / machine / "final-current"
-        if not final_dir.exists():
-            final_dir = OUTPUTS / machine / "final"
         for model in ("flash", "gdn"):
+            final_dir = OUTPUTS / machine / "final"
+            current_dir = OUTPUTS / machine / "final-current"
+            if model == "flash" and current_dir.exists():
+                final_dir = current_dir
             for phase in ("eval", "train"):
                 paths = sorted(final_dir.glob(f"{model}-{phase}-core-r*/summary.json"))
                 if machine == "2080ti" and model == "gdn":
@@ -154,6 +200,26 @@ def _final_timing() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                 run_rows.extend(rows)
                 if len(rows) >= 3:
                     aggregates.append(_aggregate(rows[:3]))
+    return run_rows, aggregates
+
+
+def _formal_timing() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    run_rows: list[dict[str, Any]] = []
+    aggregates: list[dict[str, Any]] = []
+    for machine in ("2080ti", "3090"):
+        root = OUTPUTS / machine / "final-formal-current"
+        for model in ("flash", "gdn"):
+            for phase in ("eval", "train"):
+                paths = sorted(root.glob(f"{model}-{phase}-formal-r*/summary.json"))
+                rows = [
+                    _timing_row(path, machine=machine, stage="formal-final")
+                    for path in paths
+                ]
+                run_rows.extend(rows)
+                if len(rows) >= 3:
+                    aggregate = _aggregate(rows[:3])
+                    aggregate["stage"] = "formal-3-repeat-median"
+                    aggregates.append(aggregate)
     return run_rows, aggregates
 
 
@@ -197,12 +263,12 @@ def _ratio_rows(aggregates: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _memory_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    rows = []
+    selected: dict[tuple[str, str, str], dict[str, Any]] = {}
     for machine in ("2080ti", "3090"):
-        for path in sorted((OUTPUTS / machine / "final-memory").glob("*/summary.json")):
-            summary = _read_json(path)
-            rows.append(
-                {
+        for group in ("final-memory", "final-memory-current"):
+            for path in sorted((OUTPUTS / machine / group).glob("*/summary.json")):
+                summary = _read_json(path)
+                row = {
                     "machine": machine,
                     "model": summary["model"]["name"],
                     "phase": summary["phase"],
@@ -213,7 +279,8 @@ def _memory_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                     "snapshot": summary["memory"].get("snapshot"),
                     "source": str(path.relative_to(REPO_ROOT)),
                 }
-            )
+                selected[(machine, row["model"], row["phase"])] = row
+    rows = [selected[key] for key in sorted(selected)]
     by_key = {(row["machine"], row["model"], row["phase"]): row for row in rows}
     ratios = []
     for machine in ("2080ti", "3090"):
@@ -379,6 +446,289 @@ def _equivalence_rows() -> list[dict[str, Any]]:
     return rows
 
 
+def _formal_quality_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    historical_path = (
+        REPO_ROOT
+        / "docs/artifacts/20260709-01-flash-vqg-default-dropout-r16-support-confidence-screen/"
+        / "run-summary.csv"
+    )
+    with historical_path.open("r", encoding="utf-8", newline="") as handle:
+        historical_rows = list(csv.DictReader(handle))
+    historical = {
+        (row["machine"], int(row["training_seed"])): row
+        for row in historical_rows
+        if row.get("target") in (
+            "s124-baseline-r16-joint",
+            "s125-baseline-r16-joint",
+        )
+    }
+    paths = {
+        "2080ti": OUTPUTS / "2080ti/formal-20260724T0558-v3/checkpoint-summary.json",
+        "3090": OUTPUTS / "3090/formal-20260724T0608-v1/checkpoint-summary.json",
+    }
+    rows = []
+    for machine, path in paths.items():
+        if not path.exists():
+            continue
+        for row in _read_json(path)["rows"]:
+            seed = int(row["training_seed"])
+            old = historical[(machine, seed)]
+            old_overall = float(old["final_valid_accuracy"])
+            old_hard = float(old["final_1024x256_accuracy"])
+            rows.append(
+                {
+                    "machine": machine,
+                    "training_seed": seed,
+                    "valid_accuracy": row["valid_accuracy"],
+                    "historical_valid_accuracy": old_overall,
+                    "valid_accuracy_delta": row["valid_accuracy"] - old_overall,
+                    "overall_non_regression_pass": row["valid_accuracy"] >= old_overall - 0.01,
+                    "accuracy_1024x256": row["accuracy_1024x256"],
+                    "historical_accuracy_1024x256": old_hard,
+                    "accuracy_1024x256_delta": row["accuracy_1024x256"] - old_hard,
+                    "hard_accuracy_pass": row["accuracy_1024x256"] >= 0.85,
+                    "valid_loss": row["valid_loss"],
+                    "checkpoint_sha256": row["checkpoint_sha256"],
+                    "model_state_sha256": row["model_state_sha256"],
+                    "checkpoint_path": row["checkpoint_path"],
+                    "summary_source": str(path.relative_to(REPO_ROOT)),
+                }
+            )
+    pairs = []
+    for seed in (124, 125):
+        values = {row["machine"]: row for row in rows if row["training_seed"] == seed}
+        if set(values) != {"2080ti", "3090"}:
+            continue
+        gap = abs(
+            values["2080ti"]["accuracy_1024x256"]
+            - values["3090"]["accuracy_1024x256"]
+        )
+        pairs.append(
+            {
+                "training_seed": seed,
+                "accuracy_1024x256_2080ti": values["2080ti"]["accuracy_1024x256"],
+                "accuracy_1024x256_3090": values["3090"]["accuracy_1024x256"],
+                "paired_gap": gap,
+                "paired_gap_percentage_points": gap * 100,
+                "paired_gap_pass": gap <= 0.04,
+                "quality_pass": (
+                    gap <= 0.04
+                    and values["2080ti"]["hard_accuracy_pass"]
+                    and values["3090"]["hard_accuracy_pass"]
+                    and values["2080ti"]["overall_non_regression_pass"]
+                    and values["3090"]["overall_non_regression_pass"]
+                ),
+            }
+        )
+    return rows, pairs
+
+
+def _formal_ledger_rows() -> list[dict[str, Any]]:
+    roots = {
+        "2080ti": OUTPUTS / "2080ti/formal-20260724T0558-v3",
+        "3090": OUTPUTS / "3090/formal-20260724T0608-v1",
+    }
+    rows = []
+    for machine, root in roots.items():
+        path = root / "formal-ledger.tsv"
+        if not path.exists():
+            continue
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            for row in csv.DictReader(handle, delimiter="\t"):
+                if row.get("status") != "completed":
+                    continue
+                rows.append(
+                    {
+                        "experiment_id": EXPERIMENT_ID,
+                        "machine": machine,
+                        "gpu": row["gpu"],
+                        "target": row["target"],
+                        "training_seed": 124 if "s124" in row["target"] else 125,
+                        "status": row["status"],
+                        "started_at": row["started_at"],
+                        "finished_at": row["finished_at"],
+                        "elapsed_seconds": row["elapsed_seconds"],
+                        "dtype_policy": "FP32; PyTorch matmul TF32 off; cuDNN TF32 off; Triton IEEE",
+                        "log_path": row["log"],
+                        "config_json": row["config_json"],
+                        "result_json": row["result_json"],
+                    }
+                )
+    return rows
+
+
+def _trajectory_rows() -> list[dict[str, Any]]:
+    path = OUTPUTS / "3090/trajectory/reference-vs-triton-32-128-512-v1.json"
+    if not path.exists():
+        return []
+    payload = _read_json(path)
+    rows = []
+    for step in sorted(payload["comparisons"], key=int):
+        comparison = payload["comparisons"][step]
+        rows.append(
+            {
+                "machine": "3090",
+                "optimizer_step": int(step),
+                "finite": payload["finite"],
+                "automatic_pass": payload["passed"],
+                "loss_abs": comparison["loss_abs"],
+                "loss_trajectory_max_abs": comparison["loss_trajectory"]["max_abs"],
+                "loss_trajectory_relative_l2": comparison["loss_trajectory"]["relative_l2"],
+                "parameter_max_abs": comparison["parameters"]["max_abs"],
+                "parameter_max_relative_l2": comparison["parameters"]["max_relative_l2"],
+                "optimizer_max_abs": comparison["optimizer"]["max_abs"],
+                "optimizer_max_relative_l2": comparison["optimizer"]["max_relative_l2"],
+                "forward_counts_equal": comparison["forward_counts_equal"],
+                "reference_elapsed_seconds": payload["reference"]["elapsed_seconds"],
+                "candidate_elapsed_seconds": payload["candidate"]["elapsed_seconds"],
+                "source": str(path.relative_to(REPO_ROOT)),
+            }
+        )
+    return rows
+
+
+def _epoch_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    rows: list[dict[str, Any]] = []
+    for directory in sorted((OUTPUTS / "2080ti").glob("epoch-*")):
+        if "smoke" in directory.name:
+            continue
+        exclusion_path = directory / "EXCLUDED.json"
+        excluded = set()
+        if exclusion_path.exists():
+            excluded = {
+                str(entry["path"])
+                for entry in _read_json(exclusion_path).get("excluded", [])
+            }
+        for path in sorted(directory.glob("*.json")):
+            if path.name in excluded:
+                continue
+            payload = _read_json(path)
+            if "total_wall_seconds" not in payload:
+                continue
+            rows.append(
+                {
+                    "machine": "2080ti",
+                    "gpu_scope": directory.name,
+                    "stage": "raw-repeat",
+                    "model": payload["model"]["name"],
+                    "repeat_id": payload["repeat_id"],
+                    "repeat_count": 1,
+                    "total_wall_seconds": payload["total_wall_seconds"],
+                    "train_wall_seconds_excluding_validation": payload[
+                        "train_wall_seconds_excluding_validation"
+                    ],
+                    "validation_wall_seconds": payload["validation_wall_seconds"],
+                    "optimizer_steps": payload["optimizer_steps"],
+                    "precompiled": payload["precompiled"],
+                    "peak_allocated_bytes": payload["peak_allocated_bytes"],
+                    "source": str(path.relative_to(REPO_ROOT)),
+                }
+            )
+    aggregates: list[dict[str, Any]] = []
+    for scope in sorted({row["gpu_scope"] for row in rows}):
+        for model in ("flash", "gdn"):
+            model_rows = [
+                row
+                for row in rows
+                if row["gpu_scope"] == scope and row["model"] == model
+            ]
+            if not model_rows:
+                continue
+            aggregates.append(
+                {
+                    "machine": "2080ti",
+                    "gpu_scope": scope,
+                    "stage": "repeat-median",
+                    "model": model,
+                    "repeat_id": ";".join(
+                        str(row["repeat_id"])
+                        for row in sorted(model_rows, key=lambda row: int(row["repeat_id"]))
+                    ),
+                    "repeat_count": len(model_rows),
+                    "total_wall_seconds": statistics.median(
+                        float(row["total_wall_seconds"]) for row in model_rows
+                    ),
+                    "train_wall_seconds_excluding_validation": statistics.median(
+                        float(row["train_wall_seconds_excluding_validation"])
+                        for row in model_rows
+                    ),
+                    "validation_wall_seconds": statistics.median(
+                        float(row["validation_wall_seconds"]) for row in model_rows
+                    ),
+                    "optimizer_steps": min(int(row["optimizer_steps"]) for row in model_rows),
+                    "precompiled": all(bool(row["precompiled"]) for row in model_rows),
+                    "peak_allocated_bytes": statistics.median(
+                        int(row["peak_allocated_bytes"]) for row in model_rows
+                    ),
+                    "source": ";".join(row["source"] for row in model_rows),
+                }
+            )
+    ratios = []
+    for scope in sorted({row["gpu_scope"] for row in aggregates}):
+        values = {
+            row["model"]: row for row in aggregates if row["gpu_scope"] == scope
+        }
+        if set(values) != {"flash", "gdn"}:
+            continue
+        ratio = values["flash"]["total_wall_seconds"] / values["gdn"]["total_wall_seconds"]
+        hard_eligible = (
+            values["flash"]["repeat_count"] >= 3
+            and values["gdn"]["repeat_count"] >= 3
+        )
+        ratios.append(
+            {
+                "machine": "2080ti",
+                "gpu_scope": scope,
+                "flash_seconds": values["flash"]["total_wall_seconds"],
+                "gdn_seconds": values["gdn"]["total_wall_seconds"],
+                "flash_over_gdn": ratio,
+                "flash_repeat_count": values["flash"]["repeat_count"],
+                "gdn_repeat_count": values["gdn"]["repeat_count"],
+                "aggregation": "median of independent repeats",
+                "threshold": 2.0,
+                "within_threshold": ratio <= 2.0,
+                "hard_eligible": hard_eligible,
+                "pass": hard_eligible and ratio <= 2.0,
+                "status": "measured-3-repeat" if hard_eligible else "preliminary-only",
+            }
+        )
+    return [*rows, *aggregates], ratios
+
+
+def _gdn_compatibility_rows() -> list[dict[str, Any]]:
+    rows = []
+    for phase in ("eval", "train"):
+        path = OUTPUTS / f"3090/gdn-compatibility/{phase}.json"
+        if not path.exists():
+            continue
+        payload = _read_json(path)
+        rows.append(
+            {
+                "machine": "3090",
+                "phase": phase,
+                "success": payload["success"],
+                "error": payload["error"],
+                "policy": payload["policy"],
+                "source": str(path.relative_to(REPO_ROOT)),
+            }
+        )
+    return rows
+
+
+def _cold_start_rows() -> list[dict[str, Any]]:
+    rows = []
+    for machine in ("2080ti", "3090"):
+        root = OUTPUTS / machine / "cold-start"
+        for path in sorted(root.glob("*/summary.json")):
+            row = _timing_row(path, machine=machine, stage="cold-empty-triton-cache")
+            row["interpretation"] = (
+                "first timed iteration with a fresh empty TRITON_CACHE_DIR; "
+                "process/model/data setup excluded"
+            )
+            rows.append(row)
+    return rows
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -390,14 +740,46 @@ def _sha256(path: Path) -> str:
 def _source_manifest() -> list[dict[str, Any]]:
     paths = []
     for machine in ("2080ti", "3090"):
-        for group in ("baseline", "final", "final-memory", "equivalence", "final-profile"):
+        for group in (
+            "baseline",
+            "baseline-current",
+            "final",
+            "final-current",
+            "final-formal-current",
+            "final-memory",
+            "final-memory-current",
+            "equivalence",
+            "final-profile",
+            "profile",
+            "trajectory",
+            "gdn-compatibility",
+            "cold-start",
+            "p0",
+            "smoke",
+        ):
             root = OUTPUTS / machine / group
             if not root.exists():
                 continue
             paths.extend(root.rglob("summary.json"))
+            paths.extend(root.rglob("*.json"))
             paths.extend(root.rglob("*.csv"))
             paths.extend(root.rglob("*.json.gz"))
+            paths.extend(root.rglob("*.log"))
             paths.extend(root.rglob("memory-snapshot.pickle"))
+        for root in (OUTPUTS / machine).glob("epoch-*"):
+            if "smoke" in root.name:
+                continue
+            paths.extend(root.rglob("*.json"))
+            paths.extend(root.rglob("*.log"))
+        for root in (OUTPUTS / machine).glob("formal-*"):
+            if not (root / "checkpoint-summary.json").exists():
+                invalid = root / "INVALID.json"
+                if invalid.exists():
+                    paths.append(invalid)
+                continue
+            paths.extend(root.rglob("*.json"))
+            paths.extend(root.rglob("*.tsv"))
+            paths.extend(root.rglob("*.log"))
         preflight = OUTPUTS / machine / "preflight.json"
         if preflight.exists():
             paths.append(preflight)
@@ -426,17 +808,35 @@ def main() -> int:
     baseline = _baseline_timing()
     final_runs, aggregates = _final_timing()
     timing_ratios = _ratio_rows(aggregates)
+    formal_runs, formal_aggregates = _formal_timing()
+    formal_timing_ratios = _ratio_rows(formal_aggregates)
     memory, memory_ratios = _memory_rows()
+    formal_quality, formal_pairs = _formal_quality_rows()
+    epoch_rows, epoch_ratios = _epoch_rows()
     _write_csv(ARTIFACT_DIR / "baseline-timing.csv", baseline)
     _write_csv(ARTIFACT_DIR / "baseline-memory.csv", _baseline_memory_rows(baseline))
     _write_csv(ARTIFACT_DIR / "final-timing.csv", [*final_runs, *aggregates])
     _write_csv(ARTIFACT_DIR / "performance-ratios.csv", timing_ratios)
+    _write_csv(
+        ARTIFACT_DIR / "formal-timing.csv", [*formal_runs, *formal_aggregates]
+    )
+    _write_csv(
+        ARTIFACT_DIR / "formal-performance-ratios.csv", formal_timing_ratios
+    )
     _write_csv(ARTIFACT_DIR / "final-memory.csv", memory)
     _write_csv(ARTIFACT_DIR / "memory-ratios.csv", memory_ratios)
     _write_csv(ARTIFACT_DIR / "candidate-waterfall.csv", _waterfall_rows())
     _write_csv(ARTIFACT_DIR / "tensor-lifetime.csv", _tensor_lifetime_rows())
     _write_csv(ARTIFACT_DIR / "metrics-on-off-comparison.csv", _metrics_rows())
     _write_csv(ARTIFACT_DIR / "equivalence-summary.csv", _equivalence_rows())
+    _write_csv(ARTIFACT_DIR / "trajectory-equivalence.csv", _trajectory_rows())
+    _write_csv(ARTIFACT_DIR / "formal-quality.csv", formal_quality)
+    _write_csv(ARTIFACT_DIR / "formal-paired-quality.csv", formal_pairs)
+    _write_csv(ARTIFACT_DIR / "formal-ledger.csv", _formal_ledger_rows())
+    _write_csv(ARTIFACT_DIR / "epoch-timing.csv", epoch_rows)
+    _write_csv(ARTIFACT_DIR / "epoch-ratios.csv", epoch_ratios)
+    _write_csv(ARTIFACT_DIR / "gdn-3090-compatibility.csv", _gdn_compatibility_rows())
+    _write_csv(ARTIFACT_DIR / "cold-start.csv", _cold_start_rows())
     _write_csv(ARTIFACT_DIR / "source-manifest.csv", _source_manifest())
 
     metadata = {
@@ -458,9 +858,16 @@ def main() -> int:
         "active_gd_residual_layers": 1,
         "numerics": "FP32, PyTorch TF32 off, cuDNN TF32 off for benchmark runner, TRITON_F32_DEFAULT=ieee",
         "hard_timing_ratios": timing_ratios,
+        "formal_timing_ratios": formal_timing_ratios,
         "hard_memory_ratios": memory_ratios,
+        "formal_quality_pairs": formal_pairs,
+        "epoch_ratios": epoch_ratios,
         "known_blockers": [
             "The frozen FP32 GDN chunk kernel does not compile on RTX 3090 sm86: required shared memory exceeds the 101376-byte hardware limit.",
+        ],
+        "known_limitations": [
+            "The strict 512-step reference/fused trajectory threshold is not met after FP32 rounding differences amplify, although one-step and formal quality gates pass.",
+            "The 2080 Ti formal eval ratio is above 2x because Flash computes 206 model-specific diagnostic metrics per batch; the symmetric core ratio passes.",
         ],
     }
     _write_json(ARTIFACT_DIR / "metadata.json", metadata)
@@ -469,7 +876,9 @@ def main() -> int:
         "Flash-VQG gd_residual_v1 baseline-r16-joint GPU memory and runtime audit. "
         "All hard timing rows use fixed canonical inputs, FP32/IEEE matmul policy, "
         "warmup >= 5, active >= 10, and fresh-process repeats. Formal quality runs "
-        "and the 32/128/512-step trajectory are added after completion.\n\n"
+        "cover seeds 124/125 on both GPUs; the trajectory artifact records exact "
+        "32/128/512-step comparisons. Formal timing and fresh empty-cache cold-start "
+        "costs are reported separately from the symmetric core hard ratios.\n\n"
         "The actual two-layer model contains one active Flash-VQG GD-residual layer "
         "and one BaseConv layer; tensor-lifetime estimates therefore use one GD layer.\n",
         encoding="utf-8",

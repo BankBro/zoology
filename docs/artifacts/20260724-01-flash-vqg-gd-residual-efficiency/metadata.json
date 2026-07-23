@@ -1,0 +1,216 @@
+{
+  "active_gd_residual_layers": 1,
+  "canonical_hashes": {
+    "batch_order": "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320",
+    "cache_content": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "flash_init": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+    "gdn_init": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6"
+  },
+  "epoch_ratios": [
+    {
+      "aggregation": "median of independent repeats",
+      "flash_over_gdn": 1.2034288250109453,
+      "flash_repeat_count": 1,
+      "flash_seconds": 422.1891352131497,
+      "gdn_repeat_count": 1,
+      "gdn_seconds": 350.8218570461031,
+      "gpu_scope": "epoch-gpu0-preliminary",
+      "hard_eligible": false,
+      "machine": "2080ti",
+      "pass": false,
+      "status": "preliminary-only",
+      "threshold": 2.0,
+      "within_threshold": true
+    },
+    {
+      "aggregation": "median of independent repeats",
+      "flash_over_gdn": 1.4154287413447189,
+      "flash_repeat_count": 3,
+      "flash_seconds": 386.91597972391173,
+      "gdn_repeat_count": 3,
+      "gdn_seconds": 273.3560287579894,
+      "gpu_scope": "epoch-gpu1",
+      "hard_eligible": true,
+      "machine": "2080ti",
+      "pass": true,
+      "status": "measured-3-repeat",
+      "threshold": 2.0,
+      "within_threshold": true
+    }
+  ],
+  "experiment_id": "20260724-01-flash-vqg-gd-residual-efficiency",
+  "flash_vqg": {
+    "branch": "20260724-gd-residual-efficiency",
+    "commit": "ec770f33676036432c6514acd1ac05bd2d01f3e8"
+  },
+  "formal_quality_pairs": [
+    {
+      "accuracy_1024x256_2080ti": 0.93320703125,
+      "accuracy_1024x256_3090": 0.93031640625,
+      "paired_gap": 0.0028906250000000355,
+      "paired_gap_pass": true,
+      "paired_gap_percentage_points": 0.28906250000000355,
+      "quality_pass": true,
+      "training_seed": 124
+    },
+    {
+      "accuracy_1024x256_2080ti": 0.92148828125,
+      "accuracy_1024x256_3090": 0.951328125,
+      "paired_gap": 0.029839843749999928,
+      "paired_gap_pass": true,
+      "paired_gap_percentage_points": 2.983984374999993,
+      "quality_pass": true,
+      "training_seed": 125
+    }
+  ],
+  "formal_timing_ratios": [
+    {
+      "flash": 108.58371295034885,
+      "flash_over_gdn": 2.5104748314161447,
+      "gdn": 43.25226112268865,
+      "machine": "2080ti",
+      "metric": "wall_p50_ms",
+      "pass": false,
+      "phase": "eval",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash": 984.9857359658927,
+      "flash_over_gdn": 1.6231494440515641,
+      "gdn": 606.8361354991794,
+      "machine": "2080ti",
+      "metric": "wall_p50_ms",
+      "pass": true,
+      "phase": "train",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash": 74.77982668206096,
+      "flash_over_gdn": null,
+      "gdn": null,
+      "machine": "3090",
+      "metric": "wall_p50_ms",
+      "pass": false,
+      "phase": "eval",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    },
+    {
+      "flash": 730.7780380360782,
+      "flash_over_gdn": null,
+      "gdn": null,
+      "machine": "3090",
+      "metric": "wall_p50_ms",
+      "pass": false,
+      "phase": "train",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    }
+  ],
+  "hard_memory_ratios": [
+    {
+      "flash_bytes": 1095573504,
+      "flash_over_gdn": 0.9993750963276401,
+      "gdn_bytes": 1096258560,
+      "machine": "2080ti",
+      "metric": "max_memory_allocated",
+      "pass": true,
+      "phase": "eval",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash_bytes": 3276562944,
+      "flash_over_gdn": 1.6271015918781415,
+      "gdn_bytes": 2013742080,
+      "machine": "2080ti",
+      "metric": "max_memory_allocated",
+      "pass": true,
+      "phase": "train",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash_bytes": 1095573504,
+      "flash_over_gdn": null,
+      "gdn_bytes": null,
+      "machine": "3090",
+      "metric": "max_memory_allocated",
+      "pass": false,
+      "phase": "eval",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    },
+    {
+      "flash_bytes": 3276248064,
+      "flash_over_gdn": null,
+      "gdn_bytes": null,
+      "machine": "3090",
+      "metric": "max_memory_allocated",
+      "pass": false,
+      "phase": "train",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    }
+  ],
+  "hard_timing_ratios": [
+    {
+      "flash": 77.81784550752491,
+      "flash_over_gdn": 1.8843238692400566,
+      "gdn": 41.29748966079205,
+      "machine": "2080ti",
+      "metric": "wall_p50_ms",
+      "pass": true,
+      "phase": "eval",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash": 900.4478850401938,
+      "flash_over_gdn": 1.507825077922774,
+      "gdn": 597.183253034018,
+      "machine": "2080ti",
+      "metric": "wall_p50_ms",
+      "pass": true,
+      "phase": "train",
+      "status": "measured",
+      "threshold": 2.0
+    },
+    {
+      "flash": 54.05541555956006,
+      "flash_over_gdn": null,
+      "gdn": null,
+      "machine": "3090",
+      "metric": "wall_p50_ms",
+      "pass": false,
+      "phase": "eval",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    },
+    {
+      "flash": 690.2088993228972,
+      "flash_over_gdn": null,
+      "gdn": null,
+      "machine": "3090",
+      "metric": "wall_p50_ms",
+      "pass": false,
+      "phase": "train",
+      "status": "missing frozen GDN measurement",
+      "threshold": 2.0
+    }
+  ],
+  "known_blockers": [
+    "The frozen FP32 GDN chunk kernel does not compile on RTX 3090 sm86: required shared memory exceeds the 101376-byte hardware limit."
+  ],
+  "known_limitations": [
+    "The strict 512-step reference/fused trajectory threshold is not met after FP32 rounding differences amplify, although one-step and formal quality gates pass.",
+    "The 2080 Ti formal eval ratio is above 2x because Flash computes 206 model-specific diagnostic metrics per batch; the symmetric core ratio passes."
+  ],
+  "numerics": "FP32, PyTorch TF32 off, cuDNN TF32 off for benchmark runner, TRITON_F32_DEFAULT=ieee",
+  "zoology": {
+    "branch": "20260724-gd-residual-efficiency",
+    "commit": "0dfea8e07b003c3b4dbe35af0f72f63c07b8919c"
+  }
+}
