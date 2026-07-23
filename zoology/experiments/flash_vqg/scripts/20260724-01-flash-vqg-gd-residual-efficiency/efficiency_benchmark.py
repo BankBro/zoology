@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
+import gc
 import hashlib
 import importlib.util
 import json
@@ -1016,6 +1017,182 @@ def _equivalence(args: argparse.Namespace) -> int:
     return 0 if passed else 1
 
 
+def _gd_forward_counts(model: nn.Module) -> dict[str, int]:
+    counts = {}
+    for name, module in model.named_modules():
+        counter = getattr(module, "_fox_gd_residual_train_forward_count", None)
+        if counter is None:
+            continue
+        value = counter.item() if hasattr(counter, "item") else counter
+        counts[str(name)] = int(value)
+    return counts
+
+
+def _optimizer_tensor_map(
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+) -> dict[str, torch.Tensor]:
+    tensors = {}
+    for name, parameter in model.named_parameters():
+        for state_name, value in optimizer.state.get(parameter, {}).items():
+            if torch.is_tensor(value):
+                tensors[f"{name}/{state_name}"] = value.detach().float().cpu().clone()
+    return tensors
+
+
+def _run_trajectory_variant(
+    config: Any,
+    train_loader: Any,
+    checkpoints: list[int],
+) -> dict[str, Any]:
+    model = _flash_model_from_config(config)
+    model.train()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.1)
+    sampler = getattr(train_loader, "sampler", None)
+    if sampler is not None and hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(0)
+    iterator = iter(train_loader)
+    set_determinism(20260724, deterministic=False)
+    losses = []
+    snapshots = {}
+    started = time.perf_counter()
+    max_step = max(checkpoints)
+
+    for optimizer_step in range(1, max_step + 1):
+        optimizer.zero_grad(set_to_none=True)
+        micro_losses = []
+        for _ in range(4):
+            inputs_cpu, targets_cpu, _ = next(iterator)
+            inputs = inputs_cpu.to("cuda")
+            targets = targets_cpu.to("cuda")
+            _set_dense_teacher(model, targets)
+            try:
+                hidden = model.backbone(inputs)
+                logits = model.lm_head(hidden)
+                loss = nn.functional.cross_entropy(
+                    logits.reshape(-1, logits.size(-1)),
+                    targets.flatten(),
+                )
+                loss = loss + _auxiliary_loss(model, inputs.device)
+            finally:
+                _clear_dense_teacher(model)
+            (loss / 4).backward()
+            micro_losses.append(loss.detach())
+        optimizer.step()
+        step_loss = float(torch.stack(micro_losses).mean().cpu().item())
+        losses.append(step_loss)
+
+        if optimizer_step in checkpoints:
+            snapshots[str(optimizer_step)] = {
+                "loss": step_loss,
+                "parameters": _cpu_tensor_map(model.named_parameters()),
+                "optimizer": _optimizer_tensor_map(model, optimizer),
+                "forward_counts": _gd_forward_counts(model),
+            }
+        if optimizer_step == 1 or optimizer_step % 16 == 0 or optimizer_step in checkpoints:
+            print(
+                json.dumps(
+                    {
+                        "event": "trajectory_progress",
+                        "step": optimizer_step,
+                        "max_step": max_step,
+                        "loss": step_loss,
+                        "elapsed_seconds": time.perf_counter() - started,
+                    },
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+
+    elapsed = time.perf_counter() - started
+    del model, optimizer, iterator
+    gc.collect()
+    torch.cuda.empty_cache()
+    return {"losses": losses, "snapshots": snapshots, "elapsed_seconds": elapsed}
+
+
+def _trajectory(args: argparse.Namespace) -> int:
+    _configure_numerics()
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable in the target container.")
+    checkpoints = sorted({int(step) for step in args.steps})
+    if not checkpoints or checkpoints[0] <= 0:
+        raise ValueError("trajectory steps must be positive integers.")
+
+    reference_config = _build_flash_config("core", "torch", "materialized")
+    candidate_config = _build_flash_config("core", "triton", "triton_remat")
+    train_loader, _ = prepare_data(reference_config.data)
+    batch_order = _batch_order_hash(train_loader)
+    if not batch_order["match"]:
+        raise RuntimeError("Canonical train batch order hash does not match.")
+
+    print(json.dumps({"event": "trajectory_variant", "variant": "reference"}), flush=True)
+    reference = _run_trajectory_variant(reference_config, train_loader, checkpoints)
+    print(json.dumps({"event": "trajectory_variant", "variant": "candidate"}), flush=True)
+    candidate = _run_trajectory_variant(candidate_config, train_loader, checkpoints)
+
+    comparisons = {}
+    for step in checkpoints:
+        key = str(step)
+        ref_snapshot = reference["snapshots"][key]
+        cand_snapshot = candidate["snapshots"][key]
+        ref_losses = torch.tensor(reference["losses"][:step], dtype=torch.float64)
+        cand_losses = torch.tensor(candidate["losses"][:step], dtype=torch.float64)
+        comparisons[key] = {
+            "loss_abs": abs(ref_snapshot["loss"] - cand_snapshot["loss"]),
+            "loss_trajectory": _tensor_comparison(ref_losses, cand_losses),
+            "parameters": _tensor_map_comparison(
+                ref_snapshot["parameters"], cand_snapshot["parameters"]
+            ),
+            "optimizer": _tensor_map_comparison(
+                ref_snapshot["optimizer"], cand_snapshot["optimizer"]
+            ),
+            "reference_forward_counts": ref_snapshot["forward_counts"],
+            "candidate_forward_counts": cand_snapshot["forward_counts"],
+            "forward_counts_equal": (
+                ref_snapshot["forward_counts"] == cand_snapshot["forward_counts"]
+            ),
+        }
+
+    finite = all(
+        np.isfinite(reference["losses"]) & np.isfinite(candidate["losses"])
+    )
+    passed = bool(finite) and all(
+        comparison["forward_counts_equal"]
+        and comparison["loss_trajectory"]["relative_l2"] <= 1e-3
+        and comparison["parameters"]["max_relative_l2"] <= 1e-3
+        and not comparison["parameters"]["missing_from_candidate"]
+        and not comparison["parameters"]["missing_from_reference"]
+        for comparison in comparisons.values()
+    )
+    payload = {
+        "experiment_id": EXPERIMENT_ID,
+        "environment": _environment(),
+        "batch_order": batch_order,
+        "checkpoints": checkpoints,
+        "gradient_accumulation_steps": 4,
+        "seed": 20260724,
+        "reference": {
+            "grouped_chunk_backend": "torch",
+            "selected_read_backend": "materialized",
+            "elapsed_seconds": reference["elapsed_seconds"],
+            "losses": reference["losses"],
+        },
+        "candidate": {
+            "grouped_chunk_backend": "triton",
+            "selected_read_backend": "triton_remat",
+            "elapsed_seconds": candidate["elapsed_seconds"],
+            "losses": candidate["losses"],
+        },
+        "comparisons": comparisons,
+        "finite": bool(finite),
+        "passed": passed,
+    }
+    _write_json(args.output, payload)
+    print(json.dumps({"output": str(args.output), "passed": passed}, sort_keys=True))
+    return 0 if passed else 1
+
+
 def _run(args: argparse.Namespace) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model, optimizer, batch, metadata = _prepare_run(args)
@@ -1112,6 +1289,11 @@ def _parser() -> argparse.ArgumentParser:
     equivalence = sub.add_parser("equivalence")
     equivalence.add_argument("--output", type=Path, required=True)
     equivalence.set_defaults(func=_equivalence)
+
+    trajectory = sub.add_parser("trajectory")
+    trajectory.add_argument("--output", type=Path, required=True)
+    trajectory.add_argument("--steps", type=int, nargs="+", default=[32, 128, 512])
+    trajectory.set_defaults(func=_trajectory)
 
     run = sub.add_parser("run")
     run.add_argument("--model", choices=("flash", "gdn"), required=True)

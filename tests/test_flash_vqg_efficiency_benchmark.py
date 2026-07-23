@@ -166,3 +166,15 @@ def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
         ]
     )
     assert legacy.formal_loop_policy == "legacy"
+
+    trajectory = bench._parser().parse_args(
+        [
+            "trajectory",
+            "--output",
+            str(tmp_path / "trajectory.json"),
+            "--steps",
+            "8",
+            "32",
+        ]
+    )
+    assert trajectory.steps == [8, 32]
