@@ -95,3 +95,4 @@ def test_cache_manifest_and_percentile(configs, bench):
     assert {item["role"] for item in items} == {"train", "test"}
     assert bench._percentile([1.0, 2.0, 3.0, 4.0], 50) == 2.5
     assert bench._percentile([1.0, 2.0, 3.0, 4.0], 90) == pytest.approx(3.7)
+    assert bench.os.environ["TRITON_F32_DEFAULT"] == "ieee"

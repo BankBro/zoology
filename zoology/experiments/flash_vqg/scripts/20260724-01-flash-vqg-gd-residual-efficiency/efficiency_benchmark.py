@@ -20,6 +20,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+# FLA otherwise enables Triton TF32 implicitly on Ampere even when PyTorch's
+# matmul TF32 flags are disabled. Set this before importing torch/FLA modules.
+os.environ.setdefault("TRITON_F32_DEFAULT", "ieee")
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -366,6 +370,7 @@ def _environment() -> dict[str, Any]:
         "cudnn_tf32": torch.backends.cudnn.allow_tf32,
         "float32_matmul_precision": torch.get_float32_matmul_precision(),
         "gdn_kernel_dtype": os.environ.get("GDN_KERNEL_DTYPE"),
+        "triton_f32_default": os.environ.get("TRITON_F32_DEFAULT"),
         "zoology_branch": _git_value(REPO_ROOT, "branch", "--show-current"),
         "zoology_commit": _git_value(REPO_ROOT, "rev-parse", "HEAD"),
         "flash_branch": _git_value(FLASH_ROOT, "branch", "--show-current"),

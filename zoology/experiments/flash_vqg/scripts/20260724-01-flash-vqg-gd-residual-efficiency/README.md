@@ -10,6 +10,7 @@
 - `core` 关闭 Flash layer metrics, 不做无用 `argmax`或逐标量 D2H.
 - `formal` 保留当前 Flash metrics, train/eval `argmax`, train逐 microbatch loss D2H和 optimizer-boundary metrics收集.
 - Timing, allocator memory和 torch profiler必须分开执行.
+- Runner在导入 FLA前固定 `TRITON_F32_DEFAULT=ieee`, 防止 Ampere上的 Triton dot隐式使用 TF32.
 
 ## 2. 硬预检
 
