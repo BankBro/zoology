@@ -15,6 +15,7 @@ import statistics
 import subprocess
 import sys
 import time
+import traceback
 from collections import defaultdict
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
@@ -1193,6 +1194,74 @@ def _trajectory(args: argparse.Namespace) -> int:
     return 0 if passed else 1
 
 
+def _gdn_compatibility(args: argparse.Namespace) -> int:
+    """Capture frozen-GDN execution compatibility without changing its implementation."""
+    _configure_numerics()
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable in the target container.")
+    flash = _build_flash_config("core")
+    gdn = _build_gdn_config(flash.data)
+    train_loader, test_loader = prepare_data(flash.data)
+    selected = (
+        _select_batch(train_loader, TRAIN_SHAPE)
+        if args.phase == "train"
+        else _select_batch(test_loader, EVAL_SHAPE)
+    )
+    model, _, state_hash = _model_and_hash("gdn", flash, gdn, args.gdn_init)
+    model = model.to("cuda")
+    model.train(args.phase == "train")
+    inputs = selected[0].to("cuda")
+    targets = selected[1].to("cuda")
+    torch.cuda.reset_peak_memory_stats()
+    started = time.perf_counter()
+    success = False
+    error = None
+    error_traceback = None
+    try:
+        if args.phase == "train":
+            model.zero_grad(set_to_none=True)
+            logits = model(inputs)
+            loss = nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)), targets.flatten()
+            )
+            loss.backward()
+        else:
+            with torch.no_grad():
+                logits = model(inputs)
+        torch.cuda.synchronize()
+        success = True
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        error_traceback = traceback.format_exc()
+    properties = torch.cuda.get_device_properties(0)
+    payload = {
+        "experiment_id": EXPERIMENT_ID,
+        "environment": _environment(),
+        "phase": args.phase,
+        "success": success,
+        "error": error,
+        "traceback": error_traceback,
+        "elapsed_seconds": time.perf_counter() - started,
+        "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
+        "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
+        "gpu_shared_memory_per_block": int(properties.shared_memory_per_block),
+        "gpu_shared_memory_per_block_optin": int(
+            getattr(properties, "shared_memory_per_block_optin", 0)
+        ),
+        "model": _model_metadata(model, "gdn", state_hash),
+        "batch": {
+            "shape": list(selected[0].shape),
+            "ordinal": selected[3],
+            "inputs_sha256": _tensor_hash(selected[0]),
+            "targets_sha256": _tensor_hash(selected[1]),
+        },
+        "policy": "frozen GDN source/config; FP32; TF32 off; no launch monkeypatch",
+    }
+    _write_json(args.output, payload)
+    print(json.dumps({"output": str(args.output), "success": success, "error": error}))
+    return 0
+
+
 def _run(args: argparse.Namespace) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model, optimizer, batch, metadata = _prepare_run(args)
@@ -1294,6 +1363,12 @@ def _parser() -> argparse.ArgumentParser:
     trajectory.add_argument("--output", type=Path, required=True)
     trajectory.add_argument("--steps", type=int, nargs="+", default=[32, 128, 512])
     trajectory.set_defaults(func=_trajectory)
+
+    compatibility = sub.add_parser("gdn-compatibility")
+    compatibility.add_argument("--phase", choices=("train", "eval"), required=True)
+    compatibility.add_argument("--output", type=Path, required=True)
+    compatibility.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
+    compatibility.set_defaults(func=_gdn_compatibility)
 
     run = sub.add_parser("run")
     run.add_argument("--model", choices=("flash", "gdn"), required=True)

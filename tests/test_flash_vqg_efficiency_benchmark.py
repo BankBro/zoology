@@ -178,3 +178,14 @@ def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
         ]
     )
     assert trajectory.steps == [8, 32]
+
+    compatibility = bench._parser().parse_args(
+        [
+            "gdn-compatibility",
+            "--phase",
+            "train",
+            "--output",
+            str(tmp_path / "gdn-compatibility.json"),
+        ]
+    )
+    assert compatibility.phase == "train"
