@@ -131,6 +131,7 @@ def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
     assert args.capture_scalar_metrics is True
     assert args.flash_grouped_chunk_backend == "triton"
     assert args.flash_selected_read_backend == "triton_remat"
+    assert args.formal_loop_policy == "optimized"
 
     op_profile = bench._parser().parse_args(
         [
@@ -146,3 +147,22 @@ def test_parser_supports_out_of_band_scalar_metric_capture(bench, tmp_path):
         ]
     )
     assert op_profile.run_kind == "op-profile"
+
+    legacy = bench._parser().parse_args(
+        [
+            "run",
+            "--model",
+            "flash",
+            "--phase",
+            "train",
+            "--metrics-mode",
+            "formal",
+            "--formal-loop-policy",
+            "legacy",
+            "--run-kind",
+            "timing",
+            "--output-dir",
+            str(tmp_path),
+        ]
+    )
+    assert legacy.formal_loop_policy == "legacy"

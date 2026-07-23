@@ -478,7 +478,7 @@ def _forward_loss(
     inputs: torch.Tensor,
     targets: torch.Tensor,
     ranges: _CudaRanges,
-    formal: bool,
+    compute_predictions: bool,
     include_auxiliary: bool,
 ):
     with ranges.range("backbone"):
@@ -487,7 +487,7 @@ def _forward_loss(
         logits = model.lm_head(hidden)
     with ranges.range("cross_entropy"):
         loss = nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), targets.flatten())
-    if formal:
+    if compute_predictions:
         with ranges.range("argmax"):
             logits.argmax(dim=-1)
     if include_auxiliary:
@@ -501,27 +501,36 @@ def _train_iteration(
     optimizer: torch.optim.Optimizer,
     cpu_batch: tuple[torch.Tensor, torch.Tensor],
     formal: bool,
+    formal_loop_policy: str,
 ):
     ranges = _CudaRanges()
     wall_start = time.perf_counter()
     loss_sync_ms = 0.0
+    accumulated_losses = []
+    legacy_syncs = formal and formal_loop_policy == "legacy"
     with ranges.range("zero_grad"):
-        optimizer.zero_grad()
+        optimizer.zero_grad(set_to_none=True)
     for _ in range(4):
         with ranges.range("h2d"):
             inputs = cpu_batch[0].to("cuda")
             targets = cpu_batch[1].to("cuda")
         _set_dense_teacher(model, targets)
         try:
-            loss = _forward_loss(model, inputs, targets, ranges, formal, True)
+            loss = _forward_loss(model, inputs, targets, ranges, legacy_syncs, True)
         finally:
             _clear_dense_teacher(model)
         with ranges.range("backward"):
             (loss / 4).backward()
-        if formal:
+        if legacy_syncs:
             sync_start = time.perf_counter()
             loss.detach().cpu().item()
             loss_sync_ms += (time.perf_counter() - sync_start) * 1000.0
+        elif formal:
+            accumulated_losses.append(loss.detach())
+    if formal and not legacy_syncs:
+        sync_start = time.perf_counter()
+        torch.stack(accumulated_losses).sum().cpu().item()
+        loss_sync_ms += (time.perf_counter() - sync_start) * 1000.0
     with ranges.range("optimizer_step"):
         optimizer.step()
     metrics_start = time.perf_counter()
@@ -749,6 +758,7 @@ def _prepare_run(args: argparse.Namespace):
         "model": _model_metadata(model, args.model, state_hash),
         "phase": args.phase,
         "metrics_mode": args.metrics_mode,
+        "formal_loop_policy": args.formal_loop_policy,
         "run_kind": args.run_kind,
         "flash_implementation": {
             "grouped_chunk_backend": args.flash_grouped_chunk_backend,
@@ -1011,7 +1021,7 @@ def _run(args: argparse.Namespace) -> int:
     model, optimizer, batch, metadata = _prepare_run(args)
     formal = args.metrics_mode == "formal"
     run_one = (
-        (lambda: _train_iteration(model, optimizer, batch, formal))
+        (lambda: _train_iteration(model, optimizer, batch, formal, args.formal_loop_policy))
         if args.phase == "train"
         else (lambda: _eval_iteration(model, batch, formal))
     )
@@ -1107,6 +1117,12 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--model", choices=("flash", "gdn"), required=True)
     run.add_argument("--phase", choices=("train", "eval"), required=True)
     run.add_argument("--metrics-mode", choices=("core", "formal"), default="core")
+    run.add_argument(
+        "--formal-loop-policy",
+        choices=("optimized", "legacy"),
+        default="optimized",
+        help="Use the optimized production training loop or retain legacy synchronization for A/B.",
+    )
     run.add_argument(
         "--run-kind",
         choices=("timing", "memory", "profile", "op-profile"),

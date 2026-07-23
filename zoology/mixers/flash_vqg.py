@@ -576,18 +576,33 @@ class FlashVQGMixer(nn.Module):
         if not isinstance(raw_metrics, dict):
             return {}
 
-        metrics: dict[str, float] = {}
+        entries: list[list[str | float | None]] = []
+        tensor_groups: dict[torch.device, list[tuple[int, torch.Tensor]]] = {}
         for key, value in raw_metrics.items():
-            scalar_value = None
             if isinstance(value, torch.Tensor):
                 if value.numel() != 1:
                     continue
-                scalar_value = float(value.detach().float().cpu().item())
+                entry_idx = len(entries)
+                entries.append([str(key), None])
+                tensor_groups.setdefault(value.device, []).append(
+                    (entry_idx, value.detach().float().reshape(()))
+                )
             elif isinstance(value, (bool, int, float)):
-                scalar_value = float(value)
+                entries.append([str(key), float(value)])
+
+        # Transfer all scalar tensors from a device in one operation. Formal
+        # configurations expose dozens of metrics, and one .cpu().item() per
+        # metric otherwise serializes the CUDA stream dozens of times.
+        for tensor_entries in tensor_groups.values():
+            values = torch.stack([value for _, value in tensor_entries]).cpu().tolist()
+            for (entry_idx, _), scalar_value in zip(tensor_entries, values):
+                entries[entry_idx][1] = float(scalar_value)
+
+        metrics: dict[str, float] = {}
+        for key, scalar_value in entries:
             if scalar_value is None or not math.isfinite(scalar_value):
                 continue
-            metrics[str(key)] = scalar_value
+            metrics[str(key)] = float(scalar_value)
         return metrics
 
     def state_size(self, sequence_length: int = 2048):

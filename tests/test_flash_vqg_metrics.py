@@ -27,6 +27,32 @@ def test_flash_vqg_mixer_extracts_scalar_metrics_only():
     }
 
 
+def test_flash_vqg_mixer_batches_scalar_tensor_transfer(monkeypatch):
+    mixer = object.__new__(FlashVQGMixer)
+    mixer._last_aux = {
+        "metrics": {
+            "attn/a": torch.tensor(0.25),
+            "attn/b": torch.tensor(0.5),
+            "attn/c": 0.75,
+        }
+    }
+    original_stack = torch.stack
+    calls = []
+
+    def counted_stack(tensors, *args, **kwargs):
+        calls.append(len(tensors))
+        return original_stack(tensors, *args, **kwargs)
+
+    monkeypatch.setattr(torch, "stack", counted_stack)
+
+    assert mixer.get_scalar_metrics() == {
+        "attn/a": 0.25,
+        "attn/b": 0.5,
+        "attn/c": 0.75,
+    }
+    assert calls == [2]
+
+
 def test_candidate_metrics_include_attn_and_valid_variants():
     config_dict = {
         "model": {

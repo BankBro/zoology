@@ -118,6 +118,27 @@ def test_trainer_can_validate_mid_epoch_without_checkpoint_semantics():
     assert valid_steps == [2, 5]
 
 
+def test_compute_loss_can_skip_unused_training_predictions():
+    trainer = object.__new__(Trainer)
+    trainer.input_type = "discrete"
+    trainer.loss_type = "ce"
+    trainer.model = _ToyModel()
+    trainer.loss_fn = nn.CrossEntropyLoss()
+    inputs = torch.tensor([[0, 1]], dtype=torch.long)
+    targets = torch.tensor([[1, 2]], dtype=torch.long)
+
+    loss_without_preds, preds = trainer.compute_loss(
+        inputs,
+        targets,
+        return_predictions=False,
+    )
+    loss_with_preds, expected_preds = trainer.compute_loss(inputs, targets)
+
+    assert preds is None
+    assert torch.equal(loss_without_preds, loss_with_preds)
+    assert expected_preds is not None
+
+
 def test_train_marks_manifest_failed_on_keyboard_interrupt(monkeypatch):
     statuses = []
     logger = _InterruptingLogger()

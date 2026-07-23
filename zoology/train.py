@@ -433,7 +433,7 @@ class Trainer:
         self.model.apply(setter)
         return True
 
-    def compute_loss(self, inputs, targets):
+    def compute_loss(self, inputs, targets, *, return_predictions: bool = True):
         if self.input_type == "continuous":
             
             all_embeddings = self.model.backbone.embeddings.word_embeddings.weight
@@ -456,8 +456,10 @@ class Trainer:
                     outputs_flat, targets_flat, value_embeddings
                 )
             
-            logits = outputs_flat @ value_embeddings.T
-            preds = (logits).argmax(dim=-1).view(targets.shape)
+            preds = None
+            if return_predictions:
+                logits = outputs_flat @ value_embeddings.T
+                preds = logits.argmax(dim=-1).view(targets.shape)
             return loss, preds
         
         else: # discrete
@@ -467,7 +469,7 @@ class Trainer:
                     rearrange(logits, "... c -> (...) c"), 
                     targets.flatten()
                 )
-                preds = logits.argmax(dim=-1)
+                preds = logits.argmax(dim=-1) if return_predictions else None
                 return loss, preds
             
             elif self.loss_type == "mse":
@@ -478,8 +480,10 @@ class Trainer:
                     embeddings[mask.expand_as(embeddings)].view(-1, embeddings.size(-1)),
                     target_embeds[mask.expand_as(target_embeds)].view(-1, target_embeds.size(-1)),
                 )
-                logits = embeddings @ self.model.backbone.embeddings.word_embeddings.weight.T
-                preds = logits.argmax(dim=-1)
+                preds = None
+                if return_predictions:
+                    logits = embeddings @ self.model.backbone.embeddings.word_embeddings.weight.T
+                    preds = logits.argmax(dim=-1)
                 return loss, preds
             
             elif self.loss_type == "ce_embed":
@@ -491,8 +495,10 @@ class Trainer:
                 loss, _ = compute_ce_with_embeddings(
                     flat_embeds[mask], flat_targets[mask], value_embeddings,
                 )
-                logits = embeddings @ value_embeddings.T
-                preds = logits.argmax(dim=-1)
+                preds = None
+                if return_predictions:
+                    logits = embeddings @ value_embeddings.T
+                    preds = logits.argmax(dim=-1)
                 return loss, preds
 
     def _collect_model_scalar_metrics(self) -> dict[str, float]:
@@ -663,8 +669,8 @@ class Trainer:
             desc=f"Train Epoch {epoch_idx}/{self.max_epochs}",
         )
 
-        self.optimizer.zero_grad()
-        accum_loss = 0.0
+        self.optimizer.zero_grad(set_to_none=True)
+        accumulated_losses: list[torch.Tensor] = []
         optimizer_step_idx = 0
         self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
 
@@ -682,7 +688,7 @@ class Trainer:
                 targets=targets,
             )
             try:
-                loss, preds = self.compute_loss(inputs, targets)
+                loss, _ = self.compute_loss(inputs, targets, return_predictions=False)
             finally:
                 self._clear_dense_teacher_runtime()
                 if inline_trace_active:
@@ -701,17 +707,17 @@ class Trainer:
             # Use correct divisor for the last partial window
             effective_accum = remainder if step_idx >= partial_start else accum_steps
             (loss / effective_accum).backward()
-            accum_loss += loss.item()
+            accumulated_losses.append(loss.detach())
 
             is_accum_boundary = (step_idx + 1) % accum_steps == 0
             is_last_batch = (step_idx + 1) == num_batches
 
             if is_accum_boundary or is_last_batch:
                 self.optimizer.step()
-                self.optimizer.zero_grad()
+                self.optimizer.zero_grad(set_to_none=True)
 
                 micro_count = effective_accum if is_last_batch and not is_accum_boundary else accum_steps
-                avg_loss = accum_loss / micro_count
+                avg_loss = float(torch.stack(accumulated_losses).sum().cpu().item() / micro_count)
                 iterator.set_postfix({"loss": avg_loss})
                 metrics = {"train/loss": avg_loss, "epoch": epoch_idx}
                 if slices:
@@ -721,7 +727,7 @@ class Trainer:
                 metrics.update(self._collect_model_scalar_metrics())
                 self.optimizer_step += 1
                 self._log_metrics(metrics)
-                accum_loss = 0.0
+                accumulated_losses.clear()
                 optimizer_step_idx += 1
                 self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
                 if (
