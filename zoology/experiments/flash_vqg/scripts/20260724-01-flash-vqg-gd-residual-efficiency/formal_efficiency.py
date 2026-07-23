@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import torch
+
 
 EXPERIMENT_ID = "20260724-01-flash-vqg-gd-residual-efficiency"
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -62,6 +64,9 @@ def _configure_base() -> None:
 def main() -> int:
     os.environ.setdefault("TRITON_F32_DEFAULT", "ieee")
     os.environ["FLASH_VQG_READ_TRACE_MODE"] = "disabled"
+    torch.set_float32_matmul_precision("highest")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
     _configure_base()
     return int(BASE.main())
 

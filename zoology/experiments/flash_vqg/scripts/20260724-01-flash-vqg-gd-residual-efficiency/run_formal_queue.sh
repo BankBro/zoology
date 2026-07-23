@@ -49,6 +49,7 @@ done
 mkdir -p "${OUTPUT_ROOT}/logs" "${OUTPUT_ROOT}/configs" "${OUTPUT_ROOT}/results" "${OUTPUT_ROOT}/preflight"
 export TRITON_F32_DEFAULT=ieee
 export FLASH_VQG_READ_TRACE_MODE=disabled
+export NVIDIA_TF32_OVERRIDE=0
 
 if ! nvidia-smi -i "${GPU}" >/dev/null 2>&1; then
   echo "nvidia-smi/NVML failed for GPU=${GPU} inside the current container." >&2
