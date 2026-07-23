@@ -13,6 +13,15 @@
 
 ## 2. 硬预检
 
+首次运行先在主工作区生成一次 GDN自己的 canonical init. 不在两机分别生成, 因不同CPU上的确定性初始化state hash可能不同:
+
+```bash
+python zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/efficiency_benchmark.py \
+  make-gdn-init
+```
+
+将生成的 `.pt`和同名 `.json`作为输入证据镜像到目标机器相同相对路径, 并校验文件 sha256及内部 model-state hash. 该checkpoint只包含 GDN state, 不包含 Flash参数.
+
 2080ti 当前容器使用物理 GPU1:
 
 ```bash
@@ -65,4 +74,3 @@ CUDA_VISIBLE_DEVICES=1 python zoology/experiments/flash_vqg/scripts/20260724-01-
 ```
 
 Profile输出包括 Chrome trace, memory tables, allocator snapshot和 autograd saved-tensor账本. 原始 outputs默认不提交, 收尾时只把轻量可审计摘要整理到正式 artifact.
-

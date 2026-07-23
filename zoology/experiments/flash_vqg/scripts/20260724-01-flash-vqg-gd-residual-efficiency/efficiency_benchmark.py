@@ -45,6 +45,7 @@ CANONICAL_INIT = (
     / "20260630-03-flash-vqg-s124-fixed-r4-4ep-confirm/"
     / "outputs/canonical-init/cb64r16-s124-init.pt"
 )
+GDN_CANONICAL_INIT = SCRIPT_DIR / "outputs/canonical-init/gdnxk-h2-ek4-ev4-s124-init.pt"
 EXPECTED_CACHE_HASH = "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"
 EXPECTED_INIT_HASH = "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"
 EXPECTED_BATCH_ORDER_HASH = "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320"
@@ -372,14 +373,25 @@ def _environment() -> dict[str, Any]:
     }
 
 
-def _model_and_hash(model_name: str, flash_config: Any, gdn_config: Any):
+def _load_gdn_init(model: nn.Module, path: Path) -> str:
+    payload = torch.load(path, map_location="cpu")
+    model.load_state_dict(payload["model_state_dict"], strict=True)
+    state_hash = _state_dict_hash(model.state_dict())
+    if payload.get("model_state_sha256") != state_hash:
+        raise RuntimeError("GDN init checkpoint embedded hash does not match its model state.")
+    return state_hash
+
+
+def _model_and_hash(model_name: str, flash_config: Any, gdn_config: Any, gdn_init: Path):
     config = flash_config if model_name == "flash" else gdn_config
     set_determinism(124, deterministic=False)
     model = LanguageModel(config.model)
     if model_name == "flash":
         payload = torch.load(CANONICAL_INIT, map_location="cpu")
         model.load_state_dict(payload["model_state_dict"], strict=True)
-    state_hash = _state_dict_hash(model.state_dict())
+        state_hash = _state_dict_hash(model.state_dict())
+    else:
+        state_hash = _load_gdn_init(model, gdn_init)
     return model, config, state_hash
 
 
@@ -646,6 +658,7 @@ def _preflight(args: argparse.Namespace) -> int:
     flash_model = LanguageModel(flash.model)
     set_determinism(124, deterministic=False)
     gdn_model = LanguageModel(gdn.model)
+    gdn_init_hash = _load_gdn_init(gdn_model, args.gdn_init)
     payload = {
         "experiment_id": EXPERIMENT_ID,
         "environment": _environment(),
@@ -658,6 +671,11 @@ def _preflight(args: argparse.Namespace) -> int:
             "expected": EXPECTED_INIT_HASH,
             "match": init_hash == EXPECTED_INIT_HASH,
             "embedded": init_payload.get("model_state_sha256"),
+        },
+        "gdn_init": {
+            "path": str(args.gdn_init),
+            "actual": gdn_init_hash,
+            "embedded": torch.load(args.gdn_init, map_location="cpu").get("model_state_sha256"),
         },
         "fixed_batches": {
             "train": {
@@ -675,7 +693,7 @@ def _preflight(args: argparse.Namespace) -> int:
         },
         "models": {
             "flash": _model_metadata(flash_model, "flash", init_hash),
-            "gdn": _model_metadata(gdn_model, "gdn", _state_dict_hash(gdn_model.state_dict())),
+            "gdn": _model_metadata(gdn_model, "gdn", gdn_init_hash),
         },
         "flash_settings": _find_flash_kwargs(flash.model),
     }
@@ -686,6 +704,7 @@ def _preflight(args: argparse.Namespace) -> int:
             batch_order["match"],
             payload["init"]["match"],
             payload["init"]["embedded"] == init_hash,
+            payload["gdn_init"]["embedded"] == gdn_init_hash,
             payload["models"]["flash"]["trainable_parameters"] == 1160390,
             payload["models"]["gdn"]["trainable_parameters"] == 1335942,
         )
@@ -701,7 +720,7 @@ def _prepare_run(args: argparse.Namespace):
         raise RuntimeError("CUDA is unavailable in the target container.")
     flash = _build_flash_config(args.metrics_mode)
     gdn = _build_gdn_config(flash.data)
-    model, config, state_hash = _model_and_hash(args.model, flash, gdn)
+    model, config, state_hash = _model_and_hash(args.model, flash, gdn, args.gdn_init)
     train_loader, test_loader = prepare_data(flash.data)
     selected = _select_batch(train_loader, TRAIN_SHAPE) if args.phase == "train" else _select_batch(test_loader, EVAL_SHAPE)
     model = model.to("cuda")
@@ -729,6 +748,37 @@ def _prepare_run(args: argparse.Namespace):
         "resolved_run_id": config.run_id,
     }
     return model, optimizer, (selected[0], selected[1]), metadata
+
+
+def _make_gdn_init(args: argparse.Namespace) -> int:
+    if args.output.exists() and not args.force:
+        raise FileExistsError(f"Refusing to overwrite existing GDN init: {args.output}")
+    _configure_numerics()
+    flash = _build_flash_config("core")
+    gdn = _build_gdn_config(flash.data)
+    set_determinism(124, deterministic=False)
+    model = LanguageModel(gdn.model)
+    state_hash = _state_dict_hash(model.state_dict())
+    payload = {
+        "schema_version": 1,
+        "experiment_id": EXPERIMENT_ID,
+        "model": "gdnxk-h2-ek4-ev4-usegate0",
+        "seed": 124,
+        "model_state_sha256": state_hash,
+        "model_state_dict": model.state_dict(),
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(payload, args.output)
+    _write_json(
+        args.output.with_suffix(".json"),
+        {
+            "checkpoint": str(args.output),
+            "bytes": args.output.stat().st_size,
+            "model_state_sha256": state_hash,
+        },
+    )
+    print(json.dumps({"checkpoint": str(args.output), "model_state_sha256": state_hash}, sort_keys=True))
+    return 0
 
 
 def _run(args: argparse.Namespace) -> int:
@@ -807,7 +857,13 @@ def _parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     preflight = sub.add_parser("preflight")
     preflight.add_argument("--output", type=Path, required=True)
+    preflight.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
     preflight.set_defaults(func=_preflight)
+
+    make_init = sub.add_parser("make-gdn-init")
+    make_init.add_argument("--output", type=Path, default=GDN_CANONICAL_INIT)
+    make_init.add_argument("--force", action="store_true")
+    make_init.set_defaults(func=_make_gdn_init)
 
     run = sub.add_parser("run")
     run.add_argument("--model", choices=("flash", "gdn"), required=True)
@@ -818,6 +874,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--active", type=int, default=10)
     run.add_argument("--repeat-id", type=int, default=0)
     run.add_argument("--output-dir", type=Path, required=True)
+    run.add_argument("--gdn-init", type=Path, default=GDN_CANONICAL_INIT)
     run.set_defaults(func=_run)
     return parser
 
