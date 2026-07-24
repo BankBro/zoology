@@ -64,6 +64,15 @@ def _distribution_version(name: str) -> str | None:
 def _git_value(root: str | None, *args: str) -> str | None:
     if not root:
         return None
+    path = Path(root)
+    if not path.exists():
+        return None
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(path), *args], text=True, stderr=subprocess.DEVNULL
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 def _cuda_device_attribute(attribute: int) -> int | None:
@@ -77,15 +86,6 @@ def _cuda_device_attribute(attribute: int) -> int | None:
         )
         return value.value if result == 0 else None
     except OSError:
-        return None
-    path = Path(root)
-    if not path.exists():
-        return None
-    try:
-        return subprocess.check_output(
-            ["git", "-C", str(path), *args], text=True, stderr=subprocess.DEVNULL
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
         return None
 
 
