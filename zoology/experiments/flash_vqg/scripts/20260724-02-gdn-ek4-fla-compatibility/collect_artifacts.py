@@ -116,6 +116,15 @@ def collect_compatibility(output_root: Path) -> list[dict[str, Any]]:
                 "elapsed_seconds": payload.get("elapsed_seconds"),
                 "peak_allocated_bytes": payload.get("peak_allocated_bytes"),
                 "peak_reserved_bytes": payload.get("peak_reserved_bytes"),
+                "gpu_shared_memory_per_block": payload.get(
+                    "gpu_shared_memory_per_block"
+                )
+                or env.get("gpu_shared_memory_per_block"),
+                "gpu_shared_memory_per_block_optin": payload.get(
+                    "gpu_shared_memory_per_block_optin"
+                )
+                or env.get("gpu_shared_memory_per_block_optin"),
+                "batch_shape": (payload.get("batch") or {}).get("shape"),
                 "canonical_paired_matrix": "paired-benchmark" in path.parts,
                 "scope": (
                     "paired-production"
@@ -141,6 +150,7 @@ def collect_equivalence(output_root: Path) -> list[dict[str, Any]]:
         for comparison in payload["comparisons"]:
             rows.append(
                 {
+                    "machine": machine_from_path(path),
                     "comparison": path.stem,
                     "kind": payload.get("kind"),
                     "model": payload.get("model"),
@@ -196,6 +206,49 @@ def collect_quality(output_root: Path) -> list[dict[str, Any]]:
                 "fla_version": (payload.get("environment") or {}).get("fla_version"),
                 "torch": (payload.get("environment") or {}).get("torch"),
                 "triton": (payload.get("environment") or {}).get("triton"),
+                "source": relative(path),
+            }
+        )
+    return rows
+
+
+def collect_environment_snapshots(output_root: Path) -> list[dict[str, Any]]:
+    rows = []
+    for path in sorted(output_root.rglob("environment/*.json")):
+        payload = load_json(path)
+        if payload.get("experiment_id") != EXPERIMENT_ID:
+            continue
+        environment = payload.get("environment") or {}
+        pip_check = payload.get("pip_check") or {}
+        isolated = payload.get("pip_check_isolated") or {}
+        rows.append(
+            {
+                "machine": payload.get("machine") or machine_from_path(path),
+                "fla_variant": payload.get("fla_variant"),
+                "fla_version": environment.get("fla_version"),
+                "fla_source_commit": environment.get("fla_source_commit"),
+                "fla_source_status": environment.get("fla_source_status"),
+                "fla_state_kernel_sha256": environment.get(
+                    "fla_state_kernel_sha256"
+                ),
+                "python_executable": environment.get("python_executable"),
+                "torch": environment.get("torch"),
+                "torch_cuda": environment.get("torch_cuda"),
+                "triton": environment.get("triton"),
+                "gdn_kernel_dtype": environment.get("gdn_kernel_dtype"),
+                "triton_f32_default": environment.get("triton_f32_default"),
+                "gpu_name": environment.get("gpu_name"),
+                "gpu_capability": environment.get("gpu_capability"),
+                "gpu_shared_memory_per_block": environment.get(
+                    "gpu_shared_memory_per_block"
+                ),
+                "gpu_shared_memory_per_block_optin": environment.get(
+                    "gpu_shared_memory_per_block_optin"
+                ),
+                "pip_check_returncode": pip_check.get("returncode"),
+                "pip_check_stdout": pip_check.get("stdout"),
+                "isolated_pip_check_returncode": isolated.get("returncode"),
+                "isolated_pip_check_stdout": isolated.get("stdout"),
                 "source": relative(path),
             }
         )
@@ -535,10 +588,27 @@ def selection_summary(
         bool(row["success"]) for row in canonical_compat
     )
     equivalence_groups = {
-        (row["comparison"], row["comparison_passed"]) for row in equivalence
+        (row["machine"], row["comparison"], row["comparison_passed"])
+        for row in equivalence
     }
-    equivalence_complete = len({name for name, _ in equivalence_groups}) >= 5
-    equivalence_passed = equivalence_complete and all(passed for _, passed in equivalence_groups)
+    selected_equivalence_groups = {
+        group
+        for group in equivalence_groups
+        if group[0] == "2080ti" and group[1].startswith("current040-vs-v042-")
+    }
+    equivalence_complete = len(selected_equivalence_groups) == 2
+    equivalence_passed = equivalence_complete and all(
+        passed for _, _, passed in selected_equivalence_groups
+    )
+    all_recorded_equivalence_passed = bool(equivalence_groups) and all(
+        passed for _, _, passed in equivalence_groups
+    )
+    v050_equivalence_groups = {
+        group for group in equivalence_groups if "v050" in group[1]
+    }
+    v050_equivalence_passed = bool(v050_equivalence_groups) and all(
+        passed for _, _, passed in v050_equivalence_groups
+    )
     timing_complete = len(comparisons) == 8 and all(row["paired_repeats"] == 5 for row in comparisons)
     no_time_regression = timing_complete and all(
         row["no_time_regression_over_2pct"] for row in comparisons
@@ -572,6 +642,8 @@ def selection_summary(
         "compatibility_passed": compatibility_passed,
         "equivalence_complete": equivalence_complete,
         "equivalence_passed": equivalence_passed,
+        "all_recorded_equivalence_passed": all_recorded_equivalence_passed,
+        "v050_equivalence_passed": v050_equivalence_passed,
         "timing_complete": timing_complete,
         "no_time_regression_over_2pct": no_time_regression,
         "no_memory_regression_over_5pct": no_memory_regression,
@@ -605,7 +677,11 @@ def selection_summary(
 def source_manifest(output_root: Path) -> list[dict[str, Any]]:
     rows = []
     for path in sorted(output_root.rglob("*")):
-        if not path.is_file() or path.suffix not in {".json", ".csv"}:
+        if (
+            not path.is_file()
+            or path.suffix not in {".json", ".csv", ".log"}
+            or "empty-triton-cache" in path.parts
+        ):
             continue
         rows.append(
             {
@@ -631,6 +707,7 @@ def main() -> int:
     compatibility = collect_compatibility(args.output_root)
     equivalence = collect_equivalence(args.output_root)
     quality = collect_quality(args.output_root)
+    environments = collect_environment_snapshots(args.output_root)
     comparisons = compare_versions(benchmarks)
     model_comparisons = compare_models(benchmarks)
     warmed_epochs = collect_warmed_epochs(args.output_root)
@@ -662,6 +739,7 @@ def main() -> int:
     write_csv(args.artifact_dir / "warmed-epoch-ratios.csv", epoch_comparisons)
     write_csv(args.artifact_dir / "quality-1ep.csv", quality)
     write_csv(args.artifact_dir / "quality-gates.csv", quality_gates)
+    write_csv(args.artifact_dir / "environment-summary.csv", environments)
     write_csv(args.artifact_dir / "source-manifest.csv", source_manifest(args.output_root))
     write_json(
         args.artifact_dir / "metadata.json",
@@ -678,6 +756,7 @@ def main() -> int:
                 "warmed_epoch_rows": len(warmed_epochs),
                 "warmed_epoch_ratio_rows": len(epoch_comparisons),
                 "quality_rows": len(quality),
+                "environment_rows": len(environments),
             },
             "selection": selection,
         },

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ctypes
 import hashlib
 import importlib.metadata
 import importlib.util
@@ -63,6 +64,20 @@ def _distribution_version(name: str) -> str | None:
 def _git_value(root: str | None, *args: str) -> str | None:
     if not root:
         return None
+
+
+def _cuda_device_attribute(attribute: int) -> int | None:
+    if not torch.cuda.is_available():
+        return None
+    try:
+        runtime = ctypes.CDLL("libcudart.so")
+        value = ctypes.c_int()
+        result = runtime.cudaDeviceGetAttribute(
+            ctypes.byref(value), ctypes.c_int(attribute), ctypes.c_int(0)
+        )
+        return value.value if result == 0 else None
+    except OSError:
+        return None
     path = Path(root)
     if not path.exists():
         return None
@@ -101,10 +116,14 @@ def environment_metadata() -> dict[str, Any]:
         "nvidia_tf32_override": os.environ.get("NVIDIA_TF32_OVERRIDE"),
         "gpu_name": props.name if props is not None else None,
         "gpu_capability": list(torch.cuda.get_device_capability(0)) if props is not None else None,
-        "gpu_shared_memory_per_block": getattr(props, "shared_memory_per_block", None),
+        "gpu_shared_memory_per_block": getattr(
+            props, "shared_memory_per_block", None
+        )
+        or _cuda_device_attribute(8),
         "gpu_shared_memory_per_block_optin": getattr(
             props, "shared_memory_per_block_optin", None
-        ),
+        )
+        or _cuda_device_attribute(97),
     }
 
 
