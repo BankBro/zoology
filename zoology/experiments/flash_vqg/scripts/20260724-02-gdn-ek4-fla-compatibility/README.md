@@ -11,6 +11,8 @@
 
 官方源码 worktree 分别固定到 v0.4.2 `ca910f88529565b28b6e16465258f2e239a02dc7` 和 v0.5.0 `3a9ce1c83a13994d824dbb3421e2989d330bb38b`.
 
+完整安装锁和依赖冲突修复见 `environment-lock.md`.
+
 ## 入口
 
 - `compatibility_benchmark.py`: 复用上一轮已审计的 preflight、production shape、timing 和 memory runner, 额外记录完整依赖版本与 kernel hash.
