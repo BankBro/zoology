@@ -147,7 +147,12 @@ def run(args: argparse.Namespace) -> int:
         "configured_max_epochs": 1,
         "max_train_steps": config.max_train_steps,
         "max_validation_batches": config.max_validation_batches,
-        "final_epoch": checkpoint_payload.get("epoch") if checkpoint_payload else None,
+        "final_epoch": (
+            int(checkpoint_payload["epoch"]) + 1 if checkpoint_payload else None
+        ),
+        "final_epoch_index_zero_based": (
+            checkpoint_payload.get("epoch") if checkpoint_payload else None
+        ),
         "final_metrics": checkpoint_payload.get("metrics") if checkpoint_payload else None,
         "run_id": config.run_id,
         "launch_id": config.launch_id,
