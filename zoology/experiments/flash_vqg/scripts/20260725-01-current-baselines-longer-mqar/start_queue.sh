@@ -15,6 +15,6 @@ fi
 
 mkdir -p "$(dirname "${LOG}")"
 tmux new-session -d -s "${SESSION}" \
-  "cd '${REPO_ROOT}' && env CUDA_VISIBLE_DEVICES=1 TRITON_F32_DEFAULT=ieee GDN_KERNEL_DTYPE=float32 NVIDIA_TF32_OVERRIDE=0 PYTHONUNBUFFERED=1 '${PYTHON}' '${SCRIPT_DIR}/queue.py' --resume >> '${LOG}' 2>&1"
+  "cd '${REPO_ROOT}' && env CUDA_VISIBLE_DEVICES=1 TRITON_F32_DEFAULT=ieee GDN_KERNEL_DTYPE=float32 NVIDIA_TF32_OVERRIDE=0 PYTHONUNBUFFERED=1 '${PYTHON}' '${SCRIPT_DIR}/run_queue.py' --resume >> '${LOG}' 2>&1"
 
 printf 'started=%s\nlog=%s\n' "${SESSION}" "${LOG}"

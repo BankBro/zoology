@@ -138,7 +138,7 @@ def test_collector_summary_and_paired_classification():
 
 
 def test_plan_and_queue_have_required_gates():
-    queue_text = (SCRIPT_DIR / "queue.py").read_text(encoding="utf-8")
+    queue_text = (SCRIPT_DIR / "run_queue.py").read_text(encoding="utf-8")
     plan_text = (ROOT / "docs/plans/20260725-01-current-baselines-longer-mqar-plan.md").read_text(encoding="utf-8")
     assert "TRAINING_SMOKE_PASSED.json" in (SCRIPT_DIR / "experiment.py").read_text(encoding="utf-8")
     assert "SMOKE_DONE.json" in queue_text

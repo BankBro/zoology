@@ -199,7 +199,7 @@ class FormalQueue:
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="当前基线Longer-MQAR可恢复fail-fast队列.")
+    root = argparse.ArgumentParser(description="当前基线Longer-MQAR可恢复fail-fast自动队列.")
     root.add_argument("--resume", action="store_true")
     return root
 
