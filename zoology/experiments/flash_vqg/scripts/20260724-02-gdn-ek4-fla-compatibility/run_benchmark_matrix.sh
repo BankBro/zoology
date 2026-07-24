@@ -28,8 +28,12 @@ CUDA_VISIBLE_DEVICES="${GPU}" "${PYTHON_BIN}" "${SCRIPT_DIR}/compatibility_bench
   preflight --output "${OUTPUT_ROOT}/preflight.json"
 
 for phase in train eval; do
+  compatibility_json="${OUTPUT_ROOT}/gdn-${phase}-compatibility.json"
   CUDA_VISIBLE_DEVICES="${GPU}" "${PYTHON_BIN}" "${SCRIPT_DIR}/compatibility_benchmark.py" \
-    gdn-compatibility --phase "${phase}" --output "${OUTPUT_ROOT}/gdn-${phase}-compatibility.json"
+    gdn-compatibility --phase "${phase}" --output "${compatibility_json}"
+  "${PYTHON_BIN}" -c \
+    'import json,sys; payload=json.load(open(sys.argv[1], encoding="utf-8")); assert payload["success"], payload.get("error")' \
+    "${compatibility_json}"
 done
 
 for model in ${MODELS}; do

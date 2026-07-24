@@ -24,6 +24,8 @@ from zoology.checkpoints import serialize_train_config
 from zoology.data.utils import prepare_data
 from zoology.train import train
 
+EXPECTED_GDN_INIT_HASH = "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6"
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -69,7 +71,7 @@ def hard_preflight(config: Any) -> dict[str, Any]:
     expected_init = (
         BASE.EXPECTED_INIT_HASH
         if config.model.name != "gated_delta_net_expanded_k"
-        else init_payload.get("model_state_sha256")
+        else EXPECTED_GDN_INIT_HASH
     )
     passed = bool(
         torch.cuda.is_available()
@@ -90,6 +92,12 @@ def hard_preflight(config: Any) -> dict[str, Any]:
 
 
 def run(args: argparse.Namespace) -> int:
+    if args.run_type == "formal" and (
+        args.max_train_steps is not None or args.max_validation_batches is not None
+    ):
+        raise ValueError("formal run 不允许截断训练或验证.")
+    if args.run_type == "smoke" and args.max_train_steps is None:
+        raise ValueError("smoke run 必须显式设置 --max-train-steps.")
     os.environ["FLA_VARIANT"] = args.fla_variant
     configure_numerics()
     args.output_dir.mkdir(parents=True, exist_ok=True)

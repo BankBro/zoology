@@ -1,3 +1,5 @@
+import inspect
+
 import pytest
 import torch
 
@@ -97,3 +99,8 @@ def test_gated_delta_net_expanded_k_dimensions():
     assert layer.key_dim == 2048
     assert layer.value_dim == 128
     assert layer.state_size() == 131072
+
+
+def test_gated_delta_calls_do_not_pass_removed_head_first_keyword():
+    assert "head_first" not in inspect.getsource(gdn.GatedDeltaNet.forward)
+    assert "head_first" not in inspect.getsource(gdn.GatedDeltaNetBankedK.forward)
