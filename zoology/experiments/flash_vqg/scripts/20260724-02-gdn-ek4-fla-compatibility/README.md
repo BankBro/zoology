@@ -18,6 +18,7 @@
 - `environment_snapshot.py`: 保存 `pip freeze`, `pip check`, Conda package list、GPU 和源码/kernel hash.
 - `run_benchmark_matrix.sh`: 单机器、单依赖版本的五重复 timing 和独立 memory 队列.
 - `run_paired_benchmark.sh`: 在同一 GPU 上交替 v0.4.2/v0.5.0 顺序, 生成正式配对 timing/memory 矩阵.
+- `run_cold_compile.sh`: 使用互相隔离的全新 Triton cache 测量 production eval/train 首次编译与执行成本.
 - `run_formal_queue.sh`: 带 checkpoint、完整验证和状态记录的 1ep 正式质量队列.
 - `run_quality_matrix.sh`: 按机器串行执行 current/v0.4.2/v0.5.0 GDN 及最终选中 Flash 环境的完整 1ep.
 - `collect_artifacts.py`: 汇总 compatibility、等价、五重复 timing/memory、1ep、版本选择和 source manifest.
