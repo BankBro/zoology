@@ -23,6 +23,7 @@
 - `run_cold_compile.sh`: 使用互相隔离的全新 Triton cache 测量 production eval/train 首次编译与执行成本.
 - `run_formal_queue.sh`: 带 checkpoint、完整验证和状态记录的 1ep 正式质量队列.
 - `run_quality_matrix.sh`: 按机器串行执行 current/v0.4.2/v0.5.0 GDN 及最终选中 Flash 环境的完整 1ep.
+- `run_warmed_epoch_matrix.sh`: 在最终 v0.4.2 共同环境中交替运行 Flash/GDN 三次预编译完整 epoch, 用于同卡端到端效率比值.
 - `collect_artifacts.py`: 汇总 compatibility、等价、五重复 timing/memory、1ep、版本选择和 source manifest.
 
 2080 Ti 使用 `GPU=1`, 3090 使用 `GPU=0`. Raw 输出位于 `outputs/`, 默认不提交; 轻量证据在收尾时提炼至正式 artifact.

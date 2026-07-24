@@ -111,6 +111,13 @@ def collect_compatibility(output_root: Path) -> list[dict[str, Any]]:
                 "peak_allocated_bytes": payload.get("peak_allocated_bytes"),
                 "peak_reserved_bytes": payload.get("peak_reserved_bytes"),
                 "canonical_paired_matrix": "paired-benchmark" in path.parts,
+                "scope": (
+                    "paired-production"
+                    if "paired-benchmark" in path.parts
+                    else "cold-empty-cache"
+                    if any(part.startswith("cold-compile-") for part in path.parts)
+                    else "standalone"
+                ),
                 "source": relative(path),
             }
         )
@@ -253,6 +260,157 @@ def compare_versions(benchmark_rows: list[dict[str, Any]]) -> list[dict[str, Any
     return rows
 
 
+def compare_models(benchmark_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    timing: dict[tuple[str, str, str, str], dict[int, float]] = defaultdict(dict)
+    memory: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for row in benchmark_rows:
+        key = (row["machine"], row["fla_variant"], row["phase"], row["model"])
+        if row["run_kind"] == "timing" and row["wall_ms_p50"] is not None:
+            timing[key][int(row["repeat_id"])] = float(row["wall_ms_p50"])
+        elif row["run_kind"] == "memory":
+            memory[key] = row
+    rows = []
+    scopes = sorted({key[:3] for key in timing})
+    for machine, variant, phase in scopes:
+        flash_key = (machine, variant, phase, "flash")
+        gdn_key = (machine, variant, phase, "gdn")
+        if flash_key not in timing or gdn_key not in timing:
+            continue
+        flash = timing[flash_key]
+        gdn = timing[gdn_key]
+        paired_ids = sorted(set(flash).intersection(gdn))
+        paired_ratios = [flash[index] / gdn[index] for index in paired_ids]
+        ratio_low, ratio_high = bootstrap_median_ci(paired_ratios)
+        flash_median = statistics.median(flash.values())
+        gdn_median = statistics.median(gdn.values())
+        flash_memory = memory.get(flash_key)
+        gdn_memory = memory.get(gdn_key)
+        memory_ratio = None
+        if flash_memory is not None and gdn_memory is not None:
+            memory_ratio = float(flash_memory["peak_allocated_bytes"]) / float(
+                gdn_memory["peak_allocated_bytes"]
+            )
+        rows.append(
+            {
+                "machine": machine,
+                "fla_variant": variant,
+                "phase": phase,
+                "flash_repeats": len(flash),
+                "gdn_repeats": len(gdn),
+                "flash_wall_ms_p50_median": flash_median,
+                "gdn_wall_ms_p50_median": gdn_median,
+                "flash_over_gdn_time_ratio": flash_median / gdn_median,
+                "paired_repeat_ratios": ";".join(
+                    f"{index}:{flash[index] / gdn[index]:.9f}" for index in paired_ids
+                ),
+                "paired_ratio_bootstrap_ci95_low": ratio_low,
+                "paired_ratio_bootstrap_ci95_high": ratio_high,
+                "time_within_2x": flash_median / gdn_median <= 2.0,
+                "flash_peak_allocated_bytes": (
+                    flash_memory["peak_allocated_bytes"] if flash_memory else None
+                ),
+                "gdn_peak_allocated_bytes": (
+                    gdn_memory["peak_allocated_bytes"] if gdn_memory else None
+                ),
+                "flash_over_gdn_allocated_ratio": memory_ratio,
+                "memory_within_2x": memory_ratio is not None and memory_ratio <= 2.0,
+            }
+        )
+    return rows
+
+
+def collect_warmed_epochs(output_root: Path) -> list[dict[str, Any]]:
+    rows = []
+    for path in sorted(output_root.rglob("result.json")):
+        if "warmed-epoch-v042" not in path.parts:
+            continue
+        payload = load_json(path)
+        if "total_wall_seconds" not in payload or "optimizer_steps" not in payload:
+            continue
+        model = payload.get("model") or {}
+        environment = payload.get("environment") or {}
+        validations = payload.get("validations") or []
+        final_validation = validations[-1] if validations else {}
+        rows.append(
+            {
+                "machine": machine_from_path(path),
+                "fla_variant": "v042",
+                "fla_version": "0.4.2",
+                "model": model.get("name"),
+                "repeat_id": payload.get("repeat_id"),
+                "seed": payload.get("seed"),
+                "optimizer_steps": payload.get("optimizer_steps"),
+                "precompiled": payload.get("precompiled"),
+                "batch_order_match": (payload.get("batch_order") or {}).get("match"),
+                "total_wall_seconds": payload.get("total_wall_seconds"),
+                "train_wall_seconds_excluding_validation": payload.get(
+                    "train_wall_seconds_excluding_validation"
+                ),
+                "validation_wall_seconds": payload.get("validation_wall_seconds"),
+                "final_validation_accuracy": final_validation.get("accuracy"),
+                "peak_allocated_bytes": payload.get("peak_allocated_bytes"),
+                "peak_reserved_bytes": payload.get("peak_reserved_bytes"),
+                "torch": environment.get("torch"),
+                "zoology_commit": environment.get("zoology_commit"),
+                "source": relative(path),
+            }
+        )
+    return rows
+
+
+def compare_warmed_epochs(epoch_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in epoch_rows:
+        grouped[(row["machine"], row["model"])].append(row)
+    rows = []
+    for machine in sorted({key[0] for key in grouped}):
+        flash = grouped.get((machine, "flash"), [])
+        gdn = grouped.get((machine, "gdn"), [])
+        if not flash or not gdn:
+            continue
+
+        def median(field: str, source: list[dict[str, Any]]) -> float:
+            return statistics.median(float(row[field]) for row in source)
+
+        flash_total = median("total_wall_seconds", flash)
+        gdn_total = median("total_wall_seconds", gdn)
+        flash_train = median("train_wall_seconds_excluding_validation", flash)
+        gdn_train = median("train_wall_seconds_excluding_validation", gdn)
+        flash_valid = median("validation_wall_seconds", flash)
+        gdn_valid = median("validation_wall_seconds", gdn)
+        flash_memory = median("peak_allocated_bytes", flash)
+        gdn_memory = median("peak_allocated_bytes", gdn)
+        rows.append(
+            {
+                "machine": machine,
+                "fla_variant": "v042",
+                "flash_repeats": len(flash),
+                "gdn_repeats": len(gdn),
+                "flash_total_wall_seconds_median": flash_total,
+                "gdn_total_wall_seconds_median": gdn_total,
+                "flash_over_gdn_total_ratio": flash_total / gdn_total,
+                "total_within_2x": flash_total / gdn_total <= 2.0,
+                "flash_train_wall_seconds_median": flash_train,
+                "gdn_train_wall_seconds_median": gdn_train,
+                "flash_over_gdn_train_ratio": flash_train / gdn_train,
+                "flash_validation_wall_seconds_median": flash_valid,
+                "gdn_validation_wall_seconds_median": gdn_valid,
+                "flash_over_gdn_validation_ratio": flash_valid / gdn_valid,
+                "flash_peak_allocated_bytes_median": flash_memory,
+                "gdn_peak_allocated_bytes_median": gdn_memory,
+                "flash_over_gdn_allocated_ratio": flash_memory / gdn_memory,
+                "memory_within_2x": flash_memory / gdn_memory <= 2.0,
+                "all_runs_valid": all(
+                    row["optimizer_steps"] == 704
+                    and bool(row["precompiled"])
+                    and bool(row["batch_order_match"])
+                    for row in flash + gdn
+                ),
+            }
+        )
+    return rows
+
+
 def _flash_reference() -> dict[str, dict[str, float]]:
     path = (
         REPO_ROOT
@@ -362,6 +520,8 @@ def selection_summary(
     equivalence: list[dict[str, Any]],
     comparisons: list[dict[str, Any]],
     quality_gates: list[dict[str, Any]],
+    model_comparisons: list[dict[str, Any]],
+    epoch_comparisons: list[dict[str, Any]],
 ) -> dict[str, Any]:
     canonical_compat = [row for row in compatibility if row["canonical_paired_matrix"]]
     compatibility_complete = len(canonical_compat) >= 8
@@ -388,6 +548,19 @@ def selection_summary(
         row["status"] == "completed" for row in quality_gates
     )
     quality_passed = quality_finished and all(row["quality_pass"] for row in quality_gates)
+    selected_core = [row for row in model_comparisons if row["fla_variant"] == "v042"]
+    selected_core_complete = len(selected_core) == 4
+    selected_core_passed = selected_core_complete and all(
+        row["time_within_2x"] and row["memory_within_2x"] for row in selected_core
+    )
+    warmed_epoch_complete = len(epoch_comparisons) == 2 and all(
+        row["flash_repeats"] >= 3 and row["gdn_repeats"] >= 3
+        for row in epoch_comparisons
+    )
+    warmed_epoch_passed = warmed_epoch_complete and all(
+        row["total_within_2x"] and row["memory_within_2x"] and row["all_runs_valid"]
+        for row in epoch_comparisons
+    )
     return {
         "compatibility_complete": compatibility_complete,
         "compatibility_passed": compatibility_passed,
@@ -402,6 +575,13 @@ def selection_summary(
         "formal_quality_complete": quality_complete,
         "formal_quality_finished": quality_finished,
         "formal_quality_passed": quality_passed,
+        "selected_v042_core_efficiency_complete": selected_core_complete,
+        "selected_v042_core_efficiency_passed": selected_core_passed,
+        "warmed_epoch_efficiency_complete": warmed_epoch_complete,
+        "warmed_epoch_efficiency_passed": warmed_epoch_passed,
+        "original_efficiency_blocker_closed": bool(
+            selected_core_passed and warmed_epoch_passed
+        ),
         "final_selection_ready": bool(
             compatibility_passed
             and equivalence_passed
@@ -446,6 +626,9 @@ def main() -> int:
     equivalence = collect_equivalence(args.output_root)
     quality = collect_quality(args.output_root)
     comparisons = compare_versions(benchmarks)
+    model_comparisons = compare_models(benchmarks)
+    warmed_epochs = collect_warmed_epochs(args.output_root)
+    epoch_comparisons = compare_warmed_epochs(warmed_epochs)
     performance_gate = bool(
         len(comparisons) == 8
         and all(row["no_time_regression_over_2pct"] for row in comparisons)
@@ -454,11 +637,21 @@ def main() -> int:
     )
     provisional_variant = "v050" if performance_gate else "v042"
     quality_gates = assess_quality(quality, provisional_variant)
-    selection = selection_summary(compatibility, equivalence, comparisons, quality_gates)
+    selection = selection_summary(
+        compatibility,
+        equivalence,
+        comparisons,
+        quality_gates,
+        model_comparisons,
+        epoch_comparisons,
+    )
     write_csv(args.artifact_dir / "benchmark-runs.csv", benchmarks)
     write_csv(args.artifact_dir / "compatibility.csv", compatibility)
     write_csv(args.artifact_dir / "equivalence.csv", equivalence)
     write_csv(args.artifact_dir / "version-comparison.csv", comparisons)
+    write_csv(args.artifact_dir / "model-comparison.csv", model_comparisons)
+    write_csv(args.artifact_dir / "warmed-epoch.csv", warmed_epochs)
+    write_csv(args.artifact_dir / "warmed-epoch-ratios.csv", epoch_comparisons)
     write_csv(args.artifact_dir / "quality-1ep.csv", quality)
     write_csv(args.artifact_dir / "quality-gates.csv", quality_gates)
     write_csv(args.artifact_dir / "source-manifest.csv", source_manifest(args.output_root))
@@ -472,6 +665,9 @@ def main() -> int:
                 "compatibility_rows": len(compatibility),
                 "equivalence_rows": len(equivalence),
                 "version_comparison_rows": len(comparisons),
+                "model_comparison_rows": len(model_comparisons),
+                "warmed_epoch_rows": len(warmed_epochs),
+                "warmed_epoch_ratio_rows": len(epoch_comparisons),
                 "quality_rows": len(quality),
             },
             "selection": selection,
