@@ -23,6 +23,13 @@
 - 例外边界: 仅在复现历史结果、执行 legacy FLA v0.4.0 等价性对照或明确研究其他依赖版本时, 才允许使用 `flash-vqg`、`flash-vqg-fla050` 或其他环境; 必须在命令、artifact 和报告中明确记录例外原因、环境路径和版本. `flash-vqg-fla050` 是已淘汰候选, 不得作为后续正式实验的默认环境.
 - 新机器适配: `4090` 或其他尚未验证的机器不得自行退回旧环境; 应先依据上述环境锁创建或验证等价的 `flash-vqg-fla042` 环境, 完成 GPU/CUDA、依赖和最小 smoke 检查后再启动正式实验.
 
+## 项目状态与实验记录
+
+- 开始新的 Flash-VQG/GDN 实验任务前先阅读 `docs/STATUS.md`.
+- `docs/STATUS.md` 保持精简, 固定记录当前 Flash-VQG 基线、GDN 对照基线、默认环境、当前进展和下一步. 只有正式实验确认替代方案后才更新基线, 并链接对应 report 和 artifact.
+- `docs/EXPERIMENT_LOG.md` 按时间追加正式实验以及会影响后续决策的重要 smoke、失败或中断记录. 每条简要说明日期、`experiment_id`、目的、结果、输出位置和下一步; 历史记录不静默改写, 纠正时追加说明.
+- 详细配置、指标和审计信息仍保存在 plan、report、artifact 和 canonical ledger 中, 不在状态页或实验日志中重复展开.
+
 ## zoology 实验文件组织管理规范
 
 - 新实验统一先定义 `experiment_id`, 格式为 `YYYYMMDD-NN-experiment-name`. 其中 `NN` 是当天第几个实验或研究单元, 从 `01` 开始递增; 同一实验的 script, plan, artifact, report 使用同一个 `experiment_id`. 历史已有 `YYYYMMDD-experiment-name` 路径和文档不强制重命名.
