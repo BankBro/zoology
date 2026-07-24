@@ -10,8 +10,16 @@ from pathlib import Path
 from common import EXPERIMENT_ID, environment_metadata, write_json
 
 
-def command(args: list[str]) -> dict[str, object]:
-    completed = subprocess.run(args, text=True, capture_output=True, check=False)
+def command(
+    args: list[str], *, environment: dict[str, str] | None = None
+) -> dict[str, object]:
+    completed = subprocess.run(
+        args,
+        text=True,
+        capture_output=True,
+        check=False,
+        env=environment,
+    )
     return {
         "command": args,
         "returncode": completed.returncode,
@@ -34,6 +42,10 @@ def main() -> int:
         "environment": environment_metadata(),
         "pip_freeze": command([sys.executable, "-m", "pip", "freeze", "--all"]),
         "pip_check": command([sys.executable, "-m", "pip", "check"]),
+        "pip_check_isolated": command(
+            [sys.executable, "-m", "pip", "check"],
+            environment=os.environ | {"PYTHONNOUSERSITE": "1"},
+        ),
         "conda_list": command(
             ["/home/lyj/miniconda3/bin/conda", "list", "--json", "-p", sys.prefix]
         ),
@@ -47,7 +59,7 @@ def main() -> int:
     }
     write_json(args.output, payload)
     print(args.output)
-    return 0 if payload["pip_check"]["returncode"] == 0 else 1
+    return 0 if payload["pip_check_isolated"]["returncode"] == 0 else 1
 
 
 if __name__ == "__main__":

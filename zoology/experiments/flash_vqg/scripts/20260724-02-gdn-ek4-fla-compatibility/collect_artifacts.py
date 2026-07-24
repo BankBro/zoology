@@ -96,7 +96,13 @@ def collect_benchmarks(output_root: Path) -> list[dict[str, Any]]:
 
 def collect_compatibility(output_root: Path) -> list[dict[str, Any]]:
     rows = []
-    for path in sorted(output_root.rglob("gdn-*-compatibility*.json")):
+    paths = set(output_root.rglob("gdn-*-compatibility*.json"))
+    paths.update(
+        path
+        for path in output_root.rglob("compatibility.json")
+        if any(part.startswith("cold-compile-") for part in path.parts)
+    )
+    for path in sorted(paths):
         payload = load_json(path)
         env = payload.get("environment") or {}
         rows.append(
@@ -637,6 +643,7 @@ def main() -> int:
     )
     provisional_variant = "v050" if performance_gate else "v042"
     quality_gates = assess_quality(quality, provisional_variant)
+    cold_compile = [row for row in compatibility if row["scope"] == "cold-empty-cache"]
     selection = selection_summary(
         compatibility,
         equivalence,
@@ -647,6 +654,7 @@ def main() -> int:
     )
     write_csv(args.artifact_dir / "benchmark-runs.csv", benchmarks)
     write_csv(args.artifact_dir / "compatibility.csv", compatibility)
+    write_csv(args.artifact_dir / "cold-compile.csv", cold_compile)
     write_csv(args.artifact_dir / "equivalence.csv", equivalence)
     write_csv(args.artifact_dir / "version-comparison.csv", comparisons)
     write_csv(args.artifact_dir / "model-comparison.csv", model_comparisons)
@@ -663,6 +671,7 @@ def main() -> int:
             "counts": {
                 "benchmark_rows": len(benchmarks),
                 "compatibility_rows": len(compatibility),
+                "cold_compile_rows": len(cold_compile),
                 "equivalence_rows": len(equivalence),
                 "version_comparison_rows": len(comparisons),
                 "model_comparison_rows": len(model_comparisons),
