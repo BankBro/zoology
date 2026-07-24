@@ -15,8 +15,10 @@
 
 - `compatibility_benchmark.py`: 复用上一轮已审计的 preflight、production shape、timing 和 memory runner, 额外记录完整依赖版本与 kernel hash.
 - `equivalence_capture.py`: 分环境保存 kernel/full-model 数值结果, 再离线比较 forward、final state、梯度和一步更新.
+- `environment_snapshot.py`: 保存 `pip freeze`, `pip check`, Conda package list、GPU 和源码/kernel hash.
 - `run_benchmark_matrix.sh`: 单机器、单依赖版本的五重复 timing 和独立 memory 队列.
 - `run_paired_benchmark.sh`: 在同一 GPU 上交替 v0.4.2/v0.5.0 顺序, 生成正式配对 timing/memory 矩阵.
 - `run_formal_queue.sh`: 带 checkpoint、完整验证和状态记录的 1ep 正式质量队列.
+- `collect_artifacts.py`: 汇总 compatibility、等价、五重复 timing/memory、1ep、版本选择和 source manifest.
 
 2080 Ti 使用 `GPU=1`, 3090 使用 `GPU=0`. Raw 输出位于 `outputs/`, 默认不提交; 轻量证据在收尾时提炼至正式 artifact.
