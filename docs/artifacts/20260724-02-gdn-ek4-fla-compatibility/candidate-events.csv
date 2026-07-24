@@ -1,0 +1,7 @@
+event_id,scope,status,evidence,decision,note
+legacy-v040-sm86-shared-memory,GDN current040 3090 train/eval,rejected,docs/artifacts/20260724-01-flash-vqg-gd-residual-efficiency/gdn-3090-compatibility.csv,upgrade official FLA candidate,"Required 147456 B exceeds hardware opt-in limit 101376 B"
+v050-removed-head-first-api,zoology FLA wrapper,adapted,compatibility.csv standalone failure and commit 693b58ac22947bae85a7519ce4370c5635a72881,remove redundant head_first=False,"Inputs were already B,T,H; current040/v042 direct equivalence passed"
+v042-official-kernel,GDN v042 both GPUs,accepted,compatibility.csv and equivalence.csv,eligible common environment,official FLA source unchanged
+v050-sm86-one-step,GDN v050 3090 full model,rejected,equivalence.csv,reject as drop-in common environment,"Kernel passed; worst grad relative L2 1.23e-4 and AdamW parameter max abs 1.72e-3"
+v050-sm86-train-runtime,GDN v050 3090 train,rejected,version-comparison.csv,reject as common environment,"Median regression 9.11%; 0/5 paired wins; CI95 ratio [1.027,1.177]"
+v042-final-selection,Flash and GDN both GPUs,accepted,metadata.json and quality-gates.csv,select FLA v0.4.2,"All selected compatibility/equivalence/quality/core/epoch gates pass"

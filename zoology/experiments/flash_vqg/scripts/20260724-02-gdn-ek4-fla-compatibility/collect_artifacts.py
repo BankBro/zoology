@@ -46,7 +46,7 @@ def write_csv(path: Path, rows: Iterable[dict[str, Any]]) -> None:
                 fields.append(key)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -201,7 +201,11 @@ def collect_quality(output_root: Path) -> list[dict[str, Any]]:
                 "ended_at_utc": payload.get("ended_at_utc"),
                 "run_id": payload.get("run_id"),
                 "launch_id": payload.get("launch_id"),
+                "train_config_path": payload.get("train_config_path"),
+                "last_checkpoint_path": payload.get("last_checkpoint_path"),
+                "best_checkpoint_path": payload.get("best_checkpoint_path"),
                 "last_checkpoint_sha256": payload.get("last_checkpoint_sha256"),
+                "best_checkpoint_sha256": payload.get("best_checkpoint_sha256"),
                 "model_state_sha256": payload.get("model_state_sha256"),
                 "fla_version": (payload.get("environment") or {}).get("fla_version"),
                 "torch": (payload.get("environment") or {}).get("torch"),
@@ -246,9 +250,13 @@ def collect_environment_snapshots(output_root: Path) -> list[dict[str, Any]]:
                     "gpu_shared_memory_per_block_optin"
                 ),
                 "pip_check_returncode": pip_check.get("returncode"),
-                "pip_check_stdout": pip_check.get("stdout"),
+                "pip_check_stdout": (pip_check.get("stdout") or "").strip().replace(
+                    "\n", " | "
+                ),
                 "isolated_pip_check_returncode": isolated.get("returncode"),
-                "isolated_pip_check_stdout": isolated.get("stdout"),
+                "isolated_pip_check_stdout": (
+                    isolated.get("stdout") or ""
+                ).strip().replace("\n", " | "),
                 "source": relative(path),
             }
         )

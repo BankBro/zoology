@@ -1,0 +1,41 @@
+{
+  "counts": {
+    "benchmark_rows": 96,
+    "cold_compile_rows": 8,
+    "compatibility_rows": 21,
+    "environment_rows": 5,
+    "equivalence_rows": 252,
+    "model_comparison_rows": 8,
+    "quality_rows": 9,
+    "version_comparison_rows": 8,
+    "warmed_epoch_ratio_rows": 2,
+    "warmed_epoch_rows": 12
+  },
+  "experiment_id": "20260724-02-gdn-ek4-fla-compatibility",
+  "output_root": "zoology/experiments/flash_vqg/scripts/20260724-02-gdn-ek4-fla-compatibility/outputs",
+  "selection": {
+    "all_recorded_equivalence_passed": false,
+    "compatibility_complete": true,
+    "compatibility_passed": true,
+    "equivalence_complete": true,
+    "equivalence_passed": true,
+    "final_selected_variant": "v042",
+    "final_selection_ready": true,
+    "formal_quality_complete": true,
+    "formal_quality_finished": true,
+    "formal_quality_passed": true,
+    "no_memory_regression_over_5pct": true,
+    "no_time_regression_over_2pct": false,
+    "original_efficiency_blocker_closed": true,
+    "provisional_selected_variant": "v042",
+    "selected_v042_core_efficiency_complete": true,
+    "selected_v042_core_efficiency_passed": true,
+    "selection_policy": "选择 v050 仅当全部兼容/等价/质量门槛通过, 八个共同 benchmark 单元均不回退超过 2%, peak allocated 均不恶化超过 5%, 且至少一个单元存在 95% bootstrap 稳定收益; 否则选择 v042.",
+    "stable_positive_gain_present": true,
+    "timing_complete": true,
+    "v050_equivalence_passed": false,
+    "v050_performance_gate": false,
+    "warmed_epoch_efficiency_complete": true,
+    "warmed_epoch_efficiency_passed": true
+  }
+}

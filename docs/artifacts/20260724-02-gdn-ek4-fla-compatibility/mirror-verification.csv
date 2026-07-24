@@ -1,0 +1,2 @@
+source_machine,scope,file_count,sha256_all_match,checked_at_utc,source_root,mirror_root
+3090,"json,csv,log excluding empty-triton-cache",201,true,2026-07-24T16:48:10Z,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260724-02-gdn-ek4-fla-compatibility/outputs/3090,zoology/experiments/flash_vqg/scripts/20260724-02-gdn-ek4-fla-compatibility/outputs/3090

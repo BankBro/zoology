@@ -276,3 +276,18 @@ Runner 和完整命令说明位于 `zoology/experiments/flash_vqg/scripts/202607
 - 512-step strict trajectory 不保持同一数值轨迹, 虽然数学语义, one-step 误差和正式最终效果验收通过.
 
 因此本轮优化代码可以作为默认的 `baseline-r16-joint` 高效 backend 使用, 并保留 reference fallback. 若要求继续关闭 3090 对照, 需要用户单独授权改变 GDN 对照边界, 例如允许修复其 launch configuration 或选择可在 sm86 FP32 执行的等容量 GDN kernel; 这属于新的对照实验, 不能偷偷并入本轮结果.
+
+## 9. 20260724-02 后续兼容性闭环
+
+用户随后明确授权在独立环境中验证官方 FLA升级, 后续实验 `20260724-02-gdn-ek4-fla-compatibility` 已关闭上述 3090 GDN阻塞. 原报告的不可执行结论对当时固定的 FLA v0.4.0环境仍然准确; 新结论建立在官方 FLA v0.4.2环境上, 没有回写或篡改原始失败证据.
+
+最终选择 FLA v0.4.2 + PyTorch 2.6.0+cu118 + Triton 3.2.0. 上游 shared-memory guard修复使 frozen GDN config在 3090 production train/eval shape均可执行, 无需修改 FLA源码、GDN数学实现、模型配置或 FP32策略.
+
+补齐后的 v0.4.2 双机硬比值为:
+
+| 机器 | Core eval time | Core train time | Eval allocated | Train allocated | Warmed full epoch | Epoch peak allocated |
+|---|---:|---:|---:|---:|---:|---:|
+| 2080 Ti GPU1 | 1.821x | 1.506x | 0.999x | 1.627x | 1.412x | 1.499x |
+| 3090 GPU0 | 1.088x | 0.958x | 0.999x | 1.627x | 0.839x | 1.499x |
+
+所有值均为 `Flash/GDN`, 全部通过 `<=2x`. 因而本实验第8节所述“3090 ratio unavailable”已由新的、单独审计的依赖实验解决, 当前整体 efficiency goal不再受该项阻塞. FLA v0.5.0虽然也能启动, 但因 3090 GDN train稳态回退 9.11%及严格 one-step风险而未被选择. 完整证据见 `docs/20260724-02-gdn-ek4-fla-compatibility-report.md` 和 `docs/artifacts/20260724-02-gdn-ek4-fla-compatibility/`.
