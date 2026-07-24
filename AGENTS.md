@@ -14,6 +14,15 @@
 - 只有明确属于仓库通用基础设施, 文档规范或跨项目公共逻辑的改动, 才考虑合入 `main`.
 - 若用户在任务中明确指定 base 或目标分支, 以用户指定为准; 不确定时先确认再执行 merge/rebase/PR.
 
+## Flash-VQG/GDN 默认 Conda 环境
+
+- 适用范围: 在 `2080ti` 和 `3090` 的 `Flash-VQG-tun` 容器内运行 Flash-VQG、GDN/Expanded-K 及其 MQAR、longer-MQAR、效率、兼容性和质量回归实验时, 默认统一使用 `/home/lyj/miniconda3/envs/flash-vqg-fla042`.
+- 固定核心版本: Python 3.12.11, PyTorch 2.6.0+cu118, Triton 3.2.0, FLA 0.4.2. 环境锁和重建依据见 `zoology/experiments/flash_vqg/scripts/20260724-02-gdn-ek4-fla-compatibility/environment-lock.md`.
+- 显式解释器: 自动化脚本、跨机器 SSH 命令和非交互 `docker exec` 不得依赖 shell 是否自动激活 Conda; 默认直接使用 `/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python` 或在命令中显式激活该环境.
+- 启动自检: 运行实验前必须记录并核对 `sys.executable`, Python、PyTorch、CUDA、Triton 和 FLA 版本; 若实际环境不是 `flash-vqg-fla042`, 必须在启动训练或评估前停止并纠正.
+- 例外边界: 仅在复现历史结果、执行 legacy FLA v0.4.0 等价性对照或明确研究其他依赖版本时, 才允许使用 `flash-vqg`、`flash-vqg-fla050` 或其他环境; 必须在命令、artifact 和报告中明确记录例外原因、环境路径和版本. `flash-vqg-fla050` 是已淘汰候选, 不得作为后续正式实验的默认环境.
+- 新机器适配: `4090` 或其他尚未验证的机器不得自行退回旧环境; 应先依据上述环境锁创建或验证等价的 `flash-vqg-fla042` 环境, 完成 GPU/CUDA、依赖和最小 smoke 检查后再启动正式实验.
+
 ## zoology 实验文件组织管理规范
 
 - 新实验统一先定义 `experiment_id`, 格式为 `YYYYMMDD-NN-experiment-name`. 其中 `NN` 是当天第几个实验或研究单元, 从 `01` 开始递增; 同一实验的 script, plan, artifact, report 使用同一个 `experiment_id`. 历史已有 `YYYYMMDD-experiment-name` 路径和文档不强制重命名.
