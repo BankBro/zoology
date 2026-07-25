@@ -151,6 +151,21 @@ class MachineQueue:
             raise RuntimeError("Smoke did not complete three successful optimizer updates.")
         if int(resume["grad_scaler_skips"]) > 2:
             raise RuntimeError("GradScaler skip audit failed.")
+        if result["model"] == "flash":
+            runtime_audits = [
+                value.get("fox_gd_residual_triton_runtime_audit")
+                for value in resume["runtime_state"].values()
+                if value.get("fox_gd_residual_triton_runtime_audit") is not None
+            ]
+            if not runtime_audits:
+                raise RuntimeError("Flash training Triton runtime audit is missing.")
+            for audit in runtime_audits:
+                if int(audit["grouped_calls"]) <= 0 or int(audit["selected_calls"]) <= 0:
+                    raise RuntimeError(f"Flash training missed Triton calls: {audit}")
+                if int(audit["grouped_fallbacks"]) or int(audit["selected_fallbacks"]):
+                    raise RuntimeError(f"Flash training recorded a fallback: {audit}")
+                if audit["actual_core_dtype"] != "float32":
+                    raise RuntimeError(f"Flash training core dtype failed: {audit}")
         for role in ("last", "best"):
             checkpoint = result[f"{role}_checkpoint"]
             if not checkpoint["finite_metrics"]:

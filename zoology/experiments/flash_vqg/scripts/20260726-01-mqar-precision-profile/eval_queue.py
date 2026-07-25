@@ -91,6 +91,7 @@ class EventRunner:
                 and progress.get("event_identity_sha256")
                 == stable_json_sha256(event)
             ):
+                self._audit_completed_result(event, result)
                 return result
 
         command = [
@@ -111,7 +112,39 @@ class EventRunner:
         result["event_path"] = str(paths["event"].resolve())
         result["log_path"] = str(paths["log"].resolve())
         atomic_write_json(paths["result"], result)
+        if result.get("status") == "completed":
+            self._audit_completed_result(event, result)
         return result
+
+    @staticmethod
+    def _audit_completed_result(
+        event: dict[str, Any],
+        result: dict[str, Any],
+    ) -> None:
+        if event["model"] != "flash":
+            return
+        runtime = result.get("model_runtime_state") or {}
+        audits = [
+            value.get("fox_gd_residual_triton_runtime_audit")
+            for value in runtime.values()
+            if value.get("fox_gd_residual_triton_runtime_audit") is not None
+        ]
+        if not audits:
+            raise RuntimeError("Flash eval did not record Triton runtime audit.")
+        for audit in audits:
+            if int(audit["grouped_calls"]) <= 0 or int(audit["selected_calls"]) <= 0:
+                raise RuntimeError(f"Flash eval missed a Triton core call: {audit}")
+            if int(audit["grouped_fallbacks"]) or int(audit["selected_fallbacks"]):
+                raise RuntimeError(f"Flash eval recorded a fallback: {audit}")
+            if audit["actual_core_dtype"] != "float32":
+                raise RuntimeError(f"Flash core dtype audit failed: {audit}")
+            if (
+                event["eval_precision"] in {"fp16", "bf16"}
+                and int(audit["selected_precast_low_precision_calls"]) <= 0
+            ):
+                raise RuntimeError(
+                    f"Flash eval did not exercise a low-precision boundary: {audit}"
+                )
 
 
 def event_payload(

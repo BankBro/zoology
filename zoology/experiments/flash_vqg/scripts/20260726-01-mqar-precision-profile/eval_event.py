@@ -212,6 +212,15 @@ def collect_scalar_metrics(model) -> dict[str, float]:
     return values
 
 
+def collect_runtime_state(model) -> dict[str, dict[str, Any]]:
+    values = {}
+    for name, module in model.named_modules():
+        getter = getattr(module, "get_training_runtime_state", None)
+        if getter is not None:
+            values[name] = getter()
+    return values
+
+
 def run_event(
     event: dict[str, Any],
     progress_path: Path,
@@ -335,6 +344,7 @@ def run_event(
             "started_at_utc": progress["started_at_utc"],
             "ended_at_utc": utc_now(),
             "model_scalar_metrics": collect_scalar_metrics(model),
+            "model_runtime_state": collect_runtime_state(model),
             "progress_path": str(progress_path.resolve()),
         }
         atomic_write_json(result_path, result)
