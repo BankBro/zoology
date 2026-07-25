@@ -328,6 +328,8 @@ def environment_metadata() -> dict[str, Any]:
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
         "zoology_commit": git_value(REPO_ROOT, "rev-parse", "HEAD"),
         "flash_commit": git_value(FLASH_ROOT, "rev-parse", "HEAD"),
+        "zoology_branch": git_value(REPO_ROOT, "branch", "--show-current"),
+        "flash_branch": git_value(FLASH_ROOT, "branch", "--show-current"),
         "zoology_status": git_value(REPO_ROOT, "status", "--short"),
         "flash_status": git_value(FLASH_ROOT, "status", "--short"),
     }
