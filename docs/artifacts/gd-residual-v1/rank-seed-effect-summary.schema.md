@@ -11,6 +11,7 @@ Rules:
 - Use `configured_max_epochs`, `final_epoch`, `final_validation_index`, `final_validation_phase`, and `checkpoint_label` to separate epoch4, epoch32, or future training-length comparisons.
 - Use `num_codebook_vectors` to record codebook size. The current 2026-05-18 seed/rank rows are all `256`.
 - Use `train_batch_size`, `eval_batch_size`, `gradient_accumulation_steps`, `effective_train_batch_size`, and `batch_accum_profile` to record the batch/accumulation training profile. The current epoch4 official rows use `64`, `16`, `4`, `256`, and `b64_ga4`.
+- Use `started_at_utc`, `ended_at_utc`, `elapsed_sec`, `wall_clock`, `gpu`, and `gpu_name` for all newly recorded formal runs. Historical rows added before these columns may remain blank when the source artifact did not preserve the value.
 - Use the normalized metadata columns `dtype_policy`, `outer_model_dtype`, `hidden_states_dtype`, `kernel_input_dtype`, `actual_kernel_dtype`, `dtype_comparison_scope`, `official_scope`, `metadata_verification_level`, `train_config_path`, and `metadata_backfill_status` for dtype/scope filtering. Do not encode verification strength in the dtype value itself.
 - Keep `source_artifact`, `source_run_set`, `run_id`, and `swanlab_url` populated so every row can be traced back to its source.
 - If a source artifact is rounded, mark `source_precision=reported_rounded`; otherwise use `full_precision`.

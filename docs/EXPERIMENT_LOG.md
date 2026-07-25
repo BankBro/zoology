@@ -17,3 +17,12 @@
 - 结果: 选择官方 FLA 0.4.2; 2080 Ti 和 RTX 3090 的 production shape、正式 1ep 质量及完整 epoch 效率门槛全部通过.
 - 输出: [报告](20260724-02-gdn-ek4-fla-compatibility-report.md), [artifact](artifacts/20260724-02-gdn-ek4-fla-compatibility/README.md).
 - 下一步: 后续 Flash-VQG/GDN 实验统一使用 `flash-vqg-fla042` 环境和当前基线.
+
+## 3. 2026-07-25: 当前 Flash/GDN 基线 Longer-MQAR
+
+- `experiment_id`: `20260725-01-current-baselines-longer-mqar`.
+- 目的: 以三 training seeds、4ep重训和 RNG-locked五 slice评估, 比较当前 Flash `baseline-r16-joint` 与 GDN `gdnxk-h2-ek4-ev4-usegate0` 的长度泛化.
+- 结果: 6/6正式训练和全部 formal/repro完成. `last.pt`主结果在四个外推 slice中有三个为 Flash 3/3 seeds稳健领先, `8190x512`为混合领先; `1024x256`不支持 Flash领先. Flash seed124是主要方差来源.
+- 输出: [报告](20260725-01-current-baselines-longer-mqar-report.md), [artifact](artifacts/20260725-01-current-baselines-longer-mqar/README.md).
+- 启动记录: 首次 preflight因入口文件遮蔽Python标准库失败, 在任何 smoke/formal启动前由 commit `0dd9572`修复; 后续全流程通过.
+- 下一步: 分析 Flash seed124的 epoch3->epoch4退化, 必要时增加独立 seeds; 不自动更换当前 baseline.

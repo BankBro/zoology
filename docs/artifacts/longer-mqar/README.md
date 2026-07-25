@@ -12,6 +12,12 @@
 - `official-core-20260526/manifest.csv` 和 `manifest.json`: 19 个 official core checkpoint 来源清单.
 - `kblocked-gdn-20260528/`: FLA K-blocked GDN research evidence. 该目录用于记录 true expanded-K GDN 的 longer-MQAR 结果, 但不属于 official core 推荐引用集.
 
+## 当前基线重训对照
+
+- [当前基线 artifact](../20260725-01-current-baselines-longer-mqar/README.md): 当前 Flash `baseline-r16-joint` 与 GDN `gdnxk-h2-ek4-ev4-usegate0` 的三 seed 4ep重训和 Longer-MQAR对照.
+- [对应报告](../../20260725-01-current-baselines-longer-mqar-report.md).
+- 本轮独立保存 last/best逻辑结果, 没有改写 `official-core-20260526/` 或旧 preliminary ledger. 它是当前两种 baseline的直接证据, 不把 2026-05历史模型混入排名.
+
 official core 结果使用 `eval_seed=123`, 在 dataset 生成前固定 `random`, `numpy`, `torch`, `torch.cuda` RNG, 并为每个 slice 记录 `dataset_hash`. 所有纳入 official core 的 checkpoint 均为 `b64_ga4 fp32 official` 训练口径: `source_train_batch_size=64`, `source_gradient_accumulation_steps=4`, `source_effective_train_batch_size=256`, `source_batch_accum_profile=b64_ga4`, `source_dtype_policy=float32`.
 
 ## 旧 preliminary 结果
