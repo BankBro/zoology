@@ -37,6 +37,8 @@ EXPECTED_DATASET_HASHES = {
     "8190x2047": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
 }
 BATCH_CANDIDATES = (32, 16, 8, 4, 2, 1)
+SMOKE_EXAMPLES = 2
+FORMAL_EXAMPLES = 500
 
 
 def utc_now() -> str:
@@ -268,7 +270,9 @@ class EvalQueue:
     def batch_search(self) -> None:
         self.update_status("batch_search")
         reps = self.representatives()
-        search_examples = 2 if self.mode == "smoke-dag" else 32
+        # Formal batch search必须覆盖完整500-example负载. 仅用单batch或32个
+        # examples无法暴露跨batch的CUDA allocator碎片化OOM.
+        search_examples = SMOKE_EXAMPLES if self.mode == "smoke-dag" else FORMAL_EXAMPLES
         candidates = tuple(value for value in BATCH_CANDIDATES if value <= search_examples)
         rows: list[dict[str, Any]] = []
         for model in ("flash", "gdn"):
@@ -321,7 +325,7 @@ class EvalQueue:
 
     def formal_events(self) -> dict[tuple[str, str], dict[str, Any]]:
         event_mode = "formal-probe" if self.mode == "smoke-dag" else "formal"
-        examples = 2 if self.mode == "smoke-dag" else 500
+        examples = SMOKE_EXAMPLES if self.mode == "smoke-dag" else FORMAL_EXAMPLES
         total = len(self.sources) * len(SLICES)
         completed = 0
         references: dict[tuple[str, str], dict[str, Any]] = {}
@@ -348,7 +352,7 @@ class EvalQueue:
         return references
 
     def repro(self, references: dict[tuple[str, str], dict[str, Any]]) -> None:
-        examples = 2 if self.mode == "smoke-dag" else 500
+        examples = SMOKE_EXAMPLES if self.mode == "smoke-dag" else FORMAL_EXAMPLES
         seq, kv = SLICES[0]
         slc = slice_name(seq, kv)
         rows: list[dict[str, Any]] = []
@@ -385,9 +389,9 @@ class EvalQueue:
         self.source_smoke()
         references = self.formal_events()
         self.repro(references)
-        records = self.all_records()
-        physical_formal_mode = "formal-probe" if self.mode == "smoke-dag" else "formal"
-        formal_rows = [row for row in records if row.get("eval_mode") == physical_formal_mode]
+        # 失败恢复后records目录会保留旧batch的OOM尝试. 正式验收只统计本轮
+        # batch-search选中的reference矩阵, raw detail仍完整保留全部尝试.
+        formal_rows = list(references.values())
         verification = {
             "experiment_id": EXPERIMENT_ID,
             "machine": MACHINE,

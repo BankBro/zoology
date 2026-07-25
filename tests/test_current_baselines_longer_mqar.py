@@ -134,7 +134,37 @@ def test_manifest_deduplicates_last_best_by_model_state(tmp_path):
     assert len(unique) == 6
     assert all(set(source["checkpoint_roles"]) == {"last", "best"} for source in unique)
     assert runner.BATCH_CANDIDATES == (32, 16, 8, 4, 2, 1)
+    assert runner.SMOKE_EXAMPLES == 2
+    assert runner.FORMAL_EXAMPLES == 500
     assert tuple(runner.EXPECTED_DATASET_HASHES) == ("1024x256", "2048x512", "4096x1024", "8190x512", "8190x2047")
+
+
+def test_eval_verification_ignores_historical_oom_attempts(tmp_path):
+    runner = _load("test_current_longer_resume_verification", "longer_mqar_runner.py")
+    queue = object.__new__(runner.EvalQueue)
+    queue.mode = "formal"
+    queue.output_dir = tmp_path
+    queue.status_path = tmp_path / "status.json"
+    queue.logical_sources = [{"source_id": "flash-s123-last"}]
+    queue.sources = [{"unique_source_id": "flash-state"}]
+    references = {
+        ("flash-state", slc): {"status": "completed", "slice": slc}
+        for slc in runner.EXPECTED_DATASET_HASHES
+    }
+    queue.update_status = lambda *args, **kwargs: None
+    queue.batch_search = lambda: None
+    queue.source_smoke = lambda: None
+    queue.formal_events = lambda: references
+    queue.repro = lambda _references: None
+    queue.save_detail = lambda: None
+    queue.all_records = lambda: [
+        *references.values(),
+        {"status": "oom", "eval_mode": "formal", "slice": "8190x512"},
+    ]
+
+    verification = queue.run()
+    assert verification["status"] == "completed"
+    assert verification["formal_rows"] == verification["formal_expected"] == 5
 
 
 def test_collector_summary_and_paired_classification():
