@@ -147,6 +147,8 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
     config_dict = config.model_dump() if hasattr(config, "model_dump") else config.dict()
     flash_kwargs = _find_flash_vqg_kwargs(config_dict.get("model") or {}) or {}
     return {
+        "precision": config_dict.get("precision", "float32"),
+        "resume_enabled": config_dict.get("resume_enabled", False),
         "experiment_part": flash_kwargs.get("experiment_part"),
         "experiment_mode": flash_kwargs.get("experiment_mode"),
         "fox_remote_formula": flash_kwargs.get("fox_remote_formula"),
@@ -180,6 +182,9 @@ def config_summary_from_config(config: TrainConfig) -> dict[str, Any]:
         ),
         "fox_gd_residual_selected_read_backend": flash_kwargs.get(
             "fox_gd_residual_selected_read_backend"
+        ),
+        "fox_gd_residual_triton_input_policy": flash_kwargs.get(
+            "fox_gd_residual_triton_input_policy"
         ),
         "fox_gd_residual_selected_read_chunk_size": flash_kwargs.get(
             "fox_gd_residual_selected_read_chunk_size"

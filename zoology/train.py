@@ -3,7 +3,9 @@ import hashlib
 import random
 import json
 import signal
+import time
 from collections import defaultdict
+from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, List, Union
@@ -65,6 +67,58 @@ def _restore_training_signal_handlers(previous_handlers: dict[int, signal.Handle
         signal.signal(signum, handler)
 
 
+def _config_identity(config: TrainConfig) -> dict[str, str]:
+    serialized = serialize_train_config(config)
+    encoded = json.dumps(serialized, sort_keys=True, default=str).encode("utf-8")
+    return {
+        "train_config_sha256": hashlib.sha256(encoded).hexdigest(),
+        **{str(key): str(value) for key, value in config.resume_identity.items()},
+    }
+
+
+def _capture_rng_state() -> dict[str, Any]:
+    state = {
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+    }
+    if torch.cuda.is_available():
+        state["torch_cuda"] = torch.cuda.get_rng_state_all()
+    return state
+
+
+def _restore_rng_state(state: dict[str, Any]) -> None:
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch_cpu"])
+    if torch.cuda.is_available() and "torch_cuda" in state:
+        torch.cuda.set_rng_state_all(state["torch_cuda"])
+
+
+def _collect_model_runtime_state(model: nn.Module) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for name, module in model.named_modules():
+        getter = getattr(module, "get_training_runtime_state", None)
+        if getter is not None:
+            result[name] = getter()
+    return result
+
+
+def _restore_model_runtime_state(
+    model: nn.Module,
+    state: dict[str, dict[str, Any]],
+) -> None:
+    modules = dict(model.named_modules())
+    missing = sorted(set(state) - set(modules))
+    if missing:
+        raise KeyError(f"Resume runtime modules are missing: {missing}")
+    for name, value in state.items():
+        loader = getattr(modules[name], "load_training_runtime_state", None)
+        if loader is None:
+            raise TypeError(f"Module no longer supports training runtime state: {name}")
+        loader(value)
+
+
 class CheckpointManager:
     def __init__(self, config: TrainConfig):
         self.config = config
@@ -76,6 +130,11 @@ class CheckpointManager:
         self.run_dir = Path(self.checkpoint_config.root_dir) / launch_dir / config.run_id
         self.best_path = self.run_dir / "best.pt"
         self.last_path = self.run_dir / "last.pt"
+        self.resume_path = (
+            Path(config.resume_path)
+            if config.resume_path is not None
+            else self.run_dir / "resume.pt"
+        )
         self.config_path = self.run_dir / "train_config.json"
         self.best_metric = self._resolve_best_metric()
         self.best_mode = self.checkpoint_config.best_mode
@@ -113,9 +172,31 @@ class CheckpointManager:
         }
 
     def _atomic_save(self, payload: dict, path: Path):
+        path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = path.with_suffix(path.suffix + ".tmp")
         torch.save(payload, tmp_path)
         tmp_path.replace(path)
+
+    def save_resume(self, payload: dict[str, Any]) -> None:
+        if not self.config.resume_enabled:
+            return
+        if not self.enabled:
+            raise RuntimeError("resume_enabled requires checkpoint.enabled=true.")
+        self._atomic_save(payload, self.resume_path)
+
+    def load_resume(self) -> dict[str, Any] | None:
+        if not self.config.resume_enabled or not self.resume_path.exists():
+            return None
+        payload = torch.load(self.resume_path, map_location="cpu", weights_only=False)
+        if int(payload.get("format_version", -1)) != 1:
+            raise RuntimeError("Unsupported resume checkpoint format version.")
+        expected = _config_identity(self.config)
+        if payload.get("identity") != expected:
+            raise RuntimeError(
+                f"Resume identity mismatch: expected={expected}, "
+                f"actual={payload.get('identity')}"
+            )
+        return payload
 
     def _is_better(self, current_value):
         if self.best_value is None:
@@ -162,6 +243,12 @@ class Trainer:
         weight_decay: float = 0.1,
         gradient_accumulation_steps: int = 1,
         validations_per_epoch: int = 1,
+        precision: str = "float32",
+        training_runtime_initial_state: dict[str, dict[str, Any]] | None = None,
+        resume_stop_after_optimizer_step: int | None = None,
+        max_grad_scaler_skips: int = 0,
+        max_consecutive_grad_scaler_skips: int = 0,
+        training_telemetry_path: str | None = None,
         early_stopping_metric: str = None,
         early_stopping_threshold: float = None,
         loss_type: str = "ce",
@@ -211,10 +298,38 @@ class Trainer:
         self.validations_per_epoch = int(validations_per_epoch)
         if self.validations_per_epoch <= 0:
             raise ValueError("validations_per_epoch must be a positive integer.")
+        self.precision = str(precision)
+        if self.precision not in {"float32", "amp_float16", "amp_bfloat16"}:
+            raise ValueError(f"Unsupported training precision: {self.precision}")
+        self.training_runtime_initial_state = dict(
+            training_runtime_initial_state or {}
+        )
+        self.resume_stop_after_optimizer_step = (
+            None
+            if resume_stop_after_optimizer_step is None
+            else int(resume_stop_after_optimizer_step)
+        )
+        self.max_grad_scaler_skips = int(max_grad_scaler_skips)
+        self.max_consecutive_grad_scaler_skips = int(
+            max_consecutive_grad_scaler_skips
+        )
+        if self.max_grad_scaler_skips < 0 or self.max_consecutive_grad_scaler_skips < 0:
+            raise ValueError("GradScaler skip limits must be non-negative.")
+        self.training_telemetry_path = (
+            Path(training_telemetry_path)
+            if training_telemetry_path is not None
+            else None
+        )
         self.slice_keys = slice_keys
         self.loss_type = loss_type
         self.global_step = 0
         self.optimizer_step = 0
+        self.optimizer_attempt_step = 0
+        self.grad_scaler_skips = 0
+        self.consecutive_grad_scaler_skips = 0
+        self._completed_validations: set[tuple[int, int]] = set()
+        self._resume_epoch_idx = 0
+        self._resume_next_train_batch_idx = 0
         self.read_churn_probe_enabled = bool(read_churn_probe_enabled)
         self.read_churn_probe_valid_batches = {
             int(idx) for idx in (read_churn_probe_valid_batches or [])
@@ -258,6 +373,130 @@ class Trainer:
             else None
         )
         self.run_id = run_id
+
+    def _autocast_context(self):
+        if self.precision == "float32":
+            return nullcontext()
+        device_type = torch.device(self.device).type
+        dtype = (
+            torch.float16
+            if self.precision == "amp_float16"
+            else torch.bfloat16
+        )
+        return torch.autocast(device_type=device_type, dtype=dtype)
+
+    def _step_optimizer(self) -> bool:
+        self.optimizer_attempt_step += 1
+        if not self.scaler.is_enabled():
+            self.optimizer.step()
+            self.consecutive_grad_scaler_skips = 0
+            return True
+
+        scale_before = float(self.scaler.get_scale())
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        skipped = float(self.scaler.get_scale()) < scale_before
+        if not skipped:
+            self.consecutive_grad_scaler_skips = 0
+            return True
+
+        self.grad_scaler_skips += 1
+        self.consecutive_grad_scaler_skips += 1
+        if self.grad_scaler_skips > self.max_grad_scaler_skips:
+            raise FloatingPointError("GradScaler total skip limit exceeded.")
+        if (
+            self.consecutive_grad_scaler_skips
+            > self.max_consecutive_grad_scaler_skips
+        ):
+            raise FloatingPointError("GradScaler consecutive skip limit exceeded.")
+        return False
+
+    def _build_resume_payload(
+        self,
+        *,
+        epoch_idx: int,
+        next_train_batch_idx: int,
+    ) -> dict[str, Any]:
+        best_value = None
+        if self.checkpoint_manager is not None:
+            best_value = self.checkpoint_manager.best_value
+        return {
+            "format_version": 1,
+            "identity": _config_identity(self.checkpoint_manager.config),
+            "model_state_dict": self.model.state_dict(),
+            "optimizer_state_dict": self.optimizer.state_dict(),
+            "scheduler_state_dict": self.scheduler.state_dict(),
+            "grad_scaler_state_dict": self.scaler.state_dict(),
+            "rng_state": _capture_rng_state(),
+            "model_runtime_state": _collect_model_runtime_state(self.model),
+            "epoch_idx": int(epoch_idx),
+            "next_train_batch_idx": int(next_train_batch_idx),
+            "optimizer_step": int(self.optimizer_step),
+            "optimizer_attempt_step": int(self.optimizer_attempt_step),
+            "global_step": int(self.global_step),
+            "grad_scaler_skips": int(self.grad_scaler_skips),
+            "consecutive_grad_scaler_skips": int(
+                self.consecutive_grad_scaler_skips
+            ),
+            "completed_validations": sorted(
+                [int(epoch), int(step)]
+                for epoch, step in self._completed_validations
+            ),
+            "checkpoint_best_value": best_value,
+        }
+
+    def _save_resume(
+        self,
+        *,
+        epoch_idx: int,
+        next_train_batch_idx: int,
+        allow_controlled_stop: bool,
+    ) -> None:
+        if (
+            self.checkpoint_manager is None
+            or not self.checkpoint_manager.config.resume_enabled
+        ):
+            return
+        payload = self._build_resume_payload(
+            epoch_idx=epoch_idx,
+            next_train_batch_idx=next_train_batch_idx,
+        )
+        self.checkpoint_manager.save_resume(payload)
+        if (
+            allow_controlled_stop
+            and self.resume_stop_after_optimizer_step is not None
+            and self.optimizer_step == self.resume_stop_after_optimizer_step
+        ):
+            raise TrainingInterrupted(
+                "Controlled stop after saving the requested optimizer step."
+            )
+
+    def _load_resume(self) -> None:
+        if self.checkpoint_manager is None:
+            return
+        payload = self.checkpoint_manager.load_resume()
+        if payload is None:
+            return
+        self.model.load_state_dict(payload["model_state_dict"], strict=True)
+        self.optimizer.load_state_dict(payload["optimizer_state_dict"])
+        self.scheduler.load_state_dict(payload["scheduler_state_dict"])
+        self.scaler.load_state_dict(payload["grad_scaler_state_dict"])
+        _restore_model_runtime_state(self.model, payload["model_runtime_state"])
+        self._resume_epoch_idx = int(payload["epoch_idx"])
+        self._resume_next_train_batch_idx = int(payload["next_train_batch_idx"])
+        self.optimizer_step = int(payload["optimizer_step"])
+        self.optimizer_attempt_step = int(payload["optimizer_attempt_step"])
+        self.global_step = int(payload["global_step"])
+        self.grad_scaler_skips = int(payload["grad_scaler_skips"])
+        self.consecutive_grad_scaler_skips = int(
+            payload["consecutive_grad_scaler_skips"]
+        )
+        self._completed_validations = {
+            (int(epoch), int(step))
+            for epoch, step in payload["completed_validations"]
+        }
+        self.checkpoint_manager.best_value = payload["checkpoint_best_value"]
+        _restore_rng_state(payload["rng_state"])
 
     def _set_dense_teacher_runtime(self, targets: torch.Tensor) -> None:
         if self.input_type != "discrete":
@@ -549,8 +788,22 @@ class Trainer:
         with self.early_window_metrics_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(safe_payload, ensure_ascii=False, sort_keys=True) + "\n")
 
-    def _log_metrics(self, metrics: dict[str, float | int]):
+    def _log_metrics(self, metrics: dict[str, Any]):
         self.logger.log(metrics, step=self.global_step)
+        if self.training_telemetry_path is not None:
+            self.training_telemetry_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "log_step": int(self.global_step),
+                "recorded_at_utc": datetime.utcnow().isoformat() + "Z",
+                **{
+                    str(key): self._json_safe_metric(value)
+                    for key, value in metrics.items()
+                },
+            }
+            with self.training_telemetry_path.open("a", encoding="utf-8") as handle:
+                handle.write(
+                    json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n"
+                )
         self.global_step += 1
 
     def _maybe_run_train_step_read_trace(self, *, epoch_idx: int) -> None:
@@ -599,7 +852,8 @@ class Trainer:
                     force_trace_enabled=True,
                 )
                 try:
-                    loss, preds = self.compute_loss(inputs, targets)
+                    with self._autocast_context():
+                        loss, preds = self.compute_loss(inputs, targets)
                 finally:
                     self._clear_dense_teacher_runtime()
                     if read_probe_active:
@@ -648,7 +902,8 @@ class Trainer:
     def train_epoch(
         self,
         epoch_idx: int,
-        validation_callback: Callable[[int], None] | None = None,
+        start_batch_idx: int = 0,
+        validation_callback: Callable[[int, int], None] | None = None,
     ):
         self.model.train()
         sampler = getattr(self.train_dataloader, "sampler", None)
@@ -662,6 +917,11 @@ class Trainer:
         validation_boundaries = self._validation_boundaries(num_optimizer_steps)
         # Index where the last (possibly partial) accumulation window begins
         partial_start = num_batches - remainder if remainder > 0 else num_batches
+        start_batch_idx = int(start_batch_idx)
+        if start_batch_idx < 0 or start_batch_idx > num_batches:
+            raise ValueError(f"Invalid resume batch cursor: {start_batch_idx}")
+        if start_batch_idx < num_batches and start_batch_idx % accum_steps != 0:
+            raise ValueError("Resume batch cursor must be an optimizer boundary.")
 
         iterator = tqdm(
             self.train_dataloader,
@@ -671,10 +931,17 @@ class Trainer:
 
         self.optimizer.zero_grad(set_to_none=True)
         accumulated_losses: list[torch.Tensor] = []
-        optimizer_step_idx = 0
+        optimizer_step_idx = start_batch_idx // accum_steps
+        optimizer_window_started = None
         self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
 
         for step_idx, (inputs, targets, slices) in enumerate(iterator):
+            if step_idx < start_batch_idx:
+                continue
+            if optimizer_window_started is None:
+                optimizer_window_started = time.perf_counter()
+                if torch.cuda.is_available() and torch.device(self.device).type == "cuda":
+                    torch.cuda.reset_peak_memory_stats()
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             current_optimizer_step = int(self.optimizer_step)
             micro_step_idx = int(step_idx % accum_steps)
@@ -688,48 +955,79 @@ class Trainer:
                 targets=targets,
             )
             try:
-                loss, _ = self.compute_loss(inputs, targets, return_predictions=False)
+                with self._autocast_context():
+                    loss, _ = self.compute_loss(
+                        inputs,
+                        targets,
+                        return_predictions=False,
+                    )
+                    if self.input_type == "discrete":
+                        auxiliary_loss = []
+
+                        def get_auxiliary_loss(module):
+                            if hasattr(module, "get_auxiliary_loss"):
+                                auxiliary_loss.append(module.get_auxiliary_loss())
+
+                        self.model.apply(get_auxiliary_loss)
+                        if auxiliary_loss:
+                            loss = loss + sum(auxiliary_loss)
             finally:
                 self._clear_dense_teacher_runtime()
                 if inline_trace_active:
                     self._clear_read_candidate_probe_runtime()
 
-            # Auxiliary losses (discrete mode only)
-            if self.input_type == "discrete":
-                auxiliary_loss = []
-                def get_auxiliary_loss(module):
-                    if hasattr(module, "get_auxiliary_loss"):
-                        auxiliary_loss.append(module.get_auxiliary_loss())
-                self.model.apply(get_auxiliary_loss)
-                if auxiliary_loss:
-                    loss = loss + sum(auxiliary_loss)
+            if not torch.isfinite(loss.detach()).all():
+                raise FloatingPointError(
+                    f"Non-finite training loss at epoch={epoch_idx}, batch={step_idx}."
+                )
 
             # Use correct divisor for the last partial window
             effective_accum = remainder if step_idx >= partial_start else accum_steps
-            (loss / effective_accum).backward()
+            scaled_loss = loss / effective_accum
+            self.scaler.scale(scaled_loss).backward()
             accumulated_losses.append(loss.detach())
 
             is_accum_boundary = (step_idx + 1) % accum_steps == 0
             is_last_batch = (step_idx + 1) == num_batches
 
             if is_accum_boundary or is_last_batch:
-                self.optimizer.step()
+                optimizer_succeeded = self._step_optimizer()
                 self.optimizer.zero_grad(set_to_none=True)
 
                 micro_count = effective_accum if is_last_batch and not is_accum_boundary else accum_steps
                 avg_loss = float(torch.stack(accumulated_losses).sum().cpu().item() / micro_count)
                 iterator.set_postfix({"loss": avg_loss})
-                metrics = {"train/loss": avg_loss, "epoch": epoch_idx}
+                metrics = {
+                    "train/loss": avg_loss,
+                    "train/optimizer_step_skipped": int(not optimizer_succeeded),
+                    "train/grad_scaler_scale": float(self.scaler.get_scale()),
+                    "train/optimizer_step_wall_sec": (
+                        time.perf_counter() - optimizer_window_started
+                    ),
+                    "train/precision": self.precision,
+                    "epoch": epoch_idx,
+                }
+                if torch.cuda.is_available() and torch.device(self.device).type == "cuda":
+                    metrics["train/peak_allocated_mib"] = (
+                        torch.cuda.max_memory_allocated() / 1024**2
+                    )
+                    metrics["train/peak_reserved_mib"] = (
+                        torch.cuda.max_memory_reserved() / 1024**2
+                    )
                 if slices:
                     mqar_case = slices[0].get("mqar_case")
                     if mqar_case is not None:
                         metrics[f"train/mqar_case/loss-{mqar_case}"] = avg_loss
                 metrics.update(self._collect_model_scalar_metrics())
-                self.optimizer_step += 1
+                if optimizer_succeeded:
+                    self.optimizer_step += 1
                 self._log_metrics(metrics)
                 accumulated_losses.clear()
                 optimizer_step_idx += 1
-                self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
+                self._resume_epoch_idx = epoch_idx
+                self._resume_next_train_batch_idx = step_idx + 1
+                if optimizer_succeeded:
+                    self._maybe_run_train_step_read_trace(epoch_idx=epoch_idx)
                 if (
                     self.max_train_steps is not None
                     and self.optimizer_step >= self.max_train_steps
@@ -741,15 +1039,20 @@ class Trainer:
                     validation_callback is not None
                     and optimizer_step_idx in validation_boundaries
                 ):
-                    validation_callback(optimizer_step_idx)
+                    validation_callback(optimizer_step_idx, step_idx + 1)
                     self.model.train()
+                optimizer_window_started = None
 
     def test(self, epoch_idx: int):
         self.model.eval()
         test_loss = 0.0
+        sample_weighted_loss = 0.0
+        total_examples = 0
         processed_batches = 0
         results = []
         scalar_metric_buckets: dict[str, list[float]] = defaultdict(list)
+        if torch.cuda.is_available() and torch.device(self.device).type == "cuda":
+            torch.cuda.reset_peak_memory_stats()
 
         with torch.no_grad(), tqdm(
             total=len(self.test_dataloader),
@@ -772,12 +1075,16 @@ class Trainer:
                     force_trace_enabled=False if self.read_trace_train_steps else None,
                 )
                 try:
-                    loss, preds = self.compute_loss(inputs, targets)
+                    with self._autocast_context():
+                        loss, preds = self.compute_loss(inputs, targets)
                 finally:
                     self._clear_dense_teacher_runtime()
                     if read_probe_active:
                         self._clear_read_candidate_probe_runtime()
                 test_loss += float(loss.detach().cpu().item())
+                batch_examples = int(targets.size(0))
+                sample_weighted_loss += float(loss.detach().cpu().item()) * batch_examples
+                total_examples += batch_examples
                 processed_batches += 1
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
                 for key, value in self._collect_model_scalar_metrics().items():
@@ -792,8 +1099,16 @@ class Trainer:
             # logging and printing
             metrics = {
                 "valid/loss": test_loss / processed_batches,
+                "valid/loss_sample_weighted": sample_weighted_loss / total_examples,
                 "valid/accuracy": test_accuracy.item(),
             }
+            if torch.cuda.is_available() and torch.device(self.device).type == "cuda":
+                metrics["valid/peak_allocated_mib"] = (
+                    torch.cuda.max_memory_allocated() / 1024**2
+                )
+                metrics["valid/peak_reserved_mib"] = (
+                    torch.cuda.max_memory_reserved() / 1024**2
+                )
 
             # compute metrics for slices
             for key in self.slice_keys:
@@ -825,12 +1140,49 @@ class Trainer:
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=self.max_epochs, eta_min=0.0
         )
+        device_type = torch.device(self.device).type
+        if self.precision != "float32" and device_type != "cuda":
+            raise RuntimeError("AMP precision profiles require a CUDA device.")
+        if self.precision == "amp_bfloat16" and not torch.cuda.is_bf16_supported():
+            raise RuntimeError("amp_bfloat16 is not supported by this CUDA device.")
+        self.scaler = torch.amp.GradScaler(
+            "cuda",
+            enabled=self.precision == "amp_float16",
+        )
+        if self.training_runtime_initial_state:
+            _restore_model_runtime_state(
+                self.model,
+                self.training_runtime_initial_state,
+            )
+        self._load_resume()
         last_metrics = None
         last_epoch = None
-        for epoch_idx in range(self.max_epochs):
+        for epoch_idx in range(self._resume_epoch_idx, self.max_epochs):
+            start_batch_idx = (
+                self._resume_next_train_batch_idx
+                if epoch_idx == self._resume_epoch_idx
+                else 0
+            )
+
+            def validate_and_save_resume(
+                optimizer_step_idx: int,
+                next_train_batch_idx: int,
+            ) -> None:
+                key = (int(epoch_idx), int(optimizer_step_idx))
+                if key in self._completed_validations:
+                    return
+                self.test(epoch_idx)
+                self._completed_validations.add(key)
+                self._save_resume(
+                    epoch_idx=epoch_idx,
+                    next_train_batch_idx=next_train_batch_idx,
+                    allow_controlled_stop=True,
+                )
+
             self.train_epoch(
                 epoch_idx,
-                validation_callback=lambda _optimizer_step_idx, epoch_idx=epoch_idx: self.test(epoch_idx),
+                start_batch_idx=start_batch_idx,
+                validation_callback=validate_and_save_resume,
             )
             metrics = self.test(epoch_idx)
             last_metrics = metrics
@@ -842,19 +1194,26 @@ class Trainer:
                     metrics=metrics,
                 )
 
-            # early stopping
-            if (self.early_stopping_metric is not None) and metrics[
+            early_stopped = (self.early_stopping_metric is not None) and metrics[
                 self.early_stopping_metric
-            ] > self.early_stopping_threshold:
+            ] > self.early_stopping_threshold
+            if early_stopped:
                 print(
                     f"Early stopping triggered at epoch {epoch_idx} with "
                     f"{self.early_stopping_metric} {metrics[self.early_stopping_metric]} > {self.early_stopping_threshold}"
                 )
+            terminal = bool(early_stopped or self._max_train_steps_reached)
+            if not terminal:
+                self.scheduler.step()
+            self._resume_epoch_idx = epoch_idx + 1
+            self._resume_next_train_batch_idx = 0
+            self._save_resume(
+                epoch_idx=epoch_idx + 1,
+                next_train_batch_idx=0,
+                allow_controlled_stop=False,
+            )
+            if terminal:
                 break
-            if self._max_train_steps_reached:
-                break
-
-            self.scheduler.step()
 
         return {
             "final_epoch": last_epoch,
@@ -928,6 +1287,16 @@ def train(config: TrainConfig):
             weight_decay=config.weight_decay,
             gradient_accumulation_steps=config.gradient_accumulation_steps,
             validations_per_epoch=config.validations_per_epoch,
+            precision=config.precision,
+            training_runtime_initial_state=config.training_runtime_initial_state,
+            resume_stop_after_optimizer_step=(
+                config.resume_stop_after_optimizer_step
+            ),
+            max_grad_scaler_skips=config.max_grad_scaler_skips,
+            max_consecutive_grad_scaler_skips=(
+                config.max_consecutive_grad_scaler_skips
+            ),
+            training_telemetry_path=config.training_telemetry_path,
             early_stopping_metric=config.early_stopping_metric,
             early_stopping_threshold=config.early_stopping_threshold,
             slice_keys=config.slice_keys,

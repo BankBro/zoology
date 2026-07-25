@@ -34,6 +34,7 @@ class FlashVQGMixer(nn.Module):
         fox_gd_residual_builder: str = "grouped_chunk_torch_ref",
         fox_gd_residual_grouped_chunk_backend: str = "torch",
         fox_gd_residual_selected_read_backend: str = "materialized",
+        fox_gd_residual_triton_input_policy: str = "input",
         fox_gd_residual_selected_read_chunk_size: int = 2048,
         fox_gd_residual_pack_mode: str = "semivec_ref",
         fox_gd_residual_chunk_size: int = 64,
@@ -154,6 +155,9 @@ class FlashVQGMixer(nn.Module):
         )
         self.fox_gd_residual_selected_read_backend = str(
             fox_gd_residual_selected_read_backend
+        )
+        self.fox_gd_residual_triton_input_policy = str(
+            fox_gd_residual_triton_input_policy
         )
         self.fox_gd_residual_selected_read_chunk_size = int(
             fox_gd_residual_selected_read_chunk_size
@@ -362,6 +366,9 @@ class FlashVQGMixer(nn.Module):
             ),
             fox_gd_residual_selected_read_backend=(
                 self.fox_gd_residual_selected_read_backend
+            ),
+            fox_gd_residual_triton_input_policy=(
+                self.fox_gd_residual_triton_input_policy
             ),
             fox_gd_residual_selected_read_chunk_size=(
                 self.fox_gd_residual_selected_read_chunk_size

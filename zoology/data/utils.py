@@ -121,13 +121,19 @@ def prepare_data(config: DataConfig) -> Tuple[DataLoader, DataLoader]:
             train_segments,
             mode=config.train_batch_order,
             seed=config.seed,
+            segment_order=config.train_batch_segment_order,
         ),
     )
     test_dataloader = DataLoader(
         test_segments,
         batch_size=None,
         num_workers=0,
-        shuffle=False,
+        sampler=_BatchOrderSampler(
+            test_segments,
+            mode="sequential",
+            seed=config.seed,
+            segment_order=config.test_batch_segment_order,
+        ),
     )
     return train_dataloader, test_dataloader
 
@@ -194,22 +200,55 @@ class _SyntheticDataset(Dataset):
 
 
 class _BatchOrderSampler(Sampler[int]):
-    def __init__(self, dataset: _SyntheticDataset, mode: str, seed: int):
+    def __init__(
+        self,
+        dataset: _SyntheticDataset,
+        mode: str,
+        seed: int,
+        segment_order: List[int] | None = None,
+    ):
         self.dataset = dataset
         self.mode = mode
         self.seed = int(seed)
         self.epoch = 0
+        self.segment_order = (
+            None if segment_order is None else [int(value) for value in segment_order]
+        )
         valid_modes = {"sequential", "global_shuffle", "balanced_interleave"}
         if self.mode not in valid_modes:
             raise ValueError(
                 f"Unsupported train_batch_order: {self.mode}. "
                 f"Expected one of {sorted(valid_modes)}."
             )
+        if self.segment_order is not None:
+            self._validate_segment_order()
+
+    def _validate_segment_order(self):
+        emitted = [0] * len(self.dataset.segments)
+        for segment_idx in self.segment_order:
+            if segment_idx < 0 or segment_idx >= len(emitted):
+                raise ValueError(f"Invalid train batch segment index: {segment_idx}")
+            emitted[segment_idx] += 1
+        for segment_idx, count in enumerate(emitted):
+            available = len(self.dataset.segment_to_batch_indices[segment_idx])
+            if count > available:
+                raise ValueError(
+                    f"Segment {segment_idx} requests {count} batches, "
+                    f"only {available} available."
+                )
 
     def set_epoch(self, epoch: int):
         self.epoch = int(epoch)
 
     def __iter__(self):
+        if self.segment_order is not None:
+            emitted = [0] * len(self.dataset.segments)
+            order = []
+            for segment_idx in self.segment_order:
+                batch_indices = self.dataset.segment_to_batch_indices[segment_idx]
+                order.append(batch_indices[emitted[segment_idx]])
+                emitted[segment_idx] += 1
+            return iter(order)
         if self.mode == "sequential":
             return iter(range(len(self.dataset)))
 
@@ -222,6 +261,8 @@ class _BatchOrderSampler(Sampler[int]):
         return iter(self._balanced_interleave(generator))
 
     def __len__(self):
+        if self.segment_order is not None:
+            return len(self.segment_order)
         return len(self.dataset)
 
     def _balanced_interleave(self, generator: torch.Generator) -> list[int]:

@@ -1,7 +1,7 @@
 import argparse
 from datetime import datetime
 from functools import partial
-from typing import List, Tuple, Union, Literal, Optional
+from typing import Dict, List, Tuple, Union, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -82,6 +82,8 @@ class DataConfig(BaseConfig):
     # can pass a tuple if you want a different batch size for train and test
     batch_size: Union[int, Tuple[int, int]] = 32
     train_batch_order: Literal["sequential", "global_shuffle", "balanced_interleave"] = "sequential"
+    train_batch_segment_order: Optional[List[int]] = None
+    test_batch_segment_order: Optional[List[int]] = None
     seed: int = 123
     cache_dir: Optional[str] = None
     force_cache: bool = False 
@@ -156,6 +158,15 @@ class TrainConfig(BaseConfig):
     weight_decay: float = 0.1
     gradient_accumulation_steps: int = 1
     validations_per_epoch: int = 1
+    precision: Literal["float32", "amp_float16", "amp_bfloat16"] = "float32"
+    resume_enabled: bool = False
+    resume_path: Optional[str] = None
+    resume_identity: Dict[str, str] = {}
+    training_runtime_initial_state: Dict[str, dict] = {}
+    resume_stop_after_optimizer_step: Optional[int] = None
+    max_grad_scaler_skips: int = 0
+    max_consecutive_grad_scaler_skips: int = 0
+    training_telemetry_path: Optional[str] = None
     seed: int = 123
     read_churn_probe_enabled: bool = False
     read_churn_probe_valid_batches: List[int] = [0]

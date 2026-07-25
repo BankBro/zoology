@@ -58,6 +58,21 @@ def test_balanced_interleave_preserves_counts_and_front_loads_minor_segments():
     assert segment_order.count(2) == 2
 
 
+def test_explicit_segment_order_builds_stratified_smoke_batches():
+    dataset = _build_dataset()
+    requested = [0, 1, 2, 0, 1, 2, 0, 0]
+    sampler = _BatchOrderSampler(
+        dataset,
+        mode="global_shuffle",
+        seed=123,
+        segment_order=requested,
+    )
+    order = list(iter(sampler))
+    observed = [dataset.batches[batch_idx][0] for batch_idx in order]
+    assert observed == requested
+    assert len(sampler) == len(requested)
+
+
 def test_build_configs_expands_multiple_train_batch_orders_under_one_sweep():
     configs = build_configs(
         sweep_id="flash-vqg-e0-all",
