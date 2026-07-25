@@ -152,3 +152,58 @@ preflight
 - Runner 实现、测试和全量 smoke: `1–1.5` 小时.
 - 自动正式队列: `3.5–5` 小时.
 - 用户唤醒后的 Report 审计与收尾: `30–60` 分钟.
+
+## 9. 3090 跨 GPU 扩展
+
+本节在2080 Ti阶段完成后追加. 扩展继续使用同一 `experiment_id`, 但机器级训练、eval、artifact和状态必须明确隔离, 不把同seed跨机器结果当作独立seed合并统计.
+
+### 9.1. 3090正式口径
+
+- 3090在 `mclab-3090` 的 `Flash-VQG-tun` 容器GPU0独立重训Flash/GDN × seeds `123/124/125`, 共6条4ep run, 不复用历史checkpoint.
+- 模型、各自canonical seed124 init、data seed `123`、B64/GA4、每epoch 4次validation、best/last选择和五个500-example Longer-MQAR slice与2080 Ti阶段完全一致.
+- 为形成直接跨GPU对照, 3090仍固定全模型FP32、TF32 off、`TRITON_F32_DEFAULT=ieee`、`GDN_KERNEL_DTYPE=float32`, 不使用sm86默认bf16策略.
+- 已在扩展plan前确认两机本轮实际13个MQAR cache文件逐文件SHA256一致, 两个canonical init文件SHA256一致. 正式preflight还必须复核tensor content hash、四个epoch batch-order hash、环境、源码和resolved config.
+- 两机resolved config归一化后只允许机器、路径、launch/run identity和provenance字段不同; 模型、训练、数据和数值字段必须一致.
+
+### 9.2. 输出隔离与自动队列
+
+- 2080 Ti既有ignored raw保留在实验脚本的legacy `outputs/`, 不移动或改写内部绝对路径.
+- 3090 raw固定写入 `outputs/machines/3090/`; checkpoint root和launch ID带 `3090` 后缀, 不覆盖2080 Ti结果.
+- runner提供 `--machine 2080ti|3090` 机器接口. 3090启动脚本固定GPU0、同一Conda解释器和独立tmux session.
+- 3090严格复用完整自动DAG: `preflight -> shape smoke -> 6训练smoke -> eval smoke DAG -> 6 formal训练 -> checkpoint审计 -> 全source五slice smoke -> 500-example formal -> repro -> DONE`.
+- 所有run使用fresh process. 非预期失败fail-fast; 仅batch-search OOM允许按 `32,16,8,4,2,1` 降档. Formal只能在3090自己的 `TRAINING_SMOKE_PASSED` 和 `SMOKE_DONE` 通过后启动.
+- Agent监控到全部3090 smoke通过、首个Flash s123完成step176 validation并继续训练、GPU/NVML稳定后才退出等待.
+
+### 9.3. Artifact与统计结构
+
+正式artifact重构为机器级和合并级三层:
+
+```text
+docs/artifacts/20260725-01-current-baselines-longer-mqar/
+├── machines/2080ti/
+├── machines/3090/
+├── combined/
+└── figures/
+```
+
+- 两个 `machines/<machine>/` 子目录各自保存training、Longer-MQAR detail/summary、paired delta、checkpoint role、source manifest、batch size、repro、verification和metadata.
+- `combined/longer-mqar-detail.csv` 固定为 `2 machines × 2 models × 3 seeds × 2 roles × 5 slices = 120` 条逻辑formal结果.
+- 合并统计按机器分别计算三seed mean/population std和Flash-GDN同seed paired delta; 不把同seed在两张GPU上的结果合成 `n=6`.
+- `combined/cross-machine-deltas.csv` 计算同model、同seed、同role、同slice的 `3090-2080ti` delta.
+- 3090的轻量raw evidence和机器artifact在远端审核后镜像回主工作区, 逐文件SHA256验证; 大型checkpoint留在3090原位并由source manifest追踪.
+- Flash/GDN canonical训练ledger分别追加3条3090行, 使用cross-GPU replicate标识, 不覆盖2080 Ti正式行.
+
+### 9.4. 跨GPU双图
+
+- 当前2080 Ti单机曲线由两张跨GPU图替代: `longer-mqar-accuracy-last` 和 `longer-mqar-accuracy-best`.
+- 每张图包含Flash 2080 Ti、Flash 3090、GDN 2080 Ti、GDN 3090共4条曲线. 颜色和marker区分模型, 实线实心/虚线空心区分GPU, 并轻微水平错位避免误差棒遮挡.
+- 图使用全部五个slice, 每条曲线为对应机器三个training seeds的mean ± population std, 固定标注checkpoint role、`n=3`、500 examples、FP32和“训练/eval均在对应GPU完成”.
+- 绘图CSV必须包含machine、model、role、slice、mean/std和三个seed原始值; 图中数值与combined summary误差小于 `1e-12`.
+
+### 9.5. 扩展验收
+
+- 3090训练6/6到epoch4, best/last审计通过, 全source五slice smoke、formal和repro完成.
+- 五个formal dataset hash在2080 Ti和3090完全一致; repro accuracy delta不超过 `1e-12`.
+- 两个机器子目录各自验证通过, combined detail为120行且无重复machine/model/seed/role/slice键.
+- 两图各有4条曲线, PDF字体嵌入, PNG至少300 DPI, 彩色和灰度均可区分.
+- Plan扩展、runner实现和最终跨GPU Report形成可区分的提交并推送.
