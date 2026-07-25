@@ -1,18 +1,24 @@
-# 20260725-01 当前基线 Longer-MQAR
+# 20260725-01 当前基线跨GPU Longer-MQAR
 
-本目录由完整 `DONE.json` 后的审计 collector生成. `last.pt`为预注册主结果, `best.pt`为 epoch-end checkpoint敏感性结果.
+本artifact记录当前Flash `baseline-r16-joint`与GDN `gdnxk-h2-ek4-ev4-usegate0`在RTX 2080 Ti和RTX 3090上的独立三seed 4ep重训及RNG-locked Longer-MQAR对照.
 
-主结果显示, Flash在 `1024x256` 不支持领先; 四个真正外推 slice中, 三个为 3/3 seeds稳健领先, `8190x512`为均值领先但 2/3 seeds的混合领先. `best.pt`敏感性在全部四个外推 slice为 3/3 seeds稳健领先. 主要方差来源是 Flash seed124.
+预注册主结果使用`last.pt`. 两机都显示Flash在`1024x256`不支持领先, 但在四个真正外推slice上平均准确率高于GDN. 2080 Ti为三个`稳健领先`和一个`混合领先`; 3090四个slice均为3/3 seeds `稳健领先`. GDN跨机器结果高度稳定, Flash存在更明显的seed×GPU数值路径敏感性, 尤其seed124.
 
-主要文件:
+目录结构:
 
-- `training-final.csv`: 6条 epoch4训练和时间/dtype/GPU/checkpoint信息.
-- `longer-mqar-detail.csv`: 60条 last/best逻辑 formal结果.
-- `longer-mqar-summary.csv`: checkpoint role × model × slice三 seed汇总.
-- `paired-deltas.csv`: 同 seed Flash-GDN paired delta和预注册分类.
-- `checkpoint-role-comparison.csv`: best-last敏感性.
-- `source-manifest.csv`: 12个逻辑角色的 checkpoint来源、hash和大小.
-- `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`: 执行与审计证据.
-- `figures/`: 当前两模型 `last.pt` 三 seed Longer-MQAR曲线的 PDF/PNG/SVG、绘图数据.
+- `machines/2080ti/`: 2080 Ti的training、60行逻辑结果、机器内统计、source和审计信息.
+- `machines/3090/`: 3090的对应机器级artifact、76份raw evidence镜像manifest和`failure-recovery.json`.
+- `combined/`: 120行跨机器逻辑结果、两机分层summary、paired delta和60行cross-machine delta.
+- `figures/longer-mqar-accuracy-last.*`: last.pt跨GPU四曲线正式图及20行绘图数据.
+- `figures/longer-mqar-accuracy-best.*`: best.pt跨GPU四曲线正式图及20行绘图数据.
 
-完整解释见 `docs/20260725-01-current-baselines-longer-mqar-report.md`. Raw输出保留在 `zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/`. 本轮使用专用 collector直接生成统计, 未另跑 analysis suite, 因而没有 `zoology/analysis/flash_vqg/results/<launch_id>/` 目录.
+关键审计:
+
+- 两机共12/12正式训练到达epoch4.
+- 2080 Ti完成35个唯一checkpoint-state formal事件和7个repro; 3090完成30个formal事件和6个repro.
+- `combined/longer-mqar-detail.csv`为120行且主键唯一.
+- 五个500-example formal dataset hash在两机完全一致, repro accuracy delta均为`0`.
+- 3090机器artifact与源机逐文件SHA256一致, 76份轻量raw evidence镜像hash全部通过.
+- 3090首次formal eval的非正式OOM失败、根因、修复和恢复过程见正式报告第7节及`docs/EXPERIMENT_LOG.md`.
+
+完整解释见[正式报告](../../20260725-01-current-baselines-longer-mqar-report.md). 本轮没有改写`longer-mqar/official-core-20260526/`或旧preliminary ledger.

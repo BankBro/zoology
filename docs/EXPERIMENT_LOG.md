@@ -34,3 +34,11 @@
 - 结果: 6/6正式训练和checkpoint审计完成; 首次formal eval在Flash s123 `8190x512`、batch 32处OOM并fail-fast. 原因是batch-search只用32 examples, 未覆盖500-example多batch allocator碎片化; 已完成训练不受影响.
 - 输出: 3090 ignored raw的`outputs/machines/3090/queue/FAILED.json`和`formal-eval`事件日志.
 - 下一步: formal batch-search改用完整500 examples, 全部测试和smoke通过后从已有checkpoint幂等恢复.
+
+## 5. 2026-07-25: 当前基线 Longer-MQAR 跨GPU扩展完成
+
+- `experiment_id`: `20260725-01-current-baselines-longer-mqar`.
+- 目的: 完成3090恢复eval, 与2080 Ti按机器分层汇总, 生成last/best跨GPU双图.
+- 结果: 3090恢复队列重新通过全部preflight和smoke, 6条训练经hash审计后复用; 30/30 formal和6/6 repro完成. 两机合并为120条唯一逻辑结果, 五个dataset hash完全一致. 2080 Ti外推为三个稳健领先、一个混合领先; 3090四个外推slice均为Flash 3/3 seeds稳健领先. GDN跨GPU稳定, Flash存在明显seed×数值路径敏感性.
+- 输出: [报告](20260725-01-current-baselines-longer-mqar-report.md), [artifact](artifacts/20260725-01-current-baselines-longer-mqar/README.md), [last图](artifacts/20260725-01-current-baselines-longer-mqar/figures/longer-mqar-accuracy-last.pdf), [best图](artifacts/20260725-01-current-baselines-longer-mqar/figures/longer-mqar-accuracy-best.pdf).
+- 下一步: 对Flash增加跨GPU早期step state/kernel hash probe; 不把相同seed跨GPU结果合并为`n=6`, 不自动替换baseline.

@@ -1,0 +1,31 @@
+{
+  "experiment_id": "20260725-01-current-baselines-longer-mqar",
+  "machine": "3090",
+  "status": "recovered_and_completed",
+  "failed_attempt": {
+    "ended_at_utc": "2026-07-25T06:49:59.005790+00:00",
+    "phase": "formal_eval",
+    "event_id": "formal-flash-f26cdde48c0d1183-8190x512-n500-b32",
+    "failure_type": "oom",
+    "failure_scope": "non_ledgered_formal_attempt",
+    "root_cause": "formal batch search used 32 examples and did not cover allocator fragmentation across the full 500-example workload"
+  },
+  "remediation": {
+    "plan_commit": "fb11df0",
+    "runner_commit": "ed95ec2",
+    "policy": "run formal batch search with 500 examples and downshift only search candidates through 32,16,8,4,2,1",
+    "training_reused_after_hash_audit": true
+  },
+  "final": {
+    "done_at_utc": "2026-07-25T07:43:02.334120+00:00",
+    "training_runs": 6,
+    "formal_rows": 30,
+    "formal_expected": 30,
+    "repro_rows": 6,
+    "all_formal_completed": true
+  },
+  "evidence": {
+    "mirror_path": "zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/machines/3090/queue/logs/eval-formal.log",
+    "sha256": "5c3377034efc7291e16536248390b66575f9b2a1546dd582ae238f3a41c9d57b"
+  }
+}

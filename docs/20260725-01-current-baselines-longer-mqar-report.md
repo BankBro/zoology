@@ -1,123 +1,166 @@
-# 当前 Flash-VQG 与 GDN 基线 Longer-MQAR 报告
+# 当前 Flash-VQG 与 GDN 基线跨GPU Longer-MQAR 报告
 
 实验 ID: `20260725-01-current-baselines-longer-mqar`.
 
 ## 1. 结论
 
-本轮完整重训了当前 Flash-VQG `baseline-r16-joint` 和 GDN `gdnxk-h2-ek4-ev4-usegate0`, 每个模型使用 training seeds `123/124/125`, 固定 data seed `123` 和各自 canonical seed124 init. 6/6 正式训练均到达 epoch4, 随后的 Longer-MQAR formal eval、dataset hash 和 repro 审计全部通过.
+本轮在 RTX 2080 Ti和RTX 3090上分别独立重训当前Flash-VQG `baseline-r16-joint` 与GDN `gdnxk-h2-ek4-ev4-usegate0`. 每张GPU均使用training seeds `123/124/125`, 固定data seed `123`, 相同MQAR cache和各模型自己的canonical seed124 init. 两机共12/12正式训练到达epoch4, 随后的Longer-MQAR formal、dataset hash和repro审计全部通过.
 
-预注册主结果使用 `last.pt`. 在训练长度端点 `1024x256`, Flash 三 seed 均值为 `0.953406`, GDN 为 `0.968518`, paired mean delta 为 `-0.015112`, 因而不支持 Flash 领先. 但在四个真正的长度外推 slice 中:
+预注册主结果使用`last.pt`. 两张GPU给出一致的定性结论:
 
-- `2048x512`: Flash `0.704091` vs GDN `0.476111`, paired delta `+0.227980`, 3/3 seeds 为正, `稳健领先`.
-- `4096x1024`: Flash `0.325602` vs GDN `0.072722`, paired delta `+0.252880`, 3/3 seeds 为正, `稳健领先`.
-- `8190x512`: Flash `0.556421` vs GDN `0.293578`, paired delta `+0.262842`, 2/3 seeds 为正, `混合领先`.
-- `8190x2047`: Flash `0.097774` vs GDN `0.003378`, paired delta `+0.094396`, 3/3 seeds 为正, `稳健领先`.
+- 在训练长度端点`1024x256`, Flash的三seed均值都低于GDN, 不支持Flash领先.
+- 在四个真正的长度外推slice, Flash的平均准确率都高于同active-state-capacity的GDN.
+- 2080 Ti上三个外推slice达到3/3 seeds `稳健领先`, `8190x512`为2/3 seeds的`混合领先`.
+- 3090上四个外推slice全部达到3/3 seeds `稳健领先`.
 
-因此, 当前证据支持 Flash-VQG 在长度外推上明显优于同 active-state-capacity 的 GDN, 但主结果不是所有 seed、所有 slice 一致领先. 主要不稳定源是 Flash seed124. 它的 epoch4 Longer-MQAR 明显低于 seeds 123/125; epoch3 `best.pt` 可以部分恢复, 但这不能用来替换预注册的 `last.pt` 主结论.
+3090结果同时澄清了此前的波动问题. GDN在两张GPU上的同seed结果非常接近, 每个slice的三seed平均跨机器差值不超过`0.004987`. Flash的跨机器差异明显更大, 并主要由seed124驱动: 3090上的seed124外推结果显著高于2080 Ti, seed123则在3090上略低. 因而当前证据支持“Flash平均长度外推优于GDN”, 也支持“Flash对training seed和GPU数值执行路径更敏感”. 由于训练使用`TORCH_DETERMINISTIC=0`且GPU kernel路径不同, 本实验不能把差异单独归因为GPU硬件性能.
 
-`best.pt` 敏感性结果在全部四个外推 slice 都达到 3/3 seeds `稳健领先`, 说明结论不依赖 Longer-MQAR 事后选点, 但 checkpoint 时机确实影响 Flash seed124 的外推幅度. 本轮不自动替换当前综合 baseline, 下一步应优先解释 Flash seed124 的 epoch3->epoch4 外推退化, 并考虑增加独立 training seeds.
+3090的6条run全部为best等于last. 2080 Ti只有Flash seed124的best来自epoch3, 因而2080 Ti的`best.pt`敏感性结果略高于last. 两张图分别展示last和best, 不混合checkpoint role.
 
-## 2. 正式训练结果
+本轮不自动替换当前综合baseline. 下一步应优先研究Flash的seed×数值路径敏感性, 而不是把3090较高均值解释为确定性的硬件增益.
 
-两模型均为 4 epochs, 每 epoch 4 次 validation, `B64/GA4`, effective batch `256`, early stopping 关闭. 下表为 `last.pt` 的 epoch4 常规 validation:
+## 2. 固定实验口径
 
-| 模型 | Seed | Overall accuracy | `1024x256` | Wall time | Best epoch |
-|---|---:|---:|---:|---:|---:|
-| Flash | 123 | 0.995230 | 0.974562 | 26.45 min | 4 |
-| Flash | 124 | 0.986959 | 0.912543 | 26.42 min | 3 |
-| Flash | 125 | 0.994573 | 0.970098 | 26.41 min | 4 |
-| GDN | 123 | 0.995790 | 0.967371 | 18.87 min | 4 |
-| GDN | 124 | 0.995667 | 0.966355 | 18.78 min | 4 |
-| GDN | 125 | 0.996248 | 0.971063 | 18.74 min | 4 |
+- Flash: `baseline-r16-joint`, codebook `64`, rank `16`, read top-k `16`, write top-k `4`, `smooth_p4` softcap `0.5`, active state capacity `131072`, 参数量`1160390`.
+- GDN: `gdnxk-h2-ek4-ev4-usegate0`, 2 heads, expand K/V `4/4`, use gate false, active state capacity `131072`, 参数量`1335942`.
+- Training seeds `123/124/125`, data seed `123`; 两模型分别固定自己的canonical seed124 init.
+- Train `B64`, validation `B16`, GA4, effective batch `256`, 4 epochs, 每epoch 4次validation, early stopping关闭.
+- Longer-MQAR固定`eval_seed=123`, vocab `8192`, `random_non_queries=true`, `power_a=0.01`, 每slice `500` examples.
+- `last.pt`是预注册主结果; `best.pt`只按4个epoch-end的整体`valid/accuracy`选择.
+- 2080 Ti使用GPU1, 3090使用GPU0. 两机均为full-model FP32, `TRITON_F32_DEFAULT=ieee`, TF32 off, `GDN_KERNEL_DTYPE=float32`.
+- 两机环境均为Python 3.12.11, PyTorch 2.6.0+cu118, CUDA 11.8, Triton 3.2.0, FLA 0.4.2.
+- 两机13个实际MQAR cache逐文件SHA256和tensor content hash一致; 两份init文件SHA256一致; 四个epoch batch-order hash一致.
+- 12份3090 resolved config归一化后与预注册2080 Ti配置hash一致. 只允许machine、输出路径和run/launch identity不同.
+- Flash-VQG源码commit为`ec770f33676036432c6514acd1ac05bd2d01f3e8`. 2080 Ti正式训练commit为`0dd9572`; 3090正式训练commit为`d6616f9`, 最终eval恢复runner为`ed95ec2`.
 
-Flash 的三 seed overall/hard 均值为 `0.992254/0.952401`; GDN 为 `0.995902/0.968263`. GDN 的训练端点方差更小. Flash seed124 在常规 validation 上已经落后于另两个 Flash seeds, 这与 Longer-MQAR 的外推退化方向一致.
+## 3. 正式训练结果
 
-6 条训练合计 wall time 为 `8140.06 s`. 这些 wall time 包含完整训练和 validation, 用于审计而非新的效率排名.
+下表为每条`last.pt`的epoch4常规validation. Wall time包含完整训练和validation, 仅用于审计, 不作为跨GPU效率排名.
 
-## 3. Longer-MQAR 主结果
+| GPU | 模型 | Seed | Overall accuracy | `1024x256` | Wall time | Best epoch |
+|---|---|---:|---:|---:|---:|---:|
+| 2080 Ti | Flash | 123 | 0.995230 | 0.974562 | 26.45 min | 4 |
+| 2080 Ti | Flash | 124 | 0.986959 | 0.912543 | 26.42 min | 3 |
+| 2080 Ti | Flash | 125 | 0.994573 | 0.970098 | 26.41 min | 4 |
+| 2080 Ti | GDN | 123 | 0.995790 | 0.967371 | 18.87 min | 4 |
+| 2080 Ti | GDN | 124 | 0.995667 | 0.966355 | 18.78 min | 4 |
+| 2080 Ti | GDN | 125 | 0.996248 | 0.971063 | 18.74 min | 4 |
+| 3090 | Flash | 123 | 0.992059 | 0.953703 | 22.84 min | 4 |
+| 3090 | Flash | 124 | 0.993355 | 0.961645 | 23.27 min | 4 |
+| 3090 | Flash | 125 | 0.995498 | 0.976785 | 23.50 min | 4 |
+| 3090 | GDN | 123 | 0.996093 | 0.969746 | 29.72 min | 4 |
+| 3090 | GDN | 124 | 0.995620 | 0.965961 | 28.27 min | 4 |
+| 3090 | GDN | 125 | 0.995970 | 0.968840 | 28.87 min | 4 |
 
-### 3.1. `last.pt`
+2080 Ti的6条训练合计wall time为`8140.06 s`; 3090为`9387.97 s`. GDN在两机的训练端点都表现稳定. Flash seed124在2080 Ti出现epoch3->epoch4退化, 但在3090没有复现同样的checkpoint选择现象.
+
+## 4. Longer-MQAR 主结果: `last.pt`
+
+### 4.1. RTX 2080 Ti
 
 | Slice | Flash mean ± population std | GDN mean ± population std | Flash-GDN paired delta | Positive seeds | 分类 |
 |---|---:|---:|---:|---:|---|
-| `1024x256` | 0.953406 ± 0.027658 | 0.968518 ± 0.001889 | -0.015112 | 2/3 | 不支持 Flash 领先 |
+| `1024x256` | 0.953406 ± 0.027658 | 0.968518 ± 0.001889 | -0.015112 | 2/3 | 不支持Flash领先 |
 | `2048x512` | 0.704091 ± 0.161179 | 0.476111 ± 0.004779 | +0.227980 | 3/3 | 稳健领先 |
 | `4096x1024` | 0.325602 ± 0.165438 | 0.072722 ± 0.002686 | +0.252880 | 3/3 | 稳健领先 |
 | `8190x512` | 0.556421 ± 0.200708 | 0.293578 ± 0.001806 | +0.262842 | 2/3 | 混合领先 |
 | `8190x2047` | 0.097774 ± 0.065491 | 0.003378 ± 0.000215 | +0.094396 | 3/3 | 稳健领先 |
 
-`1024x256` relative retention 在 `4096x1024` 上为 Flash `0.3367`, GDN `0.0751`; 在 `8190x2047` 上为 Flash `0.1006`, GDN `0.0035`. GDN 的跨 seed 方差很小, 但其绝对外推准确率下降更快. Flash 的均值更高, 代价是更明显的 seed 敏感性.
+2080 Ti上Flash的主要方差来源是seed124. 它在四个外推slice的准确率分别为`0.476398`, `0.092451`, `0.273195`, `0.005586`, 明显低于seeds 123/125.
 
-主结果的逐 seed 准确率如下:
+### 4.2. RTX 3090
+
+| Slice | Flash mean ± population std | GDN mean ± population std | Flash-GDN paired delta | Positive seeds | 分类 |
+|---|---:|---:|---:|---:|---|
+| `1024x256` | 0.964422 ± 0.009993 | 0.968737 ± 0.001359 | -0.004315 | 1/3 | 不支持Flash领先 |
+| `2048x512` | 0.790643 ± 0.037995 | 0.478858 ± 0.003640 | +0.311785 | 3/3 | 稳健领先 |
+| `4096x1024` | 0.420096 ± 0.050292 | 0.075021 ± 0.001106 | +0.345074 | 3/3 | 稳健领先 |
+| `8190x512` | 0.659965 ± 0.043513 | 0.298565 ± 0.004394 | +0.361400 | 3/3 | 稳健领先 |
+| `8190x2047` | 0.139405 ± 0.024786 | 0.003613 ± 0.000067 | +0.135792 | 3/3 | 稳健领先 |
+
+3090逐seed准确率如下:
 
 | 模型 | Seed | `1024x256` | `2048x512` | `4096x1024` | `8190x512` | `8190x2047` |
 |---|---:|---:|---:|---:|---:|---:|
-| Flash | 123 | 0.974406 | 0.827164 | 0.459066 | 0.714262 | 0.151590 |
-| Flash | 124 | 0.914328 | 0.476398 | 0.092451 | 0.273195 | 0.005586 |
-| Flash | 125 | 0.971484 | 0.808711 | 0.425289 | 0.681805 | 0.136146 |
-| GDN | 123 | 0.967875 | 0.480973 | 0.075885 | 0.295758 | 0.003669 |
-| GDN | 124 | 0.966594 | 0.469613 | 0.072963 | 0.291336 | 0.003308 |
-| GDN | 125 | 0.971086 | 0.477746 | 0.069318 | 0.293641 | 0.003157 |
+| Flash | 123 | 0.953484 | 0.751871 | 0.379656 | 0.626156 | 0.123979 |
+| Flash | 124 | 0.962141 | 0.777813 | 0.389646 | 0.632340 | 0.119859 |
+| Flash | 125 | 0.977641 | 0.842246 | 0.490984 | 0.721398 | 0.174377 |
+| GDN | 123 | 0.970000 | 0.478105 | 0.073572 | 0.295875 | 0.003525 |
+| GDN | 124 | 0.966852 | 0.474824 | 0.075236 | 0.295059 | 0.003628 |
+| GDN | 125 | 0.969359 | 0.483645 | 0.076256 | 0.304762 | 0.003687 |
 
-### 3.2. `best.pt` 敏感性
+## 5. `best.pt` 敏感性
 
-只有 Flash seed124 的 best 与 last 不是同一 model-state. 该 best 来自 epoch3. 其他 5 条 run 的 best 都等于 epoch4 last, 因而 12 个逻辑角色去重为 7 个物理 checkpoint.
+2080 Ti只有Flash seed124的best与last不是同一model-state, best来自epoch3. 因而12个逻辑角色去重为7个物理checkpoint. 其best结果在四个外推slice均为3/3 seeds稳健领先:
 
 | Slice | Flash best mean | GDN best mean | Paired delta | Positive seeds | 分类 |
 |---|---:|---:|---:|---:|---|
-| `1024x256` | 0.956076 | 0.968518 | -0.012443 | 2/3 | 不支持 Flash 领先 |
+| `1024x256` | 0.956076 | 0.968518 | -0.012443 | 2/3 | 不支持Flash领先 |
 | `2048x512` | 0.731868 | 0.476111 | +0.255758 | 3/3 | 稳健领先 |
 | `4096x1024` | 0.342249 | 0.072722 | +0.269527 | 3/3 | 稳健领先 |
 | `8190x512` | 0.578517 | 0.293578 | +0.284939 | 3/3 | 稳健领先 |
 | `8190x2047` | 0.100694 | 0.003378 | +0.097316 | 3/3 | 稳健领先 |
 
-Flash seed124 的 best-last 增量从 `1024x256` 到 `8190x2047` 分别为 `+0.008008`, `+0.083332`, `+0.049941`, `+0.066289`, `+0.008762`. 这说明 epoch4 的 overall validation 退化同时伴随长度外推退化, 不像是单一 Longer-MQAR slice 噪声.
+3090的6条run均为best等于last, 12个逻辑角色去重为6个物理checkpoint. 因此3090的best表与第4.2节last表完全相同. 这不是重复评估错误, 而是checkpoint model-state hash审计后的结果.
 
-## 4. 固定口径
+## 6. 跨机器稳定性
 
-- Flash: `baseline-r16-joint`, codebook `64`, rank `16`, read top-k `16`, write top-k `4`, `smooth_p4` softcap `0.5`, active state capacity `131072`, 参数量 `1160390`.
-- GDN: `gdnxk-h2-ek4-ev4-usegate0`, 2 heads, expand K/V `4/4`, use gate false, active state capacity `131072`, 参数量 `1335942`.
-- Training seeds `123/124/125`, data seed `123`; 两模型分别固定自己的 canonical seed124 init.
-- Train `B64`, validation `B16`, GA4, 4 epochs, 每 epoch 4 次 validation, early stopping 关闭.
-- Longer-MQAR 固定 `eval_seed=123`, vocab `8192`, `random_non_queries=true`, `power_a=0.01`, 每 slice `500` examples.
-- `last.pt` 是预注册主结果; `best.pt` 只按 4 个 epoch-end 的整体 `valid/accuracy` 选择.
-- RTX 2080 Ti GPU1, full-model FP32, `TRITON_F32_DEFAULT=ieee`, TF32 off, `GDN_KERNEL_DTYPE=float32`.
-- 环境为 Python 3.12.11, PyTorch 2.6.0+cu118, CUDA 11.8, Triton 3.2.0, FLA 0.4.2.
-- Zoology formal commit `0dd957274ca9609d0c151aef0e9b620fcd574e79`; Flash-VQG commit `ec770f33676036432c6514acd1ac05bd2d01f3e8`.
-- MQAR cache content hash和四个 epoch batch-order hash均与 plan 中预注册值一致.
+下表为同模型、同seed、同role、同slice的`3090 - 2080 Ti`准确率差值在三个seeds上的均值. 这些是配对稳定性诊断, 不是额外独立seeds.
 
-## 5. 完成性与复现审计
+| Role | 模型 | `1024x256` | `2048x512` | `4096x1024` | `8190x512` | `8190x2047` |
+|---|---|---:|---:|---:|---:|---:|
+| last | Flash | +0.011016 | +0.086552 | +0.094493 | +0.103544 | +0.041632 |
+| last | GDN | +0.000219 | +0.002747 | +0.002299 | +0.004987 | +0.000235 |
+| best | Flash | +0.008346 | +0.058775 | +0.077846 | +0.081448 | +0.038711 |
+| best | GDN | +0.000219 | +0.002747 | +0.002299 | +0.004987 | +0.000235 |
 
-自动队列从 `2026-07-24T19:06:22Z` 运行到 `2026-07-24T22:23:25Z`, 总历时约 `3:17:04`. 正式训练前完成了:
+Flash last的seedwise跨机器差异并不一致. 以四个外推slice为例:
 
-- 两模型 shape smoke, 覆盖 train `T64/T128/T256` 和 validation `T64/T128/T256/T512/T1024`.
-- 6/6 独立训练 smoke, 均完成 optimizer step、validation、last/best 保存和 strict reload.
-- 10 个 batch-search smoke, 30/30 unique-source × slice eval smoke, 30/30 formal-probe 和 6/6 repro smoke.
+- Seed123: `-0.075293`, `-0.079410`, `-0.088105`, `-0.027610`.
+- Seed124: `+0.301414`, `+0.297195`, `+0.359145`, `+0.114274`.
+- Seed125: `+0.033535`, `+0.065695`, `+0.039594`, `+0.038232`.
 
-正式训练后, 12 个 last/best 逻辑角色经过 checkpoint 文件 SHA256、model-state hash、epoch、finite metrics 和 strict load 审计, 得到 7 个唯一 model-state. Formal 阶段完成 35/35 source smoke、35/35 500-example formal events 和 7/7 repro. 所有 repro 的 dataset hash 一致且 accuracy delta 为 `0`.
+这说明3090较高的Flash均值主要来自seed124训练轨迹没有重现2080 Ti退化, 而不是所有seed都获得同方向提升. 相比之下, GDN所有同seed跨机器差值的最大绝对值为`0.011121`. 后续若要区分GPU kernel路径、数值误差放大和seed敏感性, 需要确定性kernel或更专门的早期step state-hash实验.
 
-五个 formal dataset hash与历史 RNG-locked official 数据完全一致. Batch search 在两个模型的 `8190x512` 和 `8190x2047` 上各有一次 batch32 OOM, 属于 plan 唯一允许的自动降档场景; 最终均选择 batch16并完成. 其余三个 slice选择 batch32. Formal、source smoke 和 repro 无 OOM、NaN、Inf或 Traceback.
+## 7. 完成性、失败与恢复审计
 
-第一次启动在 preflight import 阶段失败, 原因是入口文件原名 `queue.py` 遮蔽 Python 标准库 `queue.Queue`. 当时尚未启动任何 shape smoke、训练或正式 eval. commit `0dd9572` 将入口改为 `run_queue.py`, 重新通过全部测试和 preflight后才启动实验. 该失败不进入正式 ledger, 但保留在 raw log和 artifact metadata中.
+2080 Ti自动队列从`2026-07-24T19:06:22Z`运行到`2026-07-24T22:23:25Z`. 6/6正式训练、35/35物理formal事件和7/7 repro完成. 首次preflight曾因入口文件遮蔽Python标准库失败, 当时尚未启动任何GPU run; commit `0dd9572`修复后全流程通过.
 
-正式运行期间 GPU1 触发过 NVIDIA 软件温控 cap, 硬件 thermal slowdown保持 inactive. 这会影响 wall time, 不影响本轮质量口径; 本报告不把 wall time用于模型效率结论.
+3090首次队列从`2026-07-25T03:34:47Z`运行到`2026-07-25T06:49:59Z`. 它已完成:
 
-## 6. Artifact 与记录
+- 环境、13个cache、init、batch order和12份归一化config硬预检.
+- 两模型shape smoke, 6/6训练smoke, 30/30 source smoke, 30/30 formal-probe和6/6 repro smoke.
+- 6/6独立正式训练到epoch4及12个逻辑checkpoint角色审计.
 
-正式 artifact 位于 `docs/artifacts/20260725-01-current-baselines-longer-mqar/`, 包含:
+首次formal eval在Flash s123 `8190x512`、batch 32处OOM并fail-fast. 根因是旧formal batch-search只使用32 examples, 没有覆盖500-example多batch执行中的CUDA allocator碎片化. 失败formal结果没有写入正式ledger.
 
-- `training-final.csv`.
-- `longer-mqar-detail.csv`, `longer-mqar-summary.csv`, `paired-deltas.csv`.
-- `checkpoint-role-comparison.csv`, `source-manifest.csv`.
-- `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`.
-- `figures/longer-mqar-accuracy-curve.{pdf,png,svg}` 和对应绘图数据.
+恢复设计由plan addendum `fb11df0`记录, runner commit `ed95ec2`实现. Formal batch-search改为使用完整500 examples; 恢复队列重新通过preflight和全部smoke, 并仅在config、result、checkpoint文件hash和model-state hash全部匹配时跳过已完成训练. 完整负载搜索在两模型的`8190x512`和`8190x2047`上各记录一次允许的batch32 OOM, 随后batch16全部成功. 其余三个slice使用batch32.
 
-Flash 3 条训练已追加到 `docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv`; GDN 3 条训练已追加到 `docs/artifacts/gdn-expanded-k/gdn-expanded-k-summary.csv`. Longer-MQAR 索引只链接本轮独立 artifact, 没有改写 2026-05 official-core 表或旧 preliminary ledger.
+恢复队列从`2026-07-25T07:11:25Z`运行到`2026-07-25T07:43:02Z`, 最终30/30物理formal事件、6/6 repro完成并写入`DONE.json`. Formal与repro没有OOM、NaN、Inf或未处理Traceback. 五个formal dataset hash在两机完全一致, 所有repro accuracy delta为`0`.
 
-大型 checkpoint和 raw事件日志保留在原路径. `source-manifest.csv` 记录每个逻辑 checkpoint角色的文件 SHA256、model-state hash、大小、epoch、训练配置和来源 result.
+## 8. Artifact、图与ledger
 
-## 7. 下一步
+正式artifact结构为:
 
-1. 对 Flash seed124 检查 epoch3->epoch4 的常规 validation、优化轨迹和 residual/VQ运行指标, 判断是 seed敏感性还是训练后期退化.
-2. 若需要把“Flash 长度泛化更强”升级为更强结论, 增加独立 training seeds, 不复用 Longer-MQAR 结果选择 seed或 checkpoint.
-3. 维持当前 Flash和 GDN综合 baseline不变. 本轮提供长度泛化证据, 不单独触发 baseline替换.
+```text
+docs/artifacts/20260725-01-current-baselines-longer-mqar/
+├── machines/2080ti/
+├── machines/3090/
+├── combined/
+└── figures/
+```
+
+- 两个机器目录各包含6条training、60条last/best逻辑结果、summary、paired delta、checkpoint role、source manifest、batch size、repro、verification、metadata和raw evidence manifest.
+- `combined/longer-mqar-detail.csv`为120条唯一`machine × model × seed × role × slice`结果.
+- `combined/cross-machine-deltas.csv`为60条同模型、seed、role、slice的跨机器配对差值.
+- 3090的14个机器artifact文件与源机逐文件SHA256一致; 76份轻量raw evidence镜像hash全部一致. 大型checkpoint保留在3090原路径.
+- `figures/longer-mqar-accuracy-last.{pdf,png,svg}`和`longer-mqar-accuracy-best.{pdf,png,svg}`各包含4条曲线; 对应CSV各20行. PNG为`2643 × 1595`, 约300 DPI; PDF字体已嵌入; 图中mean/std与combined summary误差不超过`1e-12`.
+- Flash canonical ledger新增3条3090 cross-GPU记录; GDN expanded-K ledger新增3条3090记录, 均未覆盖2080 Ti行.
+
+当前基线重训对照没有改写`docs/artifacts/longer-mqar/official-core-20260526/`或旧preliminary ledger.
+
+## 9. 下一步
+
+1. 对Flash seeds 123/124/125增加跨GPU早期optimizer-step model-state hash和关键kernel输出hash, 定位数值路径首次分叉位置.
+2. 若需把“Flash长度泛化更强”升级为更强统计结论, 增加新的training seeds, 不把两张GPU上的相同seed合并成`n=6`.
+3. 维持当前Flash和GDN综合baseline不变. 本轮提供长度泛化与数值稳定性证据, 不单独触发baseline替换.

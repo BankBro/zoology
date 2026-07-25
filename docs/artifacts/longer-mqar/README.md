@@ -14,9 +14,9 @@
 
 ## 当前基线重训对照
 
-- [当前基线 artifact](../20260725-01-current-baselines-longer-mqar/README.md): 当前 Flash `baseline-r16-joint` 与 GDN `gdnxk-h2-ek4-ev4-usegate0` 的三 seed 4ep重训和 Longer-MQAR对照.
+- [当前基线 artifact](../20260725-01-current-baselines-longer-mqar/README.md): 当前 Flash `baseline-r16-joint` 与 GDN `gdnxk-h2-ek4-ev4-usegate0` 在2080 Ti和3090上的独立三seed 4ep重训及跨GPU Longer-MQAR对照.
 - [对应报告](../../20260725-01-current-baselines-longer-mqar-report.md).
-- 本轮独立保存 last/best逻辑结果, 没有改写 `official-core-20260526/` 或旧 preliminary ledger. 它是当前两种 baseline的直接证据, 不把 2026-05历史模型混入排名.
+- 本轮按机器独立保存last/best逻辑结果, 合并表不把同seed跨GPU结果汇总成`n=6`. 它没有改写`official-core-20260526/`或旧preliminary ledger, 也不把2026-05历史模型混入排名.
 
 official core 结果使用 `eval_seed=123`, 在 dataset 生成前固定 `random`, `numpy`, `torch`, `torch.cuda` RNG, 并为每个 slice 记录 `dataset_hash`. 所有纳入 official core 的 checkpoint 均为 `b64_ga4 fp32 official` 训练口径: `source_train_batch_size=64`, `source_gradient_accumulation_steps=4`, `source_effective_train_batch_size=256`, `source_batch_accum_profile=b64_ga4`, `source_dtype_policy=float32`.
 
