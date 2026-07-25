@@ -17,7 +17,7 @@ DETAIL = ARTIFACT_ROOT / "combined/longer-mqar-detail.csv"
 SUMMARY = ARTIFACT_ROOT / "combined/longer-mqar-summary.csv"
 OUT_DIR = ARTIFACT_ROOT / "figures"
 
-SLICES = ["1024x256", "2048x512", "4096x1024", "8190x512", "8190x2047"]
+SLICES = ["1024x256", "2048x512", "8190x512", "4096x1024", "8190x2047"]
 SEEDS = [123, 124, 125]
 MACHINES = ["2080ti", "3090"]
 MODELS = {

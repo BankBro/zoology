@@ -217,6 +217,17 @@ def test_cross_machine_delta_matrix():
     assert all(row["dataset_hash_match"] for row in deltas)
 
 
+def test_cross_gpu_figure_slice_order():
+    figure = _load("test_current_longer_figure_order", "make_longer_mqar_figure.py")
+    assert figure.SLICES == [
+        "1024x256",
+        "2048x512",
+        "8190x512",
+        "4096x1024",
+        "8190x2047",
+    ]
+
+
 def test_plan_and_queue_have_required_gates():
     queue_text = (SCRIPT_DIR / "run_queue.py").read_text(encoding="utf-8")
     plan_text = (ROOT / "docs/plans/20260725-01-current-baselines-longer-mqar-plan.md").read_text(encoding="utf-8")
