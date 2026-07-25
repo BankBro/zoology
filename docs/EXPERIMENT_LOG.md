@@ -26,3 +26,11 @@
 - 输出: [报告](20260725-01-current-baselines-longer-mqar-report.md), [artifact](artifacts/20260725-01-current-baselines-longer-mqar/README.md).
 - 启动记录: 首次 preflight因入口文件遮蔽Python标准库失败, 在任何 smoke/formal启动前由 commit `0dd9572`修复; 后续全流程通过.
 - 下一步: 分析 Flash seed124的 epoch3->epoch4退化, 必要时增加独立 seeds; 不自动更换当前 baseline.
+
+## 4. 2026-07-25: 当前基线 Longer-MQAR 3090扩展首次formal eval中断
+
+- `experiment_id`: `20260725-01-current-baselines-longer-mqar`.
+- 目的: 补充3090独立重训及与2080 Ti相同口径的跨GPU长度泛化对照.
+- 结果: 6/6正式训练和checkpoint审计完成; 首次formal eval在Flash s123 `8190x512`、batch 32处OOM并fail-fast. 原因是batch-search只用32 examples, 未覆盖500-example多batch allocator碎片化; 已完成训练不受影响.
+- 输出: 3090 ignored raw的`outputs/machines/3090/queue/FAILED.json`和`formal-eval`事件日志.
+- 下一步: formal batch-search改用完整500 examples, 全部测试和smoke通过后从已有checkpoint幂等恢复.

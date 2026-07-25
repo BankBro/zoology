@@ -207,3 +207,10 @@ docs/artifacts/20260725-01-current-baselines-longer-mqar/
 - 两个机器子目录各自验证通过, combined detail为120行且无重复machine/model/seed/role/slice键.
 - 两图各有4条曲线, PDF字体嵌入, PNG至少300 DPI, 彩色和灰度均可区分.
 - Plan扩展、runner实现和最终跨GPU Report形成可区分的提交并推送.
+
+### 9.6. Formal eval OOM失败与恢复设计
+
+- 3090的6/6正式训练和checkpoint审计完成后, 首次formal eval在Flash s123的`8190x512`、batch 32处OOM. 失败发生在500-example多batch执行中; 原batch-search仅使用32 examples, 因而只验证了单batch显存, 没有覆盖跨batch allocator碎片化.
+- 不采用仅设置allocator环境变量的概率性缓解, 也不为单个GPU/slice硬编码batch 16. Formal模式batch-search改为使用与正式事件相同的500 examples, 并继续仅在batch-search阶段按`32,16,8,4,2,1`处理OOM降档.
+- 恢复时保留旧OOM record和日志. Formal验收只统计新batch-search选中的`unique checkpoint × slice` reference矩阵, 避免旧失败尝试造成重复计数; collector仍保留所有raw尝试供审计.
+- 重新启动完整自动队列后, preflight、shape smoke、训练smoke和端到端smoke必须再次通过. 已完成训练只有在config、result、checkpoint文件hash和model-state hash全部匹配时才允许跳过.
