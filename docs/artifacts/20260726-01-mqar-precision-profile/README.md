@@ -11,4 +11,4 @@
 - `combined/` 的 matching dtype 与 off-diagonal 汇总.
 - `figures/` 下分开的 last 与 best 图.
 
-当前状态: 自动化实现与 smoke 进行中, 尚无正式结果.
+当前状态: 自动化实现与 smoke 进行中, 尚无正式结果. 首轮 pre-formal 在 canary 数据口径审计处 fail-fast, formal 从未启动; 旧commit产物已归档为双机 `outputs/invalidated-80483073-canary-generated-data/`. 标准 canary 已改为复用 checkpoint 原始 validation cache, 严格相等单事件验证通过, 双机将从新commit完整重跑全部 gate.

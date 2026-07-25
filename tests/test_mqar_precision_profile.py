@@ -107,6 +107,39 @@ def test_eval_event_identity_binds_precision_shape_data_and_checkpoint(monkeypat
     assert event["max_batches"] == 3
     assert "evalfp16" in event["event_id"]
     assert event["checkpoint_model_state_sha256"] == "b" * 64
+    assert event["dataset_policy"] == "generated_seeded"
+
+
+def test_legacy_canary_uses_checkpoint_cache_only_for_standard_protocol(monkeypatch):
+    monkeypatch.setenv("MQAR_PRECISION_MACHINE", "2080ti")
+    source = {
+        "source_id": "2080ti-gdn-legacy-fp32-canary",
+        "model": "gdn",
+        "seed": 123,
+        "train_precision": "legacy_fp32",
+        "checkpoint_role": "last",
+        "checkpoint_path": "/tmp/checkpoint.pt",
+        "checkpoint_file_sha256": "a" * 64,
+        "checkpoint_model_state_sha256": "b" * 64,
+    }
+    standard = EVAL_QUEUE.event_payload(
+        source=source,
+        eval_precision="fp32",
+        shape=(1024, 256),
+        batch_size=16,
+        mode="canary",
+        num_examples_override=1000,
+    )
+    longer = EVAL_QUEUE.event_payload(
+        source=source,
+        eval_precision="fp32",
+        shape=(1024, 256),
+        batch_size=16,
+        mode="canary",
+        num_examples_override=500,
+    )
+    assert standard["dataset_policy"] == "checkpoint_test_cache"
+    assert longer["dataset_policy"] == "generated_seeded"
 
 
 def test_batch_invariance_requires_exact_predictions_and_accuracy():

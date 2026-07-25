@@ -50,3 +50,12 @@
 - 当前结果: 实验计划, Flash Triton FP32 boundary, AMP/GradScaler, 精确`resume.pt`, 可恢复逐batch eval, batch capacity/invariance和双机global gate自动化已完成. 2080 Ti与3090环境/cache/init/commit preflight通过; 正式训练尚未启动.
 - 输出: [计划](plans/20260726-01-mqar-precision-profile-plan.md), [报告骨架](20260726-01-mqar-precision-profile-report.md), [artifact](artifacts/20260726-01-mqar-precision-profile/README.md).
 - 下一步: 双机完成全部descriptor train/validation/eval smoke和Flash满注入stress smoke; global gate通过后自动启动30个正式run.
+
+## 7. 2026-07-26: MQAR 低精度实验 canary 数据口径修正
+
+- `experiment_id`: `20260726-01-mqar-precision-profile`.
+- 目的: 在正式 gate 前用4个历史FP32 checkpoint验证新 evaluator 与旧 validation 指标严格一致.
+- 结果: 旧commit `80483073` 下, 2080 Ti完成312/312 eval smoke和26/26全量canary后, canary汇总按设计fail-fast; 正式训练从未启动. 原因是canary重新生成了`random_non_queries=True`数据, 却与旧checkpoint在原始validation cache上的指标做逐项精确比较, 最大差为`6.5625e-4`, 不是同数据集上的模型回归. 3090旧队列在326/702 eval smoke处主动停止.
+- 修正: 标准n=1000 canary改为按checkpoint完整test-config顺序恢复原始segment seed并只读加载对应`data_*.pt` cache; longer n=500仍使用锁定hash的生成数据. `64x4`与test-config最后一个`1024x256`单事件复验均与旧指标严格相等, delta为0; 严格相等门槛未放宽.
+- 输出: 旧结果非破坏性归档在双机`outputs/invalidated-80483073-canary-generated-data/`; debug单事件保存在2080 Ti `outputs/dev-cache-canary-*`.
+- 下一步: 提交并同步修复后, 以新commit从头重跑双机全部preflight, train/validation/eval smoke, capacity/invariance和canary; global gate通过前继续禁止formal.

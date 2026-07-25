@@ -179,6 +179,11 @@ def event_payload(
         if num_examples == 500
         else None
     )
+    dataset_policy = (
+        "checkpoint_test_cache"
+        if mode == "canary" and num_examples == 1000
+        else "generated_seeded"
+    )
     return {
         "experiment_id": EXPERIMENT_ID,
         "zoology_commit": zoology_commit,
@@ -202,6 +207,7 @@ def event_payload(
         "eval_batch_size": int(batch_size),
         "eval_seed": 123,
         "expected_dataset_hash": expected_hash,
+        "dataset_policy": dataset_policy,
         "max_batches": int(max_batches),
         "controlled_interrupt_after_batches": 1 if controlled_interrupt else 0,
     }

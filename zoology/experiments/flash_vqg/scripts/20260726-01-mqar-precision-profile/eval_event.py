@@ -62,6 +62,76 @@ def autocast_context(precision: str):
     return torch.autocast(device_type="cuda", dtype=dtype)
 
 
+def checkpoint_test_cache_dataloader(config, event: dict[str, Any]):
+    import numpy as np
+    from torch.utils.data import DataLoader
+
+    from zoology.data.multiquery_ar import MQARConfig
+    from zoology.data.utils import DataSegment, _SyntheticDataset
+
+    if event.get("dataset_policy") != "checkpoint_test_cache":
+        return None
+
+    matches = [
+        (index, item)
+        for index, item in enumerate(config.data.test_configs)
+        if isinstance(item, MQARConfig)
+        and int(item.num_examples) == int(event["num_examples"])
+        and int(item.input_seq_len) == int(event["input_seq_len"])
+        and int(item.num_kv_pairs) == int(event["num_kv_pairs"])
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            "Canary checkpoint test-cache lookup expected exactly one segment, "
+            f"found {len(matches)}."
+        )
+    match_index, match_config = matches[0]
+
+    max_seed = 2**32
+    np.random.seed(int(config.data.seed))
+    _ = np.random.randint(
+        0,
+        max_seed // 2,
+        size=len(config.data.train_configs),
+    )
+    test_seeds = np.random.randint(
+        max_seed // 2,
+        max_seed,
+        size=len(config.data.test_configs),
+    )
+    segment_seed = int(test_seeds[match_index])
+
+    cache_dir_value = config.data.cache_dir
+    if not cache_dir_value:
+        raise RuntimeError("Canary checkpoint has no test cache directory.")
+    cache_dir = Path(cache_dir_value)
+    if not cache_dir.is_absolute():
+        cache_dir = REPO_ROOT / cache_dir
+    cache_digest = hashlib.md5(
+        json.dumps(
+            {**match_config.model_dump(), "_seed": segment_seed},
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+    cache_path = cache_dir / f"data_{cache_digest}.pt"
+    if not cache_path.is_file():
+        raise FileNotFoundError(
+            f"Canary checkpoint test cache is missing: {cache_path}"
+        )
+
+    segment = DataSegment.from_config(
+        match_config,
+        cache_dir=str(cache_dir),
+        force_cache=False,
+        seed=segment_seed,
+    )
+    dataset = _SyntheticDataset(
+        [segment],
+        batch_size=int(event["eval_batch_size"]),
+    )
+    return DataLoader(dataset, batch_size=None, num_workers=0, shuffle=False)
+
+
 def prepare_event(event: dict[str, Any]):
     import torch
 
@@ -80,6 +150,16 @@ def prepare_event(event: dict[str, Any]):
         strict=True,
     )
     config = bundle["config"].model_copy(deep=True)
+    checkpoint_cache_dataloader = checkpoint_test_cache_dataloader(config, event)
+    if checkpoint_cache_dataloader is not None:
+        dataloader = checkpoint_cache_dataloader
+        segment = dataloader.dataset.segments[0]
+        dataset_hash = tensor_sha256(segment.inputs, segment.labels)
+        checkpoint_hash = sha256_file(Path(event["checkpoint_path"]))
+        if checkpoint_hash != event["checkpoint_file_sha256"]:
+            raise RuntimeError("Checkpoint file hash mismatch.")
+        return bundle["model"], dataloader, dataset_hash
+
     template = next(
         (
             item
@@ -318,6 +398,7 @@ def run_event(
             "status": "completed",
             "event_id": event["event_id"],
             "dataset_hash": dataset_hash,
+            "dataset_policy": event.get("dataset_policy", "generated_seeded"),
             "checkpoint_file_sha256": event["checkpoint_file_sha256"],
             "num_examples": expected_examples,
             "dataset_num_examples": dataset_examples,
