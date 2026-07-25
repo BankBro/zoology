@@ -42,3 +42,11 @@
 - 结果: 3090恢复队列重新通过全部preflight和smoke, 6条训练经hash审计后复用; 30/30 formal和6/6 repro完成. 两机合并为120条唯一逻辑结果, 五个dataset hash完全一致. 2080 Ti外推为三个稳健领先、一个混合领先; 3090四个外推slice均为Flash 3/3 seeds稳健领先. GDN跨GPU稳定, Flash存在明显seed×数值路径敏感性.
 - 输出: [报告](20260725-01-current-baselines-longer-mqar-report.md), [artifact](artifacts/20260725-01-current-baselines-longer-mqar/README.md), [last图](artifacts/20260725-01-current-baselines-longer-mqar/figures/longer-mqar-accuracy-last.pdf), [best图](artifacts/20260725-01-current-baselines-longer-mqar/figures/longer-mqar-accuracy-best.pdf).
 - 下一步: 对Flash增加跨GPU早期step state/kernel hash probe; 不把相同seed跨GPU结果合并为`n=6`, 不自动替换baseline.
+
+## 6. 2026-07-26: MQAR 低精度与长度泛化实验启动
+
+- `experiment_id`: `20260726-01-mqar-precision-profile`.
+- 目的: 在2080 Ti上比较FP32与AMP-FP16, 在3090上比较FP32, AMP-FP16与AMP-BF16, 对当前Flash/GDN基线完成三seed重训, 标准MQAR和longer-MQAR全精度网格评估.
+- 当前结果: 实验计划, Flash Triton FP32 boundary, AMP/GradScaler, 精确`resume.pt`, 可恢复逐batch eval, batch capacity/invariance和双机global gate自动化已完成. 2080 Ti与3090环境/cache/init/commit preflight通过; 正式训练尚未启动.
+- 输出: [计划](plans/20260726-01-mqar-precision-profile-plan.md), [报告骨架](20260726-01-mqar-precision-profile-report.md), [artifact](artifacts/20260726-01-mqar-precision-profile/README.md).
+- 下一步: 双机完成全部descriptor train/validation/eval smoke和Flash满注入stress smoke; global gate通过后自动启动30个正式run.
