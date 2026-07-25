@@ -1,0 +1,36 @@
+{
+  "dataset_hashes": {
+    "1024x256": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+    "2048x512": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+    "4096x1024": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+    "8190x2047": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+    "8190x512": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d"
+  },
+  "logical_checkpoint_roles": 12,
+  "logical_formal_rows": 60,
+  "physical_formal_rows": 35,
+  "preflight": "passed",
+  "queue": {
+    "ended_at_utc": "2026-07-24T22:23:25.655679+00:00",
+    "experiment_id": "20260725-01-current-baselines-longer-mqar",
+    "formal_eval_verification": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/formal-eval/verification.json",
+    "formal_manifest": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/formal/source-manifest.json",
+    "report_phase_ready": true,
+    "started_at_utc": "2026-07-24T19:06:22.061663+00:00",
+    "status": "completed",
+    "training_runs": 6
+  },
+  "repro_all_passed": true,
+  "repro_max_accuracy_delta_abs": 0.0,
+  "repro_rows": 7,
+  "smoke_gate": {
+    "eval_verification": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/smoke-dag-eval/verification.json",
+    "experiment_id": "20260725-01-current-baselines-longer-mqar",
+    "recorded_at_utc": "2026-07-24T19:29:53.508694+00:00",
+    "status": "passed",
+    "training_smoke_runs": 6
+  },
+  "status": "passed",
+  "training_runs_completed": 6,
+  "unique_checkpoint_model_states": 7
+}

@@ -29,9 +29,25 @@ EXPERIMENT_ID = "20260725-01-current-baselines-longer-mqar"
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path(os.environ.get("ZOOLOGY_REPO_ROOT", "/home/lyj/mnt/project/zoology")).resolve()
 FLASH_ROOT = Path(os.environ.get("FLASH_VQG_ROOT", "/home/lyj/mnt/project/Flash-VQG")).resolve()
-OUTPUT_ROOT = SCRIPT_DIR / "outputs"
+MACHINE = os.environ.get("LONGER_MQAR_MACHINE", "2080ti").strip().lower()
+MACHINE_SPECS = {
+    "2080ti": {
+        "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+        "cuda_visible_device": "1",
+        "gpu_index": "1",
+    },
+    "3090": {
+        "gpu_name": "NVIDIA GeForce RTX 3090",
+        "cuda_visible_device": "0",
+        "gpu_index": "0",
+    },
+}
+if MACHINE not in MACHINE_SPECS:
+    raise RuntimeError(f"LONGER_MQAR_MACHINE必须为2080ti或3090, 实际为{MACHINE!r}.")
+MACHINE_SPEC = MACHINE_SPECS[MACHINE]
+OUTPUT_ROOT = SCRIPT_DIR / "outputs" if MACHINE == "2080ti" else SCRIPT_DIR / "outputs/machines" / MACHINE
 GENERATED_ROOT = REPO_ROOT / "zoology/experiments/flash_vqg/generated"
-FORMAL_CHECKPOINT_ROOT = REPO_ROOT / "checkpoints" / f"fvqg-{EXPERIMENT_ID}-2080ti"
+FORMAL_CHECKPOINT_ROOT = REPO_ROOT / "checkpoints" / f"fvqg-{EXPERIMENT_ID}-{MACHINE}"
 SMOKE_CHECKPOINT_ROOT = OUTPUT_ROOT / "smoke-checkpoints"
 GATE_DIR = OUTPUT_ROOT / "gates"
 EXPECTED_PYTHON = Path("/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python")
@@ -44,11 +60,40 @@ SEEDS = (123, 124, 125)
 MODELS = ("flash", "gdn")
 JOB_ORDER = tuple((model, seed) for seed in SEEDS for model in MODELS)
 EXPECTED_CACHE_HASH = "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"
+EXPECTED_CACHE_FILE_SHA256 = {
+    "data_0192c761df278911bb68046d8d1bd4bb.pt": "cb12c852926382b8397343998b0cd98fcd6931409e3ba819dc937b47eaaf6223",
+    "data_17c3f028b2c117598f4c7718db1c27c6.pt": "ce006749177ca4d3324d0e3fce6e3d926a066cff87977df2f4de3e8aaf2bc4c9",
+    "data_25f7a1e8f8e6d2ba1fdbfa481d66614a.pt": "44d1a892e9a222d5e077f1434c6032167a623a3e74891d86713fb2b323640fc6",
+    "data_2e72f812c43c426a106c777f791c5e7d.pt": "986717f669fc44c22bcda4505044b478e8a5da3a7d769699f698252b89206c3b",
+    "data_3a37505bc239830ae7a7070040e09f6a.pt": "2f4f5c5a53bd299f5f5e3fbe90ef773214d98ddfb0159d99ef149573767428bf",
+    "data_5a733a34eb85ae2327c490b501f957ce.pt": "b56ed080ec94e087393885e14a34fcd821b0137106ceaea69868d88d11c77637",
+    "data_5b0265b0978cc6b711cd76fcf34e8969.pt": "299dd2253bd8a082a59f14c6ec3f7f774bf9ee58520e3f9ac2912723d880867e",
+    "data_5e0c59f2a5df62cc996f523c97b0d10a.pt": "1495185a6a1eacb1bf0f7a3a0f1208a60f62937b2ea26c86e6187c4a6095b8f7",
+    "data_8ef4855e77aa9e88588d018d5b0461f7.pt": "5d260e523b69db4b2432d5363c4432c39f4a676cbf2cffcb598d9a359d24e9bb",
+    "data_9892a64887c1ed56c1c7421f492d76ed.pt": "a841fbd9a416779513a3637c81ef88ffa16b6df08e4bb8eefdbad90c2da75075",
+    "data_b53959d96a217faa44c26a74b7d53685.pt": "6745622ab5da81780fd06b91e9de54f1204329dfab3d649273eb7c733d2a29ab",
+    "data_c37268ff6f869244228171c996682e2e.pt": "0d2a75d55f6aad9ed7975fad9efd1d0a7a4b275d8b6e0b382e8e9b369bcbc2fa",
+    "data_d3faf35348337347822d1f5a2bc43c96.pt": "b228dc24a0936f819e017adfdd1c4c02cca8bbb371f0c0f22f50a3747069e1ca",
+}
 EXPECTED_BATCH_ORDER_HASHES = {
     0: "fb11b66aca3ad686a85f9623c9ae6769bb4a799fdaa0d952c0af518f0dfcc320",
     1: "b9d52c40883bf347d481b8d0b79141885643f4f554bbe7016acd1b1e3d69b7c4",
     2: "5d31531aafcb4a4383a2ac711fbc9c0b2727e95c48b12d1902f0bb22cc3b6f20",
     3: "6ae4c4584b2b365741cb9973e714825e75c138c4c8af40406333f7e612f42839",
+}
+EXPECTED_NORMALIZED_CONFIG_SHA256 = {
+    ("flash", 123, "smoke"): "6effb24c509868fb1993481537e5bd09a1f644aa4d4ab39b4cffc6ae9c132860",
+    ("gdn", 123, "smoke"): "0d73ae18bc3308930c92ee9398970a34b72859ebfea7941cf3d3febe46f1c4c9",
+    ("flash", 124, "smoke"): "1cfd8c8845139fc13e171a0675982281c13b1d9f4862747fa56a6bfa58a8c354",
+    ("gdn", 124, "smoke"): "aa15f5a1b257230d3e6880cf4f6e49273bb0edeaea44b9751b2e9b0e813a94f7",
+    ("flash", 125, "smoke"): "a940826a69a0ab386baa2ed0d84b9824bb94c43f9b0c1e81ed424c3ffd1d525f",
+    ("gdn", 125, "smoke"): "550f5b37976f6a8fc1f3425c2b1b1002591a0f15f316aadcec01216f46a5302c",
+    ("flash", 123, "formal"): "c9d901880b3cc6f3c1f19585b07cbc150bd1d976126d41652d7c2d4c9ff54d9b",
+    ("gdn", 123, "formal"): "b138b5e2c4063de51e5c719ff569812c52c065ee20242b1a69663b1a6746cbe4",
+    ("flash", 124, "formal"): "7ea6e667126843d78621e6a3a5b006eaf04d66b047a53b0aae766641f8432cc7",
+    ("gdn", 124, "formal"): "5c890e4499fbd0ab888adb151593a8756b2f161ae4a1c43a1e17d457cb32097c",
+    ("flash", 125, "formal"): "972c48cd326645611a1e2f5eb68ff0bf2e2f456c1fa59b0934fd4fe00f30f9b9",
+    ("gdn", 125, "formal"): "b58b216892e87d836fa5068b79bf3b4e5ebda85f91387fddafe6fa4653b9ab64",
 }
 EXPECTED_INIT = {
     "flash": {
@@ -127,11 +172,12 @@ def init_path(model: str) -> Path:
 
 
 def run_id(model: str, seed: int, run_type: str) -> str:
-    return f"{model}-s{seed}-fixedinit-s124-d123-b64ga4-{run_type}"
+    machine_suffix = "" if MACHINE == "2080ti" else f"-{MACHINE}"
+    return f"{model}-s{seed}-fixedinit-s124-d123-b64ga4{machine_suffix}-{run_type}"
 
 
 def launch_id(run_type: str) -> str:
-    return f"{EXPERIMENT_ID}-2080ti-{run_type}"
+    return f"{EXPERIMENT_ID}-{MACHINE}-{run_type}"
 
 
 def result_path(model: str, seed: int, run_type: str) -> Path:
@@ -216,6 +262,8 @@ def environment_metadata() -> dict[str, Any]:
     visible = os.environ.get("CUDA_VISIBLE_DEVICES", "")
     nvidia_smi = subprocess.run(["nvidia-smi", "-L"], text=True, capture_output=True)
     return {
+        "machine": MACHINE,
+        "physical_gpu_index": MACHINE_SPEC["gpu_index"],
         "sys_executable": sys.executable,
         "python": sys.version.split()[0],
         "torch": torch.__version__,
@@ -312,10 +360,15 @@ def validate_config(config: Any, model_name: str, seed: int, run_type: str) -> d
         "trainable_params": params == EXPECTED_INIT[model_name]["params"],
         "capacity": 131_072 == (2 * 64 * 64 * 16 if model_name == "flash" else 2 * 256 * 256),
         "strict_load": not incompatible.missing_keys and not incompatible.unexpected_keys,
+        "normalized_config": (
+            normalized_config_sha256(config)
+            == EXPECTED_NORMALIZED_CONFIG_SHA256[(model_name, seed, run_type)]
+        ),
     }
     checks = {**common, **invariants}
     return {
         "model": model_name,
+        "machine": MACHINE,
         "seed": seed,
         "run_type": run_type,
         "run_id": config.run_id,
@@ -326,6 +379,8 @@ def validate_config(config: Any, model_name: str, seed: int, run_type: str) -> d
         "init_model_state_sha256": state_hash,
         "trainable_params": params,
         "active_state_capacity": 131_072,
+        "normalized_config_sha256": normalized_config_sha256(config),
+        "expected_normalized_config_sha256": EXPECTED_NORMALIZED_CONFIG_SHA256[(model_name, seed, run_type)],
         "checks": checks,
         "passed": all(checks.values()),
     }
@@ -333,6 +388,28 @@ def validate_config(config: Any, model_name: str, seed: int, run_type: str) -> d
 
 def generated_config_path(config: Any) -> Path:
     return GENERATED_ROOT / str(config.launch_id) / f"{config.run_id}.json"
+
+
+def normalized_config_payload(config: Any) -> dict[str, Any]:
+    """移除仅用于机器隔离的字段, 用于验证两机训练语义完全一致."""
+    from zoology.checkpoints import serialize_train_config
+
+    payload = serialize_train_config(config)
+    payload["launch_id"] = "<machine-independent-launch-id>"
+    payload["run_id"] = "<machine-independent-run-id>"
+    payload["checkpoint"]["root_dir"] = "<machine-independent-checkpoint-root>"
+    return payload
+
+
+def normalized_config_sha256(config: Any) -> str:
+    raw = json.dumps(
+        normalized_config_payload(config),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
 
 
 def write_resolved_config(config: Any) -> Path:
@@ -354,8 +431,8 @@ def preflight(output: Path) -> dict[str, Any]:
         "triton": env["triton"] == "3.2.0",
         "fla": env["fla"] == "0.4.2",
         "cuda_available": bool(env["cuda_available"]),
-        "gpu": env["gpu_name"] == "NVIDIA GeForce RTX 2080 Ti",
-        "visible_gpu": env["cuda_visible_devices"] == "1",
+        "gpu": env["gpu_name"] == MACHINE_SPEC["gpu_name"],
+        "visible_gpu": env["cuda_visible_devices"] == MACHINE_SPEC["cuda_visible_device"],
         "nvidia_smi": bool(env["nvidia_smi_ok"]),
         "tf32_disabled": not env["matmul_tf32"] and not env["cudnn_tf32"],
         "zoology_branch": env["zoology_branch"] == EXPERIMENT_ID,
@@ -365,6 +442,20 @@ def preflight(output: Path) -> dict[str, Any]:
     }
     base_config = build_config("flash", 123, "formal")
     cache = BASE._cache_content_hash(base_config.data)
+    cache_file_hashes = []
+    for row in cache.get("files", []):
+        path = Path(row["path"])
+        actual = sha256_file(path)
+        expected = EXPECTED_CACHE_FILE_SHA256.get(path.name)
+        cache_file_hashes.append({
+            "path": str(path.resolve()),
+            "name": path.name,
+            "bytes": path.stat().st_size,
+            "sha256": actual,
+            "expected": expected,
+            "match": expected is not None and actual == expected,
+        })
+    cache_file_set_match = {row["name"] for row in cache_file_hashes} == set(EXPECTED_CACHE_FILE_SHA256)
     orders = batch_order_hashes(base_config)
     jobs: list[dict[str, Any]] = []
     for model, seed in JOB_ORDER:
@@ -374,14 +465,18 @@ def preflight(output: Path) -> dict[str, Any]:
             row = validate_config(config, model, seed, run_type)
             row["resolved_config_path"] = str(resolved)
             row["resolved_config_sha256"] = sha256_file(resolved)
+            row["normalized_config_sha256"] = normalized_config_sha256(config)
             jobs.append(row)
     payload = {
         "experiment_id": EXPERIMENT_ID,
-        "status": "passed" if all(env_checks.values()) and cache.get("match") and all(row["match"] for row in orders.values()) and all(job["passed"] for job in jobs) else "failed",
+        "machine": MACHINE,
+        "status": "passed" if all(env_checks.values()) and cache.get("match") and cache_file_set_match and all(row["match"] for row in cache_file_hashes) and all(row["match"] for row in orders.values()) and all(job["passed"] for job in jobs) else "failed",
         "recorded_at_utc": utc_now(),
         "environment": env,
         "environment_checks": env_checks,
         "cache": cache,
+        "cache_file_set_match": cache_file_set_match,
+        "cache_file_hashes": cache_file_hashes,
         "batch_orders": orders,
         "jobs": jobs,
     }
@@ -415,12 +510,14 @@ def _checkpoint_metadata(path: Path) -> dict[str, Any]:
 def train_one(model: str, seed: int, run_type: str, resume: bool) -> dict[str, Any]:
     configure_numerics()
     preflight_path = OUTPUT_ROOT / "preflight.json"
-    if not preflight_path.exists() or json.loads(preflight_path.read_text(encoding="utf-8")).get("status") != "passed":
+    preflight_payload = json.loads(preflight_path.read_text(encoding="utf-8")) if preflight_path.exists() else {}
+    if preflight_payload.get("status") != "passed" or preflight_payload.get("machine") != MACHINE:
         raise RuntimeError("缺少通过的preflight.json.")
     if run_type == "formal":
         for gate in ("TRAINING_SMOKE_PASSED.json", "SMOKE_DONE.json"):
             gate_path = GATE_DIR / gate
-            if not gate_path.exists() or json.loads(gate_path.read_text(encoding="utf-8")).get("status") != "passed":
+            gate_payload = json.loads(gate_path.read_text(encoding="utf-8")) if gate_path.exists() else {}
+            if gate_payload.get("status") != "passed" or gate_payload.get("machine") != MACHINE:
                 raise RuntimeError(f"正式训练缺少门槛: {gate_path}")
 
     config = build_config(model, seed, run_type)
@@ -432,6 +529,7 @@ def train_one(model: str, seed: int, run_type: str, resume: bool) -> dict[str, A
         expected_epoch = 4 if run_type == "formal" else 1
         identity_matches = all((
             previous.get("status") == "completed",
+            previous.get("machine", "2080ti") == MACHINE,
             previous.get("model") == model,
             previous.get("seed") == seed,
             previous.get("data_seed") == 123,
@@ -483,6 +581,7 @@ def train_one(model: str, seed: int, run_type: str, resume: bool) -> dict[str, A
     best_path = run_dir / "best.pt"
     result: dict[str, Any] = {
         "experiment_id": EXPERIMENT_ID,
+        "machine": MACHINE,
         "model": model,
         "seed": seed,
         "data_seed": 123,
@@ -594,6 +693,7 @@ def shape_smoke(model_name: str, output: Path) -> dict[str, Any]:
             del inputs, targets, hidden, logits, loss
     payload = {
         "experiment_id": EXPERIMENT_ID,
+        "machine": MACHINE,
         "model": model_name,
         "status": "completed",
         "started_at_utc": started_at,
@@ -614,7 +714,7 @@ def build_source_manifest(run_type: str, output: Path) -> list[dict[str, Any]]:
         if not rp.exists():
             raise RuntimeError(f"缺少训练result: {rp}")
         result = json.loads(rp.read_text(encoding="utf-8"))
-        if result.get("status") != "completed":
+        if result.get("status") != "completed" or result.get("machine", "2080ti") != MACHINE:
             raise RuntimeError(f"训练未完成: {rp}")
         config_path = Path(result["resolved_config_path"])
         for role in ("last", "best"):
@@ -627,6 +727,7 @@ def build_source_manifest(run_type: str, output: Path) -> list[dict[str, Any]]:
                 raise RuntimeError(f"checkpoint epoch异常: {path}")
             rows.append({
                 "source_id": f"{model}-s{seed}-{role}",
+                "machine": MACHINE,
                 "model": model,
                 "config_family": "cb64-r16-joint" if model == "flash" else "gdnxk-h2-ek4-ev4-usegate0",
                 "seed": seed,
@@ -651,6 +752,7 @@ def build_source_manifest(run_type: str, output: Path) -> list[dict[str, Any]]:
         write_json(GATE_DIR / "TRAINING_SMOKE_PASSED.json", {
             "status": "passed",
             "experiment_id": EXPERIMENT_ID,
+            "machine": MACHINE,
             "completed_runs": 6,
             "logical_checkpoint_roles": len(rows),
             "manifest": str(output),

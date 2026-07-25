@@ -13,10 +13,28 @@ from pathlib import Path
 from typing import Any
 
 
+def _bootstrap_machine() -> str:
+    machine = os.environ.get("LONGER_MQAR_MACHINE", "").strip().lower()
+    if "--machine" in sys.argv:
+        index = sys.argv.index("--machine")
+        if index + 1 >= len(sys.argv):
+            raise RuntimeError("--machine缺少值.")
+        cli_machine = sys.argv[index + 1].strip().lower()
+        if machine and machine != cli_machine:
+            raise RuntimeError(f"CLI machine与环境不一致: {cli_machine} vs {machine}")
+        machine = cli_machine
+    machine = machine or "2080ti"
+    if machine not in {"2080ti", "3090"}:
+        raise RuntimeError(f"machine必须为2080ti或3090, 实际为{machine!r}.")
+    os.environ["LONGER_MQAR_MACHINE"] = machine
+    return machine
+
+
 EXPERIMENT_ID = "20260725-01-current-baselines-longer-mqar"
+MACHINE = _bootstrap_machine()
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path(os.environ.get("ZOOLOGY_REPO_ROOT", "/home/lyj/mnt/project/zoology")).resolve()
-OUTPUT_ROOT = SCRIPT_DIR / "outputs"
+OUTPUT_ROOT = SCRIPT_DIR / "outputs" if MACHINE == "2080ti" else SCRIPT_DIR / "outputs/machines" / MACHINE
 QUEUE_DIR = OUTPUT_ROOT / "queue"
 GATE_DIR = OUTPUT_ROOT / "gates"
 EXPERIMENT = SCRIPT_DIR / "experiment.py"
@@ -46,6 +64,7 @@ class FormalQueue:
     def status(self, phase: str, current: str = "", **extra: Any) -> None:
         write_json(self.status_path, {
             "experiment_id": EXPERIMENT_ID,
+            "machine": MACHINE,
             "status": "running",
             "phase": phase,
             "current": current,
@@ -78,12 +97,14 @@ class FormalQueue:
         env["TRITON_F32_DEFAULT"] = "ieee"
         env["GDN_KERNEL_DTYPE"] = "float32"
         env["NVIDIA_TF32_OVERRIDE"] = "0"
+        env["LONGER_MQAR_MACHINE"] = MACHINE
         with log_path.open("a", encoding="utf-8") as log:
             log.write(f"\n[{utc_now()}] START {' '.join(command)}\n")
             log.flush()
             proc = subprocess.run(command, cwd=REPO_ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, text=True)
             log.write(f"[{utc_now()}] END returncode={proc.returncode}\n")
         write_json(command_status_path, {
+            "machine": MACHINE,
             "label": label,
             "phase": phase,
             "command": command,
@@ -161,6 +182,7 @@ class FormalQueue:
             write_json(GATE_DIR / "SMOKE_DONE.json", {
                 "status": "passed",
                 "experiment_id": EXPERIMENT_ID,
+                "machine": MACHINE,
                 "training_smoke_runs": 6,
                 "eval_verification": str(smoke_eval / "verification.json"),
                 "recorded_at_utc": utc_now(),
@@ -173,6 +195,7 @@ class FormalQueue:
                 raise RuntimeError(f"正式eval未完成: {verification}")
             done = {
                 "experiment_id": EXPERIMENT_ID,
+                "machine": MACHINE,
                 "status": "completed",
                 "started_at_utc": self.started_at,
                 "ended_at_utc": utc_now(),
@@ -187,6 +210,7 @@ class FormalQueue:
         except BaseException as exc:
             failed = {
                 "experiment_id": EXPERIMENT_ID,
+                "machine": MACHINE,
                 "status": "failed",
                 "started_at_utc": self.started_at,
                 "ended_at_utc": utc_now(),
@@ -200,12 +224,15 @@ class FormalQueue:
 
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description="当前基线Longer-MQAR可恢复fail-fast自动队列.")
+    root.add_argument("--machine", choices=("2080ti", "3090"), default=MACHINE)
     root.add_argument("--resume", action="store_true")
     return root
 
 
 def main() -> int:
     args = parser().parse_args()
+    if args.machine != MACHINE:
+        raise RuntimeError(f"bootstrap machine异常: {MACHINE} vs {args.machine}")
     done = FormalQueue(resume=args.resume).run()
     print(json.dumps(done, ensure_ascii=False))
     return 0

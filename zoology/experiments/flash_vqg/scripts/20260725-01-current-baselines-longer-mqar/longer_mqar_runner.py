@@ -18,7 +18,10 @@ from typing import Any
 EXPERIMENT_ID = "20260725-01-current-baselines-longer-mqar"
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path(os.environ.get("ZOOLOGY_REPO_ROOT", "/home/lyj/mnt/project/zoology")).resolve()
-OUTPUT_ROOT = SCRIPT_DIR / "outputs"
+MACHINE = os.environ.get("LONGER_MQAR_MACHINE", "2080ti").strip().lower()
+if MACHINE not in {"2080ti", "3090"}:
+    raise RuntimeError(f"LONGER_MQAR_MACHINE必须为2080ti或3090, 实际为{MACHINE!r}.")
+OUTPUT_ROOT = SCRIPT_DIR / "outputs" if MACHINE == "2080ti" else SCRIPT_DIR / "outputs/machines" / MACHINE
 GATE_DIR = OUTPUT_ROOT / "gates"
 LEGACY_RUNNER = (
     REPO_ROOT
@@ -85,6 +88,8 @@ def load_manifest(path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]
     seen_ids = set()
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     for row in logical:
+        if str(row.get("machine", "2080ti")) != MACHINE:
+            raise RuntimeError(f"source manifest机器不匹配: expected={MACHINE}, row={row.get('machine')}")
         source_id = str(row["source_id"])
         if source_id in seen_ids:
             raise RuntimeError(f"重复source_id: {source_id}")
@@ -132,6 +137,7 @@ class EvalQueue:
     def update_status(self, phase: str, current: str = "", **extra: Any) -> None:
         write_json(self.status_path, {
             "experiment_id": EXPERIMENT_ID,
+            "machine": MACHINE,
             "mode": self.mode,
             "status": "running",
             "phase": phase,
@@ -167,6 +173,7 @@ class EvalQueue:
             record = json.loads(record_path.read_text(encoding="utf-8"))
             reusable = all((
                 record.get("status") == "completed",
+                record.get("machine", "2080ti") == MACHINE,
                 record.get("eval_mode") == event_mode,
                 record.get("checkpoint_model_state_sha256") == source["checkpoint_model_state_sha256"],
                 int(record.get("input_seq_len", -1)) == seq,
@@ -205,6 +212,7 @@ class EvalQueue:
             result = {"status": "failed", "failure_type": "missing_result", "failure_detail": f"returncode={proc.returncode}"}
         record = {
             "event_id": uid,
+            "machine": MACHINE,
             "eval_mode": event_mode,
             "status": result.get("status", "failed"),
             "model": source["model"],
@@ -307,7 +315,7 @@ class EvalQueue:
                 self.save_detail()
         if self.mode == "formal":
             write_json(GATE_DIR / "EVAL_SMOKE_PASSED.json", {
-                "status": "passed", "completed": completed, "expected": total,
+                "status": "passed", "machine": MACHINE, "completed": completed, "expected": total,
                 "unique_sources": len(self.sources), "recorded_at_utc": utc_now(),
             })
 
@@ -382,6 +390,7 @@ class EvalQueue:
         formal_rows = [row for row in records if row.get("eval_mode") == physical_formal_mode]
         verification = {
             "experiment_id": EXPERIMENT_ID,
+            "machine": MACHINE,
             "mode": self.mode,
             "status": "completed",
             "logical_sources": len(self.logical_sources),

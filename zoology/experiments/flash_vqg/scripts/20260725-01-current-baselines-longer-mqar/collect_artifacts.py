@@ -5,7 +5,10 @@ import argparse
 import csv
 import hashlib
 import json
+import os
+import shutil
 import statistics
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,11 +17,28 @@ from typing import Any
 EXPERIMENT_ID = "20260725-01-current-baselines-longer-mqar"
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path("/home/lyj/mnt/project/zoology").resolve()
-OUTPUT_ROOT = SCRIPT_DIR / "outputs"
-ARTIFACT_DIR = REPO_ROOT / "docs/artifacts" / EXPERIMENT_ID
+MACHINE = os.environ.get("LONGER_MQAR_MACHINE", "").strip().lower()
+if "--machine" in sys.argv:
+    machine_index = sys.argv.index("--machine")
+    if machine_index + 1 >= len(sys.argv):
+        raise RuntimeError("--machine缺少值.")
+    cli_machine = sys.argv[machine_index + 1].strip().lower()
+    if MACHINE and MACHINE != cli_machine:
+        raise RuntimeError(f"CLI machine与环境不一致: {cli_machine} vs {MACHINE}")
+    MACHINE = cli_machine
+MACHINE = MACHINE or "2080ti"
+if MACHINE not in {"2080ti", "3090"}:
+    raise RuntimeError(f"machine必须为2080ti或3090, 实际为{MACHINE!r}.")
+os.environ["LONGER_MQAR_MACHINE"] = MACHINE
+MACHINE_SPECS = {
+    "2080ti": {"gpu_index": "1", "gpu_name": "NVIDIA GeForce RTX 2080 Ti"},
+    "3090": {"gpu_index": "0", "gpu_name": "NVIDIA GeForce RTX 3090"},
+}
+OUTPUT_ROOT = SCRIPT_DIR / "outputs" if MACHINE == "2080ti" else SCRIPT_DIR / "outputs/machines" / MACHINE
+ARTIFACT_DIR = REPO_ROOT / "docs/artifacts" / EXPERIMENT_ID / "machines" / MACHINE
 SLICES = ("1024x256", "2048x512", "4096x1024", "8190x512", "8190x2047")
-GPU_INDEX = "1"
-GPU_NAME = "NVIDIA GeForce RTX 2080 Ti"
+GPU_INDEX = MACHINE_SPECS[MACHINE]["gpu_index"]
+GPU_NAME = MACHINE_SPECS[MACHINE]["gpu_name"]
 ZOOLOGY_STATE_SIZE_SEQ1024 = {"flash": 624_640}
 
 
@@ -55,6 +75,72 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def mirror_raw_evidence(manifest: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    evidence_root = OUTPUT_ROOT / "raw-evidence"
+    selected: set[Path] = set()
+    relative_patterns = (
+        "preflight.json",
+        "queue/DONE.json",
+        "queue/status.json",
+        "queue/commands/*.json",
+        "queue/logs/*.log",
+        "gates/*.json",
+        "shape-smoke/*.json",
+        "smoke/source-manifest.json",
+        "smoke/source-manifest.csv",
+        "smoke-dag-eval/status.json",
+        "smoke-dag-eval/verification.json",
+        "smoke-dag-eval/repro-verification.json",
+        "smoke-dag-eval/batch-sizes.json",
+        "formal/source-manifest.json",
+        "formal/source-manifest.csv",
+        "formal-eval/status.json",
+        "formal-eval/verification.json",
+        "formal-eval/repro-verification.json",
+        "formal-eval/batch-sizes.json",
+        "formal/*/result.json",
+    )
+    for pattern in relative_patterns:
+        selected.update(path for path in OUTPUT_ROOT.glob(pattern) if path.is_file())
+
+    external: dict[Path, Path] = {}
+    for source in manifest:
+        for field, prefix in (
+            ("resolved_config_path", Path("resolved-configs")),
+            ("train_config_path", Path("checkpoint-configs")),
+        ):
+            path = Path(source[field])
+            if path.exists():
+                external[path] = prefix / f"{source['source_id']}-{path.name}"
+
+    rows: list[dict[str, Any]] = []
+    for source_path in sorted(selected):
+        destination = source_path
+        rows.append({
+            "machine": MACHINE,
+            "source_path": str(source_path.resolve()),
+            "mirror_path": str(destination.relative_to(REPO_ROOT)),
+            "size_bytes": destination.stat().st_size,
+            "sha256": sha256_file(destination),
+            "source_mirror_hash_match": sha256_file(source_path) == sha256_file(destination),
+        })
+    for source_path, relative in sorted(external.items(), key=lambda item: str(item[1])):
+        destination = evidence_root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, destination)
+        rows.append({
+            "machine": MACHINE,
+            "source_path": str(source_path.resolve()),
+            "mirror_path": str(destination.relative_to(REPO_ROOT)),
+            "size_bytes": destination.stat().st_size,
+            "sha256": sha256_file(destination),
+            "source_mirror_hash_match": sha256_file(source_path) == sha256_file(destination),
+        })
+    if not rows or not all(row["source_mirror_hash_match"] for row in rows):
+        raise RuntimeError("raw evidence镜像为空或hash校验失败.")
+    return rows
 
 
 def ensure_csv_fields(path: Path, additions: list[str]) -> None:
@@ -117,7 +203,8 @@ def load_inputs() -> tuple[list[dict[str, Any]], list[dict[str, str]], list[dict
     training = []
     for model in ("flash", "gdn"):
         for seed in (123, 124, 125):
-            path = OUTPUT_ROOT / "formal" / f"{model}-s{seed}-fixedinit-s124-d123-b64ga4-formal" / "result.json"
+            machine_suffix = "" if MACHINE == "2080ti" else f"-{MACHINE}"
+            path = OUTPUT_ROOT / "formal" / f"{model}-s{seed}-fixedinit-s124-d123-b64ga4{machine_suffix}-formal" / "result.json"
             training.append(json.loads(path.read_text(encoding="utf-8")))
     return manifest, detail, training
 
@@ -137,6 +224,7 @@ def expand_logical_rows(manifest: list[dict[str, Any]], detail: list[dict[str, s
             event = physical[key]
             rows.append({
                 "source_id": source["source_id"],
+                "machine": MACHINE,
                 "model": source["model"],
                 "config_family": source["config_family"],
                 "seed": int(source["seed"]),
@@ -180,6 +268,7 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 values = [row["accuracy"] for row in selected]
                 retentions = [row["accuracy"] / base_by_seed[row["seed"]] if base_by_seed[row["seed"]] else float("nan") for row in selected]
                 out.append({
+                    "machine": MACHINE,
                     "checkpoint_role": role,
                     "model": model,
                     "slice": slc,
@@ -200,7 +289,7 @@ def paired_deltas(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for role in ("last", "best"):
         for slc in SLICES:
             deltas = []
-            row: dict[str, Any] = {"checkpoint_role": role, "slice": slc}
+            row: dict[str, Any] = {"machine": MACHINE, "checkpoint_role": role, "slice": slc}
             for seed in (123, 124, 125):
                 values = {
                     item["model"]: item["accuracy"]
@@ -234,6 +323,7 @@ def checkpoint_role_comparison(rows: list[dict[str, Any]]) -> list[dict[str, Any
                     if row["model"] == model and row["seed"] == seed and row["slice"] == slc
                 }
                 out.append({
+                    "machine": MACHINE,
                     "model": model,
                     "seed": seed,
                     "slice": slc,
@@ -252,6 +342,7 @@ def training_rows(training: list[dict[str, Any]]) -> list[dict[str, Any]]:
         metrics = last.get("metrics") or {}
         rows.append({
             "experiment_id": EXPERIMENT_ID,
+            "machine": MACHINE,
             "run_id": result["run_id"],
             "launch_id": result["launch_id"],
             "model": result["model"],
@@ -326,8 +417,8 @@ def flash_ledger_rows(train: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "final_validation_phase": "epoch_end",
             "checkpoint_label": "epoch4_noearly_b64_ga4_fp32",
             "early_stopping_disabled": "true",
-            "replicate_id": "current_lg_20260725",
-            "run_type": "current_baseline_length_generalization_4ep",
+            "replicate_id": "current_lg_20260725" if MACHINE == "2080ti" else "crossgpu1",
+            "run_type": "current_baseline_length_generalization_4ep" if MACHINE == "2080ti" else "current_baseline_length_generalization_4ep_crossgpu",
             "gpu": GPU_INDEX,
             "dynamic_capacity": 131_072,
             "relative_to_gdn": "1.00x",
@@ -349,11 +440,11 @@ def flash_ledger_rows(train: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "valid_input_seq_len_accuracy_1024": item["valid_input_seq_len_1024"],
             "valid_num_kv_pairs_accuracy_128": item["valid_num_kv_pairs_128"],
             "valid_num_kv_pairs_accuracy_256": item["valid_num_kv_pairs_256"],
-            "source_artifact": f"docs/artifacts/{EXPERIMENT_ID}/training-final.csv",
+            "source_artifact": f"docs/artifacts/{EXPERIMENT_ID}/machines/{MACHINE}/training-final.csv",
             "source_precision": "full_precision",
-            "source_run_set": EXPERIMENT_ID.replace("-", "_"),
+            "source_run_set": f"{EXPERIMENT_ID.replace('-', '_')}_{MACHINE}",
             "run_id": item["run_id"],
-            "note": "Current baseline 4ep retraining from fixed family-specific canonical seed124 init; Longer-MQAR source run.",
+            "note": f"Current baseline 4ep retraining on {MACHINE} from fixed family-specific canonical seed124 init; Longer-MQAR source run.",
             "dtype_policy": "float32",
             "outer_model_dtype": "float32",
             "hidden_states_dtype": "float32",
@@ -410,16 +501,16 @@ def gdn_ledger_rows(train: list[dict[str, Any]], preflight: dict[str, Any]) -> l
             "valid_loss": item["valid_loss"],
             "valid_accuracy": item["valid_accuracy"],
             "valid_mqar_case_accuracy_1024x256": item["valid_1024x256"],
-            "source_artifact": f"docs/artifacts/{EXPERIMENT_ID}/training-final.csv",
-            "run_type": "current_baseline_length_generalization_4ep",
+            "source_artifact": f"docs/artifacts/{EXPERIMENT_ID}/machines/{MACHINE}/training-final.csv",
+            "run_type": "current_baseline_length_generalization_4ep" if MACHINE == "2080ti" else "current_baseline_length_generalization_4ep_crossgpu",
             "zoology_branch": preflight["environment"]["zoology_branch"],
             "zoology_commit": preflight["environment"]["zoology_commit"],
-            "note": "Current GDN ek4-ev4 baseline 4ep retraining from fixed canonical seed124 init; Longer-MQAR source run.",
+            "note": f"Current GDN ek4-ev4 baseline 4ep retraining on {MACHINE} from fixed canonical seed124 init; Longer-MQAR source run.",
         })
     return rows
 
 
-def collect() -> dict[str, Any]:
+def collect(*, skip_ledger: bool = False) -> dict[str, Any]:
     manifest, detail, training = load_inputs()
     logical = expand_logical_rows(manifest, detail)
     summary = summarize(logical)
@@ -431,8 +522,15 @@ def collect() -> dict[str, Any]:
     smoke_gate = json.loads((OUTPUT_ROOT / "gates/SMOKE_DONE.json").read_text(encoding="utf-8"))
     eval_verification = json.loads((OUTPUT_ROOT / "formal-eval/verification.json").read_text(encoding="utf-8"))
     repro = json.loads((OUTPUT_ROOT / "formal-eval/repro-verification.json").read_text(encoding="utf-8"))
-    batch_sizes = json.loads((OUTPUT_ROOT / "formal-eval/batch-sizes.json").read_text(encoding="utf-8"))
+    batch_sizes = [
+        {"machine": MACHINE, **row}
+        for row in json.loads((OUTPUT_ROOT / "formal-eval/batch-sizes.json").read_text(encoding="utf-8"))
+    ]
     if not all((
+        preflight.get("machine", "2080ti") == MACHINE,
+        queue_done.get("machine", "2080ti") == MACHINE,
+        smoke_gate.get("machine", "2080ti") == MACHINE,
+        eval_verification.get("machine", "2080ti") == MACHINE,
         preflight.get("status") == "passed",
         queue_done.get("status") == "completed",
         smoke_gate.get("status") == "passed",
@@ -443,9 +541,12 @@ def collect() -> dict[str, Any]:
         raise RuntimeError("正式artifact输入审计未通过.")
     source_rows = []
     for row in manifest:
+        if row.get("machine", "2080ti") != MACHINE:
+            raise RuntimeError(f"source manifest机器不匹配: {row.get('machine')} vs {MACHINE}")
         checkpoint_path = Path(row["checkpoint_path"])
         source_rows.append({
             **row,
+            "machine": MACHINE,
             "checkpoint_size_bytes": checkpoint_path.stat().st_size,
             "checkpoint_hash_verified": sha256_file(checkpoint_path) == row["checkpoint_file_sha256"],
         })
@@ -456,7 +557,14 @@ def collect() -> dict[str, Any]:
     write_csv(ARTIFACT_DIR / "checkpoint-role-comparison.csv", roles)
     write_csv(ARTIFACT_DIR / "source-manifest.csv", source_rows)
     write_csv(ARTIFACT_DIR / "batch-sizes.csv", batch_sizes)
-    write_csv(ARTIFACT_DIR / "repro-verification.csv", repro)
+    repro_rows = [{"machine": MACHINE, **row} for row in repro]
+    write_csv(ARTIFACT_DIR / "repro-verification.csv", repro_rows)
+    evidence_rows = mirror_raw_evidence(manifest)
+    write_csv(ARTIFACT_DIR / "raw-evidence-manifest.csv", evidence_rows)
+    flash_rows = flash_ledger_rows(train)
+    gdn_rows = gdn_ledger_rows(train, preflight)
+    write_csv(ARTIFACT_DIR / "flash-ledger-rows.csv", flash_rows)
+    write_csv(ARTIFACT_DIR / "gdn-ledger-rows.csv", gdn_rows)
     write_json(ARTIFACT_DIR / "verification.json", {
         "status": "passed",
         "preflight": preflight["status"],
@@ -474,6 +582,7 @@ def collect() -> dict[str, Any]:
     })
     metadata = {
         "experiment_id": EXPERIMENT_ID,
+        "machine": MACHINE,
         "status": "completed",
         "training_runs": len(train),
         "logical_formal_rows": len(logical),
@@ -494,31 +603,33 @@ def collect() -> dict[str, Any]:
         "zoology_branch": preflight["environment"]["zoology_branch"],
         "zoology_commit": preflight["environment"]["zoology_commit"],
         "flash_commit": preflight["environment"]["flash_commit"],
-        "preflight_failed_attempts_before_pass": 1,
-        "preflight_failure_reason": "Runner入口原名queue.py遮蔽Python标准库queue; formal/smoke均未启动; commit 0dd9572修复后重跑通过.",
+        "preflight_failed_attempts_before_pass": 1 if MACHINE == "2080ti" else 0,
+        "preflight_failure_reason": "Runner入口原名queue.py遮蔽Python标准库queue; formal/smoke均未启动; commit 0dd9572修复后重跑通过." if MACHINE == "2080ti" else "",
         "generated_at_utc": utc_now(),
         "raw_output_root": str(OUTPUT_ROOT),
+        "raw_evidence_files": len(evidence_rows),
+        "raw_evidence_hashes_verified": all(row["source_mirror_hash_match"] for row in evidence_rows),
     }
     write_json(ARTIFACT_DIR / "metadata.json", metadata)
-    flash_ledger = REPO_ROOT / "docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv"
-    ensure_csv_fields(flash_ledger, ["started_at_utc", "ended_at_utc", "gpu_name"])
-    append_unique_csv(
-        flash_ledger,
-        flash_ledger_rows(train),
-        "run_id",
-    )
-    append_unique_csv(
-        REPO_ROOT / "docs/artifacts/gdn-expanded-k/gdn-expanded-k-summary.csv",
-        gdn_ledger_rows(train, preflight),
-        "run_id",
-    )
+    if not skip_ledger:
+        flash_ledger = REPO_ROOT / "docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv"
+        ensure_csv_fields(flash_ledger, ["started_at_utc", "ended_at_utc", "gpu_name"])
+        append_unique_csv(
+            flash_ledger,
+            flash_rows,
+            "run_id",
+        )
+        append_unique_csv(
+            REPO_ROOT / "docs/artifacts/gdn-expanded-k/gdn-expanded-k-summary.csv",
+            gdn_rows,
+            "run_id",
+        )
     (ARTIFACT_DIR / "README.md").write_text(
-        "# 20260725-01 当前基线 Longer-MQAR\n\n"
+        f"# 20260725-01 当前基线 Longer-MQAR: {MACHINE}\n\n"
         "本目录由完整 `DONE.json` 后的审计 collector生成. `last.pt`为预注册主结果, "
         "`best.pt`为 epoch-end checkpoint敏感性结果.\n\n"
-        "主结果显示, Flash在 `1024x256` 不支持领先; 四个真正外推 slice中, 三个为 "
-        "3/3 seeds稳健领先, `8190x512`为均值领先但 2/3 seeds的混合领先. "
-        "`best.pt`敏感性在全部四个外推 slice为 3/3 seeds稳健领先. 主要方差来源是 Flash seed124.\n\n"
+        "本目录仅记录该机器上的原始正式结果和机器内统计. 跨机器比较与结论在上级 "
+        "`combined/` 目录及正式 report 中给出.\n\n"
         "主要文件:\n\n"
         "- `training-final.csv`: 6条 epoch4训练和时间/dtype/GPU/checkpoint信息.\n"
         "- `longer-mqar-detail.csv`: 60条 last/best逻辑 formal结果.\n"
@@ -526,10 +637,11 @@ def collect() -> dict[str, Any]:
         "- `paired-deltas.csv`: 同 seed Flash-GDN paired delta和预注册分类.\n"
         "- `checkpoint-role-comparison.csv`: best-last敏感性.\n"
         "- `source-manifest.csv`: 12个逻辑角色的 checkpoint来源、hash和大小.\n"
-        "- `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`: 执行与审计证据.\n\n"
-        "- `figures/`: 当前两模型 `last.pt` 三 seed Longer-MQAR曲线的 PDF/PNG/SVG、绘图数据.\n\n"
-        "完整解释见 `docs/20260725-01-current-baselines-longer-mqar-report.md`. "
-        "Raw输出保留在 `zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/`. "
+        "- `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`: 执行与审计证据.\n"
+        "- `raw-evidence-manifest.csv`: 状态、命令、日志、config及其ignored raw镜像路径和hash.\n"
+        "- `flash-ledger-rows.csv`, `gdn-ledger-rows.csv`: 等待主工作区统一写入 canonical ledger 的候选记录.\n\n"
+        f"本目录只包含 `{MACHINE}` 的机器级结果. 完整解释见 `docs/20260725-01-current-baselines-longer-mqar-report.md`. "
+        f"Raw输出保留在 `{OUTPUT_ROOT}`. "
         "本轮使用专用 collector直接生成统计, 未另跑 analysis suite, 因而没有 "
         "`zoology/analysis/flash_vqg/results/<launch_id>/` 目录.\n",
         encoding="utf-8",
@@ -539,8 +651,12 @@ def collect() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="生成当前基线Longer-MQAR正式artifact.")
-    parser.parse_args()
-    metadata = collect()
+    parser.add_argument("--machine", choices=("2080ti", "3090"), default=MACHINE)
+    parser.add_argument("--skip-ledger", action="store_true")
+    args = parser.parse_args()
+    if args.machine != MACHINE:
+        raise RuntimeError(f"bootstrap machine异常: {MACHINE} vs {args.machine}")
+    metadata = collect(skip_ledger=args.skip_ledger)
     print(json.dumps(metadata, ensure_ascii=False))
     return 0
 

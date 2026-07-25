@@ -53,6 +53,33 @@ def test_training_matrix_and_resolved_configs():
         assert formal.checkpoint.save_last is True
         assert formal.checkpoint.save_best is True
         assert Path(formal.init_checkpoint_path).resolve() == experiment.init_path(model)
+        for run_type, config in (("smoke", smoke), ("formal", formal)):
+            expected = experiment.EXPECTED_NORMALIZED_CONFIG_SHA256[(model, seed, run_type)]
+            assert experiment.normalized_config_sha256(config) == expected
+
+
+def test_machine_isolation_preserves_normalized_configs(monkeypatch):
+    monkeypatch.setenv("LONGER_MQAR_MACHINE", "2080ti")
+    old = _load("test_current_longer_machine_2080ti", "experiment.py")
+    monkeypatch.setenv("LONGER_MQAR_MACHINE", "3090")
+    new = _load("test_current_longer_machine_3090", "experiment.py")
+
+    assert old.OUTPUT_ROOT == SCRIPT_DIR / "outputs"
+    assert new.OUTPUT_ROOT == SCRIPT_DIR / "outputs/machines/3090"
+    assert old.MACHINE_SPEC["cuda_visible_device"] == "1"
+    assert new.MACHINE_SPEC["cuda_visible_device"] == "0"
+    assert old.launch_id("formal").endswith("-2080ti-formal")
+    assert new.launch_id("formal").endswith("-3090-formal")
+
+    for model, seed in old.JOB_ORDER:
+        for run_type in ("smoke", "formal"):
+            old_config = old.build_config(model, seed, run_type)
+            new_config = new.build_config(model, seed, run_type)
+            assert old.normalized_config_payload(old_config) == new.normalized_config_payload(new_config)
+            assert old.normalized_config_sha256(old_config) == new.normalized_config_sha256(new_config)
+            assert old_config.checkpoint.root_dir != new_config.checkpoint.root_dir
+            if run_type == "formal":
+                assert "-3090-formal" in new_config.run_id
 
 
 def test_model_specific_invariants():
@@ -137,6 +164,29 @@ def test_collector_summary_and_paired_classification():
     assert all(row["positive_seed_count"] == 3 for row in deltas)
 
 
+def test_cross_machine_delta_matrix():
+    collector = _load("test_current_longer_cross_collector", "collect_cross_machine_artifacts.py")
+    rows = []
+    for machine, machine_delta in (("2080ti", 0.0), ("3090", 0.01)):
+        for role in collector.ROLES:
+            for model in collector.MODELS:
+                for seed in collector.SEEDS:
+                    for index, slc in enumerate(collector.SLICES):
+                        rows.append({
+                            "machine": machine,
+                            "model": model,
+                            "seed": str(seed),
+                            "checkpoint_role": role,
+                            "slice": slc,
+                            "accuracy": str(0.9 - index * 0.1 + machine_delta),
+                            "dataset_hash": f"hash-{slc}",
+                        })
+    deltas = collector.cross_machine_deltas(rows)
+    assert len(deltas) == 60
+    assert all(abs(row["accuracy_delta_3090_minus_2080ti"] - 0.01) < 1e-12 for row in deltas)
+    assert all(row["dataset_hash_match"] for row in deltas)
+
+
 def test_plan_and_queue_have_required_gates():
     queue_text = (SCRIPT_DIR / "run_queue.py").read_text(encoding="utf-8")
     plan_text = (ROOT / "docs/plans/20260725-01-current-baselines-longer-mqar-plan.md").read_text(encoding="utf-8")
@@ -145,4 +195,6 @@ def test_plan_and_queue_have_required_gates():
     assert "EVAL_SMOKE_PASSED.json" in (SCRIPT_DIR / "longer_mqar_runner.py").read_text(encoding="utf-8")
     assert "FAILED.json" in queue_text
     assert "DONE.json" in queue_text
+    assert "LONGER_MQAR_MACHINE" in queue_text
+    assert "outputs/machines" in queue_text
     assert "Plan -> 实验 -> Report" in plan_text
