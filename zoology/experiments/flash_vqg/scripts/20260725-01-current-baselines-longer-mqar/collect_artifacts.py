@@ -527,6 +527,7 @@ def collect() -> dict[str, Any]:
         "- `checkpoint-role-comparison.csv`: best-last敏感性.\n"
         "- `source-manifest.csv`: 12个逻辑角色的 checkpoint来源、hash和大小.\n"
         "- `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`: 执行与审计证据.\n\n"
+        "- `figures/`: 当前两模型 `last.pt` 三 seed Longer-MQAR曲线的 PDF/PNG/SVG、绘图数据.\n\n"
         "完整解释见 `docs/20260725-01-current-baselines-longer-mqar-report.md`. "
         "Raw输出保留在 `zoology/experiments/flash_vqg/scripts/20260725-01-current-baselines-longer-mqar/outputs/`. "
         "本轮使用专用 collector直接生成统计, 未另跑 analysis suite, 因而没有 "

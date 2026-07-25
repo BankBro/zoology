@@ -110,6 +110,7 @@ Flash seed124 的 best-last 增量从 `1024x256` 到 `8190x2047` 分别为 `+0.0
 - `longer-mqar-detail.csv`, `longer-mqar-summary.csv`, `paired-deltas.csv`.
 - `checkpoint-role-comparison.csv`, `source-manifest.csv`.
 - `batch-sizes.csv`, `repro-verification.csv`, `verification.json`, `metadata.json`.
+- `figures/longer-mqar-accuracy-curve.{pdf,png,svg}` 和对应绘图数据.
 
 Flash 3 条训练已追加到 `docs/artifacts/gd-residual-v1/rank-seed-effect-summary.csv`; GDN 3 条训练已追加到 `docs/artifacts/gdn-expanded-k/gdn-expanded-k-summary.csv`. Longer-MQAR 索引只链接本轮独立 artifact, 没有改写 2026-05 official-core 表或旧 preliminary ledger.
 
