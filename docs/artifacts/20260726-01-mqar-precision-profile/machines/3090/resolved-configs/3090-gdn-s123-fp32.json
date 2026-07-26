@@ -1,0 +1,272 @@
+{
+  "checkpoint": {
+    "best_metric": "valid/accuracy",
+    "best_mode": "max",
+    "enabled": true,
+    "root_dir": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/formal",
+    "save_best": true,
+    "save_config_json": true,
+    "save_last": true
+  },
+  "data": {
+    "batch_size": [
+      64,
+      16
+    ],
+    "cache_dir": "./data/flash_vqg",
+    "force_cache": false,
+    "num_passes": 1,
+    "seed": 123,
+    "test_batch_segment_order": null,
+    "test_configs": [
+      {
+        "include_slices": true,
+        "input_seq_len": 64,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 4,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 64,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 8,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 64,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 16,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 128,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 32,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 256,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 64,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 512,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 64,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 512,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 128,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 1024,
+        "name": "multiquery_ar",
+        "num_examples": 1000,
+        "num_kv_pairs": 256,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      }
+    ],
+    "train_batch_order": "global_shuffle",
+    "train_batch_segment_order": null,
+    "train_configs": [
+      {
+        "include_slices": true,
+        "input_seq_len": 64,
+        "name": "multiquery_ar",
+        "num_examples": 100000,
+        "num_kv_pairs": 4,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 128,
+        "name": "multiquery_ar",
+        "num_examples": 20000,
+        "num_kv_pairs": 8,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 256,
+        "name": "multiquery_ar",
+        "num_examples": 20000,
+        "num_kv_pairs": 16,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 256,
+        "name": "multiquery_ar",
+        "num_examples": 20000,
+        "num_kv_pairs": 32,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      },
+      {
+        "include_slices": true,
+        "input_seq_len": 256,
+        "name": "multiquery_ar",
+        "num_examples": 20000,
+        "num_kv_pairs": 64,
+        "power_a": 0.01,
+        "random_non_queries": true,
+        "vocab_size": 8192
+      }
+    ]
+  },
+  "early_stopping_metric": null,
+  "early_stopping_threshold": null,
+  "gradient_accumulation_steps": 4,
+  "init_checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260724-01-flash-vqg-gd-residual-efficiency/outputs/canonical-init/gdnxk-h2-ek4-ev4-s124-init.pt",
+  "init_checkpoint_source_launch_id": null,
+  "init_checkpoint_source_run_id": null,
+  "init_checkpoint_strict": true,
+  "input_type": "discrete",
+  "launch_id": "20260726-01-mqar-precision-profile-3090-formal",
+  "learning_rate": 0.001,
+  "logger": {
+    "backend": "none",
+    "entity": "scu-mclab",
+    "project_name": "flash_vqg_vs_gdn"
+  },
+  "loss_type": "ce",
+  "max_consecutive_grad_scaler_skips": 0,
+  "max_epochs": 4,
+  "max_grad_scaler_skips": 0,
+  "max_train_steps": null,
+  "max_validation_batches": null,
+  "metrics_white_list": [],
+  "model": {
+    "block_type": "TransformerBlock",
+    "d_model": 128,
+    "drop_path": 0.0,
+    "embed_dropout": 0.1,
+    "embedding_init_type": "default",
+    "layer_norm_epsilon": 1e-05,
+    "learnable_word_embeddings": true,
+    "max_position_embeddings": 0,
+    "n_layers": 2,
+    "name": "gated_delta_net_expanded_k",
+    "pad_vocab_size_multiple": 1,
+    "resid_dropout": 0.0,
+    "sequence_mixer": {
+      "kwargs": {
+        "configs": [
+          {
+            "kwargs": {
+              "implicit_long_conv": true,
+              "kernel_size": 3,
+              "l_max": 1024
+            },
+            "name": "zoology.mixers.base_conv.BaseConv"
+          },
+          {
+            "kwargs": {
+              "conv_size": 4,
+              "expand_k": 4,
+              "expand_v": 4,
+              "l_max": 1024,
+              "num_heads": 2,
+              "use_gate": false,
+              "use_short_conv": true
+            },
+            "name": "zoology.mixers.gated_delta_net.GatedDeltaNetExpandedK"
+          }
+        ]
+      },
+      "name": "zoology.mixers.hybrid.Hybrid"
+    },
+    "state_mixer": {
+      "kwargs": {},
+      "name": "torch.nn.Identity"
+    },
+    "vocab_size": 8192
+  },
+  "precision": "float32",
+  "read_churn_probe_enabled": false,
+  "read_churn_probe_max_samples": 16,
+  "read_churn_probe_query_only": true,
+  "read_churn_probe_valid_batches": [
+    0
+  ],
+  "read_trace_enabled": false,
+  "read_trace_max_queries_per_sample": 8,
+  "read_trace_max_samples": 4,
+  "read_trace_output_dir": null,
+  "read_trace_query_only": true,
+  "read_trace_train_steps": [],
+  "read_trace_valid_batches": [
+    0
+  ],
+  "resume_enabled": true,
+  "resume_identity": {
+    "cache_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "experiment_id": "20260726-01-mqar-precision-profile",
+    "flash_branch": "20260428-gd-residual-v1-sync",
+    "flash_commit": "9a8bf7074f90abca3a0be1faf0201c25dbfaf50c",
+    "init_file_sha256": "a4e76e7776bdc83a582c2613cd7d9782100a9148aa119763ecaaeeb8273f7b71",
+    "machine": "3090",
+    "model": "gdn",
+    "precision": "fp32",
+    "zoology_branch": "flash-vqg",
+    "zoology_commit": "e56fa9abd7278fdd43b59fa60e89406b751fc98a"
+  },
+  "resume_path": null,
+  "resume_stop_after_optimizer_step": null,
+  "run_id": "gdn-s123-fp32-b64ga4-formal",
+  "seed": 123,
+  "slice_keys": [
+    "num_kv_pairs",
+    "input_seq_len",
+    "mqar_case"
+  ],
+  "sweep_id": "20260726-01-mqar-precision-profile",
+  "train_inline_event_trace_enabled": false,
+  "train_inline_event_trace_output_dir": null,
+  "train_inline_event_trace_steps": [],
+  "training_runtime_initial_state": {},
+  "training_telemetry_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/training/formal/gdn-s123-fp32-b64ga4-formal/telemetry.jsonl",
+  "validations_per_epoch": 4,
+  "weight_decay": 0.1
+}

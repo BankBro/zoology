@@ -1,0 +1,1386 @@
+{
+  "cache": {
+    "combined_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "expected": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+    "file_count": 13,
+    "files": [
+      {
+        "bytes": 102401868,
+        "content_sha256": "6cdfe1a74e63901e1179fbe206b7e24562a52812ea894f581911375447a02d5a",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_5b0265b0978cc6b711cd76fcf34e8969.pt",
+        "role": "train",
+        "seed": 843828734,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 64,
+          "name": "multiquery_ar",
+          "num_examples": 100000,
+          "num_kv_pairs": 4,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 0
+      },
+      {
+        "bytes": 40961868,
+        "content_sha256": "7b3f85deed8c65d695ab8b2355afefa6190a7f10ded8db775ecfe3ee488a5bf3",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_0192c761df278911bb68046d8d1bd4bb.pt",
+        "role": "train",
+        "seed": 914636141,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 128,
+          "name": "multiquery_ar",
+          "num_examples": 20000,
+          "num_kv_pairs": 8,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 1
+      },
+      {
+        "bytes": 81921868,
+        "content_sha256": "a586db39977b4418650b3d04cf9f258f7ca8f8dcfa8f85e95cc03bd604777a66",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_d3faf35348337347822d1f5a2bc43c96.pt",
+        "role": "train",
+        "seed": 1228959102,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 256,
+          "name": "multiquery_ar",
+          "num_examples": 20000,
+          "num_kv_pairs": 16,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 2
+      },
+      {
+        "bytes": 81921868,
+        "content_sha256": "ece9da4d2e66894b050fb1a543fd40c89b39ddb53969df87e1e068ac118510e8",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_3a37505bc239830ae7a7070040e09f6a.pt",
+        "role": "train",
+        "seed": 1840268610,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 256,
+          "name": "multiquery_ar",
+          "num_examples": 20000,
+          "num_kv_pairs": 32,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 3
+      },
+      {
+        "bytes": 81921868,
+        "content_sha256": "f291a7b4a98634c3e64e0a4df3b735c2feeba41546af70f0e82dc38e773e993f",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_8ef4855e77aa9e88588d018d5b0461f7.pt",
+        "role": "train",
+        "seed": 974319580,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 256,
+          "name": "multiquery_ar",
+          "num_examples": 20000,
+          "num_kv_pairs": 64,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 4
+      },
+      {
+        "bytes": 1025804,
+        "content_sha256": "e2cb88296ee2d81e40230009d43ccf04482e0b1dd2f37bbbdbbd5bd90a78e2c6",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_25f7a1e8f8e6d2ba1fdbfa481d66614a.pt",
+        "role": "test",
+        "seed": 2967327842,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 64,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 4,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 0
+      },
+      {
+        "bytes": 1025804,
+        "content_sha256": "cc05eda7713322d3f4500b4baaa7799122a8323516f4cb699462242406cd82fe",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_5e0c59f2a5df62cc996f523c97b0d10a.pt",
+        "role": "test",
+        "seed": 2367878886,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 64,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 8,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 1
+      },
+      {
+        "bytes": 1025804,
+        "content_sha256": "bda55734c73ef5429b20992812a716453611c19f917873a9d549590a799220b0",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_9892a64887c1ed56c1c7421f492d76ed.pt",
+        "role": "test",
+        "seed": 3088727057,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 64,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 16,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 2
+      },
+      {
+        "bytes": 2049868,
+        "content_sha256": "5b3553338101d4c390f409e11cb6ca757cbb4c03530a00ca42153386d365cb54",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_b53959d96a217faa44c26a74b7d53685.pt",
+        "role": "test",
+        "seed": 3090095699,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 128,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 32,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 3
+      },
+      {
+        "bytes": 4097868,
+        "content_sha256": "89386952a42b485ce2626fadb93a14ef0664e87f7e66ba8ffd7bfa60220f7d3e",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_2e72f812c43c426a106c777f791c5e7d.pt",
+        "role": "test",
+        "seed": 4256823402,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 256,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 64,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 4
+      },
+      {
+        "bytes": 8193868,
+        "content_sha256": "c449bbd3b7d1b141f193d97cd71ec5e74ea589722c1bb1e5777b2e183a87a52b",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_17c3f028b2c117598f4c7718db1c27c6.pt",
+        "role": "test",
+        "seed": 3964712059,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 512,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 64,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 5
+      },
+      {
+        "bytes": 8193868,
+        "content_sha256": "108c092b11f4bbdd2f37d29249a09efd2a92901785dbf9dffa3f5142f4aee9e8",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_c37268ff6f869244228171c996682e2e.pt",
+        "role": "test",
+        "seed": 3350193721,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 512,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 128,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 6
+      },
+      {
+        "bytes": 16385868,
+        "content_sha256": "77f4b83e367089fec143622d8bf7118d5b3b027ead8b02e7b0248a72c60238f7",
+        "path": "/home/lyj/mnt/project/zoology/data/flash_vqg/data_5a733a34eb85ae2327c490b501f957ce.pt",
+        "role": "test",
+        "seed": 4212350166,
+        "segment": {
+          "include_slices": true,
+          "input_seq_len": 1024,
+          "name": "multiquery_ar",
+          "num_examples": 1000,
+          "num_kv_pairs": 256,
+          "power_a": 0.01,
+          "random_non_queries": true,
+          "vocab_size": 8192
+        },
+        "segment_index": 7
+      }
+    ],
+    "match": true
+  },
+  "checks": {
+    "cache": true,
+    "cuda": true,
+    "cuda_available": true,
+    "fla": true,
+    "flash_branch": true,
+    "flash_clean": true,
+    "gpu": true,
+    "jobs": true,
+    "python": true,
+    "python_version": true,
+    "torch": true,
+    "triton": true,
+    "visible_gpu": true,
+    "zoology_branch": true,
+    "zoology_clean": true
+  },
+  "environment": {
+    "cuda_available": true,
+    "cuda_visible_devices": "1",
+    "fla": "0.4.2",
+    "flash_branch": "20260428-gd-residual-v1-sync",
+    "flash_commit": "9a8bf7074f90abca3a0be1faf0201c25dbfaf50c",
+    "flash_status": "",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "python": "3.12.11",
+    "sys_executable": "/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python",
+    "torch": "2.6.0+cu118",
+    "torch_cuda": "11.8",
+    "triton": "3.2.0",
+    "zoology_branch": "flash-vqg",
+    "zoology_commit": "e56fa9abd7278fdd43b59fa60e89406b751fc98a",
+    "zoology_status": "?? sources/"
+  },
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "jobs": [
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s123-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "a30e87bde870f367d1abdd57bdbd25bb692b07d818f7318cca473948ff55244d",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s123-fp32-b64ga4-smoke",
+      "seed": 123,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s123-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "b5ea393890de8981756032c5a367a05d5a72f852f2b0278d3402c7ec6eb9893f",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s123-fp32-b64ga4-formal",
+      "seed": 123,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "e627181c8c7580b24f4ef03ec0b5e565ae6efda0ec2f36369442089a73e4a98b",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s123-fp32-b64ga4-smoke",
+      "seed": 123,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "2515e8e9f773b41ea039fc1bc765ba9e8000ec114ed81ce49a52846dd77a1843",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s123-fp32-b64ga4-formal",
+      "seed": 123,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "2248e934f3f56894dd8280433e5851adcb6f688617864fd03f64c9e6de5b351b",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s123-fp32-b64ga4-stress",
+      "seed": 123,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s124-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "acf157cc4f1054fff9a2d6914ed1c0eb67a61cb5afb9a0ebf08ad7753afe6a92",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s124-fp32-b64ga4-smoke",
+      "seed": 124,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s124-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "75a41717dbb2795e40fca30d736aa8c508ac6c5ec43c985a86e923129324457f",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s124-fp32-b64ga4-formal",
+      "seed": 124,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "59625dbf7aa815ac5928aa246262f1dd29d8869f668aed05d774d3b0a40ed200",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s124-fp32-b64ga4-smoke",
+      "seed": 124,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "610c5f31404cda04946eafc946ff1c0c48c6aaa36bb7ea0ed73d49089aed5adb",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s124-fp32-b64ga4-formal",
+      "seed": 124,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "6d77001e7e14fd7c184243e33330ff352f12c27fe713e33e59dc22f380ce6ac3",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s124-fp32-b64ga4-stress",
+      "seed": 124,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s125-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "78f748d993b146b36632cc276a54a3ee9fb5e8129244d34e43e5128e167bfe48",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s125-fp32-b64ga4-smoke",
+      "seed": 125,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s125-fp32",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "afd884a244231ddec7375eade2f2e001ba12996fc0daa43a63436eb80a1dcabb",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s125-fp32-b64ga4-formal",
+      "seed": 125,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "14280b7dd923e83747283816a4da544af20033ed0faf53f2e0673cd5a89d31ef",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s125-fp32-b64ga4-smoke",
+      "seed": 125,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "b607c0763745805d9e6896d45f9e48de6dd787ea1192da303075a7e04efac000",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s125-fp32-b64ga4-formal",
+      "seed": 125,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp32",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "e2925ec7f302df756bc32eb7f491e178e6dfaf3afdc8e8c5e9b121f7a8796571",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s125-fp32-b64ga4-stress",
+      "seed": 125,
+      "train_precision": "fp32"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s123-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "2297f631c68b097550ce14fb081eec6ece0501542b3c61e6c08018cf0c0c44fa",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s123-fp16-b64ga4-smoke",
+      "seed": 123,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s123-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "68074af4c6beb3904b9721c88b5165abeab332b7ed4e1be664b427252e9f195f",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s123-fp16-b64ga4-formal",
+      "seed": 123,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "a1d79d9cab8cd6855a6e88390c6b9c9216dad7f670f5a70ea423245142c9924f",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s123-fp16-b64ga4-smoke",
+      "seed": 123,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "a93ac13e3c45cc367f9dde21097b4df8343382d8baa661a6abbc9a5a30f7d481",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s123-fp16-b64ga4-formal",
+      "seed": 123,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s123-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "7dc8dd568dee426541f702682ad4634460f4c61b928ed9730ad8ee147fbd0a20",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s123-fp16-b64ga4-stress",
+      "seed": 123,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s124-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "15deb69e05e582c903a0b074bdbf7efee90f59a3bac8548425330d4570f1f731",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s124-fp16-b64ga4-smoke",
+      "seed": 124,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s124-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "c2fa452d1c710805e1e6551cd623f131e90268e195accfbb1fff7d69a9c34064",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s124-fp16-b64ga4-formal",
+      "seed": 124,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "798660b15004fe6210385a0200d2ba580adee725202754438d43d5ca0b79d1f2",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s124-fp16-b64ga4-smoke",
+      "seed": 124,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "c4301a0ee6d6d13ae19d520486e995d4d5687dc9d981eb32aa878e85db53e7d7",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s124-fp16-b64ga4-formal",
+      "seed": 124,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s124-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "6431e1afe21d93a06275d63de49740154139ad7abc895fc5dee303e56ac2b3b2",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s124-fp16-b64ga4-stress",
+      "seed": 124,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s125-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "d12b65866a3ef90572b4cc7281ad86864021ac6175bf6a989f10b6704c37072b",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "gdn-s125-fp16-b64ga4-smoke",
+      "seed": 125,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-gdn-s125-fp16",
+      "machine": "2080ti",
+      "model": "gdn",
+      "model_audit": {
+        "flash_boundary": null,
+        "flash_grouped_backend": null,
+        "flash_read_backend": null,
+        "runtime_modules": [],
+        "state_sha256": "bdba0c19b2530c72c3ae7dd6bd708901c2369f6d3e1da9d850ea8347d5ea60a6",
+        "strict": true,
+        "trainable_params": 1335942
+      },
+      "normalized_config_sha256": "52581d704d9b42d9ee0c1a00e669abe8507d37a26bc383a3a185fcb74d848e06",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "gdn-s125-fp16-b64ga4-formal",
+      "seed": 125,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "6526ae026bd218243dd7986827e67e1d0dad3abf7bf05ca9a910ba091eef380b",
+      "passed": true,
+      "phase": "smoke",
+      "run_id": "flash-s125-fp16-b64ga4-smoke",
+      "seed": 125,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "98fcd9da843647d75dce6faa85d9b36fcb178a678d1d0929a351f7cb44cd3555",
+      "passed": true,
+      "phase": "formal",
+      "run_id": "flash-s125-fp16-b64ga4-formal",
+      "seed": 125,
+      "train_precision": "fp16"
+    },
+    {
+      "checks": {
+        "batch": true,
+        "boundary": true,
+        "early_stopping_off": true,
+        "epochs": true,
+        "gradient_accumulation": true,
+        "grouped": true,
+        "init_file": true,
+        "init_state": true,
+        "params": true,
+        "precision": true,
+        "resume": true,
+        "runtime_module": true,
+        "selected": true,
+        "strict": true,
+        "validations": true
+      },
+      "descriptor_id": "2080ti-flash-s125-fp16",
+      "machine": "2080ti",
+      "model": "flash",
+      "model_audit": {
+        "flash_boundary": "fp32_boundary",
+        "flash_grouped_backend": "triton",
+        "flash_read_backend": "triton_remat",
+        "runtime_modules": [
+          "backbone.layers.1.sequence_mixer.mixer.attn"
+        ],
+        "state_sha256": "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0",
+        "strict": true,
+        "trainable_params": 1160390
+      },
+      "normalized_config_sha256": "7c580f128ee3c539343ab7e3cdf3b3dd180a1058efc2bc67c01024f0267017eb",
+      "passed": true,
+      "phase": "stress",
+      "run_id": "flash-s125-fp16-b64ga4-stress",
+      "seed": 125,
+      "train_precision": "fp16"
+    }
+  ],
+  "machine": "2080ti",
+  "recorded_at_utc": "2026-07-25T22:33:21.533423+00:00",
+  "status": "passed"
+}

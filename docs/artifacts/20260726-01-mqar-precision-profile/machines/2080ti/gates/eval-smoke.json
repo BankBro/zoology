@@ -1,0 +1,1879 @@
+{
+  "events": [
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-64x4-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-64x8-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-64x16-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-128x32-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-256x64-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-512x64-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-512x128-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-1024x256-n1000-b64-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-1024x256-n500-b64-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-2048x512-n500-b32-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-4096x1024-n500-b16-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-8190x512-n500-b8-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp32-8190x2047-n500-b8-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-64x4-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-64x8-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-64x16-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-128x32-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-256x64-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-512x64-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-512x128-n1000-b128-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-1024x256-n1000-b64-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-1024x256-n500-b64-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-2048x512-n500-b32-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-4096x1024-n500-b16-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-8190x512-n500-b8-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp32-last-evalfp16-8190x2047-n500-b8-5bab40c58ebccf09-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-64x4-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-64x8-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-64x16-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-128x32-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-256x64-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-512x64-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-512x128-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-1024x256-n1000-b64-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-1024x256-n500-b64-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-2048x512-n500-b32-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-4096x1024-n500-b16-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-8190x512-n500-b16-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp32-8190x2047-n500-b16-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-64x4-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-64x8-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-64x16-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-128x32-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-256x64-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-512x64-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-512x128-n1000-b128-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-1024x256-n1000-b64-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-1024x256-n500-b64-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-2048x512-n500-b32-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-4096x1024-n500-b16-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-8190x512-n500-b8-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s123-fp32-last-evalfp16-8190x2047-n500-b8-e089cdc1e08e0477-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-64x4-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-64x8-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-64x16-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-128x32-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-256x64-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-512x64-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-512x128-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-1024x256-n1000-b64-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-1024x256-n500-b64-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-2048x512-n500-b32-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-4096x1024-n500-b16-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-8190x512-n500-b8-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp32-8190x2047-n500-b8-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-64x4-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-64x8-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-64x16-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-128x32-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-256x64-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-512x64-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-512x128-n1000-b128-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-1024x256-n1000-b64-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-1024x256-n500-b64-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-2048x512-n500-b32-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-4096x1024-n500-b16-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-8190x512-n500-b8-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp32-last-evalfp16-8190x2047-n500-b8-a3d68160e5e780d4-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-64x4-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-64x8-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-64x16-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-128x32-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-256x64-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-512x64-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-512x128-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-1024x256-n1000-b64-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-1024x256-n500-b64-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-2048x512-n500-b32-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-4096x1024-n500-b16-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-8190x512-n500-b16-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp32-8190x2047-n500-b16-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-64x4-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-64x8-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-64x16-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-128x32-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-256x64-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-512x64-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-512x128-n1000-b128-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-1024x256-n1000-b64-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-1024x256-n500-b64-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-2048x512-n500-b32-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-4096x1024-n500-b16-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-8190x512-n500-b8-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s124-fp32-last-evalfp16-8190x2047-n500-b8-6afd0a1f3253b6f9-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-64x4-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-64x8-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-64x16-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-128x32-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-256x64-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-512x64-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-512x128-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-1024x256-n1000-b64-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-1024x256-n500-b64-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-2048x512-n500-b32-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-4096x1024-n500-b16-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-8190x512-n500-b8-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp32-8190x2047-n500-b8-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-64x4-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-64x8-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-64x16-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-128x32-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-256x64-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-512x64-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-512x128-n1000-b128-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-1024x256-n1000-b64-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-1024x256-n500-b64-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-2048x512-n500-b32-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-4096x1024-n500-b16-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-8190x512-n500-b8-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp32-last-evalfp16-8190x2047-n500-b8-1edaaa40f7e90a8c-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-64x4-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-64x8-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-64x16-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-128x32-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-256x64-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-512x64-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-512x128-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-1024x256-n1000-b64-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-1024x256-n500-b64-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-2048x512-n500-b32-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-4096x1024-n500-b16-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-8190x512-n500-b16-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp32-8190x2047-n500-b16-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-64x4-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-64x8-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-64x16-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-128x32-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-256x64-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-512x64-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-512x128-n1000-b128-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-1024x256-n1000-b64-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-1024x256-n500-b64-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-2048x512-n500-b32-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-4096x1024-n500-b16-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-8190x512-n500-b8-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s125-fp32-last-evalfp16-8190x2047-n500-b8-8ebd9ed9c35e521e-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-64x4-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-64x8-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-64x16-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-128x32-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-256x64-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-512x64-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-512x128-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-1024x256-n1000-b64-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-1024x256-n500-b64-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-2048x512-n500-b32-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-4096x1024-n500-b16-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-8190x512-n500-b8-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp32-8190x2047-n500-b8-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-64x4-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-64x8-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-64x16-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-128x32-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-256x64-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-512x64-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-512x128-n1000-b128-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-1024x256-n1000-b64-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-1024x256-n500-b64-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-2048x512-n500-b32-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-4096x1024-n500-b16-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-8190x512-n500-b8-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s123-fp16-last-evalfp16-8190x2047-n500-b8-945ade3696dcdfbb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-64x4-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-64x8-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-64x16-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-128x32-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-256x64-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-512x64-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-512x128-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-1024x256-n1000-b64-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-1024x256-n500-b64-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-2048x512-n500-b32-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-4096x1024-n500-b16-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-8190x512-n500-b16-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp32-8190x2047-n500-b16-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-64x4-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-64x8-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-64x16-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-128x32-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-256x64-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-512x64-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-512x128-n1000-b128-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-1024x256-n1000-b64-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-1024x256-n500-b64-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-2048x512-n500-b32-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-4096x1024-n500-b16-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-8190x512-n500-b8-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s123-fp16-last-evalfp16-8190x2047-n500-b8-ed89dd4bad7ccf2a-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-64x4-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-64x8-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-64x16-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-128x32-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-256x64-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-512x64-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-512x128-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-1024x256-n1000-b64-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-1024x256-n500-b64-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-2048x512-n500-b32-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-4096x1024-n500-b16-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-8190x512-n500-b8-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp32-8190x2047-n500-b8-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-64x4-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-64x8-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-64x16-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-128x32-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-256x64-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-512x64-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-512x128-n1000-b128-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-1024x256-n1000-b64-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-1024x256-n500-b64-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-2048x512-n500-b32-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-4096x1024-n500-b16-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-8190x512-n500-b8-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s124-fp16-last-evalfp16-8190x2047-n500-b8-5264ace352670c38-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-64x4-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-64x8-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-64x16-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-128x32-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-256x64-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-512x64-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-512x128-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-1024x256-n1000-b64-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-1024x256-n500-b64-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-2048x512-n500-b32-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-4096x1024-n500-b16-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-8190x512-n500-b16-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp32-8190x2047-n500-b16-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-64x4-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-64x8-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-64x16-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-128x32-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-256x64-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-512x64-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-512x128-n1000-b128-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-1024x256-n1000-b64-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-1024x256-n500-b64-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-2048x512-n500-b32-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-4096x1024-n500-b16-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-8190x512-n500-b8-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s124-fp16-last-evalfp16-8190x2047-n500-b8-9e32ccc2ce389360-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-64x4-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-64x8-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-64x16-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-128x32-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-256x64-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-512x64-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-512x128-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-1024x256-n1000-b64-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-1024x256-n500-b64-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-2048x512-n500-b32-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-4096x1024-n500-b16-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-8190x512-n500-b8-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp32-8190x2047-n500-b8-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-64x4-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-64x8-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-64x16-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-128x32-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-256x64-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-512x64-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-512x128-n1000-b128-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-1024x256-n1000-b64-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-1024x256-n500-b64-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-2048x512-n500-b32-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-4096x1024-n500-b16-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-8190x512-n500-b8-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-gdn-s125-fp16-last-evalfp16-8190x2047-n500-b8-0cc887187c6063eb-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-64x4-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-64x8-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-64x16-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-128x32-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-256x64-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-512x64-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-512x128-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-1024x256-n1000-b64-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-1024x256-n500-b64-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-2048x512-n500-b32-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-4096x1024-n500-b16-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-8190x512-n500-b16-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp32-8190x2047-n500-b16-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "59caf02282ef418abc77da09411e4dd086ec2be1f3a8df5bef214a3311d9fead",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-64x4-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "712f2ed078441018d5e5105403984e30f54b89ce85313998e4ffaed260977d1b",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-64x8-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "7298e6d64228dc9b8e75d90a58ceed496d8665e6ebf015689030e2593ffbf970",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-64x16-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "a23066631270a2b388cbcbb247516054c1ccd018cd0270e1167315940e48a0a9",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-128x32-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "b5a14d15ac1321e868ed153a60a440ab1170bf0bf9dbab035adeabc115b1a47d",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-256x64-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "bdc202e48037c839a7c56b7e1f7c9c7d6f368d38e006a46d739da726c94fd649",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-512x64-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "042872131264d4b41ea03a6cdbf7733e3e4301ca773349ec9434d827bd9c4a5e",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-512x128-n1000-b128-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 384,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "4e659938a27b5e33a3d99d261f1b2680fdeb1cd8c74363ea5a71ac4d1c36296c",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-1024x256-n1000-b64-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "f30f1e09e1300deb2e0f430d7c50c47a77f58f43657aa4d6f425f938a91a9acb",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-1024x256-n500-b64-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 192,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "e446efc9f4dc774377c56c403a468c747870beb18ff0320f15df794dcb69f015",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-2048x512-n500-b32-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 96,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "0981292ce8ebea1402a4c3a7a6655dfc1de42688c329bd5ea921541a0f1d16ed",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-4096x1024-n500-b16-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 48,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "37a8533a985fabd3db03daf9dfd3a8e0936513ab724039c63b9a22bf352d002d",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-8190x512-n500-b8-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    },
+    {
+      "dataset_hash": "8c16a91ea127bb7bf2130238ecd56b49fb1fd73bb3e0c2f4c586ddba8e9b97a9",
+      "event_id": "smoke-2080ti-flash-s125-fp16-last-evalfp16-8190x2047-n500-b8-f85fe4db488aefea-ze56fa9ab-f9a8bf707",
+      "num_examples": 24,
+      "status": "completed"
+    }
+  ],
+  "machine": "2080ti",
+  "recorded_at_utc": "2026-07-26T01:48:43.606954+00:00",
+  "status": "passed"
+}

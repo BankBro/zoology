@@ -1,0 +1,29 @@
+{
+  "binding_sha256": "e62d7c987473ee8fcb93cfdbe8ecf7e5433db3420029f69e8dc7cee94f57df7c",
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "gate_files": [
+    {
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/preflight.json",
+      "sha256": "d4dbbec2376866906d3c80176ca73a8d191c62233e3ad6ac74780d27efb15a86"
+    },
+    {
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/gates/training-smoke.json",
+      "sha256": "e5fb1ac2783f3c9f67f2e184054d3f706c322e38d9206b5601d8b8bd8b61a381"
+    },
+    {
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/gates/batch-profile.json",
+      "sha256": "9b1db1ce2b2e6d95237a69877052907ab9bf7792a6735571871a5944502d64a5"
+    },
+    {
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/gates/eval-smoke.json",
+      "sha256": "94de6f59025288dee9a6e936065d8adbcef24fe657795c155b27811dc452ec16"
+    },
+    {
+      "path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/gates/legacy-canary.json",
+      "sha256": "c345eabd263c8f9ea29ddbe358aa82bc2382ba2c23342f9cb53c56a6ccb27a11"
+    }
+  ],
+  "machine": "2080ti",
+  "recorded_at_utc": "2026-07-26T01:59:59.195472+00:00",
+  "status": "passed"
+}

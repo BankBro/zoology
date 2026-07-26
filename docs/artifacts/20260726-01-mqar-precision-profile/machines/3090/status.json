@@ -1,0 +1,10 @@
+{
+  "completed_nodes": 45,
+  "current": "formal-complete",
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "formal_runs": 18,
+  "machine": "3090",
+  "phase": "formal",
+  "status": "completed",
+  "updated_at_utc": "2026-07-26T13:50:07.475389+00:00"
+}

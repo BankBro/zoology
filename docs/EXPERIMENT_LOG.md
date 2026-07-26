@@ -59,3 +59,15 @@
 - 修正: 标准n=1000 canary改为按checkpoint完整test-config顺序恢复原始segment seed并只读加载对应`data_*.pt` cache; longer n=500仍使用锁定hash的生成数据. `64x4`与test-config最后一个`1024x256`单事件复验均与旧指标严格相等, delta为0; 严格相等门槛未放宽.
 - 输出: 旧结果非破坏性归档在双机`outputs/invalidated-80483073-canary-generated-data/`; debug单事件保存在2080 Ti `outputs/dev-cache-canary-*`.
 - 下一步: 提交并同步修复后, 以新commit从头重跑双机全部preflight, train/validation/eval smoke, capacity/invariance和canary; global gate通过前继续禁止formal.
+
+## 8. 2026-07-26: MQAR 低精度与长度泛化正式实验完成
+
+- `experiment_id`: `20260726-01-mqar-precision-profile`.
+- 目的: 在2080 Ti上比较FP32与AMP-FP16, 在RTX 3090上比较FP32, AMP-FP16与AMP-BF16, 对当前Flash/GDN基线完成三seed重训及标准/longer-MQAR全精度网格评估.
+- 门禁: 2080 Ti通过52/52 capacity与batch invariance, 312/312 eval smoke, 26/26 canary和16/16标准accuracy审计; RTX 3090通过78/78 capacity与batch invariance, 702/702 eval smoke, 26/26 canary和16/16标准accuracy审计. 两机controlled eval resume均实际通过, global commit/cache/config gate全部为true.
+- 结果: 30/30正式训练run和2028个逻辑checkpoint-eval事件完成, 其中1066个物理执行, 962个best/last state-hash去重. GDN低精度matching质量与FP32近乎一致; Flash低精度变化方向随GPU改变, 但在四个真正外推slice的60/60个`GPU x dtype x seed x shape`配对中均高于GDN. 固定checkpoint只改变eval dtype的最大accuracy跨度为`0.002328`.
+- 效率: Flash低精度peak allocated约为FP32的`0.819x`; 3090 Flash-BF16平均wall time为FP32的`0.862x`. GDN低精度peak allocated约为FP32的`0.800x`, 并获得更明显训练加速. 30个run仅记录1次允许范围内的GradScaler skip, 全部正常完成epoch 4.
+- 审计: 独立artifact包含30条canonical training ledger, 780条canonical longer-MQAR ledger, 60个checkpoint file hash, 18个双机gate/status JSON及30个resolved config镜像hash. 本dtype probe不混入历史FP32推荐总表.
+- 基础设施修正: formal启动前发现coordinator的SSH argv在远端重组时丢失`bash -lc`命令边界; 修复为`shlex.join`单一远端命令后, 用真实3090 gate完成读写round-trip smoke, 再由原`build_global_gate`五项校验自动放行. 未绕过任何实验门禁.
+- 输出: [报告](20260726-01-mqar-precision-profile-report.md), [artifact](artifacts/20260726-01-mqar-precision-profile/README.md), [last图](artifacts/20260726-01-mqar-precision-profile/figures/matching-precision-last.pdf), [best图](artifacts/20260726-01-mqar-precision-profile/figures/matching-precision-best.pdf).
+- 下一步: 自然语言300M训练优先以RTX 3090 BF16做任务级容量与完整smoke, 再启动正式下游训练; 2080 Ti保留为FP16 B1/GA兼容路径.

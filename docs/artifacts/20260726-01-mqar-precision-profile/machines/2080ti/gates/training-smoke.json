@@ -1,0 +1,183 @@
+{
+  "machine": "2080ti",
+  "recorded_at_utc": "2026-07-25T22:49:40.554734+00:00",
+  "sources": [
+    {
+      "checkpoint_file_sha256": "d841073d92b120a550e919b8162d4c2663986a09ca84ed0fd498f93a42970ab0",
+      "checkpoint_model_state_sha256": "5bab40c58ebccf09bbf44f62c1e4ecea09e32ddfff1d113e5a6140ec5d7b90c1",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s123-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 123,
+      "source_id": "2080ti-gdn-s123-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "fe66b04c4f8972de585aa2e13a7b049f86084170cbf5f51c284735c12d0b153b",
+      "checkpoint_model_state_sha256": "e089cdc1e08e04775ab16735ce5fa56e481acd46f36f000d20a5edcec899712b",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s123-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 123,
+      "source_id": "2080ti-flash-s123-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "33e19533288fdea4ea1004e9ac2e72bceb9c5a2f2cdc97dd8fd80de35b93f276",
+      "checkpoint_model_state_sha256": "a3d68160e5e780d4e57c3a36f72db60dd43f4d9c6a5e34c85fc11c29357d0dd4",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s124-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 124,
+      "source_id": "2080ti-gdn-s124-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "68c60ac539cc200bdaf0371a1be855dd44024dd770bd8d50a0173937c8207652",
+      "checkpoint_model_state_sha256": "6afd0a1f3253b6f9974458bd028ddcfca9fdfdebabbdc97e780b71653ae13882",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s124-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 124,
+      "source_id": "2080ti-flash-s124-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "258647f7dda2385d90387b395e5b7bcafa925ca78f43f10f0686e2fe6b41c5d4",
+      "checkpoint_model_state_sha256": "1edaaa40f7e90a8c3df5cd708103a629a35c54689b1253b9d1e0a92503ab2126",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s125-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 125,
+      "source_id": "2080ti-gdn-s125-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "923e63ffcab2bd5251548757c0ce68691497359a979a90d25e8a9d938fe12f11",
+      "checkpoint_model_state_sha256": "8ebd9ed9c35e521e09ce25eb8722ea204fcff161f6b92cd4c7ab1a292726aab2",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s125-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 125,
+      "source_id": "2080ti-flash-s125-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "3619a145a1af42353d63d291e6c19c8754ce64cad38f9afe9f86052848404e8d",
+      "checkpoint_model_state_sha256": "945ade3696dcdfbb23633f48c9450e1bfe59925419111a107ad8acfb040ee1a4",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s123-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 123,
+      "source_id": "2080ti-gdn-s123-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "53cc58cd34c3bf0fbc45bd0f820624f508120fef006e1b8e204b04b94e788529",
+      "checkpoint_model_state_sha256": "ed89dd4bad7ccf2a097c2ca04a8891ec7bb390eaa96b2b6a997118c2e095b65b",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s123-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 123,
+      "source_id": "2080ti-flash-s123-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "dce0d797453409f799ee37db5ec10e4184de8ac6871522040838491027a10060",
+      "checkpoint_model_state_sha256": "5264ace352670c38ed60482b1f55e4eab1fea68ff8028ed48599a8e1c2deb6a6",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s124-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 124,
+      "source_id": "2080ti-gdn-s124-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "b0224bb558e672b87e2873b55a9b7daaccb0ef17c5f46f4d3dec0b1ee10a1761",
+      "checkpoint_model_state_sha256": "9e32ccc2ce389360188b264a8ce015f2b7f4cbe853ec2c5e02a5f37799b9ef5f",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s124-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 124,
+      "source_id": "2080ti-flash-s124-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "cd71b1313b4c3a917a25d67292318a993caa1a829511693f800c77fa6a4be09f",
+      "checkpoint_model_state_sha256": "0cc887187c6063eb1f494c9074536dc254b7d1c1205558cdccf59a06b6cc1568",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/gdn-s125-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "gdn",
+      "seed": 125,
+      "source_id": "2080ti-gdn-s125-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "054c9e7dfcad33bd36893180cb6bd8ec609f02debb5d74fb4ec66779fc14ea3c",
+      "checkpoint_model_state_sha256": "f85fe4db488aefead70ec865f99671b46a603937f313390297cfd7b74cba4727",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/2080ti/checkpoints/smoke/20260726-01-mqar-precision-profile-2080ti-smoke/flash-s125-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "2080ti",
+      "model": "flash",
+      "seed": 125,
+      "source_id": "2080ti-flash-s125-fp16-last",
+      "train_precision": "fp16"
+    }
+  ],
+  "status": "passed",
+  "stress": [
+    {
+      "descriptor_id": "2080ti-flash-s123-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "2080ti-flash-s124-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "2080ti-flash-s125-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "2080ti-flash-s123-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "2080ti-flash-s124-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "2080ti-flash-s125-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "binding_sha256": "82aa8448521c742d63bddeb811f4bb8ef41c556124a7736d8a0851e29b55d839",
+  "cache_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "checks": {
+    "cache_content": true,
+    "flash_commit": true,
+    "machines": true,
+    "shared_config_hashes": true,
+    "zoology_commit": true
+  },
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "flash_commit": "9a8bf7074f90abca3a0be1faf0201c25dbfaf50c",
+  "local_smoke_binding": "e62d7c987473ee8fcb93cfdbe8ecf7e5433db3420029f69e8dc7cee94f57df7c",
+  "recorded_at_utc": "2026-07-26T04:10:02.432650+00:00",
+  "remote_smoke_binding": "fa087df009417415010ab6fea9fc7e0204a22eb60f48b64d27fbceb2f88b9111",
+  "status": "passed",
+  "zoology_commit": "e56fa9abd7278fdd43b59fa60e89406b751fc98a"
+}

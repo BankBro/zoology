@@ -1,0 +1,10 @@
+{
+  "completed_nodes": 30,
+  "current": "formal-complete",
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "formal_runs": 12,
+  "machine": "2080ti",
+  "phase": "formal",
+  "status": "completed",
+  "updated_at_utc": "2026-07-26T10:37:32.453730+00:00"
+}

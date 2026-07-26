@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import shlex
 import subprocess
 import sys
 import time
@@ -36,6 +37,17 @@ RELATIVE_OUTPUT = Path(
 
 def remote_read(relative_path: Path) -> dict[str, Any] | None:
     path = REMOTE_PROJECT / RELATIVE_OUTPUT / relative_path
+    remote_command = shlex.join(
+        [
+            "docker",
+            "exec",
+            "-u",
+            "lyj",
+            REMOTE_CONTAINER,
+            "cat",
+            str(path),
+        ]
+    )
     command = [
         "ssh",
         "-o",
@@ -43,14 +55,7 @@ def remote_read(relative_path: Path) -> dict[str, Any] | None:
         "-o",
         "ConnectTimeout=10",
         REMOTE_HOST,
-        "docker",
-        "exec",
-        "-u",
-        "lyj",
-        REMOTE_CONTAINER,
-        "bash",
-        "-lc",
-        f"test -f {path} && cat {path}",
+        remote_command,
     ]
     result = subprocess.run(command, text=True, capture_output=True)
     if result.returncode != 0 or not result.stdout.strip():
@@ -73,19 +78,24 @@ def remote_write(relative_path: Path, payload: dict[str, Any]) -> None:
         f"t.write_bytes(base64.b64decode({encoded!r}));"
         "t.replace(p)"
     )
+    remote_command = shlex.join(
+        [
+            "docker",
+            "exec",
+            "-u",
+            "lyj",
+            REMOTE_CONTAINER,
+            "/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python",
+            "-c",
+            code,
+        ]
+    )
     command = [
         "ssh",
         "-o",
         "BatchMode=yes",
         REMOTE_HOST,
-        "docker",
-        "exec",
-        "-u",
-        "lyj",
-        REMOTE_CONTAINER,
-        "/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python",
-        "-c",
-        code,
+        remote_command,
     ]
     result = subprocess.run(command, text=True, capture_output=True)
     if result.returncode != 0:

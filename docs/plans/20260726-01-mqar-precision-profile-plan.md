@@ -161,3 +161,14 @@ last 是主结果, best 是敏感性分析. 若两者 state hash 相同, 物理�
 - 生成 final CSV, source manifest CSV, metadata JSON, README, last/best 图和正式报告.
 
 预计完整 wall time 为 14-18 小时, 若 best 与 last 经常不同或发生可恢复重试, 上限约 20 小时.
+
+## 9. 执行结果
+
+- 状态: 已完成.
+- 正式训练: 2080 Ti 12/12, RTX 3090 18/18, 合计30/30, 全部达到epoch 4.
+- 正式评估: 2028/2028逻辑checkpoint-eval完成; 1066个物理执行, 962个best/last state-hash去重.
+- 门禁: 双机全部train/validation/eval smoke, capacity, batch invariance, controlled resume, legacy canary和global commit/cache/config gate通过.
+- 数据身份: 两机13个`shape x num_examples`口径均为单一dataset hash; global cache content hash为`d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8`.
+- 代码绑定: Zoology `e56fa9abd7278fdd43b59fa60e89406b751fc98a`, Flash-VQG `9a8bf7074f90abca3a0be1faf0201c25dbfaf50c`.
+- 收尾产物: 30条canonical training ledger, 780条canonical longer-MQAR ledger, 60个checkpoint hash, 18个双机gate/status JSON与30个resolved config镜像, final/summary CSV, last/best PDF与PNG图和正式报告均已生成.
+- 详细结论: [正式报告](../20260726-01-mqar-precision-profile-report.md).

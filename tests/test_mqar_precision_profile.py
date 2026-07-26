@@ -1,4 +1,5 @@
 import importlib.util
+import shlex
 import sys
 from pathlib import Path
 
@@ -209,6 +210,49 @@ def test_global_gate_binds_commits_and_cache():
         "machines": True,
         "shared_config_hashes": True,
     }
+
+
+def test_coordinator_ssh_transport_preserves_remote_argv(monkeypatch):
+    calls = []
+
+    class Result:
+        returncode = 0
+        stderr = ""
+
+        def __init__(self, stdout=""):
+            self.stdout = stdout
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        remote_argv = shlex.split(command[-1])
+        if remote_argv[-2] == "cat":
+            return Result('{"machine":"3090","status":"passed"}\n')
+        return Result()
+
+    monkeypatch.setattr(COORDINATOR.subprocess, "run", fake_run)
+    payload = COORDINATOR.remote_read(Path("gates/LOCAL_SMOKE_PASSED.json"))
+    assert payload == {"machine": "3090", "status": "passed"}
+    read_argv = shlex.split(calls[-1][-1])
+    assert read_argv[:6] == [
+        "docker",
+        "exec",
+        "-u",
+        "lyj",
+        "Flash-VQG-tun",
+        "cat",
+    ]
+
+    COORDINATOR.remote_write(Path("gates/test.json"), payload)
+    write_argv = shlex.split(calls[-1][-1])
+    assert write_argv[:5] == [
+        "docker",
+        "exec",
+        "-u",
+        "lyj",
+        "Flash-VQG-tun",
+    ]
+    assert write_argv[-2] == "-c"
+    assert "base64.b64decode" in write_argv[-1]
 
 
 def test_aggregation_keeps_standard_and_longer_protocols_separate():

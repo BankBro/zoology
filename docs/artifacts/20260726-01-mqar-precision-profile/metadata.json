@@ -1,0 +1,21 @@
+{
+  "cache_content_sha256": "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8",
+  "canonical_longer_mqar_ledger_rows": 780,
+  "canonical_training_ledger_rows": 30,
+  "checkpoint_manifest_rows": 60,
+  "collected_at_utc": "2026-07-26T15:16:19.788669+00:00",
+  "deduplicated_evaluation_rows": 962,
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "flash_commit": "9a8bf7074f90abca3a0be1faf0201c25dbfaf50c",
+  "global_gate_binding_sha256": "82aa8448521c742d63bddeb811f4bb8ef41c556124a7736d8a0851e29b55d839",
+  "gpu_pooling": "disabled",
+  "logical_evaluation_rows": 2028,
+  "mirrored_gate_status_rows": 18,
+  "mirrored_json_evidence_rows": 48,
+  "mirrored_resolved_config_rows": 30,
+  "physical_evaluation_rows": 1066,
+  "statistics": "mean and population standard deviation over three seeds per machine",
+  "status": "completed",
+  "training_rows": 30,
+  "zoology_commit": "e56fa9abd7278fdd43b59fa60e89406b751fc98a"
+}

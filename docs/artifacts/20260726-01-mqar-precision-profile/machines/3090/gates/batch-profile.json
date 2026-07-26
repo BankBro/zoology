@@ -1,0 +1,2215 @@
+{
+  "batch_invariance": [
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:64x4:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:64x8:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:64x16:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:128x32:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:256x64:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:512x64:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:512x128:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:1024x256:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:1024x256:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:2048x512:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 64,
+      "smaller_batch_size": 32
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:4096x1024:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:8190x512:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp32:8190x2047:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:64x4:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:64x8:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:64x16:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:128x32:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:256x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:512x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:512x128:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:1024x256:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:1024x256:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:2048x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 64,
+      "smaller_batch_size": 32
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:4096x1024:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:8190x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:fp16:8190x2047:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:64x4:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:64x8:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:64x16:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:128x32:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:256x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:512x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:512x128:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:1024x256:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:1024x256:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:2048x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 2.288818359375e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 64,
+      "smaller_batch_size": 32
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:4096x1024:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:8190x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:gdn:bf16:8190x2047:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:64x4:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:64x8:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:64x16:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:128x32:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:256x64:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:512x64:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:512x128:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:1024x256:n1000",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:1024x256:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:2048x512:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:4096x1024:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 9.5367431640625e-07,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:8190x512:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp32:8190x2047:n500",
+      "loss_tolerance": 1e-05,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:64x4:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.430511474609375e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:64x8:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.33514404296875e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:64x16:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 7.62939453125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:128x32:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:256x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 7.62939453125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:512x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:512x128:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:1024x256:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:1024x256:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:2048x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 64,
+      "smaller_batch_size": 32
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:4096x1024:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:8190x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:fp16:8190x2047:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.9073486328125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:64x4:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.000244140625,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:64x8:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 3.0517578125e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:64x16:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 6.103515625e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:128x32:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:256x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 3.0517578125e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:512x64:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:512x128:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 0.0,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:1024x256:n1000",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 7.62939453125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:1024x256:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 1.52587890625e-05,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 128,
+      "smaller_batch_size": 64
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:2048x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 5.7220458984375e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 64,
+      "smaller_batch_size": 32
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:4096x1024:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 3.814697265625e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 32,
+      "smaller_batch_size": 16
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:8190x512:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 7.62939453125e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    },
+    {
+      "accuracy_match": true,
+      "key": "3090:flash:bf16:8190x2047:n500",
+      "loss_tolerance": 0.005,
+      "max_sample_loss_delta": 3.814697265625e-06,
+      "passed": true,
+      "prediction_match": true,
+      "selected_batch_size": 16,
+      "smaller_batch_size": 8
+    }
+  ],
+  "experiment_id": "20260726-01-mqar-precision-profile",
+  "machine": "3090",
+  "profiles": [
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:64x4:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:64x8:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:64x16:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:128x32:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:256x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:512x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:512x128:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:1024x256:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:1024x256:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:2048x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 64,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:4096x1024:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:8190x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:gdn:fp32:8190x2047:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x2047"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:64x4:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:64x8:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:64x16:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:128x32:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:256x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:512x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:512x128:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:1024x256:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:1024x256:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:2048x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 64,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:4096x1024:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:8190x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:gdn:fp16:8190x2047:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x2047"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:64x4:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:64x8:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:64x16:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:128x32:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:256x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:512x64:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:512x128:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:1024x256:n1000",
+      "model": "gdn",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:1024x256:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:2048x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 64,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:4096x1024:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:8190x512:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:gdn:bf16:8190x2047:n500",
+      "model": "gdn",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x2047"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:64x4:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:64x8:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:64x16:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:128x32:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:256x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:512x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:512x128:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:1024x256:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:1024x256:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:2048x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:4096x1024:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:8190x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp32",
+      "key": "3090:flash:fp32:8190x2047:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "8190x2047"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:64x4:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:64x8:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:64x16:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:128x32:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:256x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:512x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:512x128:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:1024x256:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:1024x256:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:2048x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 64,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:4096x1024:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:8190x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "fp16",
+      "key": "3090:flash:fp16:8190x2047:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x2047"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:64x4:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x4"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:64x8:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x8"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:64x16:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "64x16"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:128x32:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "128x32"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:256x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "256x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:512x64:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x64"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:512x128:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "512x128"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:1024x256:n1000",
+      "model": "flash",
+      "num_examples": 1000,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:1024x256:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 128,
+      "shape": "1024x256"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:2048x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 64,
+      "shape": "2048x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:4096x1024:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 32,
+      "shape": "4096x1024"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:8190x512:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x512"
+    },
+    {
+      "attempts": [
+        {
+          "batch_size": 128,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 64,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 32,
+          "failure_type": "oom",
+          "status": "oom"
+        },
+        {
+          "batch_size": 16,
+          "failure_type": null,
+          "status": "completed"
+        }
+      ],
+      "eval_precision": "bf16",
+      "key": "3090:flash:bf16:8190x2047:n500",
+      "model": "flash",
+      "num_examples": 500,
+      "selected_batch_size": 16,
+      "shape": "8190x2047"
+    }
+  ],
+  "recorded_at_utc": "2026-07-26T00:14:36.899628+00:00",
+  "status": "passed"
+}

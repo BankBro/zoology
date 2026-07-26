@@ -1,0 +1,270 @@
+{
+  "machine": "3090",
+  "recorded_at_utc": "2026-07-25T22:56:10.040575+00:00",
+  "sources": [
+    {
+      "checkpoint_file_sha256": "edaef90c43ae69e5ea278636e19b6c22d9c59d5b653fd6e72a72a6a1f38c575b",
+      "checkpoint_model_state_sha256": "a8285903b169e39251f85ad1ccc6135d59f60afb35c0afec0466138aea03fc23",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s123-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 123,
+      "source_id": "3090-gdn-s123-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "263292cf42d4ee24de2a62b8a88d2dc02319ddad4b8af04e4d530b78cda3a69e",
+      "checkpoint_model_state_sha256": "4ab49b1ce1c58345019e3b5b8faf7cb82bba25c9fa38f8849a06c30709ec71b8",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s123-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 123,
+      "source_id": "3090-flash-s123-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "c3314ba1b4b62258126a8caa278d57dd49204f300ef5454aeb1da4066ff968da",
+      "checkpoint_model_state_sha256": "ccf84ad8f4cefcd4aeb3bb452c9ec9e35dc5ca1c7cf3938157b71a54451097e9",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s124-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 124,
+      "source_id": "3090-gdn-s124-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "a1a5a687da95afc5a3033a52cd961b12a1441d026ba11ba04a4b3f99ec04c15c",
+      "checkpoint_model_state_sha256": "b51edd8d29fc422772727003ffac76b1421bb822c32cf3dac774e05f479e023c",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s124-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 124,
+      "source_id": "3090-flash-s124-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "29c26259ed58b6049349e6c63e12d7d63d267a113f12dee2b6e8d0bd75d601ac",
+      "checkpoint_model_state_sha256": "75762d9586e59d254d73091a83e3648121d7d60ef73976b6be45083961cc9acf",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s125-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 125,
+      "source_id": "3090-gdn-s125-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "0349165ef08faccf819efd57470caa5501d3cb5ffa63c8e837c626868a7dd5b9",
+      "checkpoint_model_state_sha256": "bec9d5a92d698bcc69a4c3266354bf66241097bc554f34a682b41496934e0b85",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s125-fp32-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 125,
+      "source_id": "3090-flash-s125-fp32-last",
+      "train_precision": "fp32"
+    },
+    {
+      "checkpoint_file_sha256": "99f8cd87218f1219279b9e3f65e882a9399298896437877739c9d71efc8ed806",
+      "checkpoint_model_state_sha256": "47e92136ac3d2b41839f84272b7b3781a651de08ac30659797e05f6baec19796",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s123-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 123,
+      "source_id": "3090-gdn-s123-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "ee63e4df6f807cc015b12ce448b2ac12d57742af89b1d88eab50fb8280f54326",
+      "checkpoint_model_state_sha256": "8e5500dfa6691436762f23d60f941a342d610294da20f70ba00c6bf824f2ac6d",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s123-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 123,
+      "source_id": "3090-flash-s123-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "c818a9050ad23c2d63a742be9892c26dc62a72049d6b50d623f27e0d69de3bc4",
+      "checkpoint_model_state_sha256": "a0de111b4adbeaa3686905f3058486f83e22d22a7208ac0388520db8553f3557",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s124-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 124,
+      "source_id": "3090-gdn-s124-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "5545152454453dc701ec5e064fc2d49e760d3434afa4e377204f1509f29300ef",
+      "checkpoint_model_state_sha256": "c679994b87f95e3d757acd3f56354edab6ac5ff81bad01cd1a9f1b8f527f5ec6",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s124-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 124,
+      "source_id": "3090-flash-s124-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "af9a034c0f499379bebb39376f304ac33d7449f4db59b68ea07aca6bcd9c2597",
+      "checkpoint_model_state_sha256": "bf0193b343a117886a600d98f71c1a70094c601919976260ffc2ce4ea2ebca30",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s125-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 125,
+      "source_id": "3090-gdn-s125-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "7e0b7ddea3615568ec6fcb0a973bfbddc63888d814f604ff94efe2f0b9ad3df9",
+      "checkpoint_model_state_sha256": "968b47048386596840172c4f430f450bcdbc3438c770e032969562897096a0c6",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s125-fp16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 125,
+      "source_id": "3090-flash-s125-fp16-last",
+      "train_precision": "fp16"
+    },
+    {
+      "checkpoint_file_sha256": "1d92f27e0a65c3fcba9563a19f2a9969c2b9fddfcecde7761d3dbf9fec3a2431",
+      "checkpoint_model_state_sha256": "0fe9675f53a8c898bb37787103eb5bf8c41cdb5fa9e5de599e27c1c45afb3fd5",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s123-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 123,
+      "source_id": "3090-gdn-s123-bf16-last",
+      "train_precision": "bf16"
+    },
+    {
+      "checkpoint_file_sha256": "af9bef0d2e46b580b766c792ac55d1760ae40bf132097cdcb9520eb18a11366a",
+      "checkpoint_model_state_sha256": "3e4ec98886d1350142b43ca27bacc155408effb5d54ccc01974f28e245114b23",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s123-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 123,
+      "source_id": "3090-flash-s123-bf16-last",
+      "train_precision": "bf16"
+    },
+    {
+      "checkpoint_file_sha256": "75850ee1be778698bd05e073f8c5f930043a7314dbdd42257b2389405006243a",
+      "checkpoint_model_state_sha256": "d37251f703a7a03fd313c48ae6090b40f4bf1386405e545b9e0547baaa8728ef",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s124-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 124,
+      "source_id": "3090-gdn-s124-bf16-last",
+      "train_precision": "bf16"
+    },
+    {
+      "checkpoint_file_sha256": "b9cb39c4aa2220e012fbdb2327bb068dd0afb6b5bff2eb61bd5225aa9c8e43e6",
+      "checkpoint_model_state_sha256": "e0504efade2ae098f087ea468175a7940475a24ae158e91fbabd43f2064ce914",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s124-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 124,
+      "source_id": "3090-flash-s124-bf16-last",
+      "train_precision": "bf16"
+    },
+    {
+      "checkpoint_file_sha256": "80a59d52a06265b661429c7542955be74a4b17c99e316f9339ab1b81d809d4d0",
+      "checkpoint_model_state_sha256": "636e4e86b79791ead36557d6f58e496a81fdbca309084320a56d921de6aec8ff",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/gdn-s125-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "gdn",
+      "seed": 125,
+      "source_id": "3090-gdn-s125-bf16-last",
+      "train_precision": "bf16"
+    },
+    {
+      "checkpoint_file_sha256": "9cfd95f479b5722a2a103b947b716432efaf363db9264534ca0279b2c2e001e1",
+      "checkpoint_model_state_sha256": "fc8f2dc71b62eeb660c1afd21a308dd8ded2c5be552341741e952b89ed2808ef",
+      "checkpoint_path": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/outputs/machines/3090/checkpoints/smoke/20260726-01-mqar-precision-profile-3090-smoke/flash-s125-bf16-b64ga4-smoke/last.pt",
+      "checkpoint_role": "last",
+      "machine": "3090",
+      "model": "flash",
+      "seed": 125,
+      "source_id": "3090-flash-s125-bf16-last",
+      "train_precision": "bf16"
+    }
+  ],
+  "status": "passed",
+  "stress": [
+    {
+      "descriptor_id": "3090-flash-s123-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s124-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s125-fp32",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s123-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s124-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s125-fp16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s123-bf16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s124-bf16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    },
+    {
+      "descriptor_id": "3090-flash-s125-bf16",
+      "runtime_counters": [
+        2060
+      ],
+      "status": "completed"
+    }
+  ]
+}
