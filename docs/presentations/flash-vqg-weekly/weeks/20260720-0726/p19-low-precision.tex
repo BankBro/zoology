@@ -1,0 +1,63 @@
+{%
+\def\insertshortauthor{吕昀键}
+\def\insertshorttitle{07.20\textasciitilde07.26 工作进展}
+\def\insertshortdate{2026.07.27}
+\begin{frame}[t]{低精度实验: 长度外推优势保持}
+  \centering
+  \vspace{0cm}
+  \begin{minipage}{0.94\textwidth}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.71\linewidth}
+      \vskip0.08cm
+      \makebox[\linewidth][c]{%
+        \includegraphics[
+          width=1.17\linewidth,
+          height=5.15cm,
+          keepaspectratio
+        ]{20260720-0726/p19/matching-precision-last.png}%
+      }
+    \end{column}
+
+    \begin{column}{0.26\linewidth}
+      \thinsectionbar{完整覆盖}
+      \vskip0.04cm
+      \begin{beamercolorbox}[sep=3pt,rounded=true,wd=\linewidth]{block body}
+        \scriptsize
+        2080 Ti: FP32/FP16.\par
+        RTX 3090: FP32/FP16/BF16.\par
+        \textcolor{scured}{\bfseries 30/30} 个正式 4 epoch run.
+      \end{beamercolorbox}
+
+      \vskip0.06cm
+      \thinsectionbar{质量与机制}
+      \vskip0.04cm
+      \begin{beamercolorbox}[sep=3pt,rounded=true,wd=\linewidth]{block body}
+        \scriptsize
+        外推切片: Flash \textcolor{scured}{\bfseries 60/60} 配对领先.\par
+        训练端点: 仅 \textbf{3/15} 配对领先.\par
+        \vskip0.05cm
+        固定 checkpoint 改 eval dtype:\par
+        max accuracy span $\leq \textbf{0.002328}$.
+      \end{beamercolorbox}
+
+      \vskip0.06cm
+      \thinsectionbar{RTX 3090 Flash BF16}
+      \vskip0.04cm
+      \begin{beamercolorbox}[sep=3pt,rounded=true,wd=\linewidth]{block body}
+        \scriptsize
+        Wall time: \textcolor{scured}{\bfseries 0.862$\times$} FP32.\par
+        Peak allocated: \textcolor{scured}{\bfseries 0.819$\times$} FP32.\par
+        \vskip0.05cm
+        主要差异来自低精度\textbf{训练轨迹}, 不是评估 dtype.
+      \end{beamercolorbox}
+    \end{column}
+  \end{columns}
+
+  \vskip0cm
+  \begin{beamercolorbox}[sep=3pt,rounded=true,wd=\linewidth]{block body}
+    \centering\small
+    \textcolor{scured}{\bfseries 结论: FP16/BF16 未破坏 Flash 的长度外推优势; RTX 3090 BF16 兼具质量与效率依据.}
+  \end{beamercolorbox}
+  \end{minipage}
+\end{frame}
+}

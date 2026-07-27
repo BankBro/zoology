@@ -1,0 +1,95 @@
+{%
+\def\insertshortauthor{吕昀键}
+\def\insertshorttitle{07.20\textasciitilde07.26 工作进展}
+\def\insertshortdate{2026.07.27}
+\begin{frame}[t]{GD residual 优化后速度提升 4.6--8.4$\times$}
+  \centering
+  \vspace{0.10cm}
+  \begin{minipage}{0.92\textwidth}
+
+  \thinsectionbar{优化路径: 去物化, 融合计算, backward 重算}
+  \vskip0.12cm
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.38\linewidth}
+      \begin{beamercolorbox}[sep=5pt,rounded=true,wd=\linewidth]{block body}
+        \small
+        \textcolor{gray}{\bfseries Reference}\par
+        \vskip0.04cm
+        Python grouped recurrence\par
+        selected read 写出大型中间张量
+      \end{beamercolorbox}
+    \end{column}
+
+    \begin{column}{0.06\linewidth}
+      \centering
+      {\Large\textcolor{scured}{$\Rightarrow$}}
+    \end{column}
+
+    \begin{column}{0.56\linewidth}
+      \begin{beamercolorbox}[sep=5pt,rounded=true,wd=\linewidth]{block body}
+        \small
+        \textcolor{scured}{\bfseries Optimized}\par
+        \vskip0.04cm
+        FP32 Triton recurrence + fused selected-read\par
+        backward 重算中间量, 避免向 HBM 写出完整读出张量
+      \end{beamercolorbox}
+    \end{column}
+  \end{columns}
+
+  \vskip0.20cm
+  \thinsectionbar{相对自身 reference 的双 GPU 实测}
+  \vskip0.12cm
+  \setlength{\tabcolsep}{3pt}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.315\linewidth}
+      \begin{beamercolorbox}[sep=6pt,center,rounded=true,wd=\linewidth]{block body}
+        \small\textbf{Eval 加速}\par
+        \vskip0.16cm
+        \begin{tabular}{cc}
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries 8.33$\times$}} &
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries 8.39$\times$}} \\
+          {\scriptsize 2080 Ti} & {\scriptsize RTX 3090}
+        \end{tabular}
+        \vskip0.08cm
+      \end{beamercolorbox}
+    \end{column}
+
+    \begin{column}{0.315\linewidth}
+      \begin{beamercolorbox}[sep=6pt,center,rounded=true,wd=\linewidth]{block body}
+        \small\textbf{Train 加速}\par
+        \vskip0.16cm
+        \begin{tabular}{cc}
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries 4.91$\times$}} &
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries 4.62$\times$}} \\
+          {\scriptsize 2080 Ti} & {\scriptsize RTX 3090}
+        \end{tabular}
+        \vskip0.08cm
+      \end{beamercolorbox}
+    \end{column}
+
+    \begin{column}{0.315\linewidth}
+      \begin{beamercolorbox}[sep=6pt,center,rounded=true,wd=\linewidth]{block body}
+        \small\textbf{峰值显存降低}\par
+        \vskip0.16cm
+        \begin{tabular}{cc}
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries -68.2\%}} &
+          {\fontsize{15.5}{17}\selectfont\textcolor{scured}{\bfseries -54.5\%}} \\
+          {\scriptsize Eval} & {\scriptsize Train}
+        \end{tabular}
+        \vskip0.08cm
+      \end{beamercolorbox}
+    \end{column}
+  \end{columns}
+
+  \vskip0.14cm
+  \centering
+  {\scriptsize\color{gray}模型超参数、GD residual 数学机制与 FP32 数值策略保持不变.}
+
+  \vskip0.10cm
+  \begin{beamercolorbox}[sep=4pt,rounded=true,wd=\linewidth]{block body}
+    \centering\small
+    \textcolor{scured}{\bfseries 结论: 优化后 Flash/GDN 的核心时间与显存比值均进入 $2\times$ 以内, 效率问题基本关闭.}
+  \end{beamercolorbox}
+  \end{minipage}
+\end{frame}
+}
