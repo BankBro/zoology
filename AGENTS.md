@@ -40,9 +40,15 @@
 - 原始 analysis 放在 `zoology/analysis/flash_vqg/results/<launch_id>/`; 若没有生成, 在 artifact metadata 或 README 说明原因.
 - 正式 artifact 放在 `docs/artifacts/<experiment_id>/`, 至少包含 final CSV, source manifest CSV, metadata JSON 和 README.
 - 人读报告放在 `docs/<experiment_id>-report.md`.
-- 组会一周一次; 需要组会汇报时同步更新 `/home/lyj/mnt/project/Flash-VQG/slices/<week-topic>/`.
 - 总表归属: Flash-VQG rank/seed/capacity 写 `docs/artifacts/gd-residual-v1/`; 普通 GDN 写 `docs/artifacts/gdn/`; expanded-K 或 kernel 线写 `docs/artifacts/gdn-expanded-k/`; longer-MQAR eval 写 `docs/artifacts/longer-mqar/`; 正式结果和探索性结果不要混成同一个推荐总表.
 - checkpoint, swanlog 和大型 raw 默认原位保留; 若来源 worktree/env 会删除, 先把关键 manifest, hash, command, config, log 和 source/env snapshot 归档到 artifact.
+
+## Flash-VQG 展示稿管理
+
+- 唯一可维护源码放在 `docs/presentations/flash-vqg-weekly/`; `docs/slices/<date-topic>/` 只保存冻结的 `release.md` 和 `final/`.
+- 每周在 `weeks/<date-range>/` 新建目录, 每页使用一份只含一个 frame 的 `.tex` 文件.
+- 单页使用 `build-page.sh` 预览; 发布前从 `main.tex` 完整编译两遍并检查错误和版面溢出.
+- 详细约定见 `docs/presentations/flash-vqg-weekly/README.md` 和该目录下的 `AGENTS.md`.
 
 ## 多机 IP 与容器路径
 
