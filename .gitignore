@@ -196,14 +196,3 @@ cython_debug/
 # Local experiment artifacts
 /swanlog/*
 !/swanlog/.gitignore
-
-# 展示稿发布快照: 只追踪 release 元数据和 final 最终产物
-/docs/slices/*
-!/docs/slices/*/
-/docs/slices/*/*
-!/docs/slices/*/release.md
-!/docs/slices/*/final/
-!/docs/slices/*/final/**
-
-# Beamer 单页本地预览
-/docs/presentations/flash-vqg-weekly/previews/

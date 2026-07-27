@@ -45,10 +45,8 @@
 
 ## Flash-VQG 展示稿管理
 
-- 唯一可维护源码放在 `docs/presentations/flash-vqg-weekly/`; `docs/slices/<date-topic>/` 只保存冻结的 `release.md` 和 `final/`.
-- 每周在 `weeks/<date-range>/` 新建目录, 每页使用一份只含一个 frame 的 `.tex` 文件.
-- 单页使用 `build-page.sh` 预览; 发布前从 `main.tex` 完整编译两遍并检查错误和版面溢出.
-- 详细约定见 `docs/presentations/flash-vqg-weekly/README.md` 和该目录下的 `AGENTS.md`.
+- 展示稿源码和发布产物的 canonical 位置为 `/home/lyj/mnt/project/Flash-VQG/docs/presentations/flash-vqg-weekly/`.
+- zoology 只保留实验 report, artifact 和 ledger, 不再保存展示稿副本.
 
 ## 多机 IP 与容器路径
 
