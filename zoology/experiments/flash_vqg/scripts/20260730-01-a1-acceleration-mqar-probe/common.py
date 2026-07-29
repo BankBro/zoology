@@ -23,6 +23,7 @@ SEED = 123
 VARIANTS = {
     "a1-reference": {"block_len": 32, "write_topk": 4, "read_topk": 16},
     "a1-block128": {"block_len": 128, "write_topk": 4, "read_topk": 16},
+    "a1-block128-k2r8": {"block_len": 128, "write_topk": 2, "read_topk": 8},
     "a1-block256": {"block_len": 256, "write_topk": 4, "read_topk": 16},
     "a1-k2r8": {"block_len": 32, "write_topk": 2, "read_topk": 8},
     "a1-block256-k2r8": {"block_len": 256, "write_topk": 2, "read_topk": 8},
