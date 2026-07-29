@@ -1,0 +1,17 @@
+{
+  "a0_peak_reserved_mib": 3154.0,
+  "a1_peak_reserved_mib": 2424.0,
+  "final_model_exact": true,
+  "final_model_sha256": "452168eb9ab0f7b76a8c2eb364e85941e4241f6d5135682666d4a9bd5427b19f",
+  "final_optimizer_exact": true,
+  "final_optimizer_sha256": "de56b9e8568363294b978bbd367c511b0f26ee4befaa346fca916977c63f2cab",
+  "training_common_events": 1947,
+  "training_exact": true,
+  "training_exact_events": 1947,
+  "validation_accuracies": [
+    0.00027783203125,
+    0.0002431640625
+  ],
+  "validation_events": 2,
+  "validation_quality_exact": true
+}

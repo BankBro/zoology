@@ -1,0 +1,38 @@
+{
+  "first_gradient_difference": {
+    "event": "after_backward",
+    "field": "grad_sha256",
+    "left": "ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4",
+    "micro_step": 0,
+    "right": "b45a9c4a924f89847fe705fe28e6cf7ce11d56b447bd89596b2eada19c750bf9",
+    "window": 1
+  },
+  "first_loss_difference": {
+    "event": "forward",
+    "field": "loss",
+    "left": 9.006591796875,
+    "micro_step": 1,
+    "right": 9.0068359375,
+    "window": 10
+  },
+  "first_model_difference": {
+    "event": "after_zero_grad",
+    "field": "model_sha256",
+    "left": "f9a47378825bbc3333cb908196007ac465481ee0fdc67a56b2cd16c0a3f1df7d",
+    "micro_step": null,
+    "right": "130d5b59f297bb06f0ba1764eeaebe564c37b39c15aa97e5f4ddd353a96f40eb",
+    "window": 4
+  },
+  "first_optimizer_difference": {
+    "event": "after_zero_grad",
+    "field": "optimizer_sha256",
+    "left": "6b2cf456bc78d30d5fd31e2f69ecad07f1bf2a6e6af6027d4008888d9b89080d",
+    "micro_step": null,
+    "right": "d6944c9dd424fab42a68fd9c57246f71e4306203d76bd3375803402f61c7d461",
+    "window": 1
+  },
+  "window10_train_loss": {
+    "a0-fixed-off": 10.523124694824219,
+    "a1-fixed-post-phase1": 10.523200988769531
+  }
+}

@@ -19,11 +19,28 @@ SCRIPT_DIR = (
 def load_module(name: str, filename: str):
     if str(SCRIPT_DIR) not in sys.path:
         sys.path.insert(0, str(SCRIPT_DIR))
+    previous_common = sys.modules.get("common")
+    if filename != "common.py":
+        common_spec = importlib.util.spec_from_file_location(
+            "seed124_diag_common_dependency",
+            SCRIPT_DIR / "common.py",
+        )
+        assert common_spec is not None and common_spec.loader is not None
+        common_module = importlib.util.module_from_spec(common_spec)
+        common_spec.loader.exec_module(common_module)
+        sys.modules["common"] = common_module
     spec = importlib.util.spec_from_file_location(name, SCRIPT_DIR / filename)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        if filename != "common.py":
+            if previous_common is None:
+                sys.modules.pop("common", None)
+            else:
+                sys.modules["common"] = previous_common
     return module
 
 

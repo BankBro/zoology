@@ -8,7 +8,7 @@
 - GDN 对照: `gdnxk-h2-ek4-ev4-usegate0`, active state capacity `131072`.
 - 默认环境: `/home/lyj/miniconda3/envs/flash-vqg-fla042`, PyTorch 2.6.0+cu118, Triton 3.2.0, FLA 0.4.2.
 - 已验证代码: 当前 precision profile 的训练/评估绑定 Zoology `e56fa9a`, Flash-VQG `9a8bf70`; 历史 Longer-MQAR 恢复 runner 为 `ed95ec2`.
-- 依据: [效率报告](20260724-01-flash-vqg-gd-residual-efficiency-report.md), [FLA 兼容性报告](20260724-02-gdn-ek4-fla-compatibility-report.md), [Longer-MQAR报告](20260725-01-current-baselines-longer-mqar-report.md), [低精度与长度泛化报告](20260726-01-mqar-precision-profile-report.md), [Remat回归报告](20260729-01-mqar-gd-remat-regression-report.md).
+- 依据: [效率报告](20260724-01-flash-vqg-gd-residual-efficiency-report.md), [FLA 兼容性报告](20260724-02-gdn-ek4-fla-compatibility-report.md), [Longer-MQAR报告](20260725-01-current-baselines-longer-mqar-report.md), [低精度与长度泛化报告](20260726-01-mqar-precision-profile-report.md), [Remat回归报告](20260729-01-mqar-gd-remat-regression-report.md), [seed124因果诊断](20260729-03-mqar-seed124-remat-causal-diagnosis-report.md).
 
 ## 2. 当前进展
 
@@ -20,11 +20,12 @@
 - MQAR低精度profile已完成30/30个正式训练run和2028个逻辑checkpoint-eval事件. GDN的FP16/BF16 matching质量与FP32近乎一致; Flash低精度变化方向随GPU改变, 但在四个真正外推slice上, 全部60/60个`GPU x dtype x seed x shape`配对仍高于GDN. 固定checkpoint只改变eval dtype的最大accuracy跨度为`0.002328`.
 - 低精度训练显存收益明确: Flash peak allocated约降至FP32的`0.819x`, GDN约为`0.800x`. 3090上的Flash-BF16平均wall time为FP32的`0.862x`; 30个run全部保持FP32 master weights与optimizer state, 仅1次可接受的GradScaler skip.
 - GD `post_phase1` remat的确定性selected-read修复已完成RTX 3090 BF16三seed回归. 标准`1024x256` delta从历史`-0.04020`恢复为`+0.00650`, 四外推slice宏平均从`-0.10562`恢复为`+0.01743`; seed123和seed125的四epoch A0/A1状态逐位一致. 但seed124最终hash仍分叉, 终态为`quality_recovered_but_not_deterministic`, A1仍不替代A0.
+- Seed124剩余分叉已完成因果定位: FLA 0.4.2 `FusedRMSNormGated` backward在fresh process中选择不同Triton autotune归约config, 使layer1 output gate weight梯度产生最大`1.82e-12`差异. 固定config后,A0/A1 177-step、最终model/optimizer hash和两次validation质量指标完全一致. 当前不支持“remat数学语义改变”解释.
 
 ## 3. 下一步
 
 - 后续实验默认以上述 Flash-VQG、GDN 和 Conda 环境为基线.
 - 自然语言300M训练仍优先在RTX 3090使用BF16, 但当前不得启用`post_phase1` remat. A1同时通过三seed质量和逐seed最终hash门禁前, 不启动依赖A1的正式预训练.
-- 若继续A1路线, 优先用seed124独立进程长轨迹定位128步门禁之后未覆盖的首次state/gradient/optimizer分叉. native-BF16 selected-read可作为并行的独立显存方案, 但任一候选均需重新通过同口径MQAR与Longer-MQAR回归.
+- 若继续A1路线, 优先在Flash-VQG中生产化显式、确定性的output gate backward, 比较固定kernel config的吞吐, 再重跑fresh-process、177-step和三seed MQAR/Longer-MQAR门禁. native-BF16 selected-read仍可作为并行独立显存方案.
 - 若继续研究MQAR数值稳定性, 优先定位Flash跨GPU训练轨迹的首次state-hash分叉; 若需加强结论, 增加新的独立training seeds.
 - 如需更换基线, 先完成正式对照实验并更新本页与实验日志.

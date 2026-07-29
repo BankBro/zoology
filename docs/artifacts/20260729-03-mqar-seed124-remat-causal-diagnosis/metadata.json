@@ -1,0 +1,91 @@
+{
+  "causal_validation": {
+    "a0_peak_reserved_mib": 3154.0,
+    "a1_peak_reserved_mib": 2424.0,
+    "final_model_exact": true,
+    "final_model_sha256": "452168eb9ab0f7b76a8c2eb364e85941e4241f6d5135682666d4a9bd5427b19f",
+    "final_optimizer_exact": true,
+    "final_optimizer_sha256": "de56b9e8568363294b978bbd367c511b0f26ee4befaa346fca916977c63f2cab",
+    "training_common_events": 1947,
+    "training_exact": true,
+    "training_exact_events": 1947,
+    "validation_accuracies": [
+      0.00027783203125,
+      0.0002431640625
+    ],
+    "validation_events": 2,
+    "validation_quality_exact": true
+  },
+  "exact_gradient_difference": {
+    "bt64_w4_sha256": "312f98e088c7457b49315ce7e4e02fdedeabc3f71d4ca49505fbcaa7c931c0b7",
+    "bt64_w8_sha256": "320ff5f5b2febcfa2314955c3701ed9d400f68592ba2a615ce70f3e9e666f0d3",
+    "different_elements": 42,
+    "max_abs_difference": 1.8189894035458565e-12,
+    "mean_abs_difference": 4.085620730620576e-13,
+    "parameter": "backbone.layers.1.sequence_mixer.mixer.attn.output_gate_fused.weight",
+    "shape": [
+      64
+    ]
+  },
+  "experiment_id": "20260729-03-mqar-seed124-remat-causal-diagnosis",
+  "first_divergence": {
+    "first_gradient_difference": {
+      "event": "after_backward",
+      "field": "grad_sha256",
+      "left": "ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4",
+      "micro_step": 0,
+      "right": "b45a9c4a924f89847fe705fe28e6cf7ce11d56b447bd89596b2eada19c750bf9",
+      "window": 1
+    },
+    "first_loss_difference": {
+      "event": "forward",
+      "field": "loss",
+      "left": 9.006591796875,
+      "micro_step": 1,
+      "right": 9.0068359375,
+      "window": 10
+    },
+    "first_model_difference": {
+      "event": "after_zero_grad",
+      "field": "model_sha256",
+      "left": "f9a47378825bbc3333cb908196007ac465481ee0fdc67a56b2cd16c0a3f1df7d",
+      "micro_step": null,
+      "right": "130d5b59f297bb06f0ba1764eeaebe564c37b39c15aa97e5f4ddd353a96f40eb",
+      "window": 4
+    },
+    "first_optimizer_difference": {
+      "event": "after_zero_grad",
+      "field": "optimizer_sha256",
+      "left": "6b2cf456bc78d30d5fd31e2f69ecad07f1bf2a6e6af6027d4008888d9b89080d",
+      "micro_step": null,
+      "right": "d6944c9dd424fab42a68fd9c57246f71e4306203d76bd3375803402f61c7d461",
+      "window": 1
+    },
+    "window10_train_loss": {
+      "a0-fixed-off": 10.523124694824219,
+      "a1-fixed-post-phase1": 10.523200988769531
+    }
+  },
+  "fla_fused_norm_gate_sha256": "e620731d73fd069944b37d5b4a76cf00adcaba2b6745f5600351751cec85afe1",
+  "fla_fused_norm_gate_source": "/home/lyj/miniconda3/envs/flash-vqg-fla042/lib/python3.12/site-packages/fla/modules/fused_norm_gate.py",
+  "flash_commit": "d7dbb1282d20ad860634ee4b8f0a74b948fe6c61",
+  "machine": "mclab-3090/Flash-VQG-tun",
+  "replay": {
+    "capsule_bytes": 8391434,
+    "capsule_sha256": "ea7e99cb0cf074a1eab38c1544471333316a04c55e2ce7f9e7b2a3f1eaac4bf4",
+    "forward_exact": true,
+    "grad_gate_exact": true,
+    "grad_weight_bt64_w4_sha256": "312f98e088c7457b49315ce7e4e02fdedeabc3f71d4ca49505fbcaa7c931c0b7",
+    "grad_weight_bt64_w8_sha256": "320ff5f5b2febcfa2314955c3701ed9d400f68592ba2a615ce70f3e9e666f0d3",
+    "grad_x_exact": true
+  },
+  "root_cause": "FLA 0.4.2 FusedRMSNormGated backward fresh-process Triton autotune selects different reduction configs for output_gate_fused.weight.",
+  "run_tag": "20260729-seed124-diag-02",
+  "source_files": 10,
+  "status": "causal_root_identified",
+  "zoology_commits": [
+    "8c8ceb3d467451606246ea74baaf11c7587b7b25",
+    "662be9341a5cef35a297ead668da6cbb27e07356",
+    "b98bda63755af979329f564f963151a769fb40e4"
+  ]
+}

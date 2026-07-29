@@ -92,3 +92,12 @@
 - 效率: A1 peak allocated降低约`22.0%`, peak reserved降低约`23.2%`; 平均wall time增加约`14.4%`, optimizer-step p50增加约`17.8%`.
 - 输出: [报告](20260729-02-mqar-deterministic-selected-read-regression-report.md), [artifact](artifacts/20260729-02-mqar-deterministic-selected-read-regression/README.md).
 - 下一步: A1不晋升; 对seed124执行更长的独立进程state/gradient/optimizer hash轨迹, 定位剩余首次分叉后再重跑同口径回归.
+
+## 11. 2026-07-29: Seed124 remat 剩余分叉完成因果定位
+
+- `experiment_id`: `20260729-03-mqar-seed124-remat-causal-diagnosis`.
+- 目的: 定位seed124 A0/A1的首个剩余分叉, 并以单变量干预完成因果验证.
+- 结果: 首个差异是window1、microbatch0的layer1 `output_gate_fused.weight`梯度. FLA 0.4.2 fused gate backward的fresh-process Triton autotune在`BT64 warps4/warps8`间选择, 改变FP32 weight归约顺序; 42/64个元素不同, 最大绝对差`1.82e-12`.
+- 因果门禁: 固定`BT64, warps4`后, A0/A1的177-step共1947个训练事件、最终model/optimizer hash和两次validation质量指标全部一致; 真实算子replay精确复现两个梯度hash.
+- 输出: [报告](20260729-03-mqar-seed124-remat-causal-diagnosis-report.md), [artifact](artifacts/20260729-03-mqar-seed124-remat-causal-diagnosis/README.md).
+- 下一步: A1仍不晋升; 先生产化确定性output gate backward并评估吞吐, 再执行三seed正式质量回归.

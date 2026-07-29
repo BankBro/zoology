@@ -1,0 +1,11 @@
+{
+  "bt64_w4_sha256": "312f98e088c7457b49315ce7e4e02fdedeabc3f71d4ca49505fbcaa7c931c0b7",
+  "bt64_w8_sha256": "320ff5f5b2febcfa2314955c3701ed9d400f68592ba2a615ce70f3e9e666f0d3",
+  "different_elements": 42,
+  "max_abs_difference": 1.8189894035458565e-12,
+  "mean_abs_difference": 4.085620730620576e-13,
+  "parameter": "backbone.layers.1.sequence_mixer.mixer.attn.output_gate_fused.weight",
+  "shape": [
+    64
+  ]
+}

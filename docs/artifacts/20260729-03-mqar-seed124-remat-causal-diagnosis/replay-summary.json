@@ -1,0 +1,9 @@
+{
+  "capsule_bytes": 8391434,
+  "capsule_sha256": "ea7e99cb0cf074a1eab38c1544471333316a04c55e2ce7f9e7b2a3f1eaac4bf4",
+  "forward_exact": true,
+  "grad_gate_exact": true,
+  "grad_weight_bt64_w4_sha256": "312f98e088c7457b49315ce7e4e02fdedeabc3f71d4ca49505fbcaa7c931c0b7",
+  "grad_weight_bt64_w8_sha256": "320ff5f5b2febcfa2314955c3701ed9d400f68592ba2a615ce70f3e9e666f0d3",
+  "grad_x_exact": true
+}

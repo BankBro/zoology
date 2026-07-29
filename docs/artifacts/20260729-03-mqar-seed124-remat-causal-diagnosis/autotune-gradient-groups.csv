@@ -1,0 +1,13 @@
+variant,repeat,bt,num_warps,gradient_sha256
+a0-fixed-off,1,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a0-fixed-off,2,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a0-fixed-off,3,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a0-fixed-off,4,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a0-fixed-off,5,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a0-fixed-off,6,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a1-fixed-post-phase1,1,64,4,b45a9c4a924f89847fe705fe28e6cf7ce11d56b447bd89596b2eada19c750bf9
+a1-fixed-post-phase1,2,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a1-fixed-post-phase1,3,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a1-fixed-post-phase1,4,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a1-fixed-post-phase1,5,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
+a1-fixed-post-phase1,6,64,8,ccb031cb402ee6d5638ea01c39b18ce0e6dee5d2e1d314b160d78ef4403ebde4
