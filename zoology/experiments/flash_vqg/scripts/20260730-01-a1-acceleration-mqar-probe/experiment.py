@@ -30,6 +30,7 @@ from common import (
     EXPECTED_PARAMETERS,
     EXPERIMENT_ID,
     FLASH_ROOT,
+    LONGER_CASES,
     PYTHON,
     REPO_ROOT,
     SEED,
