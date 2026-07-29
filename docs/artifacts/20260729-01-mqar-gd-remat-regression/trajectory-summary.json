@@ -1,0 +1,719 @@
+{
+  "a0": {
+    "elapsed_seconds": 16.301872216165066,
+    "losses": [
+      10.843536376953125,
+      10.807342529296875,
+      10.772529602050781,
+      10.740280151367188,
+      10.706588745117188,
+      10.66754150390625,
+      10.637928009033203,
+      10.595756530761719,
+      10.57037353515625,
+      10.529006958007812,
+      10.490951538085938,
+      10.45782470703125,
+      10.426860809326172,
+      10.38812255859375,
+      10.3695068359375,
+      10.332706451416016,
+      10.311100006103516,
+      10.275596618652344,
+      10.246990203857422,
+      10.22674560546875,
+      10.191871643066406,
+      10.170883178710938,
+      10.137466430664062,
+      10.114654541015625,
+      10.092758178710938,
+      10.048225402832031,
+      10.042556762695312,
+      10.009197235107422,
+      9.994396209716797,
+      9.954914093017578,
+      9.92880630493164,
+      9.91314697265625
+    ],
+    "peak_allocated_mib": 2828.99365234375,
+    "peak_reserved_mib": 3282.0,
+    "variant": "a0-off"
+  },
+  "a1": {
+    "elapsed_seconds": 10.982472326606512,
+    "losses": [
+      10.843536376953125,
+      10.807342529296875,
+      10.772529602050781,
+      10.740280151367188,
+      10.706588745117188,
+      10.66754150390625,
+      10.637928009033203,
+      10.595756530761719,
+      10.57037353515625,
+      10.529006958007812,
+      10.490951538085938,
+      10.45782470703125,
+      10.426860809326172,
+      10.38812255859375,
+      10.3695068359375,
+      10.332706451416016,
+      10.311100006103516,
+      10.275596618652344,
+      10.246990203857422,
+      10.22674560546875,
+      10.191871643066406,
+      10.170883178710938,
+      10.137466430664062,
+      10.114654541015625,
+      10.092758178710938,
+      10.048225402832031,
+      10.042556762695312,
+      10.009197235107422,
+      9.994396209716797,
+      9.954914093017578,
+      9.92880630493164,
+      9.91314697265625
+    ],
+    "peak_allocated_mib": 2253.212890625,
+    "peak_reserved_mib": 2584.0,
+    "variant": "a1-post-phase1"
+  },
+  "checkpoints": [
+    1,
+    16,
+    32
+  ],
+  "comparisons": {
+    "1": {
+      "gradients": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 0.0,
+        "max_relative_l2": 0.0,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.1.norm1.bias",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "hidden": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 0.0,
+        "relative_l2": 0.0
+      },
+      "loss_abs": 0.0,
+      "optimizer": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 0.0,
+        "max_relative_l2": 0.0,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.bias/exp_avg",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 0.0,
+        "max_relative_l2": 0.0,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.1.norm1.bias",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "runtime": {
+        "a0_selected_recompute_calls": 0,
+        "a1_selected_recompute_calls": 4,
+        "fallbacks": 0,
+        "forward_counts_equal": true,
+        "passed": true,
+        "same_modules": true
+      }
+    },
+    "16": {
+      "loss_abs": 0.0,
+      "optimizer": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 1.1788348075469912e-12,
+        "max_relative_l2": 4.411080681165913e-06,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 1.1788348075469912e-12,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj/exp_avg",
+            "relative_l2": 4.411080681165913e-06
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 5.558653716356346e-22,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj/exp_avg_sq",
+            "relative_l2": 1.8436492155160522e-06
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 2.384185791015625e-07,
+        "max_relative_l2": 4.342818371583235e-08,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 2.384185791015625e-07,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj",
+            "relative_l2": 4.342818371583235e-08
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.weight",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "runtime": {
+        "a0_selected_recompute_calls": 0,
+        "a1_selected_recompute_calls": 64,
+        "fallbacks": 0,
+        "forward_counts_equal": true,
+        "passed": true,
+        "same_modules": true
+      }
+    },
+    "32": {
+      "loss_abs": 0.0,
+      "optimizer": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 8.488321157074097e-12,
+        "max_relative_l2": 6.1677878875343595e-06,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 8.488321157074097e-12,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj/exp_avg",
+            "relative_l2": 6.1677878875343595e-06
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 1.5087774372967225e-21,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj/exp_avg_sq",
+            "relative_l2": 2.144125090808302e-07
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/exp_avg_sq",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias/step",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight/exp_avg_sq",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "allclose": true,
+        "finite": true,
+        "max_abs": 1.0021030902862549e-06,
+        "max_relative_l2": 1.962509941222379e-07,
+        "missing_from_a0": [],
+        "missing_from_a1": [],
+        "worst_relative_l2": [
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 1.0021030902862549e-06,
+            "name": "backbone.layers.1.sequence_mixer.mixer.attn.fox_gd_residual_addr_proj",
+            "relative_l2": 1.962509941222379e-07
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.embeddings.word_embeddings.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm1.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.norm2.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.conv.conv.weight",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.bias",
+            "relative_l2": 0.0
+          },
+          {
+            "allclose": true,
+            "finite": true,
+            "max_abs": 0.0,
+            "name": "backbone.layers.0.sequence_mixer.mixer.projection.weight",
+            "relative_l2": 0.0
+          }
+        ]
+      },
+      "runtime": {
+        "a0_selected_recompute_calls": 0,
+        "a1_selected_recompute_calls": 128,
+        "fallbacks": 0,
+        "forward_counts_equal": true,
+        "passed": true,
+        "same_modules": true
+      }
+    }
+  },
+  "environment": {
+    "cuda_available": true,
+    "cuda_visible_devices": "0",
+    "fla": "0.4.2",
+    "flash_branch": "20260729-014613-300m-steady-state-memory-optimization",
+    "flash_commit": "79fef6a8e9d3f41dfcbf40bf668ec83286dd5d62",
+    "flash_status": "",
+    "gpu_capability": [
+      8,
+      6
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 3090",
+    "gpu_used_bytes": 1282539520,
+    "python": "3.12.11",
+    "sys_executable": "/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python",
+    "torch": "2.6.0+cu118",
+    "torch_cuda": "11.8",
+    "triton": "3.2.0",
+    "zoology_branch": "20260729-111209-mqar-gd-remat-regression",
+    "zoology_commit": "62985d0b4866c636e94d131bf388303f87d34e79",
+    "zoology_status": ""
+  },
+  "experiment_id": "20260729-01-mqar-gd-remat-regression",
+  "first_step_hard_gate": true,
+  "gradient_accumulation_steps": 4,
+  "later_diagnostic_gate": true,
+  "precision": "bf16",
+  "recorded_at_utc": "2026-07-29T03:34:26.168127+00:00",
+  "run_tag": "20260729-mqar-remat-01",
+  "seed": 124,
+  "status": "passed"
+}
