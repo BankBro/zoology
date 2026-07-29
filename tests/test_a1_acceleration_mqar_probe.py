@@ -42,6 +42,19 @@ def test_candidate_changes_only_registered_capacity_controls():
     assert reference["selected_backward"] == candidate["selected_backward"] == "triton_deterministic"
 
 
+def test_diagnostic_variants_isolate_block_and_sparsity_controls():
+    expected = {
+        "a1-block128": (128, 4, 16),
+        "a1-block256": (256, 4, 16),
+        "a1-k2r8": (32, 2, 8),
+    }
+    for variant, settings in expected.items():
+        audit = EXPERIMENT.model_audit(EXPERIMENT.build_config(variant, "screen"))
+        assert (audit["block_len"], audit["write_topk"], audit["read_topk"]) == settings
+        assert audit["parameters"] == 1_160_390
+        assert audit["state_sha256"] == "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"
+
+
 def test_probe_is_single_seed_one_epoch_screen():
     for variant in EXPERIMENT.VARIANTS:
         config = EXPERIMENT.build_config(variant, "screen")

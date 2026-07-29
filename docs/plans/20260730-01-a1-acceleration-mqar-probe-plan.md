@@ -28,6 +28,7 @@
 3. 两组各完成1 epoch screen训练并保存best/last checkpoint.
 4. 对last checkpoint读取标准`1024x256`指标, 并评估5个固定hash Longer-MQAR slice.
 5. 汇总标准任务delta和4个外推slice宏平均delta.
+6. 若组合候选质量失败, 追加只改`block128`, 只改`block256`, 只改`write2/read8`的单变量1 epoch诊断. 先比较标准MQAR, 仅让标准delta不低于`-0.02`的候选进入Longer-MQAR.
 
 Longer-MQAR复用已通过2080Ti Flash FP32正式batch search的配置: `1024/2048`使用B32, `4096`和两个`8190` slice使用B16.
 
