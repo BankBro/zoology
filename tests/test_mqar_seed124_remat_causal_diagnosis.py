@@ -89,6 +89,7 @@ def test_tensor_hash_supports_scalar_tensor():
     probe = load_module("seed124_diag_probe", "probe.py")
     scalar = torch.tensor(1.25)
     assert probe.tensor_hash(scalar) == probe.tensor_hash(scalar.clone())
+    assert probe.tensor_record(scalar)["raw_hex"] == "0000a03f"
 
 
 def test_gradient_analysis_groups_runs_and_names_tensors(tmp_path):

@@ -7,6 +7,7 @@ import json
 import os
 import pickle
 import random
+import re
 import sys
 import time
 import traceback
@@ -61,6 +62,9 @@ def tensor_record(tensor: torch.Tensor) -> dict[str, Any]:
         f32 = value.float()
         result["max_abs"] = float(f32.abs().max().cpu().item())
         result["l2"] = float(torch.linalg.vector_norm(f32).cpu().item())
+    if value.numel() <= 256:
+        raw = value.detach().cpu().contiguous().reshape(-1).view(torch.uint8)
+        result["raw_hex"] = raw.numpy().tobytes().hex()
     return result
 
 
@@ -115,6 +119,56 @@ def rng_hash() -> str:
     if torch.cuda.is_available():
         parts.extend(state.cpu().numpy().tobytes() for state in torch.cuda.get_rng_state_all())
     return _hash_bytes(*parts)
+
+
+def configure_gate_bwd_runtime(config_name: str) -> None:
+    if config_name == "default":
+        return
+    match = re.fullmatch(r"bt(16|32|64)-w(2|4|8|16)", config_name)
+    if match is None:
+        raise ValueError(f"Unsupported gate backward config: {config_name}.")
+    import triton
+    from fla.modules import fused_norm_gate
+
+    autotuner = fused_norm_gate.layer_norm_gated_bwd_kernel.fn
+    autotuner.configs = [
+        triton.Config(
+            {"BT": int(match.group(1))},
+            num_warps=int(match.group(2)),
+        )
+    ]
+    autotuner.cache.clear()
+
+
+def triton_config_record(config: Any) -> dict[str, Any]:
+    return {
+        "kwargs": dict(config.kwargs),
+        "num_warps": config.num_warps,
+        "num_stages": config.num_stages,
+        "num_ctas": getattr(config, "num_ctas", None),
+    }
+
+
+def gate_autotune_snapshot() -> dict[str, Any]:
+    from fla.modules import fused_norm_gate
+
+    result = {}
+    for name in ("layer_norm_gated_fwd_kernel", "layer_norm_gated_bwd_kernel"):
+        autotuner = getattr(fused_norm_gate, name).fn
+        best_config = getattr(autotuner, "best_config", None)
+        result[name] = {
+            "best_config": (
+                None if best_config is None else triton_config_record(best_config)
+            ),
+            "cache": [
+                {
+                    "key": repr(key),
+                    "config": triton_config_record(config),
+                }
+                for key, config in autotuner.cache.items()
+            ],
+        }
+    return result
 
 
 def output_records(value: Any, prefix: str = "output") -> dict[str, Any]:
@@ -330,8 +384,10 @@ def run_probe(
     label: str,
     max_train_steps: int,
     detail_window: int | None,
+    gate_bwd_config: str,
 ) -> int:
     configure_numerics()
+    configure_gate_bwd_runtime(gate_bwd_config)
     config = build_config(
         variant,
         label=label,
@@ -383,6 +439,8 @@ def run_probe(
         "seed": 124,
         "max_train_steps": max_train_steps,
         "detail_window": detail_window,
+        "gate_bwd_config": gate_bwd_config,
+        "gate_autotune": gate_autotune_snapshot(),
         "status": status,
         "error": error,
         "wall_clock_sec": time.perf_counter() - started,
@@ -408,12 +466,14 @@ def main() -> int:
     parser.add_argument("--label", required=True)
     parser.add_argument("--max-train-steps", type=int, required=True)
     parser.add_argument("--detail-window", type=int)
+    parser.add_argument("--gate-bwd-config", default="default")
     args = parser.parse_args()
     return run_probe(
         variant=args.variant,
         label=args.label,
         max_train_steps=args.max_train_steps,
         detail_window=args.detail_window,
+        gate_bwd_config=args.gate_bwd_config,
     )
 
 
