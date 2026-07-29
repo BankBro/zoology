@@ -162,6 +162,23 @@ def test_quality_gate_uses_registered_noninferiority_margins():
     assert failing["passed"] is False
 
 
+def test_system_rows_use_one_stable_csv_schema():
+    training = []
+    for seed in COMMON.SEEDS:
+        training.extend(
+            [
+                _training_result("a0-off", seed, 0.95),
+                _training_result("a1-post-phase1", seed, 0.95),
+            ]
+        )
+    rows = COLLECTOR.system_rows(training)
+    assert list(rows[0]) == list(rows[1])
+    assert rows[0]["step_time_ratio_vs_a0"] is None
+    assert rows[0]["peak_allocated_ratio_vs_a0"] is None
+    assert rows[1]["step_time_ratio_vs_a0"] == pytest.approx(1.0)
+    assert rows[1]["peak_allocated_ratio_vs_a0"] == pytest.approx(1.0)
+
+
 def test_queue_stops_after_hard_gate_failure(monkeypatch):
     monkeypatch.setenv("MQAR_GD_REMAT_RUN_TAG", "pytest-queue")
     queue = QUEUE.Queue()

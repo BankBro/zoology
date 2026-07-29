@@ -185,6 +185,8 @@ def system_rows(training: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "peak_reserved_mib_max": max(
                 float(row["peak_reserved_mib"]) for row in selected
             ),
+            "step_time_ratio_vs_a0": None,
+            "peak_allocated_ratio_vs_a0": None,
         }
     a0, a1 = grouped["a0-off"], grouped["a1-post-phase1"]
     a1["step_time_ratio_vs_a0"] = (
