@@ -29,7 +29,7 @@
 4. 对last checkpoint读取标准`1024x256`指标, 并评估5个固定hash Longer-MQAR slice.
 5. 汇总标准任务delta和4个外推slice宏平均delta.
 
-Longer-MQAR复用已通过2080Ti FP32正式batch search的配置: `1024/2048/4096`使用B32, 两个`8190` slice使用B16.
+Longer-MQAR复用已通过2080Ti Flash FP32正式batch search的配置: `1024/2048`使用B32, `4096`和两个`8190` slice使用B16.
 
 任一阶段失败时保留现场, 分析并做可行的最小修复后重试. 不覆盖失败目录.
 

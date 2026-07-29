@@ -56,4 +56,4 @@ def test_probe_is_single_seed_one_epoch_screen():
 
 
 def test_longer_batches_match_registered_2080ti_fp32_profile():
-    assert [case[2] for case in EXPERIMENT.LONGER_CASES] == [32, 32, 32, 16, 16]
+    assert [case[2] for case in EXPERIMENT.LONGER_CASES] == [32, 32, 16, 16, 16]
