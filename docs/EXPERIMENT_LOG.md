@@ -82,3 +82,13 @@
 - Collector修复: 首次collect因A0/A1 CSV字段集合不同而失败; commit `03f5d25`只修复汇总schema并复用已有训练/评估结果, 最终质量失败结论不受该基础设施bug影响.
 - 输出: [报告](20260729-01-mqar-gd-remat-regression-report.md), [artifact](artifacts/20260729-01-mqar-gd-remat-regression/README.md).
 - 下一步: 禁止A1进入自然语言正式训练; 优先定位remat数值分叉或验证不重算GD图的显存方案, 再执行同口径回归.
+
+## 10. 2026-07-29: 确定性 Selected-Read 回归质量恢复但未完全确定
+
+- `experiment_id`: `20260729-02-mqar-deterministic-selected-read-regression`.
+- 目的: 将selected-read backward中`addr_proj`重复head梯度改为固定顺序归约, 重新验证A0与A1的三seed MQAR和长度外推.
+- 门禁: 低层8次重复、seed124的128-step lockstep、fresh-process、controlled resume和smoke均通过; 6/6正式训练与60/60逻辑评估完成, 20个物理评估按model-state hash去重.
+- 结果: 标准`1024x256` delta均值为`+0.00650`, 四外推slice宏平均为`+0.01743`, 均通过非劣门槛. seed123和seed125的四epochA0/A1最终hash相同, seed124仍分叉, 终态为`quality_recovered_but_not_deterministic`.
+- 效率: A1 peak allocated降低约`22.0%`, peak reserved降低约`23.2%`; 平均wall time增加约`14.4%`, optimizer-step p50增加约`17.8%`.
+- 输出: [报告](20260729-02-mqar-deterministic-selected-read-regression-report.md), [artifact](artifacts/20260729-02-mqar-deterministic-selected-read-regression/README.md).
+- 下一步: A1不晋升; 对seed124执行更长的独立进程state/gradient/optimizer hash轨迹, 定位剩余首次分叉后再重跑同口径回归.

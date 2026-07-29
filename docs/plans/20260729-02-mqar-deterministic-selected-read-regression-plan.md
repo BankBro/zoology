@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260729-02-mqar-deterministic-selected-read-regression`.
-- 状态: `planned`.
+- 状态: `completed`, 终态为 `quality_recovered_but_not_deterministic`.
 - 执行机器: `mclab-3090` 的 `Flash-VQG-tun` 容器.
 - zoology base: `flash-vqg@3a7511a5bc0e8fc9950dc8d0f3759042a38683d5`.
 - Flash-VQG base: `20260729-014613-300m-steady-state-memory-optimization@79fef6a8e9d3f41dfcbf40bf668ec83286dd5d62`.

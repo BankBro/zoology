@@ -3,11 +3,11 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260729-02-mqar-deterministic-selected-read-regression`.
-- 状态: `implementation`.
+- 状态: `completed`, 终态为 `quality_recovered_but_not_deterministic`.
 - 目标: 修复 A0/A1 共同 selected-read backward 的 `addr_proj` 非确定性归约, 重新执行三 seed MQAR 与 Longer-MQAR 回归.
 - Plan: [`docs/plans/20260729-02-mqar-deterministic-selected-read-regression-plan.md`](../../../../../docs/plans/20260729-02-mqar-deterministic-selected-read-regression-plan.md).
-- Report: 实验终态后生成 `docs/20260729-02-mqar-deterministic-selected-read-regression-report.md`.
-- Artifact: 实验终态后生成 `docs/artifacts/20260729-02-mqar-deterministic-selected-read-regression/`.
+- Report: [`docs/20260729-02-mqar-deterministic-selected-read-regression-report.md`](../../../../../docs/20260729-02-mqar-deterministic-selected-read-regression-report.md).
+- Artifact: [`docs/artifacts/20260729-02-mqar-deterministic-selected-read-regression/`](../../../../../docs/artifacts/20260729-02-mqar-deterministic-selected-read-regression/README.md).
 
 ## 2. 固定矩阵
 
@@ -51,3 +51,5 @@ mean four-slice extrapolation macro delta >= -0.02
 ```
 
 质量和确定性均通过前, A1 不恢复为 300M 自然语言质量 pilot 候选. 性能与显存只记录, 不作为硬门槛.
+
+实际结果为两个质量门槛均通过, 但 seed124 的最终 A0/A1 model-state hash 不同. A1 因此不晋升, Flash 修复分支不合入当前 300M 默认显存优化分支.
