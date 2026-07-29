@@ -65,12 +65,17 @@ def event_payload(variant: str, training: dict[str, Any], case) -> dict[str, Any
     sequence_length, num_kv_pairs, batch_size, dataset_hash = case
     checkpoint = training["last_checkpoint"]
     checkpoint_path = evaluation_checkpoint(variant, training)
+    zoology_commit = git_value(REPO_ROOT, "rev-parse", "HEAD")
+    flash_commit = git_value(Path("/home/lyj/mnt/project/Flash-VQG"), "rev-parse", "HEAD")
     return {
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
-        "zoology_commit": git_value(REPO_ROOT, "rev-parse", "HEAD"),
-        "flash_commit": git_value(Path("/home/lyj/mnt/project/Flash-VQG"), "rev-parse", "HEAD"),
-        "event_id": f"probe-{variant}-{sequence_length}x{num_kv_pairs}-{checkpoint['model_state_sha256'][:16]}",
+        "zoology_commit": zoology_commit,
+        "flash_commit": flash_commit,
+        "event_id": (
+            f"probe-{variant}-{sequence_length}x{num_kv_pairs}-b{batch_size}-"
+            f"{checkpoint['model_state_sha256'][:16]}-z{zoology_commit[:8]}-f{flash_commit[:8]}"
+        ),
         "mode": "probe",
         "machine": "2080ti",
         "model": "flash",
