@@ -108,10 +108,22 @@ def result_path(variant: str, phase: str) -> Path:
     return run_root() / "training" / phase / run_id(variant, phase) / "result.json"
 
 
+def _base_config(variant: str, phase: str):
+    previous = os.environ.get("MQAR_A1_ACCEL_RUN_TAG")
+    os.environ["MQAR_A1_ACCEL_RUN_TAG"] = f"geometry-base-{run_tag()}"
+    try:
+        return BASE.build_config(variant, phase)
+    finally:
+        if previous is None:
+            os.environ.pop("MQAR_A1_ACCEL_RUN_TAG", None)
+        else:
+            os.environ["MQAR_A1_ACCEL_RUN_TAG"] = previous
+
+
 def build_config(variant: str, phase: str):
     if variant not in VARIANTS:
         raise ValueError(f"Unsupported variant: {variant}")
-    config = copy.deepcopy(BASE.build_config(variant, phase))
+    config = copy.deepcopy(_base_config(variant, phase))
     if variant != "a1-reference":
         _scale_candidate_config(config)
     config.resume_identity = source_identity(variant)
