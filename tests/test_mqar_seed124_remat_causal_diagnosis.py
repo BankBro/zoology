@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+import torch
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = (
@@ -81,3 +83,9 @@ def test_compare_traces_finds_first_forward_difference(tmp_path):
     assert result["first_mismatch_window"] == 10
     assert result["first_mismatch"]["micro_step"] == 2
     assert result["first_mismatch"]["classification"] == "forward_loss"
+
+
+def test_tensor_hash_supports_scalar_tensor():
+    probe = load_module("seed124_diag_probe", "probe.py")
+    scalar = torch.tensor(1.25)
+    assert probe.tensor_hash(scalar) == probe.tensor_hash(scalar.clone())

@@ -12,6 +12,7 @@ from typing import Any
 
 from common import (
     PYTHON,
+    REPO_ROOT,
     SCRIPT_DIR,
     VARIANTS,
     atomic_write_json,
@@ -51,7 +52,7 @@ class Queue:
         ) as stderr:
             result = subprocess.run(
                 command,
-                cwd=SCRIPT_DIR,
+                cwd=REPO_ROOT,
                 env=env,
                 text=True,
                 stdout=stdout,

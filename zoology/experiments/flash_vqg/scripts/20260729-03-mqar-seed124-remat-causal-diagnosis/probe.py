@@ -45,7 +45,7 @@ def _hash_bytes(*parts: bytes) -> str:
 
 def tensor_hash(tensor: torch.Tensor) -> str:
     value = tensor.detach().cpu().contiguous()
-    raw = value.view(torch.uint8).numpy().tobytes()
+    raw = value.reshape(-1).view(torch.uint8).numpy().tobytes()
     return _hash_bytes(str(value.dtype).encode(), str(tuple(value.shape)).encode(), raw)
 
 
