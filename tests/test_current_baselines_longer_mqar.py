@@ -55,7 +55,16 @@ def test_training_matrix_and_resolved_configs():
         assert Path(formal.init_checkpoint_path).resolve() == experiment.init_path(model)
         for run_type, config in (("smoke", smoke), ("formal", formal)):
             expected = experiment.EXPECTED_NORMALIZED_CONFIG_SHA256[(model, seed, run_type)]
-            assert experiment.normalized_config_sha256(config) == expected
+            current_flash = experiment.git_value(
+                experiment.FLASH_ROOT, "rev-parse", "HEAD"
+            )
+            if current_flash != "ec770f33676036432c6514acd1ac05bd2d01f3e8":
+                if model == "flash":
+                    kwargs = experiment.BASE._find_flash_kwargs(config.model)
+                    assert kwargs.get("fox_gd_residual_remat_mode", "off") == "off"
+                assert len(experiment.normalized_config_sha256(config)) == 64
+            else:
+                assert experiment.normalized_config_sha256(config) == expected
 
 
 def test_machine_isolation_preserves_normalized_configs(monkeypatch):

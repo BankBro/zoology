@@ -1,0 +1,4 @@
+outputs/3090/*
+!outputs/3090/.gitkeep
+__pycache__/
+*.pyc
