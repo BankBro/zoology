@@ -1,0 +1,3 @@
+variant,runs,wall_clock_sec_mean,optimizer_step_wall_sec_p50_mean,peak_allocated_mib_max,peak_reserved_mib_max,step_time_ratio_vs_a0,peak_allocated_ratio_vs_a0
+a0-fixed-off,3,1158.3137084205325,0.3180091225852569,2566.22998046875,3158.0,,
+a1-fixed-post-phase1,3,1325.1965442060803,0.37469570462902385,2003.0458984375,2426.0,1.1782545783055942,0.7805402920558281

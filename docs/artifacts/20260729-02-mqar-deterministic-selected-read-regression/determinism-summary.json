@@ -1,0 +1,233 @@
+{
+  "environment": {
+    "cuda_available": true,
+    "cuda_visible_devices": "0",
+    "fla": "0.4.2",
+    "flash_branch": "20260729-172300-fix-selected-read-addr-grad-determinism",
+    "flash_commit": "d7dbb1282d20ad860634ee4b8f0a74b948fe6c61",
+    "flash_status": "",
+    "gpu_capability": [
+      8,
+      6
+    ],
+    "gpu_name": "NVIDIA GeForce RTX 3090",
+    "gpu_used_bytes": 1448280064,
+    "python": "3.12.11",
+    "sys_executable": "/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python",
+    "torch": "2.6.0+cu118",
+    "torch_cuda": "11.8",
+    "triton": "3.2.0",
+    "zoology_branch": "20260729-172037-mqar-deterministic-selected-read-regression",
+    "zoology_commit": "22ed61c8b963a16113c606feb262c26a138f9b64",
+    "zoology_status": ""
+  },
+  "fresh_processes": {
+    "comparisons": {
+      "a0-fixed-off": {
+        "identities": [
+          {
+            "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+            "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+          },
+          {
+            "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+            "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+          }
+        ],
+        "identities_equal": true,
+        "repeat_count": 2
+      },
+      "a1-fixed-post-phase1": {
+        "identities": [
+          {
+            "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+            "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+          },
+          {
+            "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+            "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+          }
+        ],
+        "identities_equal": true,
+        "repeat_count": 2
+      }
+    },
+    "runs": [
+      {
+        "elapsed_seconds": 17.710631035268307,
+        "identity": {
+          "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+          "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+        },
+        "runtime": {
+          "backbone.layers.1.sequence_mixer.mixer.attn": {
+            "audit": {
+              "actual_core_dtype": "float32",
+              "grouped_active_group_count_max": 6623,
+              "grouped_boundary_copy_bytes_max": 0,
+              "grouped_calls": 534,
+              "grouped_event_count_max": 16384,
+              "grouped_fallbacks": 0,
+              "grouped_precast_low_precision_calls": 0,
+              "grouped_recompute_calls": 0,
+              "grouped_recompute_fallbacks": 0,
+              "grouped_recompute_precast_low_precision_calls": 0,
+              "grouped_saved_payload_bytes_max": 32581244,
+              "selected_boundary_copy_bytes_max": 276865024,
+              "selected_calls": 128,
+              "selected_fallbacks": 0,
+              "selected_precast_low_precision_calls": 128,
+              "selected_recompute_calls": 0,
+              "selected_recompute_fallbacks": 0,
+              "selected_recompute_precast_low_precision_calls": 0,
+              "selected_saved_payload_bytes_max": 278962176
+            },
+            "forward_count": 128
+          }
+        },
+        "status": "passed",
+        "steps": 32,
+        "variant": "a0-fixed-off"
+      },
+      {
+        "elapsed_seconds": 17.440643776208162,
+        "identity": {
+          "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+          "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+        },
+        "runtime": {
+          "backbone.layers.1.sequence_mixer.mixer.attn": {
+            "audit": {
+              "actual_core_dtype": "float32",
+              "grouped_active_group_count_max": 6623,
+              "grouped_boundary_copy_bytes_max": 0,
+              "grouped_calls": 534,
+              "grouped_event_count_max": 16384,
+              "grouped_fallbacks": 0,
+              "grouped_precast_low_precision_calls": 0,
+              "grouped_recompute_calls": 0,
+              "grouped_recompute_fallbacks": 0,
+              "grouped_recompute_precast_low_precision_calls": 0,
+              "grouped_saved_payload_bytes_max": 32581244,
+              "selected_boundary_copy_bytes_max": 276865024,
+              "selected_calls": 128,
+              "selected_fallbacks": 0,
+              "selected_precast_low_precision_calls": 128,
+              "selected_recompute_calls": 0,
+              "selected_recompute_fallbacks": 0,
+              "selected_recompute_precast_low_precision_calls": 0,
+              "selected_saved_payload_bytes_max": 278962176
+            },
+            "forward_count": 128
+          }
+        },
+        "status": "passed",
+        "steps": 32,
+        "variant": "a0-fixed-off"
+      },
+      {
+        "elapsed_seconds": 19.363233625888824,
+        "identity": {
+          "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+          "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+        },
+        "runtime": {
+          "backbone.layers.1.sequence_mixer.mixer.attn": {
+            "audit": {
+              "actual_core_dtype": "float32",
+              "grouped_active_group_count_max": 6623,
+              "grouped_boundary_copy_bytes_max": 0,
+              "grouped_calls": 534,
+              "grouped_event_count_max": 16384,
+              "grouped_fallbacks": 0,
+              "grouped_precast_low_precision_calls": 0,
+              "grouped_recompute_calls": 534,
+              "grouped_recompute_fallbacks": 0,
+              "grouped_recompute_precast_low_precision_calls": 0,
+              "grouped_saved_payload_bytes_max": 32581244,
+              "selected_boundary_copy_bytes_max": 276865024,
+              "selected_calls": 128,
+              "selected_fallbacks": 0,
+              "selected_precast_low_precision_calls": 128,
+              "selected_recompute_calls": 128,
+              "selected_recompute_fallbacks": 0,
+              "selected_recompute_precast_low_precision_calls": 128,
+              "selected_saved_payload_bytes_max": 278962176
+            },
+            "forward_count": 128
+          }
+        },
+        "status": "passed",
+        "steps": 32,
+        "variant": "a1-fixed-post-phase1"
+      },
+      {
+        "elapsed_seconds": 19.492120310664177,
+        "identity": {
+          "model_state_sha256": "f740ed952930ae433935c4b95f9b354f4a47c83a88cb58122642a40ea9e5bd6c",
+          "optimizer_state_sha256": "d12abe7dcade1eca591ab8633eec68278ca25c5cf22f45ae7f44aae34d6844da"
+        },
+        "runtime": {
+          "backbone.layers.1.sequence_mixer.mixer.attn": {
+            "audit": {
+              "actual_core_dtype": "float32",
+              "grouped_active_group_count_max": 6623,
+              "grouped_boundary_copy_bytes_max": 0,
+              "grouped_calls": 534,
+              "grouped_event_count_max": 16384,
+              "grouped_fallbacks": 0,
+              "grouped_precast_low_precision_calls": 0,
+              "grouped_recompute_calls": 534,
+              "grouped_recompute_fallbacks": 0,
+              "grouped_recompute_precast_low_precision_calls": 0,
+              "grouped_saved_payload_bytes_max": 32581244,
+              "selected_boundary_copy_bytes_max": 276865024,
+              "selected_calls": 128,
+              "selected_fallbacks": 0,
+              "selected_precast_low_precision_calls": 128,
+              "selected_recompute_calls": 128,
+              "selected_recompute_fallbacks": 0,
+              "selected_recompute_precast_low_precision_calls": 128,
+              "selected_saved_payload_bytes_max": 278962176
+            },
+            "forward_count": 128
+          }
+        },
+        "status": "passed",
+        "steps": 32,
+        "variant": "a1-fixed-post-phase1"
+      }
+    ],
+    "status": "passed",
+    "steps": 32
+  },
+  "lockstep": {
+    "elapsed_seconds": 95.47213908843696,
+    "first_divergence": null,
+    "gradient_accumulation_steps": 4,
+    "identities": {
+      "a0-fixed-off": {
+        "model_state_sha256": "666d55ca4232b9e9d25b2904048f115554a64a2979a2841df192c153d268963c",
+        "optimizer_state_sha256": "2cb300b6f8c2866d03d430e3114d038504891db7d49ebe0f470937d2c3c35bff"
+      },
+      "a1-fixed-post-phase1": {
+        "model_state_sha256": "666d55ca4232b9e9d25b2904048f115554a64a2979a2841df192c153d268963c",
+        "optimizer_state_sha256": "2cb300b6f8c2866d03d430e3114d038504891db7d49ebe0f470937d2c3c35bff"
+      }
+    },
+    "peak_allocated_mib": 3374.1533203125,
+    "peak_reserved_mib": 3796.0,
+    "runtime": {
+      "a0_selected_recompute_calls": 0,
+      "a1_selected_recompute_calls": 512,
+      "fallbacks": 0,
+      "forward_counts_equal": true,
+      "passed": true,
+      "same_modules": true
+    },
+    "status": "passed",
+    "steps": 128
+  },
+  "recorded_at_utc": "2026-07-29T09:46:54.447171+00:00",
+  "status": "passed"
+}

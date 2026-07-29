@@ -19,12 +19,12 @@
 - GDN同seed跨GPU结果高度稳定; Flash存在更明显的seed×GPU数值路径敏感性, 主要表现为seed124在2080 Ti退化而3090未复现. 同seed跨GPU结果不合并为`n=6`.
 - MQAR低精度profile已完成30/30个正式训练run和2028个逻辑checkpoint-eval事件. GDN的FP16/BF16 matching质量与FP32近乎一致; Flash低精度变化方向随GPU改变, 但在四个真正外推slice上, 全部60/60个`GPU x dtype x seed x shape`配对仍高于GDN. 固定checkpoint只改变eval dtype的最大accuracy跨度为`0.002328`.
 - 低精度训练显存收益明确: Flash peak allocated约降至FP32的`0.819x`, GDN约为`0.800x`. 3090上的Flash-BF16平均wall time为FP32的`0.862x`; 30个run全部保持FP32 master weights与optimizer state, 仅1次可接受的GradScaler skip.
-- GD `post_phase1` remat已完成RTX 3090 BF16三seed MQAR回归. A1 peak allocated降至A0的`0.775x`, 但标准`1024x256` delta均值为`-0.04020`, 四外推slice宏平均为`-0.10562`, 两个预注册质量门槛均失败. A1不能替代A0, 也不进入自然语言正式训练.
+- GD `post_phase1` remat的确定性selected-read修复已完成RTX 3090 BF16三seed回归. 标准`1024x256` delta从历史`-0.04020`恢复为`+0.00650`, 四外推slice宏平均从`-0.10562`恢复为`+0.01743`; seed123和seed125的四epoch A0/A1状态逐位一致. 但seed124最终hash仍分叉, 终态为`quality_recovered_but_not_deterministic`, A1仍不替代A0.
 
 ## 3. 下一步
 
 - 后续实验默认以上述 Flash-VQG、GDN 和 Conda 环境为基线.
-- 自然语言300M训练仍优先在RTX 3090使用BF16, 但当前不得启用`post_phase1` remat. 在新的显存方案通过MQAR三seed质量门禁前, 不启动依赖A1的正式预训练.
-- 若继续降低显存, 优先定位A1在`addr_proj`上的早期数值分叉, 或评估不重算GD图的native-BF16 selected-read方案; 任一候选均需重新通过同口径MQAR与Longer-MQAR回归.
+- 自然语言300M训练仍优先在RTX 3090使用BF16, 但当前不得启用`post_phase1` remat. A1同时通过三seed质量和逐seed最终hash门禁前, 不启动依赖A1的正式预训练.
+- 若继续A1路线, 优先用seed124独立进程长轨迹定位128步门禁之后未覆盖的首次state/gradient/optimizer分叉. native-BF16 selected-read可作为并行的独立显存方案, 但任一候选均需重新通过同口径MQAR与Longer-MQAR回归.
 - 若继续研究MQAR数值稳定性, 优先定位Flash跨GPU训练轨迹的首次state-hash分叉; 若需加强结论, 增加新的独立training seeds.
 - 如需更换基线, 先完成正式对照实验并更新本页与实验日志.
