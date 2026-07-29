@@ -21,7 +21,7 @@ from zoology.config import LoggerConfig
 from zoology.data.multiquery_ar import MQARConfig
 from zoology.data.utils import DataSegment, _SyntheticDataset
 from zoology.experiments.flash_vqg.manifest import (
-    load_manifest,
+    load_manifest as _load_manifest,
     resolve_best_checkpoint_from_manifest,
     update_manifest_for_run,
 )
@@ -97,6 +97,10 @@ def _load_e5b_partial_override_runner():
 
 def manifest_path_for_launch(launch_id: str) -> Path:
     return generated_launch_dir(launch_id) / "manifest.json"
+
+
+def load_manifest(launch_id: str) -> dict[str, Any]:
+    return _load_manifest(launch_id, generated_root=GENERATED_ROOT)
 
 
 def e4a_test_cases() -> dict[str, list[tuple[int, int]]]:

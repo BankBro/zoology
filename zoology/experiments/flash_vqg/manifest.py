@@ -76,16 +76,29 @@ def manifest_path_from_env() -> Path | None:
     return Path(raw).resolve()
 
 
-def generated_launch_dir(launch_id: str) -> Path:
-    return GENERATED_ROOT / str(launch_id)
+def generated_launch_dir(
+    launch_id: str,
+    *,
+    generated_root: Path | None = None,
+) -> Path:
+    root = GENERATED_ROOT if generated_root is None else Path(generated_root)
+    return root / str(launch_id)
 
 
-def manifest_path_for_launch(launch_id: str) -> Path:
-    return generated_launch_dir(launch_id) / "manifest.json"
+def manifest_path_for_launch(
+    launch_id: str,
+    *,
+    generated_root: Path | None = None,
+) -> Path:
+    return generated_launch_dir(launch_id, generated_root=generated_root) / "manifest.json"
 
 
-def load_manifest(launch_id: str) -> dict[str, Any]:
-    path = manifest_path_for_launch(launch_id)
+def load_manifest(
+    launch_id: str,
+    *,
+    generated_root: Path | None = None,
+) -> dict[str, Any]:
+    path = manifest_path_for_launch(launch_id, generated_root=generated_root)
     if not path.exists():
         raise FileNotFoundError(f"未找到 manifest: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
