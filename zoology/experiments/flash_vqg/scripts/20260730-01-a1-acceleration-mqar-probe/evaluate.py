@@ -24,6 +24,7 @@ from common import (
     run_root,
     run_tag,
     stable_json_sha256,
+    sha256_file,
     utc_now,
 )
 from experiment import git_value, result_path
@@ -32,9 +33,38 @@ from experiment import git_value, result_path
 EVAL_SCRIPT = REPO_ROOT / "zoology/experiments/flash_vqg/scripts/20260726-01-mqar-precision-profile/eval_event.py"
 
 
+def evaluation_checkpoint(variant: str, training: dict[str, Any]) -> Path:
+    source = Path(training["last_checkpoint"]["path"])
+    shadow = run_root() / "evaluation" / "checkpoint-shadow" / variant
+    shadow.mkdir(parents=True, exist_ok=True)
+    shadow_checkpoint = shadow / "last.pt"
+    if not shadow_checkpoint.exists():
+        os.link(source, shadow_checkpoint)
+    source_config = source.parent / "train_config.json"
+    payload = json.loads(source_config.read_text(encoding="utf-8"))
+    identity = payload.get("resume_identity") or {}
+    identity["seed"] = str(identity.get("seed", 123))
+    payload["resume_identity"] = identity
+    atomic_write_json(shadow / "train_config.json", payload)
+    atomic_write_json(
+        shadow / "shadow-metadata.json",
+        {
+            "source_checkpoint": str(source.resolve()),
+            "source_checkpoint_sha256": sha256_file(source),
+            "source_train_config": str(source_config.resolve()),
+            "source_train_config_sha256": sha256_file(source_config),
+            "shadow_checkpoint": str(shadow_checkpoint.resolve()),
+            "shadow_train_config_sha256": sha256_file(shadow / "train_config.json"),
+            "repair": "resume_identity.seed int-to-string compatibility fix",
+        },
+    )
+    return shadow_checkpoint
+
+
 def event_payload(variant: str, training: dict[str, Any], case) -> dict[str, Any]:
     sequence_length, num_kv_pairs, batch_size, dataset_hash = case
     checkpoint = training["last_checkpoint"]
+    checkpoint_path = evaluation_checkpoint(variant, training)
     return {
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
@@ -50,7 +80,7 @@ def event_payload(variant: str, training: dict[str, Any], case) -> dict[str, Any
         "checkpoint_role": "last",
         "train_precision": "fp32",
         "eval_precision": "fp32",
-        "checkpoint_path": checkpoint["path"],
+        "checkpoint_path": str(checkpoint_path.resolve()),
         "checkpoint_file_sha256": checkpoint["file_sha256"],
         "checkpoint_model_state_sha256": checkpoint["model_state_sha256"],
         "input_seq_len": sequence_length,

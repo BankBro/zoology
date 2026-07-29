@@ -52,3 +52,4 @@ def test_probe_is_single_seed_one_epoch_screen():
         assert config.precision == "float32"
         assert tuple(config.data.batch_size) == (64, 16)
         assert config.gradient_accumulation_steps == 4
+        assert config.resume_identity["seed"] == "123"

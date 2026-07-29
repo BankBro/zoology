@@ -90,7 +90,7 @@ def source_identity(variant: str) -> dict[str, Any]:
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
         "variant": variant,
-        "seed": SEED,
+        "seed": str(SEED),
         "precision": "fp32",
         "zoology_commit": git_value(REPO_ROOT, "rev-parse", "HEAD"),
         "flash_commit": git_value(FLASH_ROOT, "rev-parse", "HEAD"),
