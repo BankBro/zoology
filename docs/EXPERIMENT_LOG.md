@@ -71,3 +71,14 @@
 - 基础设施修正: formal启动前发现coordinator的SSH argv在远端重组时丢失`bash -lc`命令边界; 修复为`shlex.join`单一远端命令后, 用真实3090 gate完成读写round-trip smoke, 再由原`build_global_gate`五项校验自动放行. 未绕过任何实验门禁.
 - 输出: [报告](20260726-01-mqar-precision-profile-report.md), [artifact](artifacts/20260726-01-mqar-precision-profile/README.md), [last图](artifacts/20260726-01-mqar-precision-profile/figures/matching-precision-last.pdf), [best图](artifacts/20260726-01-mqar-precision-profile/figures/matching-precision-best.pdf).
 - 下一步: 自然语言300M训练优先以RTX 3090 BF16做任务级容量与完整smoke, 再启动正式下游训练; 2080 Ti保留为FP16 B1/GA兼容路径.
+
+## 9. 2026-07-29: GD post-phase1 remat MQAR 回归失败
+
+- `experiment_id`: `20260729-01-mqar-gd-remat-regression`.
+- 目的: 在RTX 3090 BF16下, 以三seed配对验证A1 `post_phase1` remat是否保持canonical `baseline-r16-joint`的MQAR质量和长度外推.
+- 门禁: Preflight, 32-step轨迹, controlled resume, checkpoint和eval smoke均通过; 6/6正式训练及60/60逻辑评估完成, 其中30个物理执行、30个best/last state-hash去重.
+- 结果: A1 peak allocated约降至A0的`0.775x`, wall time增至`1.149x`; 标准`1024x256` delta均值为`-0.04020`, 四外推slice宏平均为`-0.10562`, 两个质量门槛均失败. A1不替代A0.
+- 数值审计: step1严格一致; step16参数max abs差为`2.38e-7`, step32为`1.00e-6`; 四epoch后三seed model-state hash均分叉, seed125退化最明显.
+- Collector修复: 首次collect因A0/A1 CSV字段集合不同而失败; commit `03f5d25`只修复汇总schema并复用已有训练/评估结果, 最终质量失败结论不受该基础设施bug影响.
+- 输出: [报告](20260729-01-mqar-gd-remat-regression-report.md), [artifact](artifacts/20260729-01-mqar-gd-remat-regression/README.md).
+- 下一步: 禁止A1进入自然语言正式训练; 优先定位remat数值分叉或验证不重算GD图的显存方案, 再执行同口径回归.

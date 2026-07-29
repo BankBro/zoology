@@ -3,11 +3,11 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260729-01-mqar-gd-remat-regression`.
-- 状态: `planned`.
+- 状态: `completed, quality_failed`.
 - 目标: 在RTX 3090 BF16下, 对canonical `baseline-r16-joint`执行A0 remat off与A1 post-phase1 remat三seed配对回归.
 - Plan: [`docs/plans/20260729-01-mqar-gd-remat-regression-plan.md`](../../../../../docs/plans/20260729-01-mqar-gd-remat-regression-plan.md).
-- Report: 实验终态后写入`docs/20260729-01-mqar-gd-remat-regression-report.md`.
-- Artifact: 实验终态后写入`docs/artifacts/20260729-01-mqar-gd-remat-regression/`.
+- Report: [`docs/20260729-01-mqar-gd-remat-regression-report.md`](../../../../../docs/20260729-01-mqar-gd-remat-regression-report.md).
+- Artifact: [`docs/artifacts/20260729-01-mqar-gd-remat-regression/`](../../../../../docs/artifacts/20260729-01-mqar-gd-remat-regression/README.md).
 
 ## 2. 固定矩阵
 
@@ -48,3 +48,9 @@ mean four-slice extrapolation macro delta >= -0.02
 ```
 
 质量通过前不启动300M自然语言质量pilot. 显存和吞吐只记录, 不作为本轮硬门槛.
+
+## 5. 终态
+
+6/6 个正式训练 run 和 60/60 个逻辑评估事件完成. A1 显存下降约 `22.5%`, 但标准 MQAR delta 均值为 `-0.04020`, 四外推 slice 宏平均为 `-0.10562`, 两个质量门槛均失败. A1 不替代 A0.
+
+首次 collector 因 `system-summary.csv` 字段集合不一致而失败. 修复 commit `03f5d25` 仅重建汇总, 未重跑训练或评估. 恢复后的终态位于 raw 的 `final-summary-recovered/`.

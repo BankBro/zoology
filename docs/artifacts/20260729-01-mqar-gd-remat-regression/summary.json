@@ -1,0 +1,43 @@
+{
+  "collected_at_utc": "2026-07-29T05:52:23.871203+00:00",
+  "evaluation_logical_events": 60,
+  "evaluation_physical_events": 30,
+  "experiment_id": "20260729-01-mqar-gd-remat-regression",
+  "quality": {
+    "checks": {
+      "extrapolation_macro_noninferiority": false,
+      "six_training_runs": true,
+      "standard_noninferiority": false
+    },
+    "extrapolation_macro_margin": -0.02,
+    "extrapolation_macro_mean_delta": -0.10561981754936278,
+    "extrapolation_paired_deltas": [
+      -0.04886328125000006,
+      -0.04056054687499999,
+      -0.04346484375000004,
+      -0.009879822731018062,
+      -0.02696093749999995,
+      -0.0161484375,
+      -0.020394531250000014,
+      -0.00036345854401589883,
+      -0.31039453125000005,
+      -0.31045898437499997,
+      -0.31355468750000004,
+      -0.1263937480673194
+    ],
+    "extrapolation_population_sd": 0.12267104801431955,
+    "passed": false,
+    "standard_margin": -0.01,
+    "standard_mean_delta": -0.04019531249999997,
+    "standard_paired_deltas": [
+      -0.015765625000000005,
+      -0.011339843749999967,
+      -0.09348046874999993
+    ],
+    "standard_population_sd": 0.037721592334350504
+  },
+  "raw_run_root": "/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260729-01-mqar-gd-remat-regression/outputs/3090/20260729-mqar-remat-01",
+  "run_tag": "20260729-mqar-remat-01",
+  "status": "quality_failed",
+  "training_runs": 6
+}

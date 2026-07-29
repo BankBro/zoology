@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260729-01-mqar-gd-remat-regression`.
-- 状态: `planned`.
+- 状态: `completed, quality_failed`.
 - 执行机器: `mclab-3090`的`Flash-VQG-tun`容器.
 - Flash-VQG固定commit: `79fef6a8e9d3f41dfcbf40bf668ec83286dd5d62`.
 - zoology base: `flash-vqg@581329853fdbd94f9510c0e80481fccf63fb0add`.
@@ -59,3 +59,7 @@ mean(A1 - A0) four extrapolation slices >= -0.02
 Raw输出保留在实验目录`outputs/3090/<run-tag>/`. 终态artifact至少包含training、Longer-MQAR、paired quality、trajectory、system summary、source manifest和metadata. 正式完成、失败或中止后均生成report并追加`docs/EXPERIMENT_LOG.md`; 只有结论改变下一步时更新`docs/STATUS.md`.
 
 预计总预算为3至4 GPU小时, checkpoint与raw输出低于2 GiB. 本实验不启动自然语言pilot或1B-token训练.
+
+## 6. 执行结果
+
+6/6 个正式训练 run 和 60/60 个逻辑评估事件已完成. A1 标准 MQAR delta 均值为 `-0.04020`, 四外推 slice 宏平均为 `-0.10562`, 均未通过预注册门槛. A1 不替代 A0, 详细结果见 [正式报告](../20260729-01-mqar-gd-remat-regression-report.md).
