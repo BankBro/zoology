@@ -89,3 +89,27 @@ def test_tensor_hash_supports_scalar_tensor():
     probe = load_module("seed124_diag_probe", "probe.py")
     scalar = torch.tensor(1.25)
     assert probe.tensor_hash(scalar) == probe.tensor_hash(scalar.clone())
+
+
+def test_gradient_analysis_groups_runs_and_names_tensors(tmp_path):
+    analyze = load_module("seed124_diag_analyze", "analyze_gradients.py")
+    paths = []
+    for index, grad_hash in enumerate(("group-a", "group-a", "group-b")):
+        path = tmp_path / f"trace-{index}.jsonl"
+        row = {
+            "event": "after_backward",
+            "window": 1,
+            "micro_step": 0,
+            "grad_sha256": grad_hash,
+            "grad_tensors": {
+                "same": {"sha256": "same"},
+                "changed": {"sha256": grad_hash},
+            },
+        }
+        path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        paths.append(path)
+    result = analyze.analyze(paths, window=1, micro_step=0)
+    assert result["gradient_group_count"] == 2
+    comparison = result["comparisons"][0]
+    assert comparison["different_tensor_count"] == 1
+    assert comparison["different_tensors"][0]["name"] == "changed"
