@@ -36,6 +36,11 @@ from common import (
 from zoology.train import Trainer
 
 
+GATE_REPLAY_MODULE = (
+    "backbone.layers.1.sequence_mixer.mixer.attn.output_gate_fused"
+)
+
+
 def _hash_bytes(*parts: bytes) -> str:
     digest = hashlib.sha256()
     for part in parts:
@@ -188,7 +193,12 @@ def output_records(value: Any, prefix: str = "output") -> dict[str, Any]:
 
 
 def should_hook_module(name: str) -> bool:
-    if name in {"backbone.embeddings", "backbone.ln_f", "lm_head"}:
+    if name in {
+        "backbone.embeddings",
+        "backbone.ln_f",
+        "lm_head",
+        GATE_REPLAY_MODULE,
+    }:
         return True
     parts = name.split(".")
     if len(parts) == 3 and parts[:2] == ["backbone", "layers"]:
@@ -205,11 +215,13 @@ class DiagnosticTrainer(Trainer):
         *args: Any,
         diagnostic_trace_path: Path,
         detail_window: int | None,
+        gate_replay_dir: Path | None,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.diagnostic_trace_path = diagnostic_trace_path
         self.detail_window = detail_window
+        self.gate_replay_dir = gate_replay_dir
         self._micro_in_window = 0
         self._pending_backward: dict[str, int] | None = None
         self._module_call_counts: dict[tuple[int, int, str], int] = defaultdict(int)
@@ -353,8 +365,57 @@ class DiagnosticTrainer(Trainer):
                 inputs=output_records(inputs, "input"),
                 outputs=output_records(output, "output"),
             )
+            self._maybe_capture_gate_replay(
+                name=name,
+                module=_module,
+                inputs=inputs,
+                output=output,
+                window=window,
+                micro_step=micro_step,
+                call_index=call_index,
+            )
 
         return hook
+
+    def _maybe_capture_gate_replay(
+        self,
+        *,
+        name: str,
+        module: torch.nn.Module,
+        inputs: Any,
+        output: Any,
+        window: int,
+        micro_step: int,
+        call_index: int,
+    ) -> None:
+        if self.gate_replay_dir is None or name != GATE_REPLAY_MODULE:
+            return
+        if window != self.detail_window or micro_step != 0 or call_index != 0:
+            return
+        if not torch.is_tensor(output) or len(inputs) != 2:
+            raise TypeError("Gate replay expects two tensor inputs and one tensor output.")
+        path = self.gate_replay_dir / "layer1-window1-micro0.pt"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        x, gate = inputs
+
+        def save_replay(grad_output: torch.Tensor) -> torch.Tensor:
+            payload = {
+                "module": name,
+                "window": window,
+                "micro_step": micro_step,
+                "x": x.detach().cpu(),
+                "gate": gate.detach().cpu(),
+                "output": output.detach().cpu(),
+                "grad_output": grad_output.detach().cpu(),
+                "weight": module.weight.detach().cpu(),
+                "bias": None if module.bias is None else module.bias.detach().cpu(),
+                "activation": module.activation,
+                "eps": float(module.eps),
+            }
+            torch.save(payload, path)
+            return grad_output
+
+        output.register_hook(save_replay)
 
     def _install_module_hooks(self) -> None:
         if self.detail_window is None:
@@ -385,6 +446,7 @@ def run_probe(
     max_train_steps: int,
     detail_window: int | None,
     gate_bwd_config: str,
+    capture_gate_replay: bool,
 ) -> int:
     configure_numerics()
     configure_gate_bwd_runtime(gate_bwd_config)
@@ -398,6 +460,7 @@ def run_probe(
     if trace_path.exists():
         raise FileExistsError(f"Refusing to overwrite trace: {trace_path}")
     output_dir.mkdir(parents=True, exist_ok=False)
+    gate_replay_dir = output_dir / "replay" if capture_gate_replay else None
     resolved_path = output_dir / "resolved_config.json"
     atomic_write_json(resolved_path, serialize_config(config))
 
@@ -412,6 +475,7 @@ def run_probe(
                 *args,
                 diagnostic_trace_path=trace_path,
                 detail_window=detail_window,
+                gate_replay_dir=gate_replay_dir,
                 **kwargs,
             )
             holder["trainer"] = self
@@ -441,6 +505,18 @@ def run_probe(
         "detail_window": detail_window,
         "gate_bwd_config": gate_bwd_config,
         "gate_autotune": gate_autotune_snapshot(),
+        "gate_replay": (
+            []
+            if gate_replay_dir is None
+            else [
+                {
+                    "path": str(path.resolve()),
+                    "bytes": path.stat().st_size,
+                    "sha256": sha256_file(path),
+                }
+                for path in sorted(gate_replay_dir.glob("*.pt"))
+            ]
+        ),
         "status": status,
         "error": error,
         "wall_clock_sec": time.perf_counter() - started,
@@ -467,6 +543,7 @@ def main() -> int:
     parser.add_argument("--max-train-steps", type=int, required=True)
     parser.add_argument("--detail-window", type=int)
     parser.add_argument("--gate-bwd-config", default="default")
+    parser.add_argument("--capture-gate-replay", action="store_true")
     args = parser.parse_args()
     return run_probe(
         variant=args.variant,
@@ -474,6 +551,7 @@ def main() -> int:
         max_train_steps=args.max_train_steps,
         detail_window=args.detail_window,
         gate_bwd_config=args.gate_bwd_config,
+        capture_gate_replay=args.capture_gate_replay,
     )
 
 
