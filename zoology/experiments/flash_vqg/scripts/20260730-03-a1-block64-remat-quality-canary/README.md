@@ -8,7 +8,7 @@
 - Report: 终态后写入`docs/20260730-03-a1-block64-remat-quality-canary-report.md`.
 - GPU: 2080ti GPU1.
 - Precision: FP32.
-- Flash-VQG source: `0b50712576ee8f17499152f66e81a1b37ef67517`.
+- Flash-VQG source: `a18b32960b41170b5a546588b3b2ebbd0f0578b7`.
 
 本实验比较block64 A0与A1, 唯一配置差异是`fox_gd_residual_remat_mode`. 默认FLA主运行若出现fresh-process分叉, 结果会登记为`requires_fla_replay`, 后续使用已存在的capture/replay机制做同config因果复验.
 

@@ -67,3 +67,12 @@ def test_trajectory_gate_requires_replay_for_hash_divergence(monkeypatch):
     )
     assert gate["requires_fla_replay"] is True
     assert gate["passed"] is False
+
+
+def test_longest_eval_cases_fit_2080ti(monkeypatch):
+    monkeypatch.syspath_prepend(str(EXPERIMENT))
+    monkeypatch.setenv("MQAR_BLOCK64_REMAT_RUN_TAG", "pytest")
+    common = load_module("block64_remat_common_batch_test", EXPERIMENT / "common.py")
+    longest = [case for case in common.LONGER_CASES if case[0] == 8190]
+    assert len(longest) == 2
+    assert {case[2] for case in longest} == {4}
