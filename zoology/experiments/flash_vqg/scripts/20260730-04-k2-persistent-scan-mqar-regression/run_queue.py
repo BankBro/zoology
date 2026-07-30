@@ -151,6 +151,17 @@ class Queue:
         self.status(formal["status"], summary=formal)
         return int(formal["return_code"])
 
+    def run_fp32_diagnostic(self) -> int:
+        self.phase = "preflight"
+        self.process("preflight", [str(PYTHON), str(EXPERIMENT_SCRIPT), "preflight"])
+        self.phase = "diagnostic_fp32"
+        for variant in VARIANTS:
+            self.train(variant, 123, "diagnostic_fp32")
+        summary = self.evaluate_and_analyze("diagnostic_fp32")
+        self.phase = "complete"
+        self.status(summary["status"], summary=summary)
+        return int(summary["return_code"])
+
 
 def acquire_lock():
     path = run_root() / "queue.lock"
@@ -163,10 +174,15 @@ def acquire_lock():
 
 
 def main() -> int:
+    mode = "full"
+    if len(sys.argv) > 1:
+        if sys.argv[1:] != ["--fp32-diagnostic"]:
+            raise SystemExit("Only --fp32-diagnostic is supported.")
+        mode = "fp32"
     lock = acquire_lock()
     queue = Queue()
     try:
-        return queue.run()
+        return queue.run_fp32_diagnostic() if mode == "fp32" else queue.run()
     except BaseException as exc:
         queue.status(
             "failed",
@@ -181,4 +197,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

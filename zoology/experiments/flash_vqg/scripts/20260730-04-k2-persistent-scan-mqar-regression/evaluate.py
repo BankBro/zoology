@@ -32,6 +32,24 @@ def _load_base():
 BASE = _load_base()
 
 
+def _source_from_result(result: dict[str, Any], role: str) -> dict[str, Any]:
+    checkpoint = result[f"{role}_checkpoint"]
+    precision = result["train_precision"]
+    return {
+        "source_id": f"3090-{result['variant']}-s{result['seed']}-{precision}-{role}",
+        "machine": "3090",
+        "model": "flash",
+        "variant": result["variant"],
+        "remat_mode": result["remat_mode"],
+        "seed": int(result["seed"]),
+        "train_precision": precision,
+        "checkpoint_role": role,
+        "checkpoint_path": checkpoint["path"],
+        "checkpoint_file_sha256": checkpoint["file_sha256"],
+        "checkpoint_model_state_sha256": checkpoint["model_state_sha256"],
+    }
+
+
 def sources(phase: str) -> list[dict[str, Any]]:
     descriptors = training_descriptors() if phase == "formal" else [
         descriptor(variant, 123) for variant in VARIANTS
@@ -43,8 +61,21 @@ def sources(phase: str) -> list[dict[str, Any]]:
         result = load_json(path)
         if result.get("status") != "completed":
             raise RuntimeError(f"Training result is not complete: {path}")
-        selected.extend(BASE.source_from_result(result, role) for role in roles)
+        selected.extend(_source_from_result(result, role) for role in roles)
     return selected
+
+
+_BASE_EVENT_PAYLOAD = BASE.event_payload
+
+
+def event_payload(source: dict[str, Any], case, phase: str) -> dict[str, Any]:
+    event = _BASE_EVENT_PAYLOAD(source, case, phase)
+    precision = source["train_precision"]
+    event["train_precision"] = precision
+    event["eval_precision"] = precision
+    if precision == "fp32":
+        event["event_id"] = event["event_id"].replace("-bf16-", "-fp32-")
+    return event
 
 
 def runtime_audit(result: dict[str, Any]) -> None:
@@ -68,17 +99,20 @@ def runtime_audit(result: dict[str, Any]) -> None:
 
 BASE.sources = sources
 BASE._runtime_audit = runtime_audit
+BASE.event_payload = event_payload
 
 
 def evaluate(phase: str) -> dict[str, Any]:
-    if phase not in {"screen", "formal"}:
+    if phase not in {"screen", "formal", "diagnostic_fp32"}:
         raise ValueError(f"Unsupported evaluation phase: {phase}")
     return BASE.evaluate(phase)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("screen", "formal"), required=True)
+    parser.add_argument(
+        "--phase", choices=("screen", "formal", "diagnostic_fp32"), required=True
+    )
     args = parser.parse_args()
     evaluate(args.phase)
     return 0

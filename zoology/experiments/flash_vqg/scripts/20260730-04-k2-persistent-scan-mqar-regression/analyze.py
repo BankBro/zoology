@@ -190,7 +190,9 @@ def analyze(phase: str) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("screen", "formal"), required=True)
+    parser.add_argument(
+        "--phase", choices=("screen", "formal", "diagnostic_fp32"), required=True
+    )
     args = parser.parse_args()
     result = analyze(args.phase)
     return {"passed": 0, "quality_rejected": 2, "requires_fla_replay": 3, "correctness_failed": 4}[result["status"]]
@@ -198,4 +200,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

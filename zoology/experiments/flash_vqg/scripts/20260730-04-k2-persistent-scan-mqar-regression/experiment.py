@@ -62,7 +62,8 @@ _BASE_BUILD_CONFIG = BASE.build_config
 
 
 def run_id(variant: str, seed: int, phase: str) -> str:
-    return f"{variant}-s{seed}-bf16-b64ga4-{phase}"
+    precision = "fp32" if phase == "diagnostic_fp32" else "bf16"
+    return f"{variant}-s{seed}-{precision}-b64ga4-{phase}"
 
 
 def checkpoint_root(phase: str) -> Path:
@@ -81,16 +82,18 @@ def source_identity(variant: str) -> dict[str, str]:
 
 def build_config(variant: str, seed: int, phase: str):
     descriptor(variant, seed)
-    if phase not in {"smoke", "screen", "formal"}:
+    if phase not in {"smoke", "screen", "formal", "diagnostic_fp32"}:
         raise ValueError(f"Unsupported phase: {phase}.")
     base_phase = "smoke" if phase == "smoke" else "formal"
     config = _BASE_BUILD_CONFIG(variant, seed, base_phase)
     if phase == "smoke":
         config.resume_stop_after_optimizer_step = None
-    elif phase == "screen":
+    elif phase in {"screen", "diagnostic_fp32"}:
         config.max_epochs = 1
         config.max_train_steps = None
         config.validations_per_epoch = 4
+    if phase == "diagnostic_fp32":
+        config.precision = "float32"
     config.checkpoint.root_dir = str(checkpoint_root(phase))
     config.launch_id = f"{EXPERIMENT_ID}-{run_tag()}-{phase}"
     config.sweep_id = EXPERIMENT_ID
@@ -99,6 +102,7 @@ def build_config(variant: str, seed: int, phase: str):
         run_root() / "training" / phase / config.run_id / "telemetry.jsonl"
     )
     config.resume_identity = source_identity(variant)
+    config.resume_identity["precision"] = "fp32" if phase == "diagnostic_fp32" else "bf16"
     kwargs = BASE.BASE._find_flash_kwargs(config.model)
     kwargs.update(
         {
@@ -181,6 +185,7 @@ def _config_jobs() -> list[dict[str, Any]]:
     for variant in VARIANTS:
         for phase in ("smoke", "screen"):
             jobs.append({**descriptor(variant, 123), "phase": phase})
+        jobs.append({**descriptor(variant, 123), "phase": "diagnostic_fp32"})
     return jobs
 
 
@@ -230,7 +235,8 @@ def preflight() -> dict[str, Any]:
             and audit["remat_mode"] == "post_phase1"
             and audit["builder"] == BUILDERS[row["variant"]]
             and audit["tile_blocks"] == 8
-            and row["precision"] == "amp_bfloat16"
+            and row["precision"]
+            == ("float32" if row["phase"] == "diagnostic_fp32" else "amp_bfloat16")
         )
     checks["jobs"] = all(job_checks)
     payload = {
@@ -317,6 +323,7 @@ def run_training(variant: str, seed: int, phase: str) -> int:
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
         "phase": phase,
+        "train_precision": "fp32" if phase == "diagnostic_fp32" else "bf16",
         "status": status,
         "error": error,
         "started_at_utc": started_at,
@@ -379,7 +386,11 @@ def main() -> int:
     train = sub.add_parser("train")
     train.add_argument("--variant", choices=tuple(VARIANTS), required=True)
     train.add_argument("--seed", choices=SEEDS, type=int, required=True)
-    train.add_argument("--phase", choices=("smoke", "screen", "formal"), required=True)
+    train.add_argument(
+        "--phase",
+        choices=("smoke", "screen", "formal", "diagnostic_fp32"),
+        required=True,
+    )
     args = parser.parse_args()
     if args.command == "preflight":
         preflight()

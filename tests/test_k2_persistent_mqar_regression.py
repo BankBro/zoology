@@ -67,6 +67,10 @@ def test_screen_is_one_epoch_from_canonical_init(monkeypatch):
     assert config.max_train_steps is None
     assert config.init_checkpoint_strict is True
 
+    diagnostic = experiment.build_config("k2-persistent-p8", 123, "diagnostic_fp32")
+    assert diagnostic.precision == "float32"
+    assert diagnostic.max_epochs == 1
+
 
 def test_runtime_audit_distinguishes_persistent_path(monkeypatch):
     load_common(monkeypatch)
