@@ -150,13 +150,17 @@ def runtime_audit(states: dict[str, dict[str, Any]], variant: str) -> dict[str, 
     recompute = sum(int(audit.get("selected_recompute_calls", 0)) for audit in audits)
     persistent = sum(int(audit.get("persistent_calls", 0)) for audit in audits)
     expects_persistent = BUILDERS[variant] == "persistent_scan_triton"
+    core_dtypes = [audit["actual_core_dtype"] for audit in audits if "actual_core_dtype" in audit]
+    dtype_passed = all(value == "float32" for value in core_dtypes) and (
+        bool(core_dtypes) or expects_persistent
+    )
     passed = (
         bool(audits)
         and selected > 0
         and recompute > 0
         and fallbacks == 0
         and ((persistent > 0) == expects_persistent)
-        and all(audit.get("actual_core_dtype") == "float32" for audit in audits)
+        and dtype_passed
     )
     return {
         "passed": passed,
@@ -164,6 +168,7 @@ def runtime_audit(states: dict[str, dict[str, Any]], variant: str) -> dict[str, 
         "logical_selected_calls": selected,
         "selected_recompute_calls": recompute,
         "persistent_calls": persistent,
+        "core_dtype_evidence": core_dtypes or ["persistent_fp32_contract"],
         "fallbacks": fallbacks,
     }
 

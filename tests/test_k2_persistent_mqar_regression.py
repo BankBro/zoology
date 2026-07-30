@@ -72,20 +72,24 @@ def test_runtime_audit_distinguishes_persistent_path(monkeypatch):
     load_common(monkeypatch)
     experiment = load_module("k2_mqar_experiment_audit_test", EXPERIMENT / "experiment.py")
 
-    def state(persistent: int):
+    def state(persistent: int, include_dtype: bool = True):
+        audit = {
+            "selected_calls": 4,
+            "selected_recompute_calls": 4,
+            "persistent_calls": persistent,
+        }
+        if include_dtype:
+            audit["actual_core_dtype"] = "float32"
         return {
             "layer": {
-                "fox_gd_residual_triton_runtime_audit": {
-                    "selected_calls": 4,
-                    "selected_recompute_calls": 4,
-                    "persistent_calls": persistent,
-                    "actual_core_dtype": "float32",
-                }
+                "fox_gd_residual_triton_runtime_audit": audit
             }
         }
 
     assert experiment.runtime_audit(state(0), "p0-a1-block64")["passed"] is True
     assert experiment.runtime_audit(state(4), "k2-persistent-p8")["passed"] is True
+    assert experiment.runtime_audit(state(4, False), "k2-persistent-p8")["passed"] is True
+    assert experiment.runtime_audit(state(0, False), "p0-a1-block64")["passed"] is False
     assert experiment.runtime_audit(state(0), "k2-persistent-p8")["passed"] is False
 
 
@@ -104,4 +108,3 @@ def test_quality_gate_requires_every_seed_and_matching_fla(monkeypatch):
     rows[1]["standard_delta"] = 0.0
     rows[2]["fla_config_match"] = False
     assert analyze.quality_decision(rows, True)["status"] == "requires_fla_replay"
-

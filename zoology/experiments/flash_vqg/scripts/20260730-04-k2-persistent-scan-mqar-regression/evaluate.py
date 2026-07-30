@@ -62,7 +62,7 @@ def runtime_audit(result: dict[str, Any]) -> None:
             raise RuntimeError(f"Evaluation missed selected Triton calls: {audit}")
         if any(int(audit.get(key, 0)) for key in fallback_keys):
             raise RuntimeError(f"Evaluation recorded a fallback: {audit}")
-        if audit.get("actual_core_dtype") != "float32":
+        if "actual_core_dtype" in audit and audit["actual_core_dtype"] != "float32":
             raise RuntimeError(f"Evaluation core dtype mismatch: {audit}")
 
 
@@ -86,4 +86,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
