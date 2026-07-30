@@ -24,11 +24,12 @@
 - A1训练加速MQAR筛选已完成. 新的`triton_deterministic` selected backward在seed123 reference上达到标准`0.959813`, 说明exact kernel可以正常学习; 但最快的`block256/write2/read8`近似候选仅为`0.218785`, 四外推slice宏平均delta为`-0.573613`.
 - 为修正原curriculum中大block只有1至2个block的混杂, 追加了等tokens、等microbatch数和等block几何实验. `block128`与`block128/write2/read8`在对应任务上均接近随机. 该结果否决当前大block配置, 但由于单样本绝对长度和KV负载同步放大4倍, 不能外推为所有自然语言任务的普遍失败定理.
 - A1 block64低成本质量门禁已通过. 在seed123、FP32、1 epoch且FLA fused gate配置相同的条件下, A0/A1的704-step loss、最终model/optimizer hash、标准MQAR和4个外推任务全部完全一致. 该结果允许继续C1/K1工程探索, 但不替代300M BF16短自然语言paired pilot.
+- K2 P8 persistent scan的RTX 3090 AMP BF16质量筛选已完成. Seed123一epoch标准validation delta为`-0.010344`, 四外推宏平均delta为`-0.039300`, 未通过预注册门槛; 三seed正式矩阵按计划未启动. 梯度分解确认K2与P0的粗状态和残差状态分支分别一致, 差异来自`W_blk`处不同的FP32累加树. K2应分类为forward exact、backward E1资源候选, 不提升为质量canonical.
 
 ## 3. 下一步
 
 - 后续实验默认以上述 Flash-VQG、GDN 和 Conda 环境为基线.
-- 自然语言300M训练仍优先在RTX 3090使用BF16. `post_phase1` remat和Triton selected backward已补齐单seedblock64轨迹等价canary, 但在完整1B-token训练前仍需短自然语言paired pilot.
-- 不采用`block128/256`或`write2/read8`作为当前正式质量路径. 性能工程优先保持逻辑block不变, 研究物理tiling、persistent scan和state-build/read融合, 不把逻辑block增大产生的加速标记为exact.
+- 自然语言300M训练仍优先在RTX 3090使用BF16. 当前质量路径为P0 A1, 即`post_phase1` remat加`triton_deterministic` selected backward; 在完整1B-token训练前仍需300M短自然语言paired pilot.
+- 不采用`block128/256`、`write2/read8`或当前K2 P8作为正式质量路径. 若继续K2, 应先控制跨分支`W`梯度累加树并重新执行BF16 Q0, 或预注册新的E1统计性质量协议, 不事后放宽本次门槛.
 - 若继续研究MQAR数值稳定性, 优先定位Flash跨GPU训练轨迹的首次state-hash分叉; 若需加强结论, 增加新的独立training seeds.
 - 如需更换基线, 先完成正式对照实验并更新本页与实验日志.

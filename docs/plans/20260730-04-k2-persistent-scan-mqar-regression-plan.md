@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260730-04-k2-persistent-scan-mqar-regression`.
-- 状态: `planned`.
+- 状态: `completed`, 终态为`quality_rejected_at_bf16_screen`.
 - 登记日期: 2026-07-30.
 - Zoology分支: `20260730-233021-k2-persistent-mqar-regression`.
 - Zoology base: `8af50e0c9b02d4e76eabcdc82d6ebe307d34eefe`.
@@ -65,3 +65,6 @@ Q0和正式阶段均执行:
 - 失败后FP32诊断最多额外2 GPU-hours.
 - API费用为0, raw与checkpoint预计低于1 GiB.
 
+## 6. 执行终态
+
+两组smoke均通过. Seed123 AMP BF16一epochQ0的标准validation delta为`-0.010344`, 四外推宏平均delta为`-0.039300`, 均低于预注册门槛. 因此三seed四epoch正式矩阵按第4节停止规则未启动. 补充FP32配对只用于因果诊断, 不覆盖BF16主裁决. 完整结论见[实验报告](../20260730-04-k2-persistent-scan-mqar-regression-report.md).

@@ -1,0 +1,42 @@
+{
+  "experiment_id": "20260730-04-k2-persistent-scan-mqar-regression",
+  "status": "quality_rejected_at_bf16_screen",
+  "source_machine": "mclab-3090 Flash-VQG-tun",
+  "flash_vqg_commit": "a6b1af3d8845caa7f317e7104a1af500a03b1c24",
+  "bf16_run_tag": "20260730-k2-mqar-02",
+  "fp32_diagnostic_run_tag": "20260730-k2-mqar-03",
+  "formal_training_runs_completed": 0,
+  "formal_training_runs_planned": 6,
+  "bf16_screen": {
+    "seed": 123,
+    "epochs": 1,
+    "standard_delta": -0.01034375,
+    "extrapolation_macro_delta": -0.03929960899055,
+    "fla_configs_match": true,
+    "status": "quality_rejected"
+  },
+  "fp32_diagnostic": {
+    "seed": 123,
+    "epochs": 1,
+    "standard_delta": 0.01094140625,
+    "extrapolation_macro_delta": 0.0752635567486286,
+    "fla_configs_match": true,
+    "status": "passed"
+  },
+  "thresholds": {
+    "per_seed_standard_delta_min": -0.01,
+    "per_seed_extrapolation_macro_delta_min": -0.02
+  },
+  "runtime": {
+    "bf16_k2_persistent_calls": 7646,
+    "bf16_fallbacks": 0,
+    "fp32_k2_persistent_calls": 7646,
+    "fp32_fallbacks": 0
+  },
+  "raw_mirror": {
+    "verified": true,
+    "checkpoint_files_mirrored": false,
+    "checkpoint_tensor_files_on_source": 24
+  }
+}
+

@@ -129,3 +129,13 @@
 - 失败修复: 首次run在8190-token FP32 batch16评估时因4 GiB logits申请OOM; 仅将两个最长任务batch降为4后, 以新tag从头完整重跑通过.
 - 输出: [报告](20260730-03-a1-block64-remat-quality-canary-report.md), [artifact](artifacts/20260730-03-a1-block64-remat-quality-canary/README.md).
 - 下一步: 允许继续P0/P1和C1/K1; 1B-token训练前仍需300M BF16短自然语言paired pilot.
+
+## 15. 2026-07-30: K2 Persistent Scan BF16 MQAR 筛选拒绝
+
+- `experiment_id`: `20260730-04-k2-persistent-scan-mqar-regression`.
+- 目的: 在RTX 3090 AMP BF16下比较P0 A1与K2 P8, 判断persistent scan与bounded backward能否通过block64 MQAR及长度外推质量门禁.
+- 门禁: 两组smoke、runtime、finite、dtype和fallback审计通过; 两组FLA fused gate backward均为`BT64/warps8`. Seed123一epochQ0完成704个optimizer updates及全部固定评估.
+- 结果: 标准validation delta为`-0.010344`, 四外推宏平均delta为`-0.039300`, 均低于预注册门槛. 三seed四epoch正式矩阵按计划未启动. 补充FP32同seed诊断方向反转为正, 但状态仍分叉, 不覆盖BF16拒绝结论.
+- 根因: P0与K2的粗状态和残差状态分支梯度分别逐位一致; 差异只在两条贡献于`W_blk`汇合时出现, 对应P0逐block交错与K2分支分离的FP32累加树. Tile P1/P2/P4/P8误差相同, 排除tile大小为根因.
+- 输出: [报告](20260730-04-k2-persistent-scan-mqar-regression-report.md), [artifact](artifacts/20260730-04-k2-persistent-scan-mqar-regression/README.md).
+- 下一步: K2保留为forward exact、backward E1资源候选; 当前质量路径回到P0 A1. 未经新的低层修复和BF16 Q0, 不启动K2自然语言正式训练或1B-token训练.

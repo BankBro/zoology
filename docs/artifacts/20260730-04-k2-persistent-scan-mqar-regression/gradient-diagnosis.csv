@@ -1,0 +1,11 @@
+diagnostic,variant_or_tile,max_abs,mean_abs,proxy_speedup,interpretation
+tile_sweep,p1,0.00000762939453125,0.0000000000762696572565,2.13307,tile size does not change gradient error
+tile_sweep,p2,0.00000762939453125,0.0000000000762696572565,2.14066,tile size does not change gradient error
+tile_sweep,p4,0.00000762939453125,0.0000000000762696572565,2.05532,tile size does not change gradient error
+tile_sweep,p8,0.00000762939453125,0.0000000000762696572565,1.99752,tile size does not change gradient error
+branch_gradient,coarse_W,0,0,,P0 and K2 are bitwise equal
+branch_gradient,residual_W,0,0,,P0 and K2 are bitwise equal
+branch_gradient,full_W,0.00000762939453125,0.0000000000762696572565,,difference appears only after branch merge
+merge_order,k2_full_vs_explicit_sum,0,0,,K2 equals explicit coarse plus residual sum
+merge_order,p0_full_vs_explicit_sum,0.00000762939453125,0.0000000000762696572565,,P0 uses interleaved accumulation tree
+

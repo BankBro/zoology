@@ -1,0 +1,6 @@
+run_tag,stage,status,root_cause,resolution,downstream_effect
+20260730-k2-mqar-01,k2-smoke,audit_false_negative,persistent audit does not emit legacy actual_core_dtype field,accept persistent FP32 contract and rerun with new tag,Q0 never started
+20260730-k2-mqar-02,bf16-screen,quality_rejected,K2 and P0 backward use different FP32 gradient accumulation trees,run preregistered FP32 diagnostic,formal three-seed matrix stopped
+20260730-k2-mqar-03,fp32-diagnostic,passed,precision-dependent trajectory amplification supported,retain as causal evidence only,does not override BF16 rejection
+local-sm75-gradient-decompose,diagnostic,hardware_rejected,SM75 cannot compile BF16 Triton instructions,run the same script on RTX 3090,no scientific result lost
+
