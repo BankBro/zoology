@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260730-02-a1-block-geometry-mqar-probe`.
-- 状态: registered.
+- 状态: completed, 终态为`quality_rejected`.
 - 执行机器: `mclab-2080ti`的`Flash-VQG-tun`, GPU1.
 - Zoology base: `20260730-055000-a1-acceleration-mqar-probe`分支.
 - Flash-VQG runtime commit: `60a18b2`, 其中相对性能run commit `114eadb`仅修正实验语义标签并新增测试, `src/`内容不变.

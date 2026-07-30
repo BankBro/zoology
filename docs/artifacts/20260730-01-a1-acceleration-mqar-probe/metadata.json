@@ -1,0 +1,16 @@
+{
+  "experiment_id": "20260730-01-a1-acceleration-mqar-probe",
+  "status": "quality_rejected",
+  "machine": "NVIDIA GeForce RTX 2080 Ti GPU1",
+  "seed": 123,
+  "precision": "fp32",
+  "flash_vqg_commit": "114eadbd1d2e3c9a43b927e54f6ad9a2692c40e8",
+  "reference_standard_accuracy": 0.9598125,
+  "candidate_standard_accuracy": 0.21878515625,
+  "candidate_standard_delta": -0.74102734375,
+  "candidate_extrapolation_macro_delta": -0.5736125148495194,
+  "thresholds": {
+    "standard_delta_min": -0.02,
+    "extrapolation_macro_delta_min": -0.05
+  }
+}

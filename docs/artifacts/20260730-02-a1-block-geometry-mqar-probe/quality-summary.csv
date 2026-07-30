@@ -1,0 +1,4 @@
+variant,block_len,write_topk,read_topk,train_tokens,train_microbatches,comparison_task,accuracy,delta,status
+a1-reference,32,4,16,24320000,2812,1024x256,0.9598125,0.0,reference
+a1-block128,128,4,16,24320000,2812,4096x1024,0.000236328125,-0.959576171875,quality_rejected
+a1-block128-k2r8,128,2,8,24320000,2812,4096x1024,0.0002412109375,-0.9595712890625,quality_rejected

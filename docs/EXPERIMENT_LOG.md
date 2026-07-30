@@ -101,3 +101,21 @@
 - 因果门禁: 固定`BT64, warps4`后, A0/A1的177-step共1947个训练事件、最终model/optimizer hash和两次validation质量指标全部一致; 真实算子replay精确复现两个梯度hash.
 - 输出: [报告](20260729-03-mqar-seed124-remat-causal-diagnosis-report.md), [artifact](artifacts/20260729-03-mqar-seed124-remat-causal-diagnosis/README.md).
 - 下一步: A1仍不晋升; 先生产化确定性output gate backward并评估吞吐, 再执行三seed正式质量回归.
+
+## 12. 2026-07-30: 训练加速近似候选 MQAR 筛选失败
+
+- `experiment_id`: `20260730-01-a1-acceleration-mqar-probe`.
+- 目的: 以seed123、FP32、1 epoch筛选300M性能实验中最快的`block256/write2/read8`近似候选, 并验证新的Triton deterministic selected backward能否正常学习.
+- 结果: Exact reference标准`1024x256`为`0.959813`; 组合候选为`0.218785`, delta为`-0.741027`, 四外推slice宏平均delta为`-0.573613`. `block128`, `block256`和`write2/read8`单变量分别为`0.060676`, `0.199504`和`0.908125`.
+- 失败修复: 5次评估identity、batch或allocator失败均保留现场、根因修复后完成重试, 不影响质量拒绝结论.
+- 输出: [报告](20260730-01-a1-acceleration-mqar-probe-report.md), [artifact](artifacts/20260730-01-a1-acceleration-mqar-probe/README.md).
+- 下一步: 不启动该近似候选的三seed扩展; 追加block几何归一化实验排查短curriculum混杂.
+
+## 13. 2026-07-30: Block Geometry 归一化 MQAR 仍拒绝大 block
+
+- `experiment_id`: `20260730-02-a1-block-geometry-mqar-probe`.
+- 目的: 在等训练tokens、microbatch数、optimizer更新及block几何下, 判断上游大block退化是否只是训练序列过短.
+- 结果: Reference `1024x256`为`0.959813`; `block128`及`block128/write2/read8`在对应`4096x1024`上分别为`0.000236`和`0.000241`, 接近随机. 两者均未进入Longer-MQAR.
+- 失败修复: `prepare-data`缺少上游run tag及summarizer错误均保留现场、最小修复并通过回归测试后重试; 三个正式训练均在摘要错误前完成.
+- 输出: [报告](20260730-02-a1-block-geometry-mqar-probe-report.md), [artifact](artifacts/20260730-02-a1-block-geometry-mqar-probe/README.md).
+- 下一步: 当前不采用扩大逻辑block的性能路径; 优先保持逻辑block不变的物理tiling和kernel融合.

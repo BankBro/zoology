@@ -1,0 +1,7 @@
+role,machine,path_or_commit,notes
+zoology_preflight,2080ti,eda325b6d246cde8559d9e9af30037e9e2a54a8f,clean source at initial preflight
+zoology_evaluator,2080ti,da944d32,corrected event identity used by final fixed-hash evaluation
+flash_vqg,2080ti,114eadbd1d2e3c9a43b927e54f6ad9a2692c40e8,training runtime source
+canonical_cache,2080ti,d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8,13-file combined content hash
+run01,2080ti,zoology/experiments/flash_vqg/scripts/20260730-01-a1-acceleration-mqar-probe/outputs/2080ti/20260730-a1-accel-mqar-01,main training evaluation and failures
+run02,2080ti,zoology/experiments/flash_vqg/scripts/20260730-01-a1-acceleration-mqar-probe/outputs/2080ti/20260730-a1-accel-mqar-02,single-variable diagnostics

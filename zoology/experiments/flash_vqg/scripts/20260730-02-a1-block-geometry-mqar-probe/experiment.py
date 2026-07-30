@@ -248,7 +248,7 @@ def run_training(variant: str, phase: str) -> int:
 
 
 def standard_accuracy(variant: str) -> float:
-    result = BASE.load_json(result_path(variant, "screen"))
+    result = json.loads(result_path(variant, "screen").read_text(encoding="utf-8"))
     shape = "1024x256" if variant == "a1-reference" else "4096x1024"
     return float(result["last_checkpoint"]["metrics"][f"valid/mqar_case/accuracy-{shape}"])
 

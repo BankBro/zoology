@@ -1,0 +1,6 @@
+role,machine,path_or_commit,notes
+zoology,2080ti,351b4d49ea3e20c745b37198d118bb5ea9e170fa,clean source at preflight and training
+flash_vqg,2080ti,60a18b2969df67aace2ab5fa6c10280b766f05a3,src identical to 3090 performance run commit 114eadb
+reference_cache,2080ti,d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8,canonical combined content hash
+scaled_cache,2080ti,65750d31a9c35524e552b8ab4ee566923aee1871e070b6302d4a6963d08530e3,scaled curriculum combined content hash
+raw,2080ti,zoology/experiments/flash_vqg/scripts/20260730-02-a1-block-geometry-mqar-probe/outputs/2080ti/20260730-a1-block-geometry-01,preflight smoke screen checkpoints failures and summary

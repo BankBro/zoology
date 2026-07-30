@@ -1,0 +1,3 @@
+attempt,stage,status,root_cause,fix,retry_outcome
+01,prepare-data,failed,required upstream run tag was not injected,temporarily inject and restore MQAR_A1_ACCEL_RUN_TAG,passed
+02,summarize,failed,dynamically loaded experiment module did not export load_json,read UTF-8 JSON directly and add regression test,quality_rejected summary generated

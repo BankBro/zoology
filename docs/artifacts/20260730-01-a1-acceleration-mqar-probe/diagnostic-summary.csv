@@ -1,0 +1,5 @@
+variant,block_len,write_topk,read_topk,standard_accuracy,standard_delta,status
+a1-reference,32,4,16,0.9598125,0.0,reference
+a1-block128,128,4,16,0.06067578125,-0.89913671875,quality_rejected
+a1-block256,256,4,16,0.19950390625,-0.76030859375,quality_rejected
+a1-k2r8,32,2,8,0.908125,-0.0516875,quality_rejected

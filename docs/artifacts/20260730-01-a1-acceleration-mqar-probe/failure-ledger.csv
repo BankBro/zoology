@@ -1,0 +1,6 @@
+attempt,stage,status,root_cause,fix,retry_outcome
+01,evaluation,failed,resume identity seed type mismatch,normalize shadow checkpoint identity,passed
+02,evaluation,oom,FP32 batch 128 exceeded 2080Ti memory,use registered shape-level batches,passed
+03,evaluation,oom,4096 task incorrectly used batch 32,use registered Flash FP32 batch 16,passed
+04,evaluation,failed,event identity omitted batch and source commits,include batch plus Zoology and Flash commits,passed
+05,evaluation,oom,8190 candidate allocation fragmented,use expandable allocator segments,passed

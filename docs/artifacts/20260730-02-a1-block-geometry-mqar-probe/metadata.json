@@ -1,0 +1,14 @@
+{
+  "experiment_id": "20260730-02-a1-block-geometry-mqar-probe",
+  "status": "quality_rejected",
+  "machine": "NVIDIA GeForce RTX 2080 Ti GPU1",
+  "seed": 123,
+  "precision": "fp32",
+  "zoology_commit": "351b4d49ea3e20c745b37198d118bb5ea9e170fa",
+  "flash_vqg_commit": "60a18b2969df67aace2ab5fa6c10280b766f05a3",
+  "train_tokens_per_variant": 24320000,
+  "train_microbatches_per_variant": 2812,
+  "reference_accuracy": 0.9598125,
+  "threshold": -0.02,
+  "status_reason": "Both block128 candidates remained near random under matched tokens and block geometry."
+}

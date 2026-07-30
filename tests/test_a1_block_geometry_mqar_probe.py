@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import sys
 from pathlib import Path
@@ -39,3 +40,24 @@ def test_scaled_candidate_changes_only_registered_geometry_and_sparsity():
     assert block_audit["state_sha256"] == sparse_audit["state_sha256"]
     assert (block_audit["block_len"], block_audit["write_topk"], block_audit["read_topk"]) == (128, 4, 16)
     assert (sparse_audit["block_len"], sparse_audit["write_topk"], sparse_audit["read_topk"]) == (128, 2, 8)
+
+
+def test_standard_accuracy_reads_registered_metric(tmp_path, monkeypatch):
+    result = tmp_path / "result.json"
+    result.write_text(
+        json.dumps(
+            {
+                "last_checkpoint": {
+                    "metrics": {
+                        "valid/mqar_case/accuracy-1024x256": 0.75,
+                        "valid/mqar_case/accuracy-4096x1024": 0.5,
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(EXPERIMENT, "result_path", lambda variant, phase: result)
+
+    assert EXPERIMENT.standard_accuracy("a1-reference") == 0.75
+    assert EXPERIMENT.standard_accuracy("a1-block128") == 0.5

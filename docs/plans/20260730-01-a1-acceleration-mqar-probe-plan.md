@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260730-01-a1-acceleration-mqar-probe`.
-- 状态: registered.
+- 状态: completed, 终态为`quality_rejected`.
 - 机器: RTX 2080 Ti GPU1.
 - dtype: FP32.
 - Zoology base: `flash-vqg@13d312a1245d56082f6102f9f1a461d6b0918a6e`.
