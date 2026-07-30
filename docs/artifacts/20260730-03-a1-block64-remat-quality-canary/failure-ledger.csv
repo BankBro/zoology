@@ -1,0 +1,3 @@
+attempt,status,failure,root_cause,action
+20260730-block64-remat-01,failed,8190x512_eval_oom,fp32_batch16_lm_head_logits_requested_4_gib,reduce_only_8190_token_eval_batch_to_4_and_rerun_full_queue
+20260730-block64-remat-02,passed,none,none,accept_q0_gate

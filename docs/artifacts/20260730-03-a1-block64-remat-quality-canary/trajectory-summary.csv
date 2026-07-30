@@ -1,0 +1,10 @@
+metric,a0,a1,comparison
+common_steps,704,704,equal
+max_abs_loss_delta,0.0,0.0,equal
+model_state_sha256,be068b66c11b4ad27e088de22256e116a00fe84ed311c53502ca4b334c1ea195,be068b66c11b4ad27e088de22256e116a00fe84ed311c53502ca4b334c1ea195,equal
+optimizer_state_sha256,495fc631c95f99288bfbc7b1bc559d5c4657f7149aae886584eebd18199bcdc3,495fc631c95f99288bfbc7b1bc559d5c4657f7149aae886584eebd18199bcdc3,equal
+fla_gate_backward_config,BT32-warps4,BT32-warps4,equal
+wall_clock_sec,270.60073267901316,309.26300263404846,a1_over_a0_1.1429
+valid_peak_reserved_mib,3132.0,2662.0,a1_minus_a0_-470.0
+selected_recompute_calls,0,2815,expected
+fallbacks,0,0,equal

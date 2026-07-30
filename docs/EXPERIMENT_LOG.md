@@ -119,3 +119,13 @@
 - 失败修复: `prepare-data`缺少上游run tag及summarizer错误均保留现场、最小修复并通过回归测试后重试; 三个正式训练均在摘要错误前完成.
 - 输出: [报告](20260730-02-a1-block-geometry-mqar-probe-report.md), [artifact](artifacts/20260730-02-a1-block-geometry-mqar-probe/README.md).
 - 下一步: 当前不采用扩大逻辑block的性能路径; 优先保持逻辑block不变的物理tiling和kernel融合.
+
+## 14. 2026-07-30: A1 Block64 Remat 单seed质量门禁通过
+
+- `experiment_id`: `20260730-03-a1-block64-remat-quality-canary`.
+- 目的: 在进入C1/K1性能工程前, 以seed123、FP32和1 epoch验证block64下A0与A1的训练轨迹及Longer-MQAR质量.
+- 结果: 完整run中A0/A1的704-step loss最大差为0, 最终model/optimizer hash相同; 标准和4个外推任务delta均为0. FLA fused gate backward配置同为`BT32/warps4`.
+- 资源: A1 wall time增加约14.3%; validation peak reserved下降470 MiB. 该小模型FP32结果不外推为300M吞吐结论.
+- 失败修复: 首次run在8190-token FP32 batch16评估时因4 GiB logits申请OOM; 仅将两个最长任务batch降为4后, 以新tag从头完整重跑通过.
+- 输出: [报告](20260730-03-a1-block64-remat-quality-canary-report.md), [artifact](artifacts/20260730-03-a1-block64-remat-quality-canary/README.md).
+- 下一步: 允许继续P0/P1和C1/K1; 1B-token训练前仍需300M BF16短自然语言paired pilot.

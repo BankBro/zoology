@@ -1,0 +1,15 @@
+{
+  "experiment_id": "20260730-03-a1-block64-remat-quality-canary",
+  "run_tag": "20260730-block64-remat-02",
+  "status": "passed",
+  "seed": 123,
+  "precision": "fp32",
+  "block_len": 64,
+  "write_topk": 4,
+  "read_topk": 16,
+  "standard_delta": 0.0,
+  "extrapolation_macro_delta": 0.0,
+  "trajectory_exact": true,
+  "zoology_commit": "2b86b133915df2e0d1ddad582c6e924f7a03d724",
+  "flash_vqg_commit": "a18b32960b41170b5a546588b3b2ebbd0f0578b7"
+}
