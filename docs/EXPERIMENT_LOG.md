@@ -148,3 +148,12 @@
 - 决策: S1 exact继续作为质量canonical; W2 direct保留为fast resource candidate, preproject只保留资源上限证据并从最终生产源码删除.
 - 输出: [报告](20260731-01-selected-read-warp-mqar-screen-report.md), [artifact](artifacts/20260731-01-selected-read-warp-mqar-screen/README.md).
 - 下一步: 完成Flash-VQG中的K2组合资源测量和生命周期闭环; 是否提升W2证据等级由多seed或300M BF16短自然语言paired pilot决定.
+
+## 17. 2026-07-31: Residual Value Bottleneck MQAR 筛选拒绝
+
+- `experiment_id`: `20260731-02-residual-value-bottleneck-mqar`.
+- 目的: 在保持coarse value 64维的前提下, 比较residual value U64、U32和U16的block64 AMP BF16 MQAR质量.
+- 结果: U32标准`1024x256`相对下降`8.34%`, 但四外推宏平均下降`37.87%`; U16标准下降`37.92%`, 外推宏平均下降`74.00%`. 两个候选均未通过seed123 Q0, 三seed四epoch矩阵未启动.
+- 复现修正: CPU QR导致的跨机投影hash差异改为dense signed Hadamard初始化; queue callback递归和旧checkpoint identity类型问题均以回归测试和shadow config闭环, 未修改训练权重或质量门槛.
+- 输出: [报告](20260731-02-residual-value-bottleneck-mqar-report.md), [artifact](artifacts/20260731-02-residual-value-bottleneck-mqar/README.md).
+- 下一步: 拒绝U32/U16进入质量路径; 效率工程回到不缩容量的fixed-slot custom VJP和scan-read融合.

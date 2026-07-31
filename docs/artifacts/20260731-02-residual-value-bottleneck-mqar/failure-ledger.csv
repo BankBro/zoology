@@ -1,0 +1,4 @@
+run_tag,stage,observation,root_cause,repair,scientific_impact
+20260731-residual-value-mqar-01,smoke,首个U64 smoke入口失败,上游build_config和runtime callback被自身monkeypatch回调,保存原始上游函数引用并增加训练patch回归测试,无训练启动且无科学影响
+20260731-residual-value-mqar-02,evaluate,三组训练完成后首个longer事件无法加载train_config,resume_identity中三个值被序列化为int,源头改为str并用带hash记录的shadow config修复旧checkpoint加载,权重inode和hash不变且15个评估事件重新完成
+pytest-cross-machine,preflight,U32和U16 derived state hash跨机不同,CPU QR实现逐位结果依赖机器,改用dense signed Hadamard正交初始化,共有参数不变且两机derived hash逐位一致

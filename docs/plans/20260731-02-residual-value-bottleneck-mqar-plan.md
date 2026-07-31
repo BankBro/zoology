@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260731-02-residual-value-bottleneck-mqar`.
-- 状态: `ready`.
+- 状态: `completed`, 终态为`quality_rejected_at_q0`.
 - Zoology base: `flash-vqg@3e51c62de13dea73034907bb020e16fe54f1c739`.
 - Flash-VQG source: `20260731-161252-residual-value-bottleneck@cc3f92b8a972f1c51c3deabeafd0d9f180bc2b16`.
 - 执行机器: RTX 3090 GPU0.

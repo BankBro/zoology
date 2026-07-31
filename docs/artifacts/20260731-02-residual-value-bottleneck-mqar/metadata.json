@@ -1,0 +1,22 @@
+{
+  "experiment_id": "20260731-02-residual-value-bottleneck-mqar",
+  "status": "completed",
+  "decision": "quality_rejected_at_q0",
+  "machine": "RTX 3090 GPU0",
+  "precision": "AMP BF16",
+  "seed": 123,
+  "q0_relative_delta_min": -0.1,
+  "formal_matrix_started": false,
+  "candidate_status": {
+    "u32-a1-s1": {
+      "standard_pass": true,
+      "extrapolation_pass": false,
+      "promoted": false
+    },
+    "u16-a1-s1": {
+      "standard_pass": false,
+      "extrapolation_pass": false,
+      "promoted": false
+    }
+  }
+}
