@@ -71,6 +71,9 @@ def _load_upstream():
 
 UPSTREAM = _load_upstream()
 BASE = UPSTREAM.BASE
+_UPSTREAM_BUILD_CONFIG = UPSTREAM.build_config
+_UPSTREAM_DESCRIPTOR = UPSTREAM.descriptor
+_UPSTREAM_RUNTIME_AUDIT = UPSTREAM.runtime_audit
 SHARED_CANONICAL_INIT = Path(
     os.environ.get(
         "MQAR_CANONICAL_INIT",
@@ -174,7 +177,7 @@ def build_config(variant: str, seed: int, phase: str):
     previous = os.environ.get("MQAR_SELECTED_WARP_RUN_TAG")
     os.environ["MQAR_SELECTED_WARP_RUN_TAG"] = run_tag()
     try:
-        config = UPSTREAM.build_config("s1-head8192", seed, phase)
+        config = _UPSTREAM_BUILD_CONFIG("s1-head8192", seed, phase)
     finally:
         if previous is None:
             os.environ.pop("MQAR_SELECTED_WARP_RUN_TAG", None)
@@ -270,7 +273,13 @@ def model_audit(config: Any, variant: str) -> dict[str, Any]:
 
 
 def runtime_audit(states: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    return UPSTREAM.runtime_audit(states)
+    return _UPSTREAM_RUNTIME_AUDIT(states)
+
+
+def _training_descriptor(variant: str, seed: int) -> dict[str, Any]:
+    if variant in VARIANT_DIMS:
+        return descriptor(variant, seed)
+    return _UPSTREAM_DESCRIPTOR(variant, seed)
 
 
 def _job_passed(row: dict[str, Any]) -> bool:
@@ -365,7 +374,7 @@ def run_training(variant: str, seed: int, phase: str) -> int:
     replacements = {
         "EXPERIMENT_ID": EXPERIMENT_ID,
         "build_config": build_config,
-        "descriptor": descriptor,
+        "descriptor": _training_descriptor,
         "result_path": result_path,
         "run_tag": run_tag,
         "runtime_audit": runtime_audit,

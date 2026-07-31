@@ -94,3 +94,18 @@ def test_evaluator_replaces_base_sources_and_event_payload(monkeypatch):
     evaluate = load_module("residual_value_mqar_evaluate_test", EXPERIMENT / "evaluate.py")
     assert evaluate.BASE.BASE.sources is evaluate.sources
     assert evaluate.BASE.BASE.event_payload is evaluate.event_payload
+
+
+def test_training_patch_uses_saved_upstream_functions(monkeypatch):
+    load_common(monkeypatch)
+    experiment = load_module("residual_value_mqar_training_patch_test", EXPERIMENT / "experiment.py")
+
+    def fake_training(variant, seed, phase):
+        config = experiment.UPSTREAM.build_config(variant, seed, phase)
+        row = experiment.UPSTREAM.descriptor(variant, seed)
+        assert row["residual_value_dim"] == 64
+        assert config.precision == "amp_bfloat16"
+        return 17
+
+    monkeypatch.setattr(experiment.UPSTREAM, "run_training", fake_training)
+    assert experiment.run_training("u64-a1-s1", 123, "smoke") == 17
