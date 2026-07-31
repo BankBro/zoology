@@ -139,3 +139,12 @@
 - 根因: P0与K2的粗状态和残差状态分支梯度分别逐位一致; 差异只在两条贡献于`W_blk`汇合时出现, 对应P0逐block交错与K2分支分离的FP32累加树. Tile P1/P2/P4/P8误差相同, 排除tile大小为根因.
 - 输出: [报告](20260730-04-k2-persistent-scan-mqar-regression-report.md), [artifact](artifacts/20260730-04-k2-persistent-scan-mqar-regression/README.md).
 - 下一步: K2保留为forward exact、backward E1资源候选; 当前质量路径回到P0 A1. 未经新的低层修复和BF16 Q0, 不启动K2自然语言正式训练或1B-token训练.
+
+## 16. 2026-07-31: Selected-read W2 MQAR 筛选质量混合
+
+- `experiment_id`: `20260731-01-selected-read-warp-mqar-screen`.
+- 目的: 在RTX 3090 AMP BF16下, 以seed123一轮block64 MQAR比较S1 exact、W2 direct和W2加preproject.
+- 结果: W2 direct标准delta为`-0.005613`, 四外推宏平均delta为`-0.019200`, 两项通过预注册门槛. Preproject标准通过, 外推宏平均delta为`-0.036765`, 已拒绝. 三组FLA config一致, fallback为0.
+- 决策: S1 exact继续作为质量canonical; W2 direct保留为fast resource candidate, preproject只保留资源上限证据并从最终生产源码删除.
+- 输出: [报告](20260731-01-selected-read-warp-mqar-screen-report.md), [artifact](artifacts/20260731-01-selected-read-warp-mqar-screen/README.md).
+- 下一步: 完成Flash-VQG中的K2组合资源测量和生命周期闭环; 是否提升W2证据等级由多seed或300M BF16短自然语言paired pilot决定.
