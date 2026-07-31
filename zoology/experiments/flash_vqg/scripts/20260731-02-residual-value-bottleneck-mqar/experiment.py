@@ -114,10 +114,16 @@ def _projection_keys(state: dict[str, torch.Tensor]) -> list[str]:
     return sorted(key for key in state if key.endswith("fox_gd_residual_value_proj"))
 
 
+def _state_dict_equal(
+    left: dict[str, torch.Tensor], right: dict[str, torch.Tensor]
+) -> bool:
+    return left.keys() == right.keys() and all(
+        torch.equal(left[key], right[key]) for key in left
+    )
+
+
 def _build_derived_init(config: Any, variant: str) -> Path:
     path = init_path(variant)
-    if path.is_file():
-        return path
     payload = torch.load(canonical_init_path(), map_location="cpu", weights_only=False)
     model = BASE.BASE.LanguageModel(config.model)
     incompatible = model.load_state_dict(payload["model_state_dict"], strict=False)
@@ -131,6 +137,10 @@ def _build_derived_init(config: Any, variant: str) -> Path:
     for key, value in payload["model_state_dict"].items():
         if not torch.equal(candidate_state[key], value):
             raise RuntimeError(f"Canonical initialization changed at {key}.")
+    if path.is_file():
+        current = torch.load(path, map_location="cpu", weights_only=False)
+        if _state_dict_equal(current.get("model_state_dict", {}), candidate_state):
+            return path
     derived = copy.deepcopy(payload)
     derived["model_state_dict"] = candidate_state
     derived["residual_value_bottleneck"] = {

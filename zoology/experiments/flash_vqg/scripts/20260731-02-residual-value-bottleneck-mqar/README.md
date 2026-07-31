@@ -7,7 +7,7 @@
 - Plan: [`docs/plans/20260731-02-residual-value-bottleneck-mqar-plan.md`](../../../../../docs/plans/20260731-02-residual-value-bottleneck-mqar-plan.md).
 - GPU: RTX 3090 GPU0.
 - Precision: AMP BF16.
-- Flash-VQG source: `0ddaa2d3dd2857778a3fbacda894516a9804a675`.
+- Flash-VQG source: `cc3f92b8a972f1c51c3deabeafd0d9f180bc2b16`.
 
 本实验在A1加S1 exact路径比较U64, U32和U16. Q0使用seed123一epochblock64 MQAR, 通过后再进入三seed四epoch正式矩阵.
 

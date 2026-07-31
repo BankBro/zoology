@@ -19,7 +19,7 @@ for root in (REPO_ROOT, FLASH_ROOT / "src"):
         sys.path.insert(0, str(root))
 
 PYTHON = Path("/home/lyj/miniconda3/envs/flash-vqg-fla042/bin/python")
-EXPECTED_FLASH_COMMIT = "0ddaa2d3dd2857778a3fbacda894516a9804a675"
+EXPECTED_FLASH_COMMIT = "cc3f92b8a972f1c51c3deabeafd0d9f180bc2b16"
 EXPECTED_CACHE_HASH = "d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8"
 EXPECTED_INIT_FILE_HASH = "26bf2cb0b44c8a32cfd44977f609e4314ab53dfa6b6a0e8abfbffd10191ec878"
 EXPECTED_INIT_STATE_HASH = "2a1107bf22d0804ed485ab94bdc7af8004ef7b892a60c2967f842ba0f4b4efb0"
@@ -33,8 +33,8 @@ EXPECTED_PARAMETERS = {
 }
 EXPECTED_STATE_HASHES = {
     BASELINE: EXPECTED_INIT_STATE_HASH,
-    "u32-a1-s1": "af0e35116df4e560c9e9c5030cf1d6200f1bb79b623ccc086d3b5f59dd822a34",
-    "u16-a1-s1": "979c0edc985013d0409ccf5ce7e7fc7e2f14c9a3e84280ceda5754d273917f0f",
+    "u32-a1-s1": "e02703fbbd202cffdbad83b3768f994f0db4500ba470f49235ab0a5ede1714b4",
+    "u16-a1-s1": "4705b6d8f27badbf1322ff22bcb672fcc873f0d7f1c4ca8d06ec107b9101f373",
 }
 SEEDS = (123, 124, 125)
 FORMAL_ORDER = tuple((variant, seed) for seed in SEEDS for variant in VARIANTS)

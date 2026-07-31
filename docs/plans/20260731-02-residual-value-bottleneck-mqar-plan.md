@@ -5,7 +5,7 @@
 - Experiment ID: `20260731-02-residual-value-bottleneck-mqar`.
 - 状态: `ready`.
 - Zoology base: `flash-vqg@3e51c62de13dea73034907bb020e16fe54f1c739`.
-- Flash-VQG source: `20260731-161252-residual-value-bottleneck@0ddaa2d3dd2857778a3fbacda894516a9804a675`.
+- Flash-VQG source: `20260731-161252-residual-value-bottleneck@cc3f92b8a972f1c51c3deabeafd0d9f180bc2b16`.
 - 执行机器: RTX 3090 GPU0.
 - 精度: AMP BF16, FP32 master weights和optimizer state.
 
@@ -21,7 +21,7 @@
 | `u32-a1-s1` | 32 | 每层每头`[64,32]` |
 | `u16-a1-s1` | 16 | 每层每头`[64,16]` |
 
-U32和U16从同一canonical init继承全部共有参数, 仅新增列正交投影参数. 投影使用固定local RNG初始化, 不消耗共有参数的全局初始化随机流.
+U32和U16从同一canonical init继承全部共有参数, 仅新增列正交投影参数. 投影使用固定local RNG和dense signed Hadamard基构造, 不依赖CPU QR实现, 不消耗共有参数的全局初始化随机流, 并保证两台实验机器逐位一致.
 
 ## 3. 阶段与门禁
 
