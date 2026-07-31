@@ -3,7 +3,7 @@
 ## 1. 实验登记
 
 - Experiment ID: `20260731-01-selected-read-warp-mqar-screen`.
-- 状态: `planned`.
+- 状态: `completed`, 终态为`quality_mixed`.
 - Zoology分支: `20260731-082645-selected-read-warp-mqar-screen`.
 - Zoology base: `flash-vqg@86ea8aa`.
 - Flash-VQG source: 在正式运行前绑定selected-read性能实验的干净finalist commit.
@@ -64,3 +64,7 @@ W2候选已知在production-shape低层对照中确定性重复, 但`grad_addr_p
 - 核心训练与评估预计低于0.5个3090 GPU-hour.
 - API费用为0.
 - 本实验不启动1B-token训练.
+
+## 6. 执行终态
+
+三组smoke和seed123一轮训练均完成. W2 direct的标准delta为`-0.005613`, 四外推宏平均delta为`-0.019200`, 两项通过. Preproject标准delta为`-0.006410`, 但外推宏平均delta为`-0.036765`, 已拒绝. 完整结论见[实验报告](../20260731-01-selected-read-warp-mqar-screen-report.md).

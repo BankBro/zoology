@@ -1,0 +1,3 @@
+candidate,seed,baseline_standard,candidate_standard,standard_delta,delta_2048x512,delta_4096x1024,delta_8190x512,delta_8190x2047,extrapolation_macro_delta,standard_pass,extrapolation_pass,fla_config_match
+r1a-owner-w2,123,0.962171875,0.95655859375,-0.00561328125,-0.02269140625,-0.0298046875,-0.01051171875,-0.013791893512,-0.019199926503,true,true,true
+r1b-preproject-w2,123,0.962171875,0.95576171875,-0.00641015625,-0.02233203125,-0.051337890625,-0.02887109375,-0.044519781470,-0.036765199274,true,false,true

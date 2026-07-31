@@ -1,0 +1,4 @@
+variant,wall_clock_sec,optimizer_step_wall_sec_p50,peak_allocated_mib,peak_reserved_mib,fallbacks
+s1-head8192,210.836434,0.223916548,1456.642578,2192,0
+r1a-owner-w2,203.834423,0.211996200,1456.642578,2194,0
+r1b-preproject-w2,203.751543,0.213289658,1456.642578,2194,0

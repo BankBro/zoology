@@ -1,0 +1,29 @@
+{
+  "experiment_id": "20260731-01-selected-read-warp-mqar-screen",
+  "status": "quality_mixed",
+  "zoology_commit": "b13f961d34608986fce0e57a8077708836923804",
+  "flash_vqg_commit": "efc75ad5539b636b026c76bedb70878bfe2390cf",
+  "run_tag": "20260731-selected-warp-mqar-01",
+  "seed": 123,
+  "precision": "amp_bfloat16",
+  "thresholds": {
+    "standard_delta_min": -0.01,
+    "extrapolation_macro_delta_min": -0.02
+  },
+  "candidates": {
+    "r1a-owner-w2": {
+      "standard_delta": -0.00561328125,
+      "extrapolation_macro_delta": -0.019199926503002653,
+      "passed": true,
+      "decision": "fast_resource_candidate"
+    },
+    "r1b-preproject-w2": {
+      "standard_delta": -0.00641015625,
+      "extrapolation_macro_delta": -0.03676519927382474,
+      "passed": false,
+      "decision": "quality_rejected"
+    }
+  },
+  "quality_canonical": "s1-head8192",
+  "lightweight_raw_aggregate_sha256": "2181c777ab52b32f089c50db5141f7e1c4f51e2ca360df8cd3b8454ffafca2c0"
+}

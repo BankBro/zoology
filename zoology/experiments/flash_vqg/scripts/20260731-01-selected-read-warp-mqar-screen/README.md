@@ -3,7 +3,7 @@
 ## 1. 登记
 
 - Experiment ID: `20260731-01-selected-read-warp-mqar-screen`.
-- 状态: `implementation`.
+- 状态: `completed`, 终态为`quality_mixed`.
 - Plan: [`docs/plans/20260731-01-selected-read-warp-mqar-screen-plan.md`](../../../../../docs/plans/20260731-01-selected-read-warp-mqar-screen-plan.md).
 - GPU: RTX 3090.
 - Precision: AMP BF16.
@@ -21,3 +21,5 @@ CUDA_VISIBLE_DEVICES=0 \
 ```
 
 原始输出位于`outputs/3090/<run-tag>/`. 队列依次执行preflight、三组smoke、三组一轮训练、locked eval和裁决.
+
+实际run tag为`20260731-selected-warp-mqar-01`. W2 direct通过标准和外推门槛, preproject外推失败. 详细结果见[报告](../../../../../docs/20260731-01-selected-read-warp-mqar-screen-report.md).
