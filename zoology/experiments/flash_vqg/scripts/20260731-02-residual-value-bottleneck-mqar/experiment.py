@@ -159,7 +159,7 @@ def _build_derived_init(config: Any, variant: str) -> Path:
 
 def source_identity(variant: str) -> dict[str, Any]:
     path = init_path(variant)
-    return {
+    identity = {
         **descriptor(variant, 123),
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
@@ -168,6 +168,7 @@ def source_identity(variant: str) -> dict[str, Any]:
         "cache_content_sha256": EXPECTED_CACHE_HASH,
         "init_file_sha256": sha256_file(path),
     }
+    return {str(key): str(value) for key, value in identity.items()}
 
 
 def build_config(variant: str, seed: int, phase: str):

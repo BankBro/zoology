@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -10,7 +11,15 @@ LOCAL_DIR = Path(__file__).resolve().parent
 if str(LOCAL_DIR) not in sys.path:
     sys.path.insert(0, str(LOCAL_DIR))
 
-from common import REPO_ROOT, VARIANTS, descriptor, load_json
+from common import (
+    REPO_ROOT,
+    VARIANTS,
+    atomic_write_json,
+    descriptor,
+    load_json,
+    run_root,
+    sha256_file,
+)
 import experiment as experiment_module
 
 
@@ -38,6 +47,35 @@ def _load_base():
 BASE = _load_base()
 
 
+def evaluation_checkpoint(result: dict[str, Any]) -> Path:
+    source = Path(result["last_checkpoint"]["path"])
+    shadow = run_root() / "evaluation/checkpoint-shadow" / result["variant"]
+    shadow.mkdir(parents=True, exist_ok=True)
+    target = shadow / "last.pt"
+    if not target.exists():
+        os.link(source, target)
+    source_config = source.parent / "train_config.json"
+    payload = load_json(source_config)
+    identity = payload.get("resume_identity") or {}
+    payload["resume_identity"] = {
+        str(key): str(value) for key, value in identity.items()
+    }
+    atomic_write_json(shadow / "train_config.json", payload)
+    atomic_write_json(
+        shadow / "shadow-metadata.json",
+        {
+            "repair": "resume_identity values converted to strings",
+            "source_checkpoint": str(source.resolve()),
+            "source_checkpoint_sha256": sha256_file(source),
+            "source_train_config": str(source_config.resolve()),
+            "source_train_config_sha256": sha256_file(source_config),
+            "shadow_checkpoint": str(target.resolve()),
+            "shadow_train_config_sha256": sha256_file(shadow / "train_config.json"),
+        },
+    )
+    return target
+
+
 def _source_from_result(result: dict[str, Any]) -> dict[str, Any]:
     checkpoint = result["last_checkpoint"]
     return {
@@ -50,7 +88,7 @@ def _source_from_result(result: dict[str, Any]) -> dict[str, Any]:
         "seed": int(result["seed"]),
         "train_precision": "bf16",
         "checkpoint_role": "last",
-        "checkpoint_path": checkpoint["path"],
+        "checkpoint_path": str(evaluation_checkpoint(result).resolve()),
         "checkpoint_file_sha256": checkpoint["file_sha256"],
         "checkpoint_model_state_sha256": checkpoint["model_state_sha256"],
     }

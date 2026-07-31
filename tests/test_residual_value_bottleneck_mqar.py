@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -69,6 +70,7 @@ def test_screen_uses_a1_s1_block64_bf16(monkeypatch):
         assert kwargs["fox_gd_residual_selected_read_backward_backend"] == (
             "triton_deterministic_s1_head"
         )
+        assert all(isinstance(value, str) for value in config.resume_identity.values())
 
 
 def test_derived_init_preserves_common_state(monkeypatch):
@@ -94,6 +96,30 @@ def test_evaluator_replaces_base_sources_and_event_payload(monkeypatch):
     evaluate = load_module("residual_value_mqar_evaluate_test", EXPERIMENT / "evaluate.py")
     assert evaluate.BASE.BASE.sources is evaluate.sources
     assert evaluate.BASE.BASE.event_payload is evaluate.event_payload
+
+
+def test_evaluation_shadow_repairs_legacy_identity(monkeypatch, tmp_path):
+    load_common(monkeypatch)
+    experiment = load_module("residual_value_mqar_shadow_experiment_test", EXPERIMENT / "experiment.py")
+    monkeypatch.setitem(sys.modules, "experiment", experiment)
+    evaluate = load_module("residual_value_mqar_shadow_evaluate_test", EXPERIMENT / "evaluate.py")
+    source = tmp_path / "source"
+    source.mkdir()
+    checkpoint = source / "last.pt"
+    checkpoint.write_bytes(b"checkpoint")
+    (source / "train_config.json").write_text(
+        json.dumps({"resume_identity": {"seed": 123, "residual_value_dim": 32}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(evaluate, "run_root", lambda: tmp_path / "run")
+    result = {
+        "variant": "u32-a1-s1",
+        "last_checkpoint": {"path": str(checkpoint)},
+    }
+    shadow = evaluate.evaluation_checkpoint(result)
+    payload = json.loads((shadow.parent / "train_config.json").read_text(encoding="utf-8"))
+    assert payload["resume_identity"] == {"seed": "123", "residual_value_dim": "32"}
+    assert shadow.stat().st_ino == checkpoint.stat().st_ino
 
 
 def test_training_patch_uses_saved_upstream_functions(monkeypatch):
