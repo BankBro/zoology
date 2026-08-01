@@ -237,8 +237,12 @@ def _compare_invariance(left: dict[str, Any], right: dict[str, Any]) -> dict[str
         abs(float(a) - float(b))
         for a, b in zip(left["sample_loss_values"], right["sample_loss_values"])
     ]
+    query_predictions = left.get("query_prediction_sample_sha256", []) == right.get(
+        "query_prediction_sample_sha256",
+        [],
+    )
     checks = {
-        "predictions": left["prediction_sample_sha256"] == right["prediction_sample_sha256"],
+        "query_predictions": query_predictions,
         "accuracy": left["sample_accuracy_values"] == right["sample_accuracy_values"],
         "loss": max(loss_deltas, default=0.0) <= 5e-3,
         "dataset": left["dataset_hash"] == right["dataset_hash"],

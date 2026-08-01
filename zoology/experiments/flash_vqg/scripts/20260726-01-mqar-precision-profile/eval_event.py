@@ -222,6 +222,7 @@ def initial_progress(event: dict[str, Any], dataset_hash: str) -> dict[str, Any]
         "sample_loss_values": [],
         "prediction_batch_sha256": [],
         "prediction_sample_sha256": [],
+        "query_prediction_sample_sha256": [],
         "query_correct": 0,
         "query_count": 0,
         "legacy_batch_loss_sum": 0.0,
@@ -348,6 +349,10 @@ def run_event(
                 progress["prediction_sample_sha256"].extend(
                     prediction_sha256(row) for row in predictions
                 )
+                progress.setdefault("query_prediction_sample_sha256", []).extend(
+                    prediction_sha256(prediction[target != -100])
+                    for prediction, target in zip(predictions, targets)
+                )
                 progress["query_correct"] += query_correct
                 progress["query_count"] += query_count
                 progress["legacy_batch_loss_sum"] += legacy_loss
@@ -419,6 +424,10 @@ def run_event(
             "sample_loss_values": sample_loss,
             "prediction_batch_sha256": progress["prediction_batch_sha256"],
             "prediction_sample_sha256": progress["prediction_sample_sha256"],
+            "query_prediction_sample_sha256": progress.get(
+                "query_prediction_sample_sha256",
+                [],
+            ),
             "peak_allocated_mib": torch.cuda.max_memory_allocated() / 1024**2,
             "peak_reserved_mib": torch.cuda.max_memory_reserved() / 1024**2,
             "wall_clock_sec": time.perf_counter() - started,

@@ -75,3 +75,23 @@ def test_gdn_and_flash_training_exposure_match():
     gdn_audit = experiment.model_audit(configs[common.GDN], common.GDN)
     assert gdn_audit["trainable_parameters"] == 1_335_942
     assert gdn_audit["active_state_capacity"] == 131_072
+
+
+def test_batch_invariance_compares_only_scored_query_predictions():
+    _common, _experiment = load_experiment()
+    evaluate = load_module("fastest_gdn_mqar_evaluate_test", SCRIPT_DIR / "evaluate.py")
+    left = {
+        "query_prediction_sample_sha256": ["same"],
+        "prediction_sample_sha256": ["unscored-a"],
+        "sample_accuracy_values": [1.0],
+        "sample_loss_values": [0.1],
+        "dataset_hash": "data",
+    }
+    right = {
+        **left,
+        "prediction_sample_sha256": ["unscored-b"],
+        "sample_loss_values": [0.100001],
+    }
+    result = evaluate._compare_invariance(left, right)
+    assert result["passed"]
+    assert result["checks"]["query_predictions"]
