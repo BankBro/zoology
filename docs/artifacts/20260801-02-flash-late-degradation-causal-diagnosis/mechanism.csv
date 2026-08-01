@@ -1,0 +1,5 @@
+gate_mode,baseline,candidate,seeds,mean_factor_effect,decision,interpretation
+fixed,ctrl-bridge,factor-block,123|125,-0.113583984,confirmed_cause,block64-local2综合因素
+fixed,ctrl-bridge,mechanism-window128,123|125,-0.068988281,confirmed_cause,local_num_blocks控制的近场与remote offset跨度64到128
+fixed,ctrl-bridge,mechanism-boundary64,123|125,0.217679688,no_evidence,保持64-token近场跨度并改block边界
+default,ctrl-bridge,factor-block,123|125,-0.093560547,confirmed_cause,默认FLA复核

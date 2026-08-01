@@ -1,12 +1,12 @@
 # 项目状态
 
-更新时间: 2026-08-01.
+更新时间: 2026-08-02.
 
 ## 1. 当前基线
 
 - Flash-VQG: `baseline-r16-joint`, `gd_rank=16`, `read_topk=16`, `write_topk=4`, `smooth_p4` softcap `0.5`, injection warmup `0->512`.
 - GDN 对照: `gdnxk-h2-ek4-ev4-usegate0`, active state capacity `131072`.
-- 当前质量canonical为`baseline-r16-joint + A1 post-phase1 remat + S1 exact`; 当前最快资源候选为`baseline-r16-joint + A1 + K2 P8 + W2 direct + K3 fixed-slot VJP + G1 head-grouped geometry + F1 hoisted selected forward`.
+- 当前质量canonical为`baseline-r16-joint + A1 post-phase1 remat + S1 exact`; 当前最快MQAR稳定候选为`baseline-r16-joint + A1 + K2 P8 + W2 direct + K3 fixed-slot VJP + G1 head-grouped geometry + F1 hoisted selected forward + block64/local1`.
 - 默认环境: `/home/lyj/miniconda3/envs/flash-vqg-fla042`, PyTorch 2.6.0+cu118, Triton 3.2.0, FLA 0.4.2.
 - 已验证代码: 当前 precision profile 的训练/评估绑定 Zoology `e56fa9a`, Flash-VQG `9a8bf70`; 历史 Longer-MQAR 恢复 runner 为 `ed95ec2`.
 - 依据: [效率报告](20260724-01-flash-vqg-gd-residual-efficiency-report.md), [FLA 兼容性报告](20260724-02-gdn-ek4-fla-compatibility-report.md), [Longer-MQAR报告](20260725-01-current-baselines-longer-mqar-report.md), [低精度与长度泛化报告](20260726-01-mqar-precision-profile-report.md), [Remat回归报告](20260729-01-mqar-gd-remat-regression-report.md), [seed124因果诊断](20260729-03-mqar-seed124-remat-causal-diagnosis-report.md).
@@ -29,6 +29,9 @@
 - Selected-read W2筛选已完成. W2 direct在seed123 AMP BF16一轮block64 MQAR中以标准delta`-0.005613`和四外推宏平均delta`-0.019200`通过门槛; preproject的外推宏平均delta为`-0.036765`, 已拒绝. W2 direct仍超过低层绝对误差门槛且只有单seed证据, 因此是fast resource candidate, 不替换S1 exact质量canonical.
 - [当前最快Flash与GDN正式MQAR对照](20260801-01-fastest-flash-vs-gdn-mqar-report.md)已完成. RTX 3090 AMP BF16下完成9/9条三seed四epoch训练、234/234逻辑评估和15/15 endpoint重复性检查. 预注册Last主门禁通过: Fastest相对Canonical的标准端点均值delta为`-0.015702`, 四外推宏平均delta为`-0.000430`; 但两组Flash均在epoch1后明显退化, Last四外推宏平均约`0.083`, 低于GDN的`0.214`.
 - Best checkpoint下, Fastest、Canonical和GDN的四外推宏平均分别为`0.509`, `0.598`和`0.214`. Fastest相对Canonical的best均值delta为`-0.089462`, seed125为`-0.250114`; 因而Last主门禁通过不等于训练轨迹或最佳质量等价. Fastest仍是资源候选, S1 exact继续作为质量canonical.
+- [Flash后期退化因果诊断](20260801-02-flash-late-degradation-causal-diagnosis-report.md)已完成. Block32/local2桥接组两seed四epochpeak-to-final drop仅为`-0.005219/-0.004484`, block64/local2则为`-0.247516/-0.161031`. 2x2机制矩阵将主要因素定位为`local_num_blocks`控制的近场/远场可见跨度由64扩到128 token, 而不是64-token block边界本身; fixed与default FLA均复现.
+- 最快栈改为block64/local1后, 两seed validation peak均值相对local2仅低`0.021062`, final均值提高`0.132854`, drop从`-0.157150`缩小到`-0.003234`; 四外推last宏平均从`0.092636`恢复到`0.451911`, 略高于local2 best的`0.441406`. 小模型四epochwall同时改善约`1.9%`. 因此block64/local1替换local2成为最快MQAR稳定候选.
+- Seed123 fresh-per-epoch补充没有消除block64/local2退化: final仅提高`0.031805`, drop仍为`-0.200363`. 终态为`persistent_window_dynamics`, 不再简单称为重复MQAR cache导致的传统过拟合. `local_num_blocks`同时改变local window和remote boundary offset, 当前尚未将两者进一步解耦.
 
 ## 3. 下一步
 
@@ -37,4 +40,5 @@
 - 不采用`block128/256`、`write2/read8`或当前K2 P8作为正式质量路径. 若继续K2, 应先控制跨分支`W`梯度累加树并重新执行BF16 Q0, 或预注册新的E1统计性质量协议, 不事后放宽本次门槛.
 - 若继续研究MQAR数值稳定性, 优先定位Flash跨GPU训练轨迹的首次state-hash分叉; 若需加强结论, 增加新的独立training seeds.
 - 如需更换基线, 先完成正式对照实验并更新本页与实验日志.
-- Fastest若进入自然语言质量路径, 应做同初始化、同data order的300M BF16短自然语言paired pilot, 保存多个训练阶段checkpoint并同时比较validation NLL、下游指标和checkpoint选择敏感性. 本次MQAR结果不自动授权1B-token训练.
+- Fastest若进入自然语言质量路径, 应做同初始化、同data order的300M BF16短自然语言paired pilot, 至少配对比较block64/local2与block64/local1并保留当前质量参考. 需要同时测资源、validation NLL、多阶段checkpoint、下游指标和checkpoint选择敏感性; 本次MQAR结果不自动授权1B-token训练.
+- 后续MQAR稳定性screen不得只停在step1232. Fastest seed123在该点仍稳定, 四epoch末端却下降`0.154855`; 应运行完整四epoch或采用peak后追加固定验证窗口的预注册规则.

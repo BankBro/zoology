@@ -159,3 +159,15 @@
 - 资源: 小模型协议下Fastest平均wall为`554.53 s`, 相对Canonical的`830.23 s`加速`1.497x`, 但仍比GDN的`236.69 s`慢`2.343x`.
 - 决策影响: Last主门禁判定通过, 但Fastest不替换S1 exact质量canonical, 不自动进入1B-token训练. 后续若进入自然语言路径, 必须执行多checkpoint的300M BF16 paired pilot.
 - 输出: [报告](20260801-01-fastest-flash-vs-gdn-mqar-report.md), [artifact](artifacts/20260801-01-fastest-flash-vs-gdn-mqar/README.md).
+
+## 18. 2026-08-01 至 2026-08-02: Flash 后期退化因果诊断完成
+
+- `experiment_id`: `20260801-02-flash-late-degradation-causal-diagnosis`.
+- 目的: 复现当前Flash四epoch后期退化, 在固定初始化、数据、精度和优化器下拆分block长度、近场/远场可见跨度、selected backend与FLA autotune因素, 并将修复迁移到最快K2/W2/K3栈.
+- 完成度: 主队列36/36作业、8条两seed四epoch正式训练、208条best/last standard与Longer-MQAR评估、8/8 batch invariance及2条fresh-per-epoch补充训练全部完成; fallback、NaN、OOM和checkpoint/dtype审计失败均为0.
+- 根因: Block32/local2两seeddrop仅`-0.005219/-0.004484`, block64/local2为`-0.247516/-0.161031`. 机制矩阵支持`local_num_blocks`控制的近场/远场跨度由64扩到128 token是主要因素, 不支持64-token block边界本身为根因. Fixed与default FLA方向一致.
+- 修复: 最快栈使用block64/local1后, 两seedvalidation peak均值仅下降`0.021062`, final提高`0.132854`, drop由`-0.157150`缩小为`-0.003234`; 四外推last宏平均由`0.092636`恢复为`0.451911`, 小模型wall约再快`1.9%`.
+- Fresh-data结论: Epoch0与fixed对照逐值相同, epoch1至epoch3共20个epoch-segment hash全部唯一且跨结构一致. Fresh data只将退化组final提高`0.031805`, drop仍为`-0.200363`, 因此分类为`persistent_window_dynamics`, 不是重复cache导致的传统过拟合.
+- 证据边界: `local_num_blocks`同时改变local window与remote boundary offset, 本实验没有进一步解耦两者. Step1232不足以筛除Fastest后期退化; 自然语言路径仍需300M BF16 block64/local2与local1配对pilot.
+- 输出: [报告](20260801-02-flash-late-degradation-causal-diagnosis-report.md), [artifact](artifacts/20260801-02-flash-late-degradation-causal-diagnosis/README.md).
+- 下一步: 在300M自然语言短pilot中同时测local1/local2资源和质量, 保存多阶段checkpoint; 未通过前不启动1B-token正式训练.
