@@ -1,0 +1,39 @@
+{
+  "endpoint_repro_events": 15,
+  "endpoint_repro_passed": true,
+  "experiment_id": "20260801-01-fastest-flash-vs-gdn-mqar",
+  "flash_vqg_source_commit": "396ae65b89b53aad316fbbf7daf55a92a551d684",
+  "formal_training_runs": 9,
+  "generated_configs": {
+    "aggregate_sha256": "5c2a81636c384731104eaa99fb310d674d18c0441c4257351a2c169c73e8d382",
+    "bytes": 200221,
+    "file_count": 15,
+    "verified_against_source": true
+  },
+  "logical_evaluation_events": 234,
+  "physical_evaluation_events": 195,
+  "quality_decision_last": {
+    "checks": {
+      "endpoint_mean_ge_minus_0_05": true,
+      "extrapolation_mean_ge_minus_0_05": true,
+      "no_seed_below_minus_0_10": true,
+      "standard_mean_ge_minus_0_05": true
+    },
+    "endpoint_mean_delta": -0.015701822916666663,
+    "extrapolation_mean_delta": -0.00042959932152492514,
+    "quality_retained": true
+  },
+  "raw_mirror": {
+    "aggregate_sha256": "890e41edeacbeafe703ff4b6b559630aaf0d771931a8e770e1ec48bd508f7911",
+    "bytes": 119750061,
+    "checkpoint_files_mirrored": false,
+    "file_count": 1712,
+    "source_checkpoint_bytes": 492743822,
+    "source_checkpoint_files": 60,
+    "verified_against_source": true
+  },
+  "run_tag": "20260801-fastest-gdn-mqar-01",
+  "source_machine": "mclab-3090 Flash-VQG-tun GPU0",
+  "status": "completed",
+  "zoology_source_commit": "00a19f291109d0dd1e50326d3005d8f8c8f4c8a7"
+}

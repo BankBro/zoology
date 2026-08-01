@@ -1,0 +1,3 @@
+stage,status,effect,root_cause,correction,commit,recovery
+initial batch profile,runner_failure_fixed,formal training had not started,full-sequence argmax hash included unscored non-query tokens,hash only predictions at targets != -100; retain exact per-sample accuracy and loss tolerance,00a19f291109d0dd1e50326d3005d8f8c8f4c8a7,39/39 full-load profiles and next-lower-batch invariance passed
+capacity search,expected_oom_downgrade,no scientific run invalidated,larger candidate batches exceeded memory on long cases,automatic downgrade was pre-registered only for OOM,00a19f291109d0dd1e50326d3005d8f8c8f4c8a7,27 OOM attempts resolved; all 39 cases selected a passing batch

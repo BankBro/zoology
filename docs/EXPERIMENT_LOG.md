@@ -148,3 +148,14 @@
 - 决策: S1 exact继续作为质量canonical; W2 direct保留为fast resource candidate, preproject只保留资源上限证据并从最终生产源码删除.
 - 输出: [报告](20260731-01-selected-read-warp-mqar-screen-report.md), [artifact](artifacts/20260731-01-selected-read-warp-mqar-screen/README.md).
 - 下一步: 完成Flash-VQG中的K2组合资源测量和生命周期闭环; 是否提升W2证据等级由多seed或300M BF16短自然语言paired pilot决定.
+
+## 17. 2026-08-01: 当前最快 Flash 与 GDN 的 MQAR 正式对照完成
+
+- `experiment_id`: `20260801-01-fastest-flash-vs-gdn-mqar`.
+- 目的: 在RTX 3090 AMP BF16下, 以三seed四epoch正式比较当前最快Flash资源组合、A1+S1质量canonical和capacity-matched GDN的标准MQAR及长度外推表现.
+- 完成度: 9/9正式训练、234/234逻辑评估、195个物理评估和15/15 endpoint fresh-process重复性检查完成; 39/39完整负载batch profile与下一档batch invariance通过, fallback为0.
+- Last主结果: Fastest相对Canonical的标准端点均值delta为`-0.015702`, 四外推宏平均delta为`-0.000430`, 通过预注册5个百分点门禁. 但两组Flash均在epoch1后退化, Last四外推宏平均约`0.083`, 低于GDN的`0.214`.
+- Best敏感性: Fastest、Canonical和GDN四外推宏平均分别为`0.509`, `0.598`和`0.214`. Fastest相对Canonical均值delta为`-0.089462`, seed125为`-0.250114`, 说明Fastest会改变本就敏感的Flash训练轨迹.
+- 资源: 小模型协议下Fastest平均wall为`554.53 s`, 相对Canonical的`830.23 s`加速`1.497x`, 但仍比GDN的`236.69 s`慢`2.343x`.
+- 决策影响: Last主门禁判定通过, 但Fastest不替换S1 exact质量canonical, 不自动进入1B-token训练. 后续若进入自然语言路径, 必须执行多checkpoint的300M BF16 paired pilot.
+- 输出: [报告](20260801-01-fastest-flash-vs-gdn-mqar-report.md), [artifact](artifacts/20260801-01-fastest-flash-vs-gdn-mqar/README.md).
