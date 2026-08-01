@@ -98,7 +98,34 @@ Seed124略有正向变化, seed123小幅负向, seed125则明显退化. Fastest�
 
 两个Flash均在第1 epoch达到best, 随后在端点和外推任务上大幅回落. GDN持续训练到第4 epoch且best=last. 因而当前主要科学问题不是单纯“Flash能否外推”, 而是“如何在保留其外推能力的同时避免后期训练崩落”.
 
-### 5.2. 小模型训练资源
+### 5.2. 逐epoch训练动态
+
+按三seed对epoch-end telemetry取均值后, 两个Flash均表现为训练loss持续下降, 但验证loss和高难度`1024x256`端点在早期达到峰值后退化. GDN则在相同四epoch暴露下持续改善.
+
+| Arm | Epoch | Train loss | Valid loss | `1024x256`端点 |
+|---|---:|---:|---:|---:|
+| Fastest Flash | 1 | 5.115179 | 0.190863 | 0.936617 |
+| Fastest Flash | 4 | 0.037838 | 0.217582 | 0.760089 |
+| Canonical Flash | 1 | 4.259112 | 0.132055 | 0.967223 |
+| Canonical Flash | 4 | 0.034826 | 0.203793 | 0.776695 |
+| GDN | 1 | 2.311091 | 0.308335 | 0.919052 |
+| GDN | 4 | 0.008093 | 0.168816 | 0.968198 |
+
+该现象在操作意义上符合有限MQAR训练集上的过拟合: Flash的训练目标继续改善, held-out验证目标却恶化. 但“过拟合”仍不足以概括全部现象. Fastest从第1到第2 epoch的平均验证loss由`0.190863`改善至`0.165316`, 同期端点却由`0.936617`下降至`0.864107`; 这说明模型在改善平均或简单样本loss时, 已经开始遗忘高KV、长距离关联能力. 因此更准确的描述是**早期能力形成较快, 随后发生任务选择性遗忘和后期训练退化**, 而不是已经稳定收敛.
+
+按相同epoch或训练样本暴露衡量, Canonical Flash在第1 epoch已经达到接近GDN第4 epoch的标准端点, 且best checkpoint的长度外推明显更强, 表明Flash具有潜在的早期学习与外推优势. 但从wall time看, GDN完成四epoch只需`236.69 s`, 与Flash完成约一个epoch处于相近量级; 同时GDN的能力持续保持和改善. 因而当前结果不能解释为Flash已经获得明确的“更快收敛”优势. 在现有训练协议下, 短暂高峰是科学上的潜力信号, 依赖早停且不能保持则是训练系统上的劣势.
+
+### 5.3. 与优化前历史结果的对照
+
+优化前Flash通常在第4 epoch取得best checkpoint的记忆与历史artifact一致. `20260726-01-mqar-precision-profile`中, `block_len=32`的Flash共有13/15个run在第4 epoch最优, 其余2个在第3 epoch最优; 其中3090上的FP32、FP16和BF16共9/9个run均在第4 epoch最优. `20260729-02-mqar-deterministic-selected-read-regression`中, 同为`block_len=32`的A0/A1 BF16三seed共6/6个run也是best=epoch4. 历史文件名中的`b64ga4`表示train batch 64和gradient accumulation 4, 不表示`block_len=64`.
+
+本实验两个Flash arm则共同使用`block_len=64`, 并在三seed下全部于第1 epoch达到best. 从历史A1在block32下能够稳定训练到第4 epoch可知, A1 remat本身不足以解释当前退化. Fastest和Canonical又出现相同方向的后期崩落, 因而K2、W2、K3、G1和F1等Fastest专属优化也不是共同退化的充分原因. 不过, 当前Canonical仍不是优化前A0的逐项复刻: 除`block_len`由32变为64外, 还使用了当前S1和相关backend. 因此现有证据不能把退化确定归因于某一个实现.
+
+在这些共同变化中, `block_len=64`是优先级最高的待验证因素. 它减少逻辑记忆边界数量, 改变局部窗口、远端状态可见性和记忆更新节奏, 属于模型语义变化, 而不是纯kernel等价加速. Fastest在best checkpoint上额外表现出的seed125退化, 则说明效率backend的数值路径可能进一步放大训练轨迹敏感性, 但不能解释两个Flash共有的后期退化. 最小因果实验应在当前源码下固定初始化、数据、精度、优化器和backend, 只比较A1+S1 exact的`block_len=32`与`block_len=64`, 完成三seed四epoch配对; 只有该对照完成后, 才能判断问题主要来自block语义还是其他共享实现变化.
+
+MQAR协议会对有限训练集重复四次, 而1B-token自然语言预训练通常接近单遍或低重复数据暴露. 因而该结果是自然语言正式训练前必须处理的稳定性风险, 但不能直接推出自然语言训练也会在相同token位置发生崩落. 自然语言路径仍需要保存多个训练阶段checkpoint, 进行token-aligned验证NLL与下游任务配对评估.
+
+### 5.4. 小模型训练资源
 
 | Arm | Mean wall | Mean step p50 | Peak allocated | Peak reserved |
 |---|---:|---:|---:|---:|
@@ -130,6 +157,8 @@ Fastest相对Canonical的完整四 epoch wall time为`1.497x`加速, peak reserv
 **(4)** 如果Fastest进入自然语言质量路径, 下一门禁应使用相同初始化和data order的短自然语言paired pilot, 保存多个训练阶段checkpoint, 同时比较validation NLL曲线, downstream指标和checkpoint选择敏感性, 不能只比较固定终点.
 
 **(5)** GDN继续作为capacity-matched外部baseline. 它在固定训练预算下稳定性和速度明显更好; Flash的潜在优势集中在best checkpoint的长度外推能力, 两者应同时报告.
+
+**(6)** 下一项最小稳定性诊断应优先比较当前A1+S1 exact的`block_len=32`与`block_len=64`, 而不是先将后期退化归因于Fastest专属kernel. 该对照应保持三seed、四epoch、初始化、data order和训练超参完全一致, 同时记录逐epoch训练loss、验证loss、标准端点和长度外推.
 
 ## 8. 原始证据
 
