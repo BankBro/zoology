@@ -19,6 +19,7 @@
 2. 根因主要是`local_num_blocks`控制的近场/远场可见跨度由64扩到128 token, 不是64-token block边界本身. `local_num_blocks`同时改变local window与remote boundary offset, 当前证据不能把两者进一步拆开.
 3. 最快栈改为`block64/local1`后, 两seed 1024x256 validation peak均值只降低`0.021062`, final均值提高`0.132854`, peak-to-final drop从`-0.157150`缩小到`-0.003234`.
 4. Fresh data只将退化组final提高`0.031805`, drop仍为`-0.200363`. 因此该现象不是重复cache导致的传统过拟合, 更准确的名称是**近场/远场可见跨度引发的持久后期动力学退化**.
+5. 事后路径覆盖审计进一步解释了该现象: `block64/local2`将训练目标中按microbatch等权计量的remote-required比例从`30.578%`降到`16.355%`, 但1024及更长评估几乎`100%`依赖remote路径. 最符合当前证据的机制是**对训练距离分布和可用计算路径的捷径过拟合, 导致长程remote能力选择性遗忘**.
 
 `block64/local1`可替代`block64/local2`成为当前最快MQAR候选, 但这属于模型语义修改. 本实验不自动授权将其用于300M自然语言正式训练或1B-token训练.
 
@@ -103,7 +104,7 @@ W = local_num_blocks * block_len
 idx_remote = n - (local_num_blocks - 1)
 ```
 
-所以本实验定位到的是**近场/远场可见跨度合同**, 不是单独的local softmax窗口或remote read算子. 若需要更细机制, 应新增解耦`W`与`idx_remote`的实验, 不能从本矩阵事后推断.
+所以本实验定位到的是**近场/远场可见跨度合同**, 不是单独的local softmax窗口或remote read算子. 若需要更细机制, 必须设计仍保持无重叠、无缺口可见性的受控实验; 不能朴素拆开`W`与`idx_remote`, 也不能从本矩阵事后推断某一个算子单独有错.
 
 ## 4. 四epoch后期退化
 
@@ -179,7 +180,76 @@ Fresh data使退化组final提高`0.031805`, drop改善`0.047152`, 但未达到�
 
 因此, 数据重复可能轻微放大退化, 但不是充分原因. 终态分类为`persistent_window_dynamics`, 不再将该问题简单写成“Flash在有限MQAR cache上过拟合”.
 
-## 7. 审计与失败边界
+## 7. 局部路径捷径机制审计
+
+本节是正式训练完成后的只读结构审计, 不属于预注册因果矩阵, 也没有修改模型或实验结果. 审计使用正式训练cache `d9098e876a036b8cb90a7186174fd827e0f5b422482266772850069c905bd8c8`、已登记的standard/Longer-MQAR数据和训练器真实loss聚合方式. 汇总数据见[路径覆盖率Artifact](artifacts/20260801-02-flash-late-degradation-causal-diagnosis/local-path-coverage.csv).
+
+### 7.1. 路径语义
+
+Flash的local路径不是任意滑动窗口, 而是按逻辑block对齐的因果窗口. `local_num_blocks`同时控制:
+
+```python
+local_window = local_num_blocks * block_len
+idx_remote = n - (local_num_blocks - 1)
+```
+
+`state[..., n]`表示进入第`n`个block前的记忆状态. 因此, 在当前`block_len=64`下:
+
+| 配置 | Local可见内容 | 写入首次可被remote读取 |
+|---|---|---|
+| `local1` | 当前block内的因果前缀 | 下一block, 即`j + 1` |
+| `local2` | 前一完整block加当前因果前缀 | 下下个block, 即`j + 2` |
+
+这不是单纯“多看64个token”. `local2`一方面给local分支增加了短距离直接访问, 另一方面把相同信息交给remote分支的时间推迟一个block. Local与remote coarse路径还共享softmax分母, 因而local候选增多会改变coarse路径竞争. Residual `M`读取也复用该权重, 但随后RMSNorm会抵消大部分公共标量, 所以不能把其退化简单归因于分母缩放; 对`M`更可信的影响是读取边界更旧、监督延迟更长和训练期有效读取次数减少.
+
+### 7.2. 训练目标的路径覆盖
+
+正式训练cache只有64、128和256三类序列长度. 对每个监督query, 若其目标value位置落入block-aligned local因果窗口, 记为`local-visible`; 否则记为`remote-required`. `block64`下的精确覆盖如下:
+
+| 训练segment | 监督query数 | `local1` local-visible | `local2` local-visible |
+|---|---:|---:|---:|
+| 64x4 | 400,000 | 100.000% | 100.000% |
+| 128x8 | 160,000 | 76.159% | 100.000% |
+| 256x16 | 320,000 | 48.838% | 76.885% |
+| 256x32 | 640,000 | 0.000% | 60.418% |
+| 256x64 | 1,280,000 | 0.000% | 15.606% |
+| **按query数汇总** | **2,800,000** | **24.219%** | **49.731%** |
+
+`local2`将`714,323`个训练目标, 即全部监督query的`25.511`个百分点, 从remote-required变为local-visible. 训练器先对每个microbatch内的监督token取mean, gradient accumulation再等权累积microbatch, 因而真实训练目标不能只按query总数加权. 按2815个训练microbatch等权计算:
+
+| 配置 | 近场跨度 | Query-count remote-required | Microbatch-mean remote-required | 四epoch结果 |
+|---|---:|---:|---:|---|
+| block32/local2 | 64 | 72.322% | 28.951% | 稳定 |
+| block64/local1 | 64 | 75.781% | 30.578% | 稳定 |
+| block32/local4 | 128 | 41.016% | 13.645% | 退化 |
+| block64/local2 | 128 | 50.269% | 16.355% | 退化 |
+
+从`block64/local1`改成`block64/local2`后, remote-required的有效训练权重下降`14.223`个百分点, 只剩原来的约`53.5%`. 两种64-token近场配置均稳定, 两种128-token近场配置均退化, 与第3节的因果矩阵一致.
+
+### 7.3. 训练与评估的路径错配
+
+高难度评估的目标几乎完全落在local窗口外:
+
+| 评估case | 监督query数 | `local1` remote-required | `local2` remote-required |
+|---|---:|---:|---:|
+| Standard 1024x256 | 256,000 | 100.000% | 99.9996% |
+| Longer 1024x256 | 128,000 | 100.000% | 100.000% |
+| Longer 2048x512 | 256,000 | 100.000% | 100.000% |
+| Longer 4096x1024 | 512,000 | 100.000% | 100.000% |
+| Longer 8190x512 | 256,000 | 100.000% | 99.9910% |
+| Longer 8190x2047 | 1,023,500 | 100.000% | 100.000% |
+
+因此, `local2`在短训练序列中经常能从local路径直接取得正确value, 但在1024及更长评估中, 扩大的窗口几乎只增加干扰项, 正确答案仍必须依靠remote记忆. Fresh-per-epoch只更换token身份, 没有改变这种距离分布和路径覆盖, 所以不能消除退化.
+
+现有结果还显示, 退化模型在短任务和部分512长度任务上保持较高准确率, 到1024及更长任务才明显崩塌. 这更像有效记忆时域、抗碰撞或遗忘稳定性下降, 而不是remote机制整体失效.
+
+### 7.4. 机制结论与证据边界
+
+当前最合理的解释是: 128-token近场为短训练样本提供了更容易优化的local捷径, 同时减少并延迟remote路径收到的有效监督. 随着训练继续, 优化器仍能降低短分布train loss, 但remote routing、write/read和forget相关参数受到的约束变弱, 最终表现为长程能力选择性遗忘. 这应称为**对训练距离分布和可用计算路径的捷径过拟合**, 而不是传统的固定样本记忆过拟合.
+
+直接证据只包括路径语义、覆盖率、训练器加权方式以及稳定/退化结果的对应关系. 本实验没有逐epoch测量local/remote质量占比、`Den_far / Den_total`、selected mass、路径梯度、forget half-life或最先漂移的组件, 因而“优化器逐渐依赖local捷径”仍是高一致性的机制解释, 不是已直接观测的内部状态. 此外, local window宽度和`idx_remote`共同构成无重叠、无缺口的路径划分, 不能用简单拆开其中一个参数的方式声称完成单因素验证. 该结论也尚不能直接外推到300M自然语言训练.
+
+## 8. 审计与失败边界
 
 - 主preflight的cache、init、model parameter/state hash、Python/Torch/CUDA/Triton/FLA版本、GPU、源码clean、FLA config和17个arm合同全部通过.
 - 主队列36/36作业返回0, 无训练、checkpoint或evaluation失败.
@@ -190,7 +260,7 @@ Fresh data使退化组final提高`0.031805`, drop改善`0.047152`, 但未达到�
 
 主队列运行于Zoology `68d9e8e`; fresh loader是预注册条件触发后的独立补充, 仅新增于commit `1c29520`, 没有修改主实验模型或已有结果.
 
-## 8. 决策与下一步
+## 9. 决策与下一步
 
 **(1)** 当前不再把Flash后期下降解释为K2/W2/K3效率kernel的共同副作用. 诊断backend和最快backend都支持近场/远场跨度是主要因素.
 
@@ -211,11 +281,13 @@ baseline-r16-joint
 
 **(4)** 自然语言300M下一门禁应在相同初始化、data order和token预算下配对比较`block64/local2`与`block64/local1`, 同时保留当前质量参考. 必须报告validation NLL、多阶段checkpoint和下游任务; MQAR结论不自动决定自然语言最佳近场跨度.
 
-**(5)** 若继续追究微观机制, 应在代码中解耦local window宽度与`idx_remote`偏移后做单变量实验. 当前报告只支持`local_num_blocks`整体合同, 不支持宣称某一个local或remote算子单独有错.
+**(5)** 若继续追究微观机制, 不应直接拆开local window宽度与`idx_remote`偏移, 因为朴素拆分会引入路径重叠或可见性缺口. 更安全的低成本验证是将local2的best/last checkpoint分别在local1/local2推理合同下交叉评估: 若last在local1下仍差, 更支持remote参数已经遗忘; 若明显恢复, 更支持前向路径竞争是主要因素.
 
 **(6)** 未来低成本screen不能停在step1232. Fastest seed123证明退化可在该点之后出现; 应使用完整4 epochs或peak后追加固定验证窗口.
 
-## 9. 原始证据
+**(7)** 后续机制trace应至少记录`Den_far / Den_total`、coarse local/remote输出范数、selected mass、residual injection比例、`logf`对应的记忆半衰期、routing entropy和路径梯度. 这些量能区分“local前向压制remote”和“remote参数随训练遗忘”, 但不影响当前将`block64/local1`作为MQAR稳定候选的决策.
+
+## 10. 原始证据
 
 Raw、checkpoint和fresh cache保留在3090:
 
@@ -225,4 +297,4 @@ Raw、checkpoint和fresh cache保留在3090:
 20260801-late-degradation-01/
 ```
 
-Git中的精简artifact包含208条evaluation明细、训练曲线、机制效应、fresh-data配对与源码/作业审计. Checkpoint和大体积raw日志不进入Git.
+Git中的精简artifact包含208条evaluation明细、训练曲线、机制效应、fresh-data配对、local/remote路径覆盖率与源码/作业审计. Checkpoint和大体积raw日志不进入Git.

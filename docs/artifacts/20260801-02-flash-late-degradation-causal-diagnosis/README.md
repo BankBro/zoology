@@ -10,6 +10,8 @@
 
 Fresh data没有消除退化. `factor-block`的drop仅从`-0.247516`缓解到`-0.200363`, final提高`0.031805`; 因此终态为`persistent_window_dynamics`, 不称为重复cache导致的传统过拟合.
 
+事后路径覆盖审计显示, `block64/local2`将按真实microbatch等权口径计算的remote-required训练信号从`30.578%`降到`16.355%`, 而1024及更长评估几乎完全依赖remote路径. 当前最一致的机制解释是: 扩大的local窗口形成短训练分布捷径, 使remote路径监督减少并延迟, 随训练表现为长程能力选择性遗忘. 该解释有路径语义和覆盖率支持, 但尚未直接测量逐epoch路径质量或梯度, 因而不写成已完全证明的内部因果链.
+
 ## 2. 文件
 
 | 文件 | 内容 |
@@ -19,6 +21,7 @@ Fresh data没有消除退化. `factor-block`的drop仅从`-0.247516`缓解到`-0
 | `evaluation-summary.csv` | 两 seed best/last的standard与Longer宏平均 |
 | `evaluation-detail.csv` | 208条best/last standard及Longer-MQAR评估记录 |
 | `fresh-data.csv` | fixed-repeat与fresh-per-epoch配对结果 |
+| `local-path-coverage.csv` | 正式训练cache与standard/Longer-MQAR的local-visible、remote-required结构审计 |
 | `metadata.json` | commit, 作业数, invariance和数据manifest审计 |
 
 ## 3. Raw 边界
