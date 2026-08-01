@@ -119,7 +119,7 @@ def source_identity(arm: str, gate_mode: str) -> dict[str, Any]:
         "experiment_id": EXPERIMENT_ID,
         "run_tag": run_tag(),
         "arm": arm,
-        "arm_spec": arm_spec(arm),
+        "arm_spec_sha256": stable_json_sha256(arm_spec(arm)),
         "gate_mode": gate_mode,
         "zoology_commit": git_value(REPO_ROOT, "rev-parse", "HEAD"),
         "flash_commit": git_value(FLASH_ROOT, "rev-parse", "HEAD"),
