@@ -145,7 +145,26 @@ class Trainer:
         self.loss_type = loss_type
         self.global_step = 0
 
-    def compute_loss(self, inputs, targets):
+    def _batch_model_kwargs(self, extras):
+        if not extras:
+            return {}
+        return {
+            key: value.to(self.device) if isinstance(value, torch.Tensor) else value
+            for key, value in extras.items()
+        }
+
+    @staticmethod
+    def _unpack_batch(batch):
+        if len(batch) == 3:
+            inputs, targets, slices = batch
+            return inputs, targets, slices, {}
+        if len(batch) == 4:
+            inputs, targets, slices, extras = batch
+            return inputs, targets, slices, extras
+        raise ValueError(f"Expected batch with 3 or 4 items, got {len(batch)}.")
+
+    def compute_loss(self, inputs, targets, model_kwargs=None):
+        model_kwargs = {} if model_kwargs is None else dict(model_kwargs)
         if self.input_type == "continuous":
             
             all_embeddings = self.model.backbone.embeddings.word_embeddings.weight
@@ -153,7 +172,7 @@ class Trainer:
             embed_dim = all_embeddings.shape[1]
             value_embeddings = all_embeddings[vocab_size // 2:]  # all values as candidates
             
-            outputs = self.model(inputs)
+            outputs = self.model(inputs, **model_kwargs)
             num_kv_pairs = targets.shape[1]
             outputs = outputs[:, -num_kv_pairs:]
             
@@ -174,7 +193,7 @@ class Trainer:
         
         else: # discrete
             if self.loss_type == "ce":
-                logits = self.model(inputs)
+                logits = self.model(inputs, **model_kwargs)
                 loss = self.loss_fn(
                     rearrange(logits, "... c -> (...) c"), 
                     targets.flatten()
@@ -183,7 +202,7 @@ class Trainer:
                 return loss, preds
             
             elif self.loss_type == "mse":
-                embeddings = self.model(inputs, return_embeddings=True)
+                embeddings = self.model(inputs, return_embeddings=True, **model_kwargs)
                 target_embeds = self.model.backbone.embeddings.word_embeddings(targets)
                 mask = (targets != -100).unsqueeze(-1)
                 loss, _ = compute_mse(
@@ -195,7 +214,7 @@ class Trainer:
                 return loss, preds
             
             elif self.loss_type == "ce_embed":
-                embeddings = self.model(inputs, return_embeddings=True)
+                embeddings = self.model(inputs, return_embeddings=True, **model_kwargs)
                 value_embeddings = self.model.backbone.embeddings.word_embeddings.weight
                 flat_embeds = rearrange(embeddings, "b s d -> (b s) d")
                 flat_targets = targets.flatten()
@@ -257,10 +276,12 @@ class Trainer:
         self.optimizer.zero_grad()
         accum_loss = 0.0
 
-        for step_idx, (inputs, targets, slices) in enumerate(iterator):
+        for step_idx, batch in enumerate(iterator):
+            inputs, targets, slices, extras = self._unpack_batch(batch)
             inputs, targets = inputs.to(self.device), targets.to(self.device)
+            model_kwargs = self._batch_model_kwargs(extras)
 
-            loss, preds = self.compute_loss(inputs, targets)
+            loss, preds = self.compute_loss(inputs, targets, model_kwargs=model_kwargs)
 
             # Auxiliary losses (discrete mode only)
             if self.input_type == "discrete":
@@ -307,9 +328,11 @@ class Trainer:
             desc=f"Valid Epoch {epoch_idx}/{self.max_epochs}",
             postfix={"loss": "-", "acc": "-"},
         ) as iterator:
-            for inputs, targets, slices in self.test_dataloader:
+            for batch in self.test_dataloader:
+                inputs, targets, slices, extras = self._unpack_batch(batch)
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
-                loss, preds = self.compute_loss(inputs, targets)
+                model_kwargs = self._batch_model_kwargs(extras)
+                loss, preds = self.compute_loss(inputs, targets, model_kwargs=model_kwargs)
                 test_loss += loss / len(self.test_dataloader)
                 results.extend(compute_metrics(preds.cpu(), targets.cpu(), slices))
                 for key, value in self._collect_model_scalar_metrics().items():

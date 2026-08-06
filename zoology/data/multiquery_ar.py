@@ -11,6 +11,7 @@ class MQARConfig(DataSegmentConfig):
     num_kv_pairs: int=8
     random_non_queries: bool=True
     include_slices: bool=True
+    include_retrieval_supervision: bool=False
 
     def build(self, seed: int) -> DataSegment:
         return multiquery_ar(**self.model_dump(), seed=seed)
@@ -25,6 +26,7 @@ def multiquery_ar(
     num_passes: int=1,
     random_non_queries: bool=True,
     include_slices: bool=True,
+    include_retrieval_supervision: bool=False,
     **kwargs
 ) -> DataSegment:
     """
@@ -131,6 +133,18 @@ def multiquery_ar(
     np.put_along_axis(labels, (gaps * 2) + context_size + 1, values=values, axis=1)
 
     inputs, labels = torch.tensor(examples[:, :-1]), torch.tensor(labels[:, 1:])
+
+    extra_tensors = None
+    if include_retrieval_supervision:
+        if num_passes != 1:
+            raise ValueError("retrieval supervision only supports num_passes=1 for MQAR.")
+        ret_source_pos = np.full((num_examples, input_seq_len), -1, dtype=np.int64)
+        query_positions = (gaps * 2) + context_size
+        source_positions = np.arange(num_kv_pairs, dtype=np.int64).reshape(1, num_kv_pairs) * 2
+        np.put_along_axis(ret_source_pos, query_positions, values=source_positions, axis=1)
+        extra_tensors = {
+            "ret_source_pos": torch.tensor(ret_source_pos),
+        }
     
     # replace all the 0 with random values
     if random_non_queries:
@@ -143,5 +157,6 @@ def multiquery_ar(
             "input_seq_len": input_seq_len,
             "num_passes": num_passes,
             "mqar_case": f"{input_seq_len}x{num_kv_pairs}",
-        }
+        },
+        extra_tensors=extra_tensors,
     )

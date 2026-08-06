@@ -57,6 +57,17 @@ DEFAULT_VQ_METRICS = [
     "vq/write_entropy_mean",
     "vq/write_top1_mass_mean",
 ]
+DEFAULT_RET_METRICS = [
+    "ret/main_kl",
+    "ret/score_kl",
+    "ret/main_minus_score",
+    "ret/query_count",
+    "ret/query_count_all",
+    "ret/teacher_invalid_mass",
+    "ret/teacher_valid_mass",
+    "ret/source_write_entropy",
+    "ret/read_entropy",
+]
 REMOTE_LITE_BASE_KEYS = {
     "attn/den_min",
     "attn/nan_inf_count",
@@ -192,7 +203,7 @@ def _expand_metric_variants(base_metrics: Iterable[str], *, layer_count: int = D
 
 def default_flash_vqg_metric_universe(*, layer_count: int = DEFAULT_LAYER_SENTINEL_COUNT) -> set[str]:
     return _expand_metric_variants(
-        [*DEFAULT_ATTN_METRICS, *DEFAULT_VQ_METRICS],
+        [*DEFAULT_ATTN_METRICS, *DEFAULT_VQ_METRICS, *DEFAULT_RET_METRICS],
         layer_count=layer_count,
     )
 

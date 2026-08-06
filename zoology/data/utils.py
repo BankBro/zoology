@@ -16,6 +16,7 @@ class DataSegment:
     inputs: torch.Tensor
     labels: torch.Tensor
     slices: Dict[str, any] = None
+    extra_tensors: Dict[str, torch.Tensor] | None = None
 
     def __len__(self):
         assert len(self.inputs) == len(self.labels) 
@@ -187,7 +188,13 @@ class _SyntheticDataset(Dataset):
 
         batch_len = len(segment.inputs[slc])
         slices = [segment.slices if segment.slices is not None else {}] * batch_len
-        return segment.inputs[slc], segment.labels[slc], slices      
+        if not segment.extra_tensors:
+            return segment.inputs[slc], segment.labels[slc], slices
+        extras = {
+            key: value[slc]
+            for key, value in segment.extra_tensors.items()
+        }
+        return segment.inputs[slc], segment.labels[slc], slices, extras
 
     def __len__(self):
         return len(self.batches)

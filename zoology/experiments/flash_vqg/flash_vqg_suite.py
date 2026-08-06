@@ -450,21 +450,21 @@ def _build_data_config(
     cache_dir: str = DEFAULT_CACHE_DIR,
 ) -> tuple[DataConfig, int]:
     train_configs = [
-        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=100_000, num_kv_pairs=4),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=128, num_examples=20_000, num_kv_pairs=8),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=16),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=32),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=64),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=100_000, num_kv_pairs=4, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=128, num_examples=20_000, num_kv_pairs=8, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=16, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=32, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=20_000, num_kv_pairs=64, include_retrieval_supervision=True),
     ]
     test_configs = [
-        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=4),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=8),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=16),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=128, num_examples=1_000, num_kv_pairs=32),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=1_000, num_kv_pairs=64),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=512, num_examples=1_000, num_kv_pairs=64),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=512, num_examples=1_000, num_kv_pairs=128),
-        MQARConfig(vocab_size=vocab_size, input_seq_len=1024, num_examples=1_000, num_kv_pairs=256),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=4, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=8, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=64, num_examples=1_000, num_kv_pairs=16, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=128, num_examples=1_000, num_kv_pairs=32, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=256, num_examples=1_000, num_kv_pairs=64, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=512, num_examples=1_000, num_kv_pairs=64, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=512, num_examples=1_000, num_kv_pairs=128, include_retrieval_supervision=True),
+        MQARConfig(vocab_size=vocab_size, input_seq_len=1024, num_examples=1_000, num_kv_pairs=256, include_retrieval_supervision=True),
     ]
     input_seq_len = max(c.input_seq_len for c in train_configs + test_configs)
     data = DataConfig(
@@ -552,6 +552,9 @@ def build_configs(
     vq_update_mode: str = DEFAULT_VQ_UPDATE_MODE,
     vq_softmax_tau: float = DEFAULT_VQ_SOFTMAX_TAU,
     vq_topk: int = DEFAULT_VQ_TOPK,
+    retrieval_loss_enabled: bool = False,
+    retrieval_loss_lambda: float = 0.02,
+    retrieval_loss_tau: float = 1.0,
     gradient_accumulation_steps: int = DEFAULT_GRADIENT_ACCUMULATION_STEPS,
     train_batch_size: int | None = None,
     eval_batch_size: int | None = None,
@@ -777,6 +780,9 @@ def build_configs(
                         fox_if_local_use_vq_k=False,
                         enable_layer_metrics=metric_controls["enable_layer_metrics"],
                         fox_phase2_metrics_mode=metric_controls["fox_phase2_metrics_mode"],
+                        retrieval_loss_enabled=bool(retrieval_loss_enabled),
+                        retrieval_loss_lambda=float(retrieval_loss_lambda),
+                        retrieval_loss_tau=float(retrieval_loss_tau),
                     )
                     flash_models = [m for m in flash_models if m.d_model in dmodels_list]
                     flash_models_by_structure[

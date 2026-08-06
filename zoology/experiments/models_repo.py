@@ -364,6 +364,9 @@ def add_flash_vqg(
     fox_clr_delta_beta_init=0.5,
     fox_clr_delta_y_den=1.0,
     fox_clr_delta_eps=1e-6,
+    retrieval_loss_enabled=False,
+    retrieval_loss_lambda=0.02,
+    retrieval_loss_tau=1.0,
 ):
     """
     Add Flash-VQG models with a shared sweep over d_model in [64, 128, 256].
@@ -457,6 +460,9 @@ def add_flash_vqg(
                 "codebook_beta": 0.25,
                 "enable_layer_metrics": bool(enable_layer_metrics),
                 "fox_phase2_metrics_mode": str(fox_phase2_metrics_mode),
+                "retrieval_loss_enabled": bool(retrieval_loss_enabled),
+                "retrieval_loss_lambda": float(retrieval_loss_lambda),
+                "retrieval_loss_tau": float(retrieval_loss_tau),
             },
         )
         # Only inject delta-specific configs when using clr_delta_v1

@@ -26,6 +26,7 @@ class FlashVQGMixer(nn.Module):
         attn_cfg: dict | None = None,
         use_time_mixing: str | None = "kv_shift",
         codebook_beta: float = 0.25,
+        retrieval_loss_lambda: float = 0.02,
         enable_layer_metrics: bool = False,
         vocab_size: int = 32_000,
         **kwargs,
@@ -61,6 +62,7 @@ class FlashVQGMixer(nn.Module):
         self.fox_clr_use_den_residual = bool(fox_clr_use_den_residual)
         self.fox_clr_remat_mode = str(fox_clr_remat_mode)
         self.codebook_beta = float(codebook_beta)
+        self.retrieval_loss_lambda = float(retrieval_loss_lambda)
         self.enable_layer_metrics = bool(enable_layer_metrics)
         self._last_aux: dict | None = None
 
@@ -83,6 +85,7 @@ class FlashVQGMixer(nn.Module):
             attn_cfg={} if attn_cfg is None else attn_cfg,
             use_time_mixing=use_time_mixing,
             codebook_beta=self.codebook_beta,
+            retrieval_loss_lambda=self.retrieval_loss_lambda,
             enable_layer_metrics=self.enable_layer_metrics,
             **kwargs,
         )
@@ -114,9 +117,13 @@ class FlashVQGMixer(nn.Module):
         if not self._last_aux:
             return zero
         l_commit = self._last_aux.get("l_commit")
-        if not isinstance(l_commit, torch.Tensor):
-            return zero
-        return self.codebook_beta * l_commit
+        loss = zero
+        if isinstance(l_commit, torch.Tensor):
+            loss = loss + self.codebook_beta * l_commit
+        l_ret_main = self._last_aux.get("l_ret_main")
+        if isinstance(l_ret_main, torch.Tensor):
+            loss = loss + self.retrieval_loss_lambda * l_ret_main
+        return loss
 
     def get_scalar_metrics(self) -> dict[str, float]:
         if not self._last_aux:
