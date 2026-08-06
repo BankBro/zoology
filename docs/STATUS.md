@@ -27,6 +27,7 @@
 - A1 block64低成本质量门禁已通过. 在seed123、FP32、1 epoch且FLA fused gate配置相同的条件下, A0/A1的704-step loss、最终model/optimizer hash、标准MQAR和4个外推任务全部完全一致. 该结果允许继续C1/K1工程探索, 但不替代300M BF16短自然语言paired pilot.
 - K2 P8 persistent scan的RTX 3090 AMP BF16质量筛选已完成. Seed123一epoch标准validation delta为`-0.010344`, 四外推宏平均delta为`-0.039300`, 未通过预注册门槛; 三seed正式矩阵按计划未启动. 梯度分解确认K2与P0的粗状态和残差状态分支分别一致, 差异来自`W_blk`处不同的FP32累加树. K2应分类为forward exact、backward E1资源候选, 不提升为质量canonical.
 - Selected-read W2筛选已完成. W2 direct在seed123 AMP BF16一轮block64 MQAR中以标准delta`-0.005613`和四外推宏平均delta`-0.019200`通过门槛; preproject的外推宏平均delta为`-0.036765`, 已拒绝. W2 direct仍超过低层绝对误差门槛且只有单seed证据, 因此是fast resource candidate, 不替换S1 exact质量canonical.
+- Residual value bottleneck筛选已完成. U32标准任务相对U64下降`8.34%`, 四外推宏平均下降`37.87%`; U16标准下降`37.92%`, 外推宏平均下降`74.00%`. 两个候选均在seed123 AMP BF16 Q0被拒绝, 不进入三seed正式矩阵或自然语言质量路径.
 - [当前最快Flash与GDN正式MQAR对照](20260801-01-fastest-flash-vs-gdn-mqar-report.md)已完成. RTX 3090 AMP BF16下完成9/9条三seed四epoch训练、234/234逻辑评估和15/15 endpoint重复性检查. 预注册Last主门禁通过: Fastest相对Canonical的标准端点均值delta为`-0.015702`, 四外推宏平均delta为`-0.000430`; 但两组Flash均在epoch1后明显退化, Last四外推宏平均约`0.083`, 低于GDN的`0.214`.
 - Best checkpoint下, Fastest、Canonical和GDN的四外推宏平均分别为`0.509`, `0.598`和`0.214`. Fastest相对Canonical的best均值delta为`-0.089462`, seed125为`-0.250114`; 因而Last主门禁通过不等于训练轨迹或最佳质量等价. Fastest仍是资源候选, S1 exact继续作为质量canonical.
 - [Flash后期退化因果诊断](20260801-02-flash-late-degradation-causal-diagnosis-report.md)已完成. Block32/local2桥接组两seed四epochpeak-to-final drop仅为`-0.005219/-0.004484`, block64/local2则为`-0.247516/-0.161031`. 2x2机制矩阵将主要因素定位为`local_num_blocks`控制的近场/远场可见跨度由64扩到128 token, 而不是64-token block边界本身; fixed与default FLA均复现.
@@ -38,6 +39,7 @@
 - 后续实验默认以上述 Flash-VQG、GDN 和 Conda 环境为基线.
 - 自然语言300M训练仍优先在RTX 3090使用BF16. 当前质量路径为P0 A1加S1 exact selected backward; W2 direct仅作为fast resource candidate. 在完整1B-token训练前仍需300M短自然语言paired pilot.
 - 不采用`block128/256`、`write2/read8`或当前K2 P8作为正式质量路径. 若继续K2, 应先控制跨分支`W`梯度累加树并重新执行BF16 Q0, 或预注册新的E1统计性质量协议, 不事后放宽本次门槛.
+- 不采用residual value 32或16维作为当前正式模型. 后续效率工程保持U64容量.
 - 若继续研究MQAR数值稳定性, 优先定位Flash跨GPU训练轨迹的首次state-hash分叉; 若需加强结论, 增加新的独立training seeds.
 - 如需更换基线, 先完成正式对照实验并更新本页与实验日志.
 - Fastest若进入自然语言质量路径, 应做同初始化、同data order的300M BF16短自然语言paired pilot, 至少配对比较block64/local2与block64/local1并保留当前质量参考. 需要同时测资源、validation NLL、多阶段checkpoint、下游指标和checkpoint选择敏感性; 本次MQAR结果不自动授权1B-token训练.

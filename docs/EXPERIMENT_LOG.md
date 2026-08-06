@@ -149,7 +149,16 @@
 - 输出: [报告](20260731-01-selected-read-warp-mqar-screen-report.md), [artifact](artifacts/20260731-01-selected-read-warp-mqar-screen/README.md).
 - 下一步: 完成Flash-VQG中的K2组合资源测量和生命周期闭环; 是否提升W2证据等级由多seed或300M BF16短自然语言paired pilot决定.
 
-## 17. 2026-08-01: 当前最快 Flash 与 GDN 的 MQAR 正式对照完成
+## 17. 2026-07-31: Residual Value Bottleneck MQAR 筛选拒绝
+
+- `experiment_id`: `20260731-02-residual-value-bottleneck-mqar`.
+- 目的: 在保持coarse value 64维的前提下, 比较residual value U64、U32和U16的block64 AMP BF16 MQAR质量.
+- 结果: U32标准`1024x256`相对下降`8.34%`, 四外推宏平均下降`37.87%`; U16标准下降`37.92%`, 外推宏平均下降`74.00%`. 两个候选均未通过seed123 Q0, 三seed四epoch矩阵未启动.
+- 复现修正: CPU QR导致的跨机投影hash差异改为dense signed Hadamard初始化; queue callback递归和旧checkpoint identity类型问题均以回归测试和shadow config闭环, 未修改训练权重或质量门槛.
+- 输出: [报告](20260731-02-residual-value-bottleneck-mqar-report.md), [artifact](artifacts/20260731-02-residual-value-bottleneck-mqar/README.md).
+- 下一步: 拒绝U32/U16进入质量路径; 效率工程回到不缩容量的fixed-slot custom VJP和scan-read融合.
+
+## 18. 2026-08-01: 当前最快 Flash 与 GDN 的 MQAR 正式对照完成
 
 - `experiment_id`: `20260801-01-fastest-flash-vs-gdn-mqar`.
 - 目的: 在RTX 3090 AMP BF16下, 以三seed四epoch正式比较当前最快Flash资源组合、A1+S1质量canonical和capacity-matched GDN的标准MQAR及长度外推表现.
@@ -160,7 +169,7 @@
 - 决策影响: Last主门禁判定通过, 但Fastest不替换S1 exact质量canonical, 不自动进入1B-token训练. 后续若进入自然语言路径, 必须执行多checkpoint的300M BF16 paired pilot.
 - 输出: [报告](20260801-01-fastest-flash-vs-gdn-mqar-report.md), [artifact](artifacts/20260801-01-fastest-flash-vs-gdn-mqar/README.md).
 
-## 18. 2026-08-01 至 2026-08-02: Flash 后期退化因果诊断完成
+## 19. 2026-08-01 至 2026-08-02: Flash 后期退化因果诊断完成
 
 - `experiment_id`: `20260801-02-flash-late-degradation-causal-diagnosis`.
 - 目的: 复现当前Flash四epoch后期退化, 在固定初始化、数据、精度和优化器下拆分block长度、近场/远场可见跨度、selected backend与FLA autotune因素, 并将修复迁移到最快K2/W2/K3栈.

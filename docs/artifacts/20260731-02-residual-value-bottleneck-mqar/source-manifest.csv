@@ -1,0 +1,5 @@
+role,repository,commit,run_tag,raw_path
+training,zoology,a18cd544462e2030900337bb953527c467272b04,20260731-residual-value-mqar-02,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260731-02-residual-value-bottleneck-mqar/outputs/3090/20260731-residual-value-mqar-02
+model,Flash-VQG,cc3f92b8a972f1c51c3deabeafd0d9f180bc2b16,20260731-residual-value-mqar-02,/home/lyj/mnt/project/Flash-VQG
+evaluation-repair,zoology,30148ab8b57c3119c44844a0fb9f9ea337c41abf,20260731-residual-value-mqar-02,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260731-02-residual-value-bottleneck-mqar/outputs/3090/20260731-residual-value-mqar-02/evaluation
+invalidated-driver,zoology,a18cd544462e2030900337bb953527c467272b04,20260731-residual-value-mqar-01,/home/lyj/mnt/project/zoology/zoology/experiments/flash_vqg/scripts/20260731-02-residual-value-bottleneck-mqar/outputs/3090/20260731-residual-value-mqar-01
