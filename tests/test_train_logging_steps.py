@@ -139,6 +139,23 @@ def test_compute_loss_can_skip_unused_training_predictions():
     assert expected_preds is not None
 
 
+def test_trainer_propagates_optimizer_step_to_opt_in_modules():
+    class _ScheduledModule(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.steps = []
+
+        def set_training_optimizer_step(self, step):
+            self.steps.append(step)
+
+    trainer = object.__new__(Trainer)
+    trainer.model = nn.Sequential(_ScheduledModule(), nn.Linear(1, 1))
+
+    trainer._set_training_optimizer_step(7)
+
+    assert trainer.model[0].steps == [7]
+
+
 def test_train_marks_manifest_failed_on_keyboard_interrupt(monkeypatch):
     statuses = []
     logger = _InterruptingLogger()

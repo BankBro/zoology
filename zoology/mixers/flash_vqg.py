@@ -568,10 +568,16 @@ class FlashVQGMixer(nn.Module):
         if not self._last_aux:
             return zero
         l_commit = self._last_aux.get("l_commit")
+        l_balance = self._last_aux.get("l_balance")
         l_dense_teacher = self._last_aux.get("l_dense_teacher")
         total = zero
         if isinstance(l_commit, torch.Tensor):
             total = total + (self.codebook_beta * l_commit)
+        if isinstance(l_balance, torch.Tensor):
+            total = total + (
+                float(getattr(self.attn.config, "vq_balance_loss_weight", 0.0))
+                * l_balance
+            )
         if isinstance(l_dense_teacher, torch.Tensor):
             total = total + l_dense_teacher
         return total

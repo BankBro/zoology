@@ -53,6 +53,29 @@ def test_flash_vqg_mixer_batches_scalar_tensor_transfer(monkeypatch):
     assert calls == [2]
 
 
+def test_flash_vqg_mixer_includes_registered_balance_auxiliary_loss():
+    mixer = object.__new__(FlashVQGMixer)
+    mixer.codebook_beta = 0.25
+    mixer.attn = type(
+        "AttentionStub",
+        (),
+        {
+            "config": type(
+                "ConfigStub", (), {"vq_balance_loss_weight": 0.01}
+            )(),
+            "res_proj": type(
+                "ProjectionStub", (), {"weight": torch.nn.Parameter(torch.ones(()))}
+            )(),
+        },
+    )()
+    mixer._last_aux = {
+        "l_commit": torch.tensor(2.0),
+        "l_balance": torch.tensor(3.0),
+    }
+
+    assert torch.equal(mixer.get_auxiliary_loss(), torch.tensor(0.53))
+
+
 def test_candidate_metrics_include_attn_and_valid_variants():
     config_dict = {
         "model": {

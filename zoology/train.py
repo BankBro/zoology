@@ -710,7 +710,7 @@ class Trainer:
                 )
                 preds = logits.argmax(dim=-1) if return_predictions else None
                 return loss, preds
-            
+
             elif self.loss_type == "mse":
                 embeddings = self.model(inputs, return_embeddings=True)
                 target_embeds = self.model.backbone.embeddings.word_embeddings(targets)
@@ -739,6 +739,17 @@ class Trainer:
                     logits = embeddings @ value_embeddings.T
                     preds = logits.argmax(dim=-1)
                 return loss, preds
+
+    def _set_training_optimizer_step(self, optimizer_step: int) -> None:
+        """Propagate optimizer-step schedules to mixers that opt into the hook."""
+        step = int(optimizer_step)
+
+        def set_step(module):
+            setter = getattr(module, "set_training_optimizer_step", None)
+            if callable(setter):
+                setter(step)
+
+        self.model.apply(set_step)
 
     def _collect_model_scalar_metrics(self) -> dict[str, float]:
         scalar_metrics: dict[str, float] = {}
@@ -944,6 +955,7 @@ class Trainer:
                     torch.cuda.reset_peak_memory_stats()
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             current_optimizer_step = int(self.optimizer_step)
+            self._set_training_optimizer_step(current_optimizer_step)
             micro_step_idx = int(step_idx % accum_steps)
             self._set_dense_teacher_runtime(targets)
             inline_trace_active = self._set_train_inline_event_trace_runtime(
